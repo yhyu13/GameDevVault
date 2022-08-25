@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html -->
+<html lang="en" class="no-forcetouch no-lowbattery desktop landscape windows windows10 windows10_0 64bit chrome chrome104 chrome104_0 webkit zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    
+
+    
+    
+    
+    
+    
+    
+    <link rel="canonical" href="https://developer.samsung.com/GameDev/resources/articles/gpu-framebuffer.html">
+
+    
+<!-- <title>Samsung Developers</title> -->
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="theme-color" content="#000000">
+<meta name="csrf-token" content="">
+ 
+<link rel="manifest" href="https://developer.samsung.com/manifest.json">
+
+<link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungOne-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungOne-700.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSharpSans-Bold.woff" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSharpSans-Medium.woff" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungOneKorean-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungOneKorean-700.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSharpSans-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/ArialMT.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<link rel="icon" type="image/png" href="https://d3unf4s5rp9dfh.cloudfront.net/symbol_developers.ico">
+
+
+<link rel="stylesheet" href="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/sdp.vendors.css">
+<link rel="stylesheet" href="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/sdp.global.css">
+<link rel="stylesheet" href="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/sdp.app.css">
+<link rel="stylesheet" href="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/docs_mkdown.css">
+
+<script type="text/javascript" async="" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/linkid.js.download"></script><script async="" src="https://connect.facebook.net/en_US/fbevents.js"></script><script type="text/javascript" async="" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/uwt.js.download"></script><script gtm="GTM-THSQV3D" type="text/javascript" async="" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/optimize.js.download"></script><script type="text/javascript" async="" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/analytics.js.download"></script><script type="text/javascript" async="" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/js"></script><script async="" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/gtm.js.download"></script><script type="text/javascript" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/sdp.vendors.min.js.download"></script>
+
+  
+<!-- Google Tag Manager -->
+<script>
+    (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+    })(window, document, "script", "dataLayer", "GTM-THSQV3D");
+</script>
+<!-- End Google Tag Manager -->
+   
+
+    <script src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/mermaid.min.js.download"></script>
+
+    
+
+    
+    
+    
+    <title>GPU Framebuffer Memory: Understanding Tiling | Samsung Developers</title>
+     
+    
+    <meta name="description" content="The world runs on you.">
+    <meta name="author" content="">
+
+    <!-- Open Graph tags  -->
+    <meta property="og:site_name" content="Samsung Developers">
+    <meta property="og:title" content="GameDev |  Samsung Developers">
+    <meta property="og:description" content="The world runs on you.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://developer.samsung.com/GameDev/resources/articles/gpu-framebuffer.html">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:image" content="https://d3unf4s5rp9dfh.cloudfront.net/SDP/SNS_1280x630.jpg">
+
+    <!-- Twitter card tags  -->
+    <meta name="twitter:site" content="@samsung_dev">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="GameDev |  Samsung Developers">
+    <meta name="twitter:description" content="The world runs on you.">
+    <meta name="twitter:domain" content="http://developer.samsung.com/">
+    <meta name="twitter:image" content="https://d3unf4s5rp9dfh.cloudfront.net/SDP/SNS_1280x630.jpg">
+<script src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/clipboard.min.js.download"></script></head>
+
+<body>
+
+    
+
+
+<!-- Google Tag Manager (noscript) for Samsung -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-THSQV3D" height="0"
+                width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+
+
+    <div id="app" data-type="doc" data-secure="public" data-product-root="/galaxy-gamedev" data-secure-timeout="3600000" data-static-root="galaxy-gamedev" data-has-session="false" class="show">
+        <div class="wrapper">
+            <header class="sdp-header" id="el-sdp-header" data-component="true">
+    <div class="inner-wrap">
+        <nav class="navbar-wrap" style="background-color: white;">
+            <div class="bg-header bg-header-cover" style="height: 100%;"></div>
+            <div class="navbar navbar-expand-md">
+                <div class="sdp-logo">
+                    <a class="link-logo" href="https://developer.samsung.com/" title="Samsung Developers">
+                        <span>
+                            <i class="s-ico s-ico-logo-w"></i>
+                        </span>
+                    </a>
+                </div>
+
+                <button id="toggle-mobile-gnb" class="btn toggle-mobile-menu" type="button" data-toggle="collapse" aria-controls="mobile navbar collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="icon-box">
+                        <i></i>
+                    </span>
+                    <em class="sr-only">Toggle navigation</em>
+                </button>
+
+                <!-- mobile / global-Search-button -->
+                <button type="button" class="btn btn-global-search is-mobile" aria-haspopup="true" aria-expanded="false">
+                    <span class="sr-only">Global Search</span>
+                    <span class="i-box">
+                        <i class="s-ico s-ico-schzoom-black"></i>
+                        <i class="icon-close"><i></i></i>
+                    </span>
+                </button>
+
+                <div class="hd-collapse navbar-collapse" id="global-nav-collapse">
+                    <div id="nav-gnb" class="gnb main-nav">
+                        <ul class="navbar-nav navbar-depth1">
+                            <li class="nav-item">
+                                <button class="toggle-submenu"></button>
+                                <a class="nav-link depth1-link" href="https://developer.samsung.com/learn"><span>Learn</span></a>
+                                <div class="navbar-depth2-wrap" style="height: 94.2px; top: -114.2px;">
+                                    <ul class="navbar-nav navbar-depth2 navbar-depth2-row">
+                                        
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/codelab" class="nav-link depth2-link"><span>Code Lab</span></a>
+                                        </li>
+                                        
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/foldables-and-largescreens" class="nav-link depth2-link"><span>Foldables and Large Screens</span></a>
+                                        </li>
+                                        
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/one-ui-beta" class="nav-link depth2-link"><span>One UI Beta</span></a>
+                                        </li>
+                                        
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/developers-podcast" class="nav-link depth2-link"><span>Samsung Developers Podcasts</span></a>
+                                        </li>
+                                        
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <button class="toggle-submenu"></button>
+                                <a class="nav-link depth1-link active" href="https://developer.samsung.com/develop"><span>Develop</span></a>
+                                <div class="navbar-depth2-wrap" style="height: 536.4px; top: -556.4px;">
+                                    <ul class="navbar-nav navbar-depth2 sm-col-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link depth2-link depth2-header no-link"><span><span>Mobile</span></span></a>
+                                        </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/galaxy-gamedev" class="nav-link depth2-link depth2-clindren active"><span><span>Galaxy GameDev</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/galaxy-themes" class="nav-link depth2-link depth2-clindren"><span><span>Galaxy Themes</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/galaxy-watch" class="nav-link depth2-link depth2-clindren"><span><span>Galaxy Watch</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/health" class="nav-link depth2-link depth2-clindren"><span><span>Health</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/blockchain" class="nav-link depth2-link depth2-clindren"><span><span>Samsung Blockchain</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/samsung-dex" class="nav-link depth2-link depth2-clindren"><span><span>Samsung DeX</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/iap" class="nav-link depth2-link depth2-clindren"><span><span>Samsung IAP</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/internet" class="nav-link depth2-link depth2-clindren"><span><span>Samsung Internet</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/pay" class="nav-link depth2-link depth2-clindren"><span><span>Samsung Pay</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/wallet" class="nav-link depth2-link depth2-clindren"><span><span>Samsung Wallet</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/mobile" class="nav-link depth2-link depth2-clindren nav-arrow"><span><span>View All</span></span></a>
+                                            </li>
+                                        
+                                    </ul>
+                                    <ul class="navbar-nav navbar-depth2 sm-col-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link depth2-link depth2-header no-link"><span><span>Visual Display</span></span></a>
+                                        </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/smarttv/develop" class="nav-link depth2-link depth2-clindren"><span><span>Smart TV</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/signage" class="nav-link depth2-link depth2-clindren"><span><span>Smart Signage</span></span></a>
+                                            </li>
+                                         
+                                    </ul>
+                                    <ul class="navbar-nav navbar-depth2 sm-col-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link depth2-link depth2-header no-link"><span><span>Digital Appliance</span></span></a>
+                                        </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/family-hub" class="nav-link depth2-link depth2-clindren"><span><span>Family Hub</span></span></a>
+                                            </li>
+                                         
+                                    </ul>
+                                    <ul class="navbar-nav navbar-depth2 sm-col-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link depth2-link depth2-header no-link"><span><span>Platform</span></span></a>
+                                        </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/bixby" class="nav-link depth2-link depth2-clindren"><span><span>Bixby</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/knox" class="nav-link depth2-link depth2-clindren"><span><span>Knox</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/smartthings" class="nav-link depth2-link depth2-clindren"><span><span>SmartThings</span></span></a>
+                                            </li>
+                                        
+                                            <li class="nav-item">
+                                                <a href="https://developer.samsung.com/tizen" class="nav-link depth2-link depth2-clindren"><span><span>Tizen.NET</span></span></a>
+                                            </li>
+                                         
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <button class="toggle-submenu"></button>
+                                <a class="nav-link depth1-link" href="https://developer.samsung.com/design"><span>Design</span></a>
+                                <div class="navbar-depth2-wrap" style="height: 94.2px; top: -114.2px;">
+                                    <ul class="navbar-nav navbar-depth2 navbar-depth2-row">
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/design-system" class="nav-link depth2-link"><span>Design System</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/one-ui" class="nav-link depth2-link"><span>One UI</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/one-ui-watch" class="nav-link depth2-link"><span>One UI Watch</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/smarttv/design" class="nav-link depth2-link"><span>Smart TV</span></a>
+                                        </li>
+                                     
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <button class="toggle-submenu"></button>
+                                <a class="nav-link depth1-link" href="https://developer.samsung.com/distribute"><span>Distribute</span></a>
+                                <div class="navbar-depth2-wrap" style="height: 94.2px; top: -114.2px;">
+                                    <ul class="navbar-nav navbar-depth2 navbar-depth2-row">
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/galaxy-store" class="nav-link depth2-link"><span>Galaxy Store</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/tv-seller-office" class="nav-link depth2-link"><span>TV Seller Office</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/galaxy-games" class="nav-link depth2-link"><span>Galaxy Store Games</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/podcasts" class="nav-link depth2-link"><span>Samsung Podcasts</span></a>
+                                        </li>
+                                     
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <button class="toggle-submenu"></button>
+                                <a class="nav-link depth1-link" href="https://developer.samsung.com/support"><span>Support</span></a>
+                                <div class="navbar-depth2-wrap" style="height: 94.2px; top: -114.2px;">
+                                    <ul class="navbar-nav navbar-depth2 navbar-depth2-row">
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/dev-support" class="nav-link depth2-link"><span>Developer Support</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/remote-test-lab" class="nav-link depth2-link"><span>Remote Test Lab</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/issues-and-bugs" class="nav-link depth2-link"><span>Issues and Bugs Channel</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/android-usb-driver" class="nav-link depth2-link"><span>Samsung Android USB Driver</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/galaxy-emulator-skin" class="nav-link depth2-link"><span>Galaxy Emulator Skin</span></a>
+                                        </li>
+                                     
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <button class="toggle-submenu"></button>
+                                <a class="nav-link depth1-link" href="https://developer.samsung.com/connect"><span>Connect</span></a>
+                                <div class="navbar-depth2-wrap" style="height: 94.2px; top: -114.2px;">
+                                    <ul class="navbar-nav navbar-depth2 navbar-depth2-row">
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/blog" class="nav-link depth2-link"><span>Blog</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/news" class="nav-link depth2-link"><span>News</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://forum.developer.samsung.com/" class="nav-link depth2-link"><span>Forums</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/events" class="nav-link depth2-link"><span>Events</span></a>
+                                        </li>
+                                    
+                                        <li class="nav-item">
+                                            <a href="https://developer.samsung.com/conference" class="nav-link depth2-link"><span>Samsung Developer Conference</span></a>
+                                        </li>
+                                     
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="common-menu main-nav">
+                        <ul class="navbar-nav navbar-depth1">
+                            <li class="nav-item nav-item-search">
+                                <button type="button" class="btn btn-global-search" aria-haspopup="true" aria-expanded="false">
+                                    <span class="sr-only">Global Search</span>
+                                    <span class="i-box">
+                                        <i class="s-ico s-ico-schzoom-black"></i>
+                                        <i class="icon-close"><i></i></i>
+                                    </span>
+                                </button>
+                            </li>
+
+                            <!-- before login -->
+                            
+                            <li class="nav-item">
+                                <button class="toggle-submenu none-child"></button>
+                                <a class="nav-link depth1-link" href="https://developer.samsung.com/login?redirectURL=%2Fgalaxy-gamedev%2Fresources%2Farticles%2Fgpu-framebuffer.html"><span>Sign In</span></a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Global Search  -->
+        <div id="modal-global-top-search" class="common-modal modal-global-top-search" tabindex="-1" aria-labelledby="modal-search-collapse">
+            <div class="inner-modal">
+                <!-- close Button -->
+                <button type="button" class="btn btn-close-modal" data-dismiss="modal" aria-label="Close">
+                    <span class="i-box">
+                        <i class="icon-close"><i></i></i>
+                    </span>
+                </button>
+
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="sdp-search-form-wrap">
+                            <form id="global-sdp-search-form" method="GET" action="https://developer.samsung.com/search">
+                                <fieldset class="sdp-search-field">
+                                    <legend class="sr-only">Top Global Search Form</legend>
+
+                                    <div class="input-group sdp-input-group-search">
+                                        <label for="global-sdp-form-search-field" class="sr-only">Search</label>
+                                        <input name="query" id="global-sdp-form-search-field" class="form-control" type="text" aria-label="search..." placeholder="Search" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-owns="quick search form">
+                                        <input type="hidden" name="type" value="all">
+                                        <input type="hidden" name="category" value="all">
+                                        <button type="submit" class="btn btn-submit" aria-label="search" title="search">
+                                            <span class="sr-only">Submit</span>
+                                            <span class="prepend-icon"><i class="s-ico s-ico-schzoom-black"></i></span>
+                                        </button>
+                                    </div>
+                                </fieldset>
+                            </form>
+
+                            <div id="global-sdp-search-result" class="sdp-search-result-section">
+                                <div class="inner-result-sec">
+                                    <div class="inner-scroll">
+                                        <!-- Recommendation list -->
+                                        <span class="sdp-search-result-title" style="display: block;">Recommendation</span>
+                                        <ul class="sdp-search-result sch-recommend" role="listbox">
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Code+Lab" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Code Lab</div>
+            </a>
+        </li>
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Developer+Support" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Developer Support</div>
+            </a>
+        </li>
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Foldable+and+Large+Screen+Optimization" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Foldable and Large Screen Optimization</div>
+            </a>
+        </li>
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Forums" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Forums</div>
+            </a>
+        </li>
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Galaxy+Emulator+Skin" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Galaxy Emulator Skin</div>
+            </a>
+        </li>
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Galaxy+GameDev" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Galaxy GameDev</div>
+            </a>
+        </li>
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Health" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Health</div>
+            </a>
+        </li>
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Remote+Test+Lab" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Remote Test Lab</div>
+            </a>
+        </li>
+        <li class="sdp-search-result-item" role="presentation">
+            <a href="https://developer.samsung.com/search?query=Watch+Face+Studio" role="option" class="sdp-search-result-link">
+                <div class="d-flex">Watch Face Studio</div>
+            </a>
+        </li></ul>
+
+                                        <!-- Suggestion list -->
+                                        <span class="sdp-search-result-title" style="display: none;">Suggestion</span>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+            <!-- MENU: Document Layout Page -->
+            <!-- Applied ClassName : sdp-ly-document / Target: sdp-container -->
+            <div id="el-sdp-container" class="sdp-container sdp-ly-document">
+
+                
+                
+                <!--  document sticky title bar -->
+                <div id="el-top-title-nav" class="docs-top-title-nav" style="top: 64px;">
+                    <div class="inner-title-nav">
+                        <div class="lft-nav">
+                            <nav class="nav-breadcrumb" aria-label="breadcrumb">
+                                <ol id="el-breadcrumb" class="breadcrumb">
+                                    
+                                        <li class="breadcrumb-item">
+                                            <a class="item-text" href="https://developer.samsung.com/GameDev">GameDev</a>
+                                        </li>
+                                    
+                                    <!-- breadcrumb-item here!! -->
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                    <!-- toggle -->
+                    <a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#" class="btn-toggle-mobile-lnb">
+                        <em class="sr-only">Toggle Side navigation</em>
+                    </a>
+                </div>
+
+
+
+                <div class="inner-wrap">
+                    
+                    
+                        <nav class="sidebar-lnb-document" id="el-sidebar-lnb-document">
+                        <div class="side-navbar" style="height: 681px; bottom: 0px;">
+                            <div class="nav-lnb-wrap">
+                                <ul class="nav flex-column nav-lnb">
+                                    
+
+    
+    
+     
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item lnb-depth1" data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth1-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/overview.html">
+                        <span class="txt">Galaxy GameDev</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item lnb-depth1" data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth1-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/best-practice.html">
+                        <span class="txt">Best Practices</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+                
+                <li class="nav-item lnb-depth1 ">
+                    
+                    <hr>
+                    
+                    
+                    <a class="nav-link depth1-link ">
+                        <span class="txt">Adaptive Performance</span>
+                    </a>
+                    
+                        <div class="navbar-sub-wrap">
+                    
+                    <div class="navbar-sub-wrap">
+                        <ul class="nav lnb-depth2">
+                            <li class="nav-item">
+                                
+    
+    
+     
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                </li><li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth2-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/adaptive-performance.html">
+                        <span class="txt">Introduction</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth2-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/ap-userguide/v1.html">
+                        <span class="txt">v1.<wbr>0</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth2-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/ap-userguide/v2.html">
+                        <span class="txt">v2.<wbr>0</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+                
+                <li class="nav-item  ">
+                    
+                    
+                    <a class="nav-link depth2-link " href="https://developer.samsung.com/galaxy-gamedev/adaptive-performance-resources.html">
+                        <span class="txt">Resources</span>
+                    </a>
+                    
+                        <div class="navbar-sub-wrap">
+                    
+                    <div class="navbar-sub-wrap">
+                        <ul class="nav lnb-depth3">
+                            <li class="nav-item">
+                                
+    
+    
+     
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                </li><li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth3-link none-child" style="display: none;" href="https://developer.samsung.com/galaxy-gamedev/adaptive-performance-resources.html">
+                        <span class="txt">/</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+                
+                <li class="nav-item  ">
+                    
+                    
+                    <a class="nav-link depth3-link ">
+                        <span class="txt">Articles</span>
+                    </a>
+                    
+                        <div class="navbar-sub-wrap">
+                    
+                    <div class="navbar-sub-wrap">
+                        <ul class="nav lnb-depth4">
+                            <li class="nav-item">
+                                
+    
+    
+     
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                </li><li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth4-link none-child
+                        " style="" href="https://developer.samsung.com/galaxy-gamedev/adaptive-performance-resources.html#ap-vulkan-extensions-for-mobile">
+                        <span class="txt">Vulkan Extensions</span>
+                    </a>
+                </li>
+            
+        
+    
+
+                            
+                        </ul>
+                    </div>
+                </div></li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth3-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/adaptive-performance-resources.html#Video-Sessions-and-Talks">
+                        <span class="txt">Videos</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth3-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/adaptive-performance-resources.html#Unity-Documentation">
+                        <span class="txt">Documentation</span>
+                    </a>
+                </li>
+            
+        
+    
+
+                            
+                        </ul>
+                    </div>
+                </div></li>
+            
+        
+    
+
+                            
+                        </ul>
+                    </div>
+                </div></li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+                
+                <li class="nav-item lnb-depth1 ">
+                    
+                    <hr>
+                    
+                    
+                    <a class="nav-link depth1-link ">
+                        <span class="txt">GPUWatch</span>
+                    </a>
+                    
+                        <div class="navbar-sub-wrap">
+                    
+                    <div class="navbar-sub-wrap">
+                        <ul class="nav lnb-depth2">
+                            <li class="nav-item">
+                                
+    
+    
+     
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                </li><li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth2-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/gpuwatch.html">
+                        <span class="txt">Introduction</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth2-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/gpuwatch-userguide/gpuwatch_v1.html">
+                        <span class="txt">v1.<wbr>0 &amp; v1.<wbr>5</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item " data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth2-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/gpuwatch-userguide/gpuwatch_v2.html">
+                        <span class="txt">v2.<wbr>0</span>
+                    </a>
+                </li>
+            
+        
+    
+
+                            
+                        </ul>
+                    </div>
+                </div></li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item lnb-depth1" data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth1-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/resources.html">
+                        <span class="txt">Resources</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item lnb-depth1" data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth1-link none-child" style="" href="https://developer.samsung.com/galaxy-gamedev/event-archive.html">
+                        <span class="txt">Event Archive</span>
+                    </a>
+                </li>
+            
+        
+            
+            
+                
+                
+                
+                
+                
+    
+                
+    
+                <li class="nav-item lnb-depth1" data-link="/GameDev/resources/articles/gpu-framebuffer.html">
+                    <a class="nav-link depth1-link none-child" style="" href="https://samsung.us11.list-manage.com/subscribe?u=498f4566539b5e6a3e0505d7d&amp;id=1a1d8078c0" target="_blank">
+                        <span class="txt">GameDev Newsletter</span>
+                    </a>
+                </li>
+            
+        
+    
+
+
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                    
+                    
+
+                    <main role="main" class="main-container has-toc" id="el-main-container">
+                        <div class="inner-container col">
+                            
+
+                                <div class="inner-sec mkdown-docs">
+                                 
+                                
+                                
+                                <p class="mk-wall-cta">
+                                    
+                                </p>
+                                
+                                
+                                <h1 id="GPU-Framebuffer-Memory-Understanding-Tiling">GPU Framebuffer Memory: Understanding Tiling</h1>
+<p>Modern graphics hardware requires a high amount of memory bandwidth as part of rendering operations. External memory bandwidth is costly in terms of space and power requirements, especially for mobile rendering. This article discusses tile-based rendering, the approach used by most mobile graphics hardware - and, increasingly, by desktop hardware.</p>
+<p><em>Please note: This article contains a number of animations. Click on the button below an image to activate its animation.</em></p>
+<br>
+<h2 id="Immediate-mode-rasterizers">Immediate mode rasterizers</h2>
+<p>The traditional interface presented by a graphics API is that of submitting triangles in order, with the concept that the GPU renders each triangle in turn. That is, rasterization happens as shown below:</p>
+<p><em>These images, like others below, show the color framebuffer on the left and the corresponding depth buffer on the right.</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_01.gif" alt="Simple &#39;immediate-mode&#39; rendering" class="img-fluid"></div><small class="small">Simple 'immediate-mode' rendering</small></div></p>
+<p>Hardware which processes triangles immediately as they are submitted, as shown here, is known as an Immediate-Mode Renderer ("IMR"). Historically, desktop and console GPUs have behaved in roughly this way.</p>
+<p><em>In an IMR, the graphics pipeline proceeds top-to-bottom for each primitive, accessing memory on a per-primitive basis.</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_03.svg" alt="Pipeline of an &#39;immediate-mode&#39; renderer" class="img-fluid"></div><small class="small">Pipeline of an 'immediate-mode' renderer</small></div></p>
+<br>
+<h2 id="Memory-use-in-an-Immediate-Mode-Renderer">Memory use in an Immediate-Mode Renderer</h2>
+<p>A naïve implementation of an immediate-mode renderer might use a large amount of memory bandwidth. The next diagram shows that a large amount of memory is transferred during rasterization even with a simple cache for the framebuffer pixels and depth values. IMRs cause memory to be accessed in an unpredictable order, determined by the way triangles are submitted.</p>
+<p><em>In this diagram, four "cache lines" of consecutive image memory are shown above the image as it is rendered. Above each cache line is a miniature rectangle showing where the pixels corresponding to the cache line fall in the framebuffer: red for "dirty" cache lines that have been written to, green for "clean" cache lines that still match memory, and brighter colors for cache lines that have been accessed more recently. Framebuffer pixels corresponding to "dirty" cache lines are shown in magenta (framebuffer) and white (depth buffer).</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_06.gif" alt="Rendering with linear cachelines" class="img-fluid"></div><small class="small">Rendering with linear cachelines</small></div></p>
+<br>
+<h2 id="Tiled-memory">Tiled memory</h2>
+<p>The first step towards reducing memory bandwidth is to treat each cache line as covering a two-dimensional rectangular area (a "tile") in memory. Triangles that are near to each other in space are often submitted near each other in time (in this example, each "spike" of the object is drawn before moving on to the next), so better grouping of the cache area results in more cache hits. With square cache areas that are the same size as a linear cache, more rendering happens within the cache, and transfers to memory are less frequent - we've reduced external memory bandwidth! A similar technique is often used in texture storage, since the reading of texture values similarly shows spatial locality of reference.</p>
+<p>This example is simplified - actual hardware may use more complex mappings between pixels and memory in order to further improve locality of reference.</p>
+<p><em>This time the four cache lines (spaced out horizontally) each cover a square area in the framebuffer and depth buffer. The cached framebuffer area is now shown above the corresponding cached depth buffer area. The cache lines hold the same number of pixels as for the linear cache in the previous example.</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_07.gif" alt="Rendering with square cache tiles" class="img-fluid"></div><small class="small">Rendering with square cache tiles</small></div></p>
+<br>
+<h2 id="Rasterizing-within-tiles">Rasterizing within tiles</h2>
+<p>In a real-world situation, the framebuffer would likely be larger relative to the cached tiles. One problem with the technique we've shown so far is that a large triangle might thrash the cache if drawn in simple top-to-bottom order, since each horizontal line on the screen might cover more tiles than can fit in the cache. We can solve this problem by changing the order in which the pixels within a triangle are rasterized: we can draw all the pixels that the triangle covers within one tile before moving on to the next tile.</p>
+<p>Since in our simple example the cache can cover the entire framebuffer width, this approach doesn't reduce the number of memory transfers that are performed. However, we can see the difference - rendering for a triangle completes in one cached tile before moving to the next.</p>
+<p><em>Note: This animation takes longer than the last one because the image is updated after each tile has processed a triangle; the previous animation updated only after each triangle was completely rendered and during transfers between tiles an memory. In real hardware, performance would be the same - and, if the previous approach caused the cache to thrash, the performance of this version would be better.</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_10.gif" alt="Rendering a tile at a time" class="img-fluid"></div><small class="small">Rendering a tile at a time</small></div></p>
+<p>We would get even better memory access if, rather than just processing all the pixels corresponding to one triangle before moving on to the next tile, we processed the pixels for all the triangles in the scene. This is the optimization performed by tile-based renderers (or "TBRs").</p>
+<br>
+<h2 id="Binning">Binning</h2>
+<p>The first step of tile-based rendering is to determine which triangles affect each tile. A primitive implementation of a tile-based renderer could simply render the entire scene for each tile, clipped to the area covered by the cache. In practice, with large framebuffers and relatively small tiles, this would be very inefficient. Instead, when geometry is submitted for rendering, rather than being immediately rasterized, it is "binned" to a structure in memory that determines which tiles it could affect. Note that this process involves vertex shading, since this affects the location of triangles, but not fragment shading.</p>
+<p><em>This diagram shows each triangle of our scene being "binned" into twelve tiles that cover the frame buffer in a 4x3 pattern. The "framebuffer" at the bottom shows the triangle as it is submitted. Above the full-size framebuffer is a 4x3 arrangement of miniature framebuffers, each showing only the triangles that have been "binned" into the corresponding rectangular tile of the image; the area corresponding to the tile is faintly outlined.</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_12.gif" alt="Sorting triangles into bins" class="img-fluid"></div><small class="small">Sorting triangles into bins</small></div></p>
+<br>
+<h2 id="Tile-based-rasterization">Tile-based rasterization</h2>
+<p>Once the geometry has been sorted into bins, the rasterizer can process the scene one bin at a time, writing only to local tile memory until processing of the tile is finished. Since each tile is processed only once, the "cache" is now reduced to a single tile. This in-order processing includes clearing the framebuffer - all of the framebuffer is "dirty" until the tile is processed.</p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_14.gif" alt="Tiled rendering" class="img-fluid"></div><small class="small">Tiled rendering</small></div></p>
+<p><em>Rendering has now been broken into two stages: binning, which writes to memory, then rasterization, that reads the bin contents. The intermediate store of geometry is typically small relative to the framebuffer, and is accessed in an ordered way.</em></p>
+<p><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_16.svg" alt="" class="img-fluid"></p>
+<p>Because the rasterization of tiles cannot begin until all the geometry has been processed, tile-based rendering introduces latency compared with immediate-mode rendering. In return, the reduction in bandwidth increases the rasterization speed. In some tile-based rendering hardware, the binning and rasterizing operations are pipelined. Therefore any operation that limits this parallelism (such as a vertex shader that depends on the previous frame's output, or a texture which is modified frame-by-frame and is not double-buffered) introduces a "bubble" that reduces performance. Additionally some tile-based rendering hardware is limited in the amount of geometry which can be processed in the binning pass.</p>
+<p>Nonetheless, the bandwidth reduction of tile-based rendering means that almost all mobile hardware is based on tiling. Even traditional desktop IMR vendors are moving towards a partly tiled approach with their latest hardware. This means that both desktop and mobile platforms can benefit from API changes designed to support tillers (such as Vulkan Subpasses).</p>
+<p>Since we process all the geometry contributing to the image one tile at a time, it may not be necessary to read any previous value from the framebuffer - we can clear the image as part of the tile processing (as shown above) and avoid the bandwidth cost of a read unless we really need previous contents. It is often also possible to avoid writing the depth buffer to memory (not shown in the above example), since typically the depth value is only used during rendering and does not need to persist between frames.</p>
+<p>External traffic to the framebuffer is now limited to one write per tile - although these writes include clearing the framebuffer to a background color when no other primitives were there.</p>
+<br>
+<h2 id="Multisampling">Multisampling</h2>
+<p>Tile-based rendering also provides a low-bandwidth way to implement antialiasing: we can render to the tiles normally, and average pixel values as part of the operation of writing the tile memory. This downsampling step is known as "resolving" the tile buffer. When multisampling (as opposed to supersampling), not every on-chip pixel is shaded.</p>
+<p>If the tile buffer is of a fixed size, antialiasing means the image must be divided into more tiles, and there are more writes from tile memory to the framebuffer - but the total amount of memory transferred to the framebuffer is unaffected by the degree of multisampling. The full-resolution version of the framebuffer (the version that has not been downsampled) never needs to be written to memory, so long as no further processing is done to the same render target. This can save a lot of bandwidth, and for simple scenes makes multisampling almost free.</p>
+<p><em>In this animation, 2x2 antialiasing has made the tile coverage in the framebuffer smaller, so more passes are needed. The geometry rasterized in the tile memory is double-sized, and shrunk when written to the framebuffer. The depth buffer is only needed on-chip, not in main memory, so only the color aspect of the full framebuffer is shown - the on-chip depth value is discarded once the tile is processed.</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_19.gif" alt="Multisampled tiled rendering" class="img-fluid"></div><small class="small">Multisampled tiled rendering</small></div></p>
+<br>
+<h2 id="Traditional-deferred-shading">Traditional deferred shading</h2>
+<p>It is not normally possible to read from the framebuffer attachment during the process of rendering to it. Nonetheless, some techniques rely on being able to read back the result of previous rendering operations.</p>
+<p>One such technique is "deferred rendering": only basic information is recorded as each primitive is rasterized, then a second pass is made over the rendered scene, using this recorded information as input to the shading operations per pixel. Deferred rendering can reduce the number of required costly state changes, and increase the potential parallelism available to fragment shaders.</p>
+<p>A simple implementation of deferred rendering has a high bandwidth cost, since the entire framebuffer, including all per-pixel values, must be read and written for the deferred shading pass.</p>
+<p><em>This example shows the cache behavior in a simple deferred shading implementation. The first pass simply records the Phong-interpolated surface normal. The second pass reads this information for every pixel in the image and uses the interpolated normal for lighting calculations - reading and writing every image line in the process.</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_21.gif" alt="Deferred shading with an IMR" class="img-fluid"></div><small class="small">Deferred shading with an IMR</small></div></p>
+<br>
+<h2 id="Tiling-and-deferred-shading">Tiling and deferred shading</h2>
+<p>Because deferred shading (and the related deferred lighting approach) require only the contents of the current pixel to be read, the scene can still be processed one tile at a time. Only the final result of the shading pass needs to be written to the framebuffer.</p>
+<p>To achieve this in Vulkan, the entire sequence of rendering is treated as a single render pass, and the geometry and shading operations are each contained in a subpass. In OpenGL ES, a similar approach is possible less formally with Pixel Local Storage. With these approaches, the memory access cost of deferred shading is no greater than for simple rendering - and there is still no need to write the depth buffer.</p>
+<p><em>This example shows deferred shading in a tile-based renderer: the triangle rasterisation and the subsequent shading pass proceed within the tile memory, with only the RGB shading result being written out to the framebuffer.</em></p>
+<p><div class="doc-img-content"><div class="doc-img-holder"><img src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/tech_GPUFramebuffer_23.gif" alt="Tiled deferred shading" class="img-fluid"></div><small class="small">Tiled deferred shading</small></div></p>
+<br>
+<h2 id="Advantages-of-tile-based-rendering">Advantages of tile-based rendering</h2>
+<ul>
+<li>
+<p>Frame buffer memory bandwidth is greatly reduced, reducing power and increasing speed.</p>
+<ul>
+<li>Mobile memory is typically slower and lower power than desktop systems, and bandwidth is shared with the CPU, so access is very costly.</li>
+</ul>
+</li>
+<li>
+<p>With API support, off-chip memory requirements may also be reduced (it may not be necessary to allocate an off-chip Z buffer at all, for example).</p>
+</li>
+<li>
+<p>Texture cache performance can be improved (textures covering multiple primitives may be accessed more coherently one tile at a time than one primitive at a time.</p>
+</li>
+<li>
+<p>Much less on-chip space is needed for good performance compared with a general-purpose frame buffer cache.</p>
+<ul>
+<li>This means that more space can be dedicated to texture cache, further reducing bandwidth.</li>
+</ul>
+</li>
+</ul>
+<br>
+<h2 id="Limitations-of-tile-based-rendering">Limitations of tile-based rendering</h2>
+<p>While there are many performance advantages to tile-based rendering, there are some restrictions imposed by the technique:</p>
+<ul>
+<li>
+<p>The two-stage binning and fragment passes introduce latency</p>
+<ul>
+<li>
+<p>This latency should be hidden by pipelining and improved performance, but makes some operations relatively more costly</p>
+</li>
+<li>
+<p>In pipelined tiled rendering, framebuffer and textures required for rendering should be double-buffered so as to avoid stalling the pipeline</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Framebuffer reads that might fall outside the current fragment are relatively more costly</p>
+<ul>
+<li>Operations such as screen-space ray tracing require writing all the framebuffer data - removing the ability to discard full-resolution images and depth values after use</li>
+</ul>
+</li>
+<li>
+<p>There is a cost to traversing the geometry repeatedly</p>
+<ul>
+<li>Scenes that are vertex-shader bound may have increased overhead in a tiler</li>
+</ul>
+</li>
+<li>
+<p>The binning pass may have limitations</p>
+<ul>
+<li>Some implementations may run out of space for binning primitives in very complex scenes, or may have optimizations that are bypassed by unusual input (such as highly irregular geometry)</li>
+</ul>
+</li>
+<li>
+<p>Switching to a different render target and back involves flushing all working data to memory and later reading it back</p>
+<ul>
+<li>For a tiler, it is especially important that shadow and environment maps be generated before the main frame buffer, not "on demand" during final rendering (though this is good advice for most GPUs)</li>
+</ul>
+</li>
+<li>
+<p>Graphics state (such as shaders) may change more frequently and less predictably</p>
+<ul>
+<li>Geometry that is "skipped" means that states do not necessarily follow in turn, making incremental state updates hard to implement</li>
+</ul>
+</li>
+</ul>
+<p>In most cases, the behavior of a tile-based GPU should not be appreciably worse than for an immediate-mode renderer using similarly limited hardware (indeed, some hardware can choose whether or not to run in a tiled mode), but it is possible to remove the performance benefits of tile-based rendering with the wrong use pattern.</p>
+<br>
+<h2 id="Summary">Summary</h2>
+<p>Tile-based rendering is a technique used by modern GPUs to reduce the bandwidth requirements of accessing off-chip framebuffer memory. Almost ubiquitous in the mobile space where external memory access is costly and rendering demands have historically been lower, desktop GPUs are now beginning to make use of partially-tile-based rendering as well.</p>
+<p>Vulkan has specific features intended to make the best use of tile-based renderers, including control over whether to load or clear previous framebuffer content, whether to discard or write attachment contents and control over attachment resolving, and subpasses. OpenGL ES can achieve similar behavior with extensions, but these are not universally supported. To get the best performance from current and future GPUs, it is important to make proper use of the API so that tile-based rendering can proceed efficiently.</p>
+<br>
+
+                            </div> <!-- markdown doc --> 
+                            <aside class="etc-aside"><div id="toc-menu" class="side-toc" style="bottom: 0px;"><nav class="toc"><div class="inner-toc"><div class="side-label">On This Page</div><ol class="toc-list"><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Immediate-mode-rasterizers" class="toc-link no-ga">Immediate mode rasterizers</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Memory-use-in-an-Immediate-Mode-Renderer" class="toc-link no-ga">Memory use in an Immediate-Mode Renderer</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Tiled-memory" class="toc-link no-ga">Tiled memory</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Rasterizing-within-tiles" class="toc-link no-ga">Rasterizing within tiles</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Binning" class="toc-link no-ga">Binning</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Tile-based-rasterization" class="toc-link no-ga">Tile-based rasterization</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Multisampling" class="toc-link no-ga">Multisampling</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Traditional-deferred-shading" class="toc-link no-ga">Traditional deferred shading</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Tiling-and-deferred-shading" class="toc-link no-ga">Tiling and deferred shading</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Advantages-of-tile-based-rendering" class="toc-link no-ga">Advantages of tile-based rendering</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Limitations-of-tile-based-rendering" class="toc-link no-ga">Limitations of tile-based rendering</a></li><li class="toc-list-item"><a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#Summary" class="toc-link no-ga">Summary</a></li></ol></div></nav></div>
+                                <a href="https://developer.samsung.com/galaxy-gamedev/resources/articles/gpu-framebuffer.html#app" class="btn-goto-top no-ga" style="position: fixed; top: auto; bottom: 2rem;">
+                                    <span class="sr-only">top of page</span>
+                                    <span class="icon-top align-middle icon-size-2"><i class="s-ico s-ico-arrow-top-white"></i></span>
+                                </a>
+                            </aside>   
+                        </div>     
+                    </main>
+                      
+                </div>
+            </div>
+            <footer class="sdp-footer" data-component="true">
+    <div class="sdp-ft-wrap web-d-none">
+        <a class="navbar-brand" href="https://developer.samsung.com/">Samsung Developers</a>
+    </div>
+    <div class="inner-wrap">
+        <div class="sdp-sitemap">
+            <div class="sdp-ft-wrap doc-d-none">
+                <a class="navbar-brand" href="https://developer.samsung.com/">Samsung Developers</a>
+            </div>
+            <div class="sdp-ft-wrap">
+                <div class="ft-header">
+                    <span>Quick Link</span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/android-usb-driver"><span>Android USB Driver</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/codelab"><span>Code Lab</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/galaxy-emulator-skin"><span>Galaxy Emulator Skin</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/foldables-and-largescreens"><span>Foldables and Large Screens</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/one-ui-beta"><span>One UI Beta</span></a>
+                            </li>
+                        
+                        </ul>
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/remote-test-lab"><span>Remote Test Lab</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/developers-podcast"><span>Samsung Developers Podcast</span></a>
+                            </li>
+                         
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="sdp-ft-wrap">
+                <div class="ft-header">
+                    <span>Family Site</span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://bixbydevelopers.com/"><span>Bixby</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://developer.samsungknox.com/"><span>Knox</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://pay.samsung.com/developers"><span>Samsung Pay</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://smartthings.developer.samsung.com/"><span>SmartThings</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://docs.tizen.org/"><span>Tizen</span></a>
+                            </li>
+                         
+                        </ul>
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="http://www.oceanbrasil.com/"><span>Samsung Dev Brazil</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://www.europe-samsung.com/smsdev/Home/Index"><span>Samsung Dev Spain</span></a>
+                            </li>
+                         
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sdp-ft-wrap sdp-ft-wrap-w-half">
+                <div class="ft-header">
+                    <span>Legal</span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/terms"><span>Terms</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/privacy"><span>Privacy</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/open-source"><span>Open Source</span></a>
+                            </li>
+                         
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Social link ment for mobile  -->
+            <div class="sdp-ft-wrap li-mobile">
+                <div class="ft-header">
+                    <span>Social Communications</span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list ft-sns-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://www.facebook.com/samsungdev"><span>Facebook</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://instagram.com/samsung_dev"><span>Instagram</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://twitter.com/samsung_dev"><span>Twitter</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://www.youtube.com/samsungdevelopers"><span>YouTube</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://samsungdev.buzzsprout.com/"><span>Buzzsprout</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/feed"><span>Rss</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://www.linkedin.com/company/samsungdevelopers"><span>Linkedin</span></a>
+                            </li>
+                         
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sdp-ft-wrap sdp-ft-wrap-w-half">
+                <div class="ft-header">
+                    <span></span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list system-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/system-status"><span>System Status</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://developer.samsung.com/sitemap"><span>Site Map</span></a>
+                            </li>
+                        
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <ul class="nav ft-menu-list system-list">
+             
+                <li class="menu-item">
+                    <a class="item-link" href="https://developer.samsung.com/system-status"><span>System Status</span></a>
+                </li>
+             
+                <li class="menu-item">
+                    <a class="item-link" href="https://developer.samsung.com/sitemap"><span>Site Map</span></a>
+                </li>
+            
+            </ul>
+            <ul class="nav ft-sns-list">
+                <li class="menu-item"><a class="item-link" href="https://www.facebook.com/samsungdev" target="_blank"><i class="s-ico s-ico-facebook"></i><span class="sr-only">facebook</span></a></li>
+                <li class="menu-item"><a class="item-link" href="https://instagram.com/samsung_dev" target="_blank"><i class="s-ico s-ico-instagram"></i><span class="sr-only">instagram</span></a></li>
+                <li class="menu-item"><a class="item-link" href="https://twitter.com/samsung_dev" target="_blank"><i class="s-ico s-ico-twitter"></i><span class="sr-only">twitter</span></a></li>
+                <li class="menu-item"><a class="item-link" href="https://www.youtube.com/samsungdevelopers" target="_blank"><i class="s-ico s-ico-youtube"></i><span class="sr-only">youtube</span></a></li>
+                <li class="menu-item"><a class="item-link" href="https://samsungdev.buzzsprout.com/" target="_blank"><i class="s-ico s-ico-buzzsprout"></i><span class="sr-only">buzzsprout</span></a></li>
+                <li class="menu-item"><a class="item-link" href="https://developer.samsung.com/feed" target="_blank"><i class="s-ico s-ico-rss"></i><span class="sr-only">rss</span></a></li>
+                <li class="menu-item"><a class="item-link" href="https://www.linkedin.com/company/samsungdevelopers" target="_blank"><i class="s-ico s-ico-linkedin"></i><span class="sr-only">linkedin</span></a>
+                </li>
+            </ul>
+            <p class="copyright">Copyright © 2022 SAMSUNG. All rights reserved.</p>
+        </div>
+    </div>
+</footer><div id="cookie-bottom-layer">
+                <div class="layer-content">
+                    <button type="button" class="btn btn-close-modal" data-dismiss="modal" aria-label="Close">
+                        <span class="i-box">
+                            <i class="icon-close"><i></i></i>
+                        </span>
+                    </button>
+                    <div class="layer-body">
+                        <p class="txt-desc text-white">We use cookies to make your experience <br class="d-block d-md-none">of our website better. Continuing on <br class="d-block d-md-none">our website, you give us your consent <br class="d-block d-md-none">to set these cookies. 
+                        <a class="bod text-blue" target="_blank" rel="noopener noreferrer" href="https://developer.samsung.com/privacy#cookies%2C-beacons-and-similar-technologies">Find out more</a></p>
+                    </div>
+                </div>
+                </div>
+        </div>
+    </div>
+    <!-- scripts for site -->
+
+    
+    
+
+    
+<script type="text/javascript" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/sdp.common.js.download"></script>
+<script type="text/javascript" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/sdp.ui.js.download"></script>
+<script type="text/javascript" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/sdp.search.js.download"></script>
+<script type="text/javascript" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/prism.min.js.download"></script>
+
+<script type="text/javascript" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/sdp.helpers.js.download"></script>
+
+
+
+
+
+
+    <script type="text/javascript" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/docPageHandler.js.download"></script>
+    
+    <script type="text/javascript" src="./GPU Framebuffer Memory_ Understanding Tiling _ Samsung Developers_files/fileDownload.js.download"></script>
+
+    
+
+
+
+
+<script type="text/javascript" id="">!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","628731494554234");fbq("track","PageView");</script>
+<noscript>
+<img height="1" width="1" src="https://www.facebook.com/tr?id=628731494554234&amp;ev=PageView
+&amp;noscript=1">
+</noscript>
+<img src="https://t.co/i/adsct?bci=3&amp;eci=2&amp;event_id=de6a1209-5dc8-479c-ad62-43ba352563c9&amp;events=%5B%5B%22pageview%22%2C%7B%7D%5D%5D&amp;p_id=Twitter&amp;p_user_id=0&amp;pl_id=4899fce1-0f8a-4f02-bb9d-6b374cad9b03&amp;tw_document_href=https%3A%2F%2Fdeveloper.samsung.com%2Fgalaxy-gamedev%2Fresources%2Farticles%2Fgpu-framebuffer.html&amp;tw_iframe_status=0&amp;tw_order_quantity=0&amp;tw_sale_amount=0&amp;txn_id=nw8sp&amp;type=javascript&amp;version=2.3.26" height="1" width="1" style="display: none;"><img src="https://analytics.twitter.com/i/adsct?bci=3&amp;eci=2&amp;event_id=de6a1209-5dc8-479c-ad62-43ba352563c9&amp;events=%5B%5B%22pageview%22%2C%7B%7D%5D%5D&amp;p_id=Twitter&amp;p_user_id=0&amp;pl_id=4899fce1-0f8a-4f02-bb9d-6b374cad9b03&amp;tw_document_href=https%3A%2F%2Fdeveloper.samsung.com%2Fgalaxy-gamedev%2Fresources%2Farticles%2Fgpu-framebuffer.html&amp;tw_iframe_status=0&amp;tw_order_quantity=0&amp;tw_sale_amount=0&amp;txn_id=nw8sp&amp;type=javascript&amp;version=2.3.26" height="1" width="1" style="display: none;"></body></html>

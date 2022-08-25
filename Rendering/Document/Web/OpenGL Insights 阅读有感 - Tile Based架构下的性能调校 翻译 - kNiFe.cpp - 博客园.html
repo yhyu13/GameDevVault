@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<!-- saved from url=(0048)https://www.cnblogs.com/gameknife/p/3515714.html -->
+<html lang="zh-cn" style="--olcb-folder-code-block-max-height:80vh;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin-when-cross-origin">
+    <meta name="description" content="OpenGL Insights上Bruce Merry的文章Performance Tunning for Tile-Based Architecture Tile-Based翻译，这篇文章将移动平台">
+    <meta property="og:description" content="OpenGL Insights上Bruce Merry的文章Performance Tunning for Tile-Based Architecture Tile-Based翻译，这篇文章将移动平台">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园</title>
+    <link id="favicon" rel="shortcut icon" href="https://common.cnblogs.com/favicon.svg" type="image/svg+xml">
+    
+    <style>#home :not(.cnblogs_code):not(.cnblogs_Highlighter)>pre:not([highlighted]):not([class*="brush:"]) code:not(.hljs), :not(.cnblogs_code):not(.cnblogs_Highlighter)>pre:not([highlighted]):not([class*="brush:"]) code:not(.hljs) {background: rgb(245, 245, 245);
+        padding: 12px;
+        border: 1px solid rgb(204, 204, 204);
+        border-radius: 3px;
+        border-color: transparent;
+        color: rgb(68, 68, 68);
+        font-family: "Courier New", sans-serif;
+        font-size: 12px</style><link rel="stylesheet" href="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/blog-common.min.css">
+    <link id="MainCss" rel="stylesheet" href="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/bundle-goettinsprache.min.css">
+        <link id="highlighter-theme-cnblogs" type="text/css" rel="stylesheet" href="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/cnblogs.css">
+    
+    <link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/bundle-goettinsprache-mobile.min.css">
+    
+    <link type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/gameknife/rss">
+    <link type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/gameknife/rsd.xml">
+    <link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/gameknife/wlwmanifest.xml">
+    <script type="text/javascript" async="" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/analytics.js.download"></script><script type="text/javascript" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/encoder.js.download"></script><script>
+        var currentBlogId = 76184;
+        var currentBlogApp = 'gameknife';
+        var isLogined = false;
+        var isBlogOwner = false;
+        var skinName = 'Goettinsprache';
+        var visitorUserId = '';
+        var hasCustomScript = true;
+        try {
+            if (hasCustomScript && document.referrer && document.referrer.indexOf('baidu.com') >= 0) {
+                Object.defineProperty(document, 'referrer', { value: '' });
+                Object.defineProperty(Document.prototype, 'referrer', { get: function(){ return ''; } });
+            }
+        } catch(error) { }
+        window.cb_enable_mathjax = false;
+        window.mathEngine = 0;
+        window.codeHighlightEngine = 1;
+        window.enableCodeLineNumber = false;
+        window.codeHighlightTheme = 'cnblogs';
+        window.darkModeCodeHighlightTheme = 'vs2015';
+        window.isDarkCodeHighlightTheme = false;
+        window.isDarkModeCodeHighlightThemeDark = true;
+        window.isDisableCodeHighlighter = false;
+        window.enableCodeThemeTypeFollowSystem = false;
+    </script>
+        <script>
+            var currentPostDateAdded = '2014-02-28 15:32';
+        </script>
+    <script src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/jquery-2.2.0.min.js.download"></script>
+    <script src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/blog-common.min.js.download"></script><style>.medium-zoom-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 300ms;
+  will-change: opacity;
+}
+
+.medium-zoom--opened .medium-zoom-overlay {
+  cursor: pointer;
+  cursor: zoom-out;
+  opacity: 1;
+}
+
+.medium-zoom-image {
+  cursor: pointer;
+  cursor: zoom-in;
+  /*
+    The `transition` is marked as "!important" for the animation to happen
+    even though it's overriden by another inline `transition` style attribute.
+
+    This is problematic with frameworks that generate inline styles on their
+    images (e.g. Gatsby).
+
+    See https://github.com/francoischalifour/medium-zoom/issues/110
+   */
+  transition: transform 300ms cubic-bezier(0.2, 0, 0.2, 1) !important;
+}
+
+.medium-zoom-image--hidden {
+  visibility: hidden;
+}
+
+.medium-zoom-image--opened {
+  position: relative;
+  cursor: pointer;
+  cursor: zoom-out;
+  will-change: transform;
+}
+</style><script id="hljs-script" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/highlight.min.js.download" type="text/javascript" async=""></script>
+    
+<meta http-equiv="origin-trial" content="A+cA2PUOfIOKAdSDJOW5CP9ZlxONy1yu+hqAq72zUtKw4rLdihqRp6Nui/jUyCyegr+BUtH+C+Elv0ufn05yBQEAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjY5NzY2Mzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A+zsdH3aNZT/bkjT8U/o5ACzyaeNYzTvtoVmwf/KOilfv39pxY2AIsOwhQJv+YnXp98i3TqrQibIVtMWs5UHjgoAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjY5NzY2Mzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="AxceVEhIegcDEHqLXFQ2+vPKqzCppoJYsRCZ/BdfVnbM/sUUF2BXV8lwNosyYjvoxnTh2FC8cOlAnA5uULr/zAUAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjY5NzY2Mzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><script src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/pubads_impl_2022082302.js.download" async=""></script><link rel="preload" href="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/f.txt" as="script"><script type="text/javascript" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/f.txt"></script></head>
+<body class="skin-goettinsprache no-navbar">
+<a name="top"></a>
+<div id="top_nav" class="navbar forpc navbar-custom">
+    <nav id="nav_main" class="navbar-main">
+        <ul id="nav_left" class="navbar-list navbar-left">
+            <li class="navbar-branding">
+                <a href="https://www.cnblogs.com/" title="开发者的网上家园" role="banner">
+                    <img src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/logo.svg" alt="博客园Logo">
+                </a>
+            </li>
+            <li>
+                <a href="https://www.cnblogs.com/" onclick="countClicks(&#39;skin-navbar-sitehome&#39;)">首页</a>
+            </li>
+            <li>
+                <a href="https://news.cnblogs.com/" onclick="countClicks(&#39;nav&#39;, &#39;skin-navbar-news&#39;)">新闻</a>
+            </li>
+            <li>
+                <a href="https://q.cnblogs.com/" onclick="countClicks(&#39;nav&#39;, &#39;skin-navbar-q&#39;)">博问</a>
+            </li>
+            <li>
+                <a id="nav_brandzone" href="https://brands.cnblogs.com/" onclick="countClicks(&#39;nav&#39;, &#39;skin-navbar-brands&#39;)">专区</a>
+            </li>
+            <li>
+                <a href="https://ing.cnblogs.com/" onclick="countClicks(&#39;nav&#39;, &#39;skin-navbar-ing&#39;)">闪存</a>
+            </li>
+            <li>
+                <a href="https://edu.cnblogs.com/" onclick="countClicks(&#39;nav&#39;, &#39;skin-navbar-edu&#39;)">班级</a>
+            </li>
+        </ul>
+        <ul id="nav_right" class="navbar-list navbar-right">
+            <li>
+                <form id="zzk_search" class="navbar-search" action="https://zzk.cnblogs.com/s" method="get" role="search">
+                    <input name="w" id="zzk_search_input" placeholder="代码改变世界" type="search" tabindex="3">
+                    <button type="submit" id="zzk_search_button">
+                        <img src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/search.svg" alt="搜索">
+                    </button>
+                </form>
+            </li>
+            <li id="navbar_login_status" class="navbar-list">
+                <a class="navbar-user-info navbar-blog" href="https://i.cnblogs.com/EditPosts.aspx?opt=1" alt="写随笔" title="写随笔" style="display: none;">
+                    <img id="new_post_icon" class="navbar-icon" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/newpost.svg" alt="写随笔">
+                </a>
+                <a id="navblog-myblog-icon" class="navbar-user-info navbar-blog" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx" alt="我的博客" title="我的博客" style="display: none;">
+                    <img id="myblog_icon" class="navbar-icon" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/myblog.svg" alt="我的博客">
+                </a>
+                <a class="navbar-user-info navbar-message navbar-icon-wrapper" href="https://msg.cnblogs.com/" alt="短消息" title="短消息" style="display: none;">
+                    <img id="msg_icon" class="navbar-icon" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/message.svg" alt="短消息">
+                    <span id="msg_count" style="display: none"></span>
+                </a>
+                <a id="navbar_lite_mode_indicator" data-current-page="blog" style="display: none" href="javascript:void(0)" alt="简洁模式" title="简洁模式启用，您在访问他人博客时会使用简洁款皮肤展示">
+                    <img class="navbar-icon" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/lite-mode-on.svg" alt="简洁模式">
+                </a>
+                <div id="user_info" class="navbar-user-info dropdown" style="display: none;">
+                    <a class="dropdown-button" href="https://home.cnblogs.com/">
+                        <img id="user_icon" class="navbar-avatar" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/avatar-default.svg" alt="用户头像">
+                    </a>
+                    <div class="dropdown-menu">
+                        <a id="navblog-myblog-text" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx">我的博客</a>
+                        <a href="https://home.cnblogs.com/">我的园子</a>
+                        <a href="https://account.cnblogs.com/settings/account">账号设置</a>
+                        <a href="javascript:void(0)" id="navbar_lite_mode_toggle" title="简洁模式会使用简洁款皮肤显示所有博客">
+    简洁模式 <img id="navbar_lite_mode_on" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/lite-mode-check.svg" class="hide"><span id="navbar_lite_mode_spinner" class="hide">...</span>
+</a>
+                        <a href="javascript:void(0)" onclick="account.logout();">退出登录</a>
+                    </div>
+                </div>
+                <a class="navbar-anonymous" href="https://account.cnblogs.com/signup" style="display: inline;">注册</a>
+                <a class="navbar-anonymous" href="javascript:void(0);" onclick="account.login()" style="display: inline;">登录</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div id="page_begin_html">
+<style type="text/css">
+
+/*  Style Code name Goettinsprache Vanadium  */
+
+html{background:#f3f3f3 url(images/bg-pattern.jpg)}
+body{margin:0;padding:5em 0}
+#header{position:fixed;top:0;left:0;right:0;height:60px;background:white;z-index:999;border-bottom:1px solid #ddd;}
+#blogTitle .title{font-size:28px;margin:0;line-height:60px}
+#blogTitle .title a{color:#555;text-decoration:none;display:block;float:left;padding:0 1em 0 0.3em;}
+#blogTitle .title a:hover{background:#66aaff;color:white;}
+#blogTitle .title a:hover:first-letter{color:white}
+#blogTitle .title a:first-letter{color:#66aaff}
+#blogTitle .subtitle{font-size:85%;line-height:1.2em;color:#999;margin-top:-0.7em;background:white;float:left;padding:0.1em 0.75em;border:1px solid #ddd;border-radius:0.7em;-moz-border-radius:100%;-webkit-border-radius:0.7em;clear:both;margin-left:1.5em;}
+.blogStats{display:none}
+#navigator{position:absolute;left:15em;top:0;}
+#navList{list-style:none;margin:0;padding:0;}
+#navList li{margin:0;padding:0;line-height:60px;float:left;}
+#navList li a{
+    display:block;
+    color:#666;
+    text-decoration:none;
+    padding:0 1em;
+}
+#navList li a:hover{
+    background:#66aaff;
+    color:white;
+}
+#navList li a.aHeaderXML{
+    background:url(data:image/gif;base64,R0lGODlhDgAOANUAAP3+/v7+/f75/P3v9v3v9/3q9Pzf7vze7vzZ6/zZ7PzW6vzV6fzV6vvH4vvG4vvB3/vA3/q22vqs1fmk0fmj0Pmi0Pmh0Pmhz/mgz/iYy/iNxfiNxveFwveFwfeDwPd/vvd+vvZ5vPd5u/Z4u/ZzuPZyuPZutvZttvVjsPZjsPVbrPVarPVUqfRKpPRJo/RJpPRGofRGovRFovRAn/RBoPQ+nvM9nfQ9nvM5nPM4m/MzmPM0mfMymP///wAAAAAAACH5BAEHAD0ALAAAAAAOAA4AAAZ1wNuqFBkAesgkksdkegrKJEUUa+Iu0WQiw2p+BNlAT8HRmU9gZIrDSFZkTFCyaTIgJXAeBil6MWsNSBZmOVBIGzQ8OA5IHU5KEC08NQc9C108BEoPMzwmSBlMEVEaTAs9CDA8JFkuPB1IIzwqWSE8KEgTPDZBADs=) no-repeat;width:14px;height:14px;
+    position:relative;
+    left:2.75em;
+    bottom:48px
+}
+#navList li a:hover+a.aHeaderXML{
+    background-image:url(data:image/gif;base64,R0lGODlhDgAOANUAAP/////9/v/5/P71+v7z+f7x+P7w9/7s9f7q9P7o8/3c7v3X6/3V6vzP5/zN5vzE4fvA3/u+3vu73fu42/uz2fqt1vqj0fmazPmRyPiOxviNxviFwvd6vPdwt/dutvZqtPVbrfVYq/VUqfVSqPRGovRDoPMymAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEHACYALAAAAAAOAA4AAAZtQMICwimZjkgkYAkIVEhJpGaCYAowUWToomBSskhQhflIOiogZOaw/B7Jo+OGDcCaJoll4XPELAVQRxYGAAJ8JmMAFUkdeQUiJiBdAUZIHgUAZSYXSxxRFktpIVURWXmLJhIADFkTAA1HGgADQQA7)
+}
+#navList li a.aHeaderXML img{display:none}
+
+
+#mainContent{width:820px;margin:auto;position:relative;margin-top:2.5em;z-index:20}
+.postCon,.postBody{background:white;padding:10px 9px 9px 10px;
+    border-right:1px solid #ddd;
+    border-bottom:1px solid #ddd;
+    min-height:6em;
+}
+.postTitle{
+    background:#66aaff;
+padding:0.4em;
+position:absolute;
+right:100%;
+margin-top:7px;
+width:9em;
+font-size:1.2em;
+font-weight: bold
+}
+#post_next_prev{font-size:small}
+
+.feedback_area_title{display:none}
+.feedbackItem{border-top:1px dotted #999;font-size:85%;position:relative;padding:0.4em 0;margin-bottom:1.2em;}
+.feedbackItem a{color:#28c}
+.feedbackCon{margin:0.4em 1em;color:#444}
+.feedbackListSubtitle{color:#666}
+.feedbackListSubtitle a{color:#57a;text-decoration:none}
+.feedbackManage{position:absolute;right:0;}
+
+#comment_form{background:white;border:1px solid #ddd;outline:1px solid white;padding:10px;position:relative;font-size:85%;margin-top:2.5em}
+#commentform_title{background:none;padding-left:0;font-size:1.4em}
+#comment_form a{color:#66aaff;text-decoration:none;}
+#comment_nav{font-size:small;position:absolute;right:0.5em}
+#comment_nav a{color:#5af}
+.commentbox_title_left{display:none}
+.ad_commentbox_up{display:none}
+.commentbox_title, div.commentform .comment_textarea{width:570px}
+
+.newsItem{
+    border:1px solid #ddd;
+    font-size:85%;
+    background:white;
+    padding:10px;
+    width:16em;
+min-height:7em;
+opacity:0.5;
+position:absolute;
+left:50%;
+margin-left:110px;
+top:-2.75em;
+z-index:1;
+transform:rotate(7.5deg);
+-moz-transform:rotate(7.5deg);
+-webkit-transform:rotate(7.5deg);
+-o-transform:rotate(7.5deg);
+transform-origin:0 0;
+-moz-transform-origin:0 0;
+-webkit-transform-origin:0 0;
+-o-transform-origin:0 0;
+transition:0.75s;
+-moz-transition:0.75s;
+-webkit-transition:0.75s;
+-o-transition:0.75s;
+}
+.newsItem h3.catListTitle{position:absolute;right:0;bottom:100%;margin:0;padding:0.2em 0;color:#666;font-size:1.4em;}
+.newsItem:hover{z-index:999;opacity:1;transform:none;-moz-transform:none;-webkit-transform:none;-o-transform:none;}
+
+#calendar,#profile_block,.mySearch h3,.catListComment{display:none}
+div.mySearch div{position:absolute;top:0.2em;right:0;margin-right:0.75em}
+#leftcontentcontainer {background:white;border-top:1px solid #ddd;border-bottom:1px solid #ddd;height:3em;font-size:85%;position:fixed;bottom:0;right:0;left:0;z-index:40}
+#leftcontentcontainer li a{color:#66aaff;text-decoration:none;display:block;padding:0.3em;}
+#leftcontentcontainer li a[id$=RssLink]{position:absolute;right:0;top:0;}
+#leftcontentcontainer li a:hover{background:#66aaff;color:white}
+#leftcontentcontainer ul{
+    position:absolute;
+    width:12em;
+    margin:0;
+    padding:0.4em 0.4em 3em 0.4em;
+    list-style:none;
+    bottom:-1em;
+    min-height:10em;
+    left:0;
+    background:white;
+    outline:1px solid white;
+    border:1px solid #ddd;
+    z-index:60;
+    display:none
+}
+#leftcontentcontainer ul li{position:relative;}
+#leftcontentcontainer>div:hover ul{display:block}
+#leftcontentcontainer>div{float:left;height:2em;position:relative;}
+#leftcontentcontainer>div.mySearch{position:static}
+#leftcontentcontainer h3{font-size:1.2em;line-height:1;padding:0.7em 0.75em;margin:0;position:relative;z-index:50;cursor:pointer;}
+#leftcontentcontainer>div:hover h3{z-index:70}
+#leftcontentcontainer .catListTag li a {display:inline;}
+#leftcontentcontainer .catListTag li{display:inline-block;padding:0 0.4em;white-space:nowrap}
+
+#footer{margin-top:2em;text-align:center;color:#999}
+
+#header, #leftcontentcontainer,#blogTitle .subtitle{
+    box-shadow:rgba(0,0,0,0.075) 0 0 32px;
+-moz-box-shadow:rgba(0,0,0,0.075) 0 0 32px;
+-webkit-box-shadow:rgba(0,0,0,0.075) 0 0 32px;
+   
+}
+
+.topicListFooter{margin:0}
+.topicListFooter a{color:#66aaff}
+
+.postTitle a{color:white;text-decoration:none;}
+.dayTitle{display:none}
+.postDesc{font-size:small;margin-bottom:4em;text-align:right;padding:0.4em 0;color:#999}
+.postDesc a{color:#8bd}
+
+.postBody, .postCon{
+    line-height:1.5;
+}
+.postBody a,.postCon a{color:#66aaff;text-decoration:none}
+.postBody a:hover,.postCon a:hover{background:#66aaff;color:white;}
+.postBody pre span{line-height:1.2em}
+pre.code{
+  background:#3f3f3f;
+  line-height:1.2em;
+  color:#ddd;
+  margin:0.3em;
+  padding:0.5em;
+  font-family:Consolas, "Bitstream Vera Sans Mono",Consolas,monospace
+}
+#home{position:relative}
+pre.output{background:#444;color:#ccc;margin:1em 0;padding:0.5em;}
+
+#MySignature {
+border: solid 1px #E5E5E5;
+padding: 10px;
+background: #FFFEFE url(http://www.cnblogs.com/images/cnblogs_com/Terrylee/147338/o_info.png) no-repeat scroll 1% 50%;
+padding-left: 80px;
+font-family:Candara,Verdadana,Helvetica,Arial,华文细黑,微软雅黑,黑体,sans-serif;
+}
+
+pre.mghl.highlighted { 
+color:rgb(223,223,191);font-size:14px;
+background:rgb(63,63,63);font-family:Consolas,"Bitstream vera sans mono","Monaco",monospace;white-space:pre-wrap;*word-wrap:pre;*word-wrap:break-word;line-height:1.2;padding:0.5em;}
+pre.mghl.highlighted span.identifier{color:rgb(223,223,191);}
+pre.mghl.highlighted span.keyword { color: rgb(164,213,238); font-weight:bold;}
+pre.mghl.highlighted span.comment { color:rgb(127,159,127); }
+pre.mghl.highlighted span.string { color:rgb(200,145,145); }
+pre.mghl.highlighted span.regexp { color: rgb(200,145,145); }
+pre.mghl.highlighted span.number { color: rgb(138,204,207); }
+pre.mghl.highlighted span.type { color: rgb(175,240,223); }
+pre.mghl.highlighted span.operator {color:rgb(255,200,217);}
+pre.mghl.highlighted span.punctor {color:rgb(217,200,255);font-weight:bold}
+pre.mghl.highlighted span.tab{background:#777;}
+pre.mghl.highlighted span.indent{padding:0 1em;}
+
+.postCon p,.postBody p{margin:1.2em 0!important}
+
+.c_ad_block,#digg_block,#relative_search,#blog_ad_google{display:none!important}
+
+/*type*/
+
+#blogTitle, .postTitle,#navigator,.feedback_area_title,#commentform_title,.newsItem{
+    font-family:Candara,Verdadana,Helvetica,Arial,华文细黑,微软雅黑,黑体,sans-serif;
+    font-weight:550;
+}
+
+#author_profile,#blog_post_info{
+    font-family:Candara,Verdadana,Helvetica,Arial,华文细黑,微软雅黑,黑体,sans-serif;
+    font-weight:normal;
+}
+
+h1,h2,h3,h4,h5,h6{
+    font-family:Candara,Verdadana,Helvetica,Arial,华文细黑,微软雅黑,黑体,sans-serif;
+    font-weight:bold;
+}
+
+p,li,ol,ul{
+    font-family:Candara,Verdadana,Helvetica,Arial,华文细黑,微软雅黑,黑体,sans-serif;
+    font-weight:normal;
+}
+
+.feedbackItem,.postDesc,#comment_form,#leftcontentcontainer,#footer,.topicListFooter{font-family:Calibri,Verdana,Helvetica,Arial,华文细黑,微软雅黑,MS Meiryo,sans-serif;line-height:1.5}
+
+.c_b_p_desc{font-family:Calibri,Verdana,Helvetica,Arial,华文细黑,微软雅黑,MS Meiryo,sans-serif;
+    font-size: 14px;
+    line-height:1.75;
+    font-weight:normal}
+
+</style>
+</div>
+
+<div id="home">
+    <div id="header">
+        <div id="blogTitle">
+            <div class="title"><a id="Header1_HeaderTitle" class="headermaintitle HeaderMainTitle" href="https://www.cnblogs.com/gameknife/">Knifee's Box</a>
+</div>
+<div class="subtitle">GameDev|Graphics|EngineDev|TechArt</div>
+
+        </div>
+        <div id="navigator">
+            
+<ul id="navList">
+    <li id="nav_sitehome"><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">
+博客园</a>
+</li>
+    <li id="nav_myhome">
+<a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/gameknife/">
+首页</a>
+</li>
+    <li id="nav_newpost">
+
+<a id="blog_nav_newpost" class="menu" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+新随笔</a>
+</li>
+    <li id="nav_contact">
+<a id="blog_nav_contact" class="menu" href="https://msg.cnblogs.com/send/kNiFe.cpp">
+联系</a></li>
+    <li id="nav_rss">
+<a id="blog_nav_rss" class="menu" href="javascript:void(0)" data-rss="https://www.cnblogs.com/gameknife/rss/">
+订阅</a></li>
+    <li id="nav_admin">
+<a id="blog_nav_admin" class="menu" href="https://i.cnblogs.com/">
+管理</a>
+</li>
+</ul>
+
+            <div class="blogStats">
+                
+<span id="stats_post_count">随笔 - 28&nbsp;</span>
+<span id="stats_article_count">文章 - 0&nbsp;</span>
+<span id="stats_comment_count">评论 - 170&nbsp;</span>
+<span id="stats_total_view_count">阅读 - 
+<span title="总阅读数: 72501">
+72501</span></span>
+            </div>
+        </div>
+    </div>
+    <div id="main">
+        <div id="mainContent">
+            <div class="forFlow">
+                <div id="post_detail">
+    <div id="topics">
+        <div class="post">
+            <h1 class="postTitle">
+                
+<a id="cb_post_title_url" class="postTitle2 vertical-middle" href="https://www.cnblogs.com/gameknife/p/3515714.html">
+    <span role="heading" aria-level="2">OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译</span>
+    
+</a><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button>
+
+            </h1>
+            <div class="clear"></div>
+            <div class="postBody">
+                    <div id="cnblogs_post_description" style="display: none">
+        
+        OpenGL Insights上Bruce Merry的文章Performance Tunning for Tile-Based Architecture Tile-Based翻译，这篇文章将移动平台的tile-based芯片架构的特性进行了剖析，同时提供了大量的优化建议，十分值得移动平台3D游戏开发者关注。
+    </div>
+<div id="cnblogs_post_body" class="blogpost-body blogpost-body-html">
+<h1>Performance Tunning for Tile-Based Architecture<button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h1>
+<h1>Tile-Based架构下的性能调校<button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h1>
+<p>&nbsp;</p>
+<h3>by Bruce Merry<button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h3>
+<h3>GameKnife译<button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><span style="text-decoration: underline">译序 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+<p>在大概1个月之前，花了两个小时的时间阅读了OpenGL Insights上的两篇关于移动平台GPU的优化文章。当时正巧在公司作移动渲染器的优化和整理，顿觉醍醐灌顶。同时搜索国内关于这方面的经验文正或者翻译文章，感觉少之又少。所以，萌发了翻译这两篇文章的想法。其实也是第一次做翻译工作，本觉读两篇文章就用两个小时，翻译大概一天就够了把。 结果第一天写了一下午，也就翻译出了一个开头，发现这不是一件容易事，因此干脆就慢慢来翻译。</p>
+<p>终于，一个月之后，总算翻译到了最后一章。全文翻译下来，才发现第一次阅读其实读漏，读错了很多东西，同时，在开发实践的过程中，又对文中的很多章节有了更深刻的理解。因此在某些地方加上了自己的译注。</p>
+<p>最后，把这篇译文分享出来，希望能给在移动GPU平台开发图形程序的朋友一些帮助。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">引言 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>OPENGL 和 OPENGL ES标准描述了一种虚拟渲染管线，这个管线将三角形的处理规定为如下流程：</p>
+<ol>
+<li>变换三角形的顶点</li>
+<li>对变换后的顶点进行光栅化，生成像素</li>
+<li>对像素进行着色，写回帧缓存(framebuffer)</li>
+</ol>
+<p>然后按照这个流程进行下一个三角形的处理，如此往复。然而，这对GPU的工作来说，并不是一个高效的流程，GPU会经常的重排和并行化这些过程以达到更高的效率。</p>
+<p>在这篇文章中，我们会详细阐释tiled-based渲染方法，tiled-based架构在主流的移动平台GPU上是一个通常的流行图形管线组织方式。我们会关注：什么是tiled-based渲染，为什么要用它，以及我们需要做些什么<span style="color: rgba(128, 128, 128, 1)">（注: 相对于传统的立即渲染方式）</span>来达到效率的优化。</p>
+<p>我们假设阅读者是这样的人：</p>
+<ul>
+<li>已经拥有优化OPEN GL程序的经验，熟悉标准优化技术，例如减少状态切换，减少DRAWCALL，降低shader复杂度以及纹理压缩。</li>
+<li>想要得到关于tiled-based GPU上的优化建议。</li>
+</ul>
+<p>有一点，需要牢记于心：每一个GPU, 每一个图形驱动， 每一个程序都是不同的，具有不同的性能特征。基本上，性能调校是一个不断分析和实验的过程。因此，这个本文几乎不会提供“立竿见影”的金科玉律，但是会尝试阐释出如何通过不同的手段来估算性能开销，最终帮助读者选择优化方法。</p>
+<p>本文是主要是介绍如何最大化程序性能的，但由于tiled-based GPU是移动设备的主流，我们也会提到一些电量消耗的控制。大多数桌面程序的目标是简单的想尽一切办法在一秒内渲染更多的的帧，始终100%的消耗可以使用的电能<span style="color: rgba(128, 128, 128, 1)">（注：俗称跑满）</span>。而在移动平台上，谨慎的将帧率限制在一个合适的水平，可以节省电能会有效的延长电池寿命，同时会相对的提高用户体验。当然，这并不意味着我们可以在达到了目标帧率后就可以放弃优化：越多的优化会给系统更多的休眠时间，这会更加节省电能。</p>
+<p>最后，这篇文章的内容主要聚焦在OPENGL-ES上，因为这是tiled-based GPU的主要市场，我们会偶尔提到桌面OPENGL特性以及他们是如何运转的。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">背景 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>桌面GPU的主要目标是最高性能。而移动GPU则不同，它必须要平衡性能和电能的消耗。设备中电量开销最大的消耗者之一就是内存带宽，相对来说，计算比缓存更加经济高效，但是计算也会产生一些临时数据，越多的数据被抛弃掉，就会消耗越多的电能。</p>
+<p>OPENGL的虚拟管线需要大量的显存带宽来支持。我们来举个例子，一个通常的用例：每个像素需要从 深度/模板缓存中读出深度值进行比较，然后将新值写回深度/模板缓存，同时将颜色值写上颜色缓存，按照常规的情况，这里算作传输了12byte(color = 4byte, d/s = 4byte, d/s读写，color只写，一共4+4+4=12byte)。不过，这是在假设没有重复绘制，没有颜色混合，没有多通道算法，没有多采样抗锯齿的情况下。如果加上这些花哨的操作，一个像素传输100bytes是一件轻轻松松的事情。因为最多有4bytes的数据需要用来显示一个像素，这是一个对带宽和电能的过度消耗。实际上，桌面GPU通常都会采用压缩技术来减少带宽消耗，但他仍旧是一个显著的消耗。</p>
+<p>&nbsp;</p>
+<p>为了减少这个凶残的带宽需求，大多数移动GPU都使用了tiled-based渲染。在最基础的层面，这些GPU将帧缓存（framebuffer），包括深度缓存，多采样缓存等等，从主内存移到了一块超高速的on-chip存储器上<span style="color: rgba(128, 128, 128, 1)">（注：类似cache，十分昂贵高速的存储器，为不导致歧义，on-chip就不再翻译了）</span>。这样，由于存储器on-chip了，他就和计算发生的芯片无限接近，这样，计算芯片就能以远低于常规消耗的电能来读写存储器了。如果我们可以放置一块超大的高速on-chip芯片，那么这篇文章就可以到此为止了... 但是不幸的是，那样会需要太多的硅片了。因此，最终on-chip存储器，或称tile缓存，在有些GPU中小到只能容纳16x16个像素。</p>
+<p>这样就带来了一些新的挑战：如何在如此小的一块tile缓存中渲染出高分辨率的图像？解决方案就是将OPENGL的帧缓存切割成16x16的小块（这就是tile-based渲染的命名由来），然后一次就渲染一块。对于每一块tile: 将有用的几何体提交进去，当渲染完成时，将tile的数据拷贝回主内存，如同图表23-1所示。这样，带宽的消耗就只来自于写回主内存了，那是一个较小的消耗：没有d/s，没有重绘的像素，没有多采样缓存。同时，消耗极高的深度/模板测试和颜色混合完全的在计算芯片上就完成了。</p>
+<p>现在，我们回到OPENGL API。这个没有根据tile-based架构来设计的渲染API。OPENGL API是典型的立即模式：他描述在当前状态下需要绘制的三角形，而不是提供一个装载了所有三角形和其状态的场景结构。因此，在tile-based架构上实现opengl，我们需要在一帧内收集所有提交过的三角形，并在之后再一并使用它们。相对的，在早期的固定管线gpu上，这一切工作都是通过软件方式完成的。现在大量的可编程移动平台gpu设计了专门的硬件单元来处理这件事<span style="color: rgba(128, 128, 128, 1)">(注：比如powervr的tiler等)</span>。对于每个三角形，我们使用gl_position的输出语义来决定哪个tile可能会被这个三角形影响，从而将这个三角形保存进这个tile的区域数据结构。同时，每一个三角形还需要将当时的渲染状态打包，例如：ps的shader，常量寄存器，深度判断方式，等等。当一个tile渲染结束后，区域数据结构就会被用于查找和这个tile相关的三角形以及像素渲染状态。</p>
+<p>这样看来，我们貌似将一个带宽的问题挪到了另一个地方：不同于顶点数据立即的被光栅化然后被像素着色，在tile-based架构中，三角形会被保存下来以备之后使用。这样的话，就需要有足够的内存来保存原始顶点数据，顶点着色器的输出结果，三角形索引，像素状态，以及其他的一些在区域数据结构中的内容。我们可以把这些收集的数据称为frame data（ARM文档把这些数据叫做多边形列表polygon lists，而Imagination Technologies文档把他们称为参数缓存parameter buffer）。tiled-based GPU是成功的，因为这些额外的数据读写对带宽需求一般会比我们通过on-chip操作节省下来的带宽开销要小得多。只要提交的三角形保持在一个合适的水平，这个说法就一直是成立的。而过度的细分模型的几何表面，会使得frame data过度膨胀，从而导致tile-based GPU的优势不再，反而由于frame data的高带宽消耗，反而比立即模式更慢。</p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/281519531713740.png" alt="" class="medium-zoom-image"></p>
+<p>上面的图表表示了tile-based GPU中数据的流向。最大的带宽消耗在像素处理器和tile buffer之间，他们都位于on-chip存储器上。相对的，下面的图表是立即模式GPU的数据流向，多采样，颜色，深度，模板缓存都位于主存储器上。数据的流向需要经过存储总线。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">清空和抛弃FRAMEBUFFER &nbsp;&nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>当我们在做性能调校时，关于tile-based GPU最需要铭记的一件事就是：我们正在渲染的这一帧并不是framebuffer而是frame data。他是生成framebuffer的一系列数据：转换过的顶点，多边形，状态切换。不同于framebuffer，这些数据是随着DRAW CALL的增长而增长的。所以保证每一帧正确的终止是非常重要的，否则frame data会变得无穷的大。</p>
+<p>当交换双缓冲窗口时，窗口系统会负责交换BACK BUFFER。在EGL和GLX这两种窗口系统中都有允许使BACK BUFFER失效的实现。因此，驱动程序可以在每次交换的时候，将frame data丢弃掉。然后从一张空白的画布开始。（EGL实现中，程序可以设置让后备缓冲保留，在下一节中会详细介绍）。</p>
+<p>在使用framebuffer objects的时候，情况就变得更加复杂了，framebuffer objects不存在一个“交换”的操作。特别的，可以考虑使用glClear操作。典型的桌面GPU是立即模式架构的（immediate-mode），意味着他们在三角形准备好的时候就开始绘制像素。在一个立即模式的GPU上，一个glClear的调用就直接将clear值写入framebuffer了，因此这个代价是较高的。程序员们会使用各种技巧来避免这个操作，比如：如果他们知道接下来将会完全覆盖的绘制，他们就不clear颜色buffer。交替的利用半深度空间来避免clear深度缓存。然而，这些技巧只是在以前有用，他们已经被硬件级别的优化给超过，甚至，可能由于和硬件优化冲突而降低效率！<span style="color: rgba(136, 136, 136, 1)">(注：这儿的说法实在不能完全苟同...很多避免clear的操作还是很有用的)</span></p>
+<p>在tile-based架构中，防止clear可能对于性能来说是个灾难<span style="color: rgba(136, 136, 136, 1)">（注：没错，绝对是一个大灾难，导致你的帧率下降为1/4都有可能）</span>，因为每一帧都是构建在frame data中的，清空buffer的时候会简单的释放掉frame data中的已有的数据。换句话说，glClear的性能代价不仅非常的低，而且他还能通过抛弃冗余的frame data而提高效率。</p>
+<p>为了得到这个特性带来的全部好处，清空所有应该清空的framebuffer是很有必要的。使用scissor，color write mask或者只clear一部分颜色/深度/模板缓存会阻碍frame data的清空<span style="color: rgba(136, 136, 136, 1)">（这里要特别注意，译者吃过这亏，在tilebased gpu上，scissor, stencil这些常见的性能优化手法在这里都是性能灾难…）</span>。最安全和最易移植的方法如代码列表所示。</p>
+<div class="cnblogs_code">
+<pre><span style="color: rgba(0, 128, 128, 1)">1</span> <span style="color: rgba(0, 0, 0, 1)">glDisable(GL_SCISSOR_TEST);
+</span><span style="color: rgba(0, 128, 128, 1)">2</span> <span style="color: rgba(0, 0, 0, 1)">glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+</span><span style="color: rgba(0, 128, 128, 1)">3</span> <span style="color: rgba(0, 0, 0, 1)">glDepthMask(GL_TRUE);
+</span><span style="color: rgba(0, 128, 128, 1)">4</span> glStencilMask(<span style="color: rgba(128, 0, 128, 1)">0xFFFFFFFF</span><span style="color: rgba(0, 0, 0, 1)">);
+</span><span style="color: rgba(0, 128, 128, 1)">5</span> glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);</pre>
+</div>
+<p>这些操作需要在每一帧开始前完成，除非窗口系统已经代为操作。当然，mask和scissor如果已经设置正确后，就不必每一次都显示的设置了。（一般不会广泛的使用这两个功能）<span style="color: rgba(136, 136, 136, 1)">（注：在PVR硬件上，如果不将COLORMASK归位，CLEAR直接就不会成功...）</span></p>
+<p>上面的讨论都只局限于这个API上：glClear。glClear是一个底层命令，而不是一个高层的hint。如果你的程序需要同时运行在tile-based架构和immediate-mode架构上的话，就会比较尴尬。所以，OpenGL ES开发者需要可移植的性能的话，可以考虑EXT_discard_framebuffer这个扩展，他提供了这个hint。这个扩展的调用是glDiscardFramebufferEXT，他告诉驱动程序：当前bind的这个framebuffer已经没用了，你可以随时把他用来做任何事。tiled-based架构可以通过这个hint来更加显式的释放frame data，同时，immediate-mode架构可以忽略掉这个hint。代码列表23.2展示了应该如何使用这个Hint。</p>
+<div class="cnblogs_code">
+<pre><span style="color: rgba(0, 0, 255, 1)">const</span> GLenum attachments[<span style="color: rgba(128, 0, 128, 1)">3</span>] =<span style="color: rgba(0, 0, 0, 1)"> { COLOR_EXT , DEPTH_EXT , STENCIL_EXT };
+glDiscardFramebufferEXT(GL_FRAMEBUFFER , </span><span style="color: rgba(128, 0, 128, 1)">3</span>, attachments);</pre>
+</div>
+<p>Discards操作在framebuffer object，或者说render-to-texture上有另外的作用。当渲染一个3D几何体到一张纹理时，例如生成环境贴图，我们需要使用深度缓存。但是，一旦渲染完后，我们就不需要使用了。这时，我们就可以通过调用glDiscardFramebufferEXT来告诉驱动程序可以释放frame data了。但是这个时候，我们还不用unbind这个framebuffer object，同时tile-based GPU还可能根据这个hint，来决定不把depth从tile buffer拷贝回主内存。尽管还在桌面OPEN GL上还不可用，EXT_discard_framebuffer还对多采样抗锯齿的framebuffer起作用，多采样buffer可以在他解算回单采样buffer时就被抛弃掉，节约带宽。在写作这篇文章的这时，EXT_discard_framebuffer相对来说还比较新，还需要一些实验来确定这些Hints在各种特别的实现下到底有多高效。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">增量式的帧更新 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>对于一个移动相机的3D场景，比如第一人称射击游戏，我们有理由相信每一个像素在每一帧都会改变，所以，每一帧清空framebuffer不会摧毁掉任何有用的信息。但对于更多GUI类的程序来说，有很多类似控件或者消息窗口等不会改变的东西，他们没有必要每帧都重新生成。开发者在tile-based GPU上使用EGL时会经常惊奇的发现，backbuffer不会被保留到下一帧。EGL 1.4允许显式的通过EGL_SWAP_BEHAVIORL来申请保留，但是这在tile-basedGPU上不是默认设置，因为他会降低效率。</p>
+<p>要理解为什么back-buffer保留机制会降低效率，让我们重新考虑一个tile-based GPU如何在一个tile内渲染像素。如果framebuffer在一帧开始时被clear掉，tile buffer只需要初始化所有像素为clear color即可。但是如果framebuffer需要保留，tile buffer就需要从原来的buffer中取出颜色，并安放到tile上正确的位置，这是需要大量带宽的。带宽的消耗可以看做是将上一帧图像作为纹理绘制到这一帧。是否使用帧保留，要根据场景的复杂度来决定，如果重新绘制一次这个帧都会比保留帧来得快，那么就选择每一帧都重绘，否则，选择帧保留。</p>
+<p>高通提供了一个设备扩展（QCOM_tiled_rendering）来应对这种用例。程序可以显示的指明哪个区域是准备更新的，然后所有不在这个区域的渲染都会被屏蔽掉。GPU只需要处理与这个区域有交集的tile，剩下的区域不会被触碰到，因此framebuffer会被保留下来。这个扩展同样包含了类似EXT_discard_framebuffer的特性，来允许用户显示的指出当前的内容是否需要保留。举个例子，我们考虑一个程序，一个3D渲染的区域，在x,y处，长宽为w x h，将要被完全的替换，剩下的区域都不需要改变。那么我们就可以使用如下的代码，来加速这个过程：</p>
+<div class="cnblogs_code">
+<pre><span style="color: rgba(0, 0, 0, 1)">glStartTilingQCOM(x, y, width , height, GL_NONE);
+glClear(GL_COLOR_BUFFER_BIT </span>| GL_DEPTH_BUFFER_BIT |<span style="color: rgba(0, 0, 0, 1)"> GL_STENCIL_BUFFER_BIT);
+glViewport(x, y, width , height);
+</span><span style="color: rgba(0, 128, 0, 1)">//</span><span style="color: rgba(0, 128, 0, 1)"> Draw the scene</span>
+<span style="color: rgba(0, 0, 0, 1)">glEndTilingQCOM(GL_COLOR_BUFFER_BIT0_QCOM);
+eglSwapBuffers(dpy, surface);</span></pre>
+</div>
+<p>注意，我们必须要为EGL的EGL_SWAP_BEHAVIOR设置为EGL_BUFFER_PRESERVED。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">FLUSHING &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>Tiled-based GPU有时又被称作“延迟”的，这是因为显卡驱动程序会尽可能的屏蔽掉不必要的像素渲染。下面的这些操作，会导致framebuffer的内容被强制更新</p>
+<ul>
+<li>eglSwapBuffers 以及和它类似的窗口系统操作</li>
+<li>glFlush和glFinish</li>
+<li>glReadPixels, glCopyTexImage, 和glBlitFramebuffer</li>
+<li>在当前帧使用遮挡查询</li>
+<li>使用render to texture的结果进行渲染</li>
+<li>切换framebuffer的绑定，例如glFramebufferRenderbuffer或者glRenderbufferStorage,又或者切换的RTT，都会导致framebuffer的flush。因为framedata只对原来的attachment有效。</li>
+</ul>
+<p>在tiled-based gpu上，下面这个渲染方式的效率会十分低下：</p>
+<ol>
+<li>绘制一些三角形</li>
+<li>使用framebuffer的结果</li>
+<li>绘制另外一个三角形</li>
+<li>使用framebuffer的结果</li>
+<li>再绘制一个三角形...</li>
+</ol>
+<p>当每次需要使用framebuffer结果的时候，都会导致另一次全新的像素着色流程：最坏的情况是每一个framebuffer中的像素都执行一次读取、写入的操作，即使你只需要绘制仅仅一个三角形。因为每一次像素着色流程的消耗都非常高，因此我们的目标是尽量每帧只存在一个像素着色流程。</p>
+<p>即使是从GPU中取得framebuffer的内容，这个消耗也是存在的，比如说读取render to texture的纹理颜色或者调用glReadPixels去读取pixel pack buffer，因为每一次的“绘制-读取”操作都会需要像素着色流程再次运行。和桌面平台的立即模式GPU对比，glReadPixels在执行时的消耗基本上可以不用关心。</p>
+<p>在某些driver下，glBindFramebuffer也会导致为绑定前的那个framebuffer开启一次像素着色流程。因此，一帧内，每个framebuffer最好只绑定一次。举个例子，考虑一个场景，里面有一些光滑的物体，使用了实时生成的环境图。常规的做法是：在每个物体渲染前，将这个物体需要的场景图渲染出来，然后使用。但是，这里更好的做法是，在绑定最终绘制的framebuffer前，就将所有物体需要的环境图全部生成好，这样能够减少framebuffer的重复绑定，从而提高效率。</p>
+<p>除了上述的这些情景，这里还有一个情况会导致framebuffer的强制刷新。由于内存是有限的，所以用于framedata的内存大小会随着这一帧提交的几何体大小而变化，当你一直渲染越来越多的几何体而不进行framebuffer交换或者清空的话，程序最终会导致内存溢出。为了防止这个情况发生，driver最终会进行强制更新，来确保内存不会溢出。这个操作代价是十分大的，不同于交换操作，所有的缓存，包括MSAA缓存，会被写到其他地方，之后再重新加载回来以继续渲染，这会导致一次16倍于常规强制刷新的贷款消耗。</p>
+<p>这个情况，就意味着，场景的性能表现和渲染的三角面数量并不是线性相关的。因此，我们不能简单的用小场景来作性能测试，在估计当前程序能够承载的目标三角面数量时，有必要针对这些应用情景作一些检查。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">渲染迟滞 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>由于一帧内的顶点和像素的处理是发生在相对独立的阶段的，应用程序会将CPU处理, 顶点处理，像素处理安排在相邻的三帧中。如下图所示。当一个渲染命令提交后，要在当帧之后的第三帧，渲染结果才会显示出来。</p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/281520210715533.png" alt="" width="580px" class="medium-zoom-image"></p>
+<p>延迟除了会影响用户的操作感受外，还会影响从GPU中往CPU回读信息的操作。同步的查询操作，例如glReadPixels，将会导致CPU挂起强制等待后两帧的返回。即使是异步查询，例如遮挡查询，查询结果最终会被读回，过于频繁的查询调用也会导致CPU挂起等待。</p>
+<p>如果可以等待结果返回时再使用，那么 GL_QUERY_RESULT_AVAILABLE这个check就有用了。为立即模式编写的代码一般会断定，查询的结果在一个固定的时间段内一定会得到返回，或者可以等待带更长时间，甚至poll到它返回为止。同样的，如果必须使用glReadPixels的话，从那些已经完成的framebuffer上取得像素颜色而不是当前绘制的framebuffer会极大的提高效率，降低渲染迟滞，同时得到一个相对可接受的查询反馈。</p>
+<p>迟滞还体现在另一个重要的地方：当资源在使用时修改资源。一个普遍的例子就是动画mesh，这是一个每帧都需要更新顶点数据的用力。之前的顶点数据可能还在被上一帧的顶点计算单元使用，而这是如果应用程序要更新顶点缓存，那么这块内存必须等待上一帧的使用操作完成后才能被写入。在大多数情况下，drivers通过创建一块额外的内存拷贝来防止等待，（将新值写入拷贝内存，待之前的使用完成后再更新）。但是，在一个内存，贷款都十分吃紧的移动设备上，这个copy-on-write的发生是值得我们关注的。特别的，当频繁更新的资源在一帧多次使用时，这个问题会更加严重，会导致多次的copy-on-write。所以，如果可能，所有的资源更新尽量在资源使用前完成，我们显式的进行copy-on-write的管理，而不是将它扔给driver。</p>
+<p>在使用诸如EGL_KHR-image_pixmap或GLX_EXT_texture_from_pixmap这类扩展时需要非常小心，他们会修改操作系统的pixmaps。驱动程序通常不会有更多的自由在内存中移动这些资源。有可能会使得整个系统挂起，或是强制提交所有结果到framebuffer，然后重新加载。</p>
+<p>tiled-based GPU通常比立即模式GPU有更高的迟滞，因此，为立即模式GPU优化的代码可能在tiled-based GPU上需要重新优化。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">隐藏表面剔除 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>立即模式GPU处理重叠物体是用新像素覆盖已绘制像素，这里会有两个多余的消耗：一个是被覆盖像素的着色消耗，一个是被覆盖像素的冗余带宽消耗。在tiled-based gpu上，后一个消耗是不存在的，因为屏幕像素将在完全处理结束之后再写会主内存，但是着色的消耗依然存在。所以，进行高层裁剪，从前往后的组织不透明物体的渲染仍然十分必要，这可以通过硬件的“预深度检测”(early depth test)来提高效率。因为上述这这些问题，在tiled-based gpu上，在CPU排序和GPU着色消耗之间的平衡方式的选择上可能和立即模式GPU有所不同。</p>
+<p>PowerVR的GPU家族，拥有像素着色阶段的逐像素表面剔除特性[Ima 11]。在运行任何像素shader之前，多边形会被预处理来决定哪些像素可能对最终的结果有贡献，之后，只执行这些有贡献的像素，剔除掉其他像素。这个剔除方式需要对几何体进行排序，要完成这个优化，像素shader的结果必须要确保能够完全的覆盖他们遮挡的像素。而如下注入带有discard指令的shader，或者使用了Mask，alpha-test, alpha-to-coverage, 颜色混合特性将会屏蔽掉优化，因为他们“遮挡”的像素有可能对最终的图像产生贡献。因此，逐像素表面剔除特性只会对需要他们的物体开启。</p>
+<p>当PowerVR系硬件的“隐藏面剔除”功能失效时，还有另外一个选择，使用一个（深度流程）depth-only pass：关闭颜色写入，赋予空的像素shader来生成深度缓存，接下来再使用正确的像素shader来正式的绘制场景。depth-only pass会决定每个可见像素的深度，接下来在真正绘制的时候，只有这些可见像素会被处理（通过预深度检测）。</p>
+<p>depth-only-pass技术在立即模式GPU和tiled-basedGPU上对于复杂的着色计算场景来说都是十分有效的优化手段，但trade-off却是不同的。在两种平台上，depth-only-pass都会增加顶点处理和光栅化的消耗。在立即模式GPU上，depth-only-pass会增加额外的带宽消耗，因为深度缓存的访问次数会翻倍。在tiled-based GPU上，depth-buffer的访问很快，不会增加主内存的带宽消耗，但是由于所有提交到frame data的几何体信息都复制了一次，因此这里会有一个较小一些的带宽消耗。因此，对于带宽瓶颈的程序来说，depth-only-pass在立即模式GPU上没有优化效果时，换到tiled-based GPU上也许会有优化效果。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">颜色混合 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>在立即模式GPU上，颜色混合通常是一个代价很高的操作，因为完成混合需要一个在framebuffer上的读取-写入循环，这个操作发生在相对较慢的主内存中。而在tiled-based GPU上，读取-写入循环完全发生在芯片的快速存储器中，所以这个操作的代价非常小。一些GPU还专门实现了处理颜色混合的硬件，来使颜色混合变得几乎免费，其他的GPU一般都使用shader指令来实现颜色混合。因此，颜色混合会降低着色运算的最大指令数。</p>
+<p>需要注意的是，我们只是指出了颜色混合的直接消耗，让一个物体部分透明还带有间接消耗，因为这个物体不能被当做遮挡体了。被物体遮住的像素需要被处理，而如果不用透明，他们本该可以被隐藏面剔除或者预深度检测时被剔除。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">多采样 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>多采样是一个相对高效的提升画面质量的技术，而又不用牺牲像超采样那样多的代价。每一个在framebuffer上的像素都存储多个采样结果，这些采样结果将在最后生成抗锯齿图像。然而，被光栅化后的图源，每个像素只用被着色一次。但这已经让像素着色消耗变得很大了，在immediate立即模式GPU上，多采样会带来很大的带宽消耗：4次多采样（通常的采样数选择），使得所有对framebuffer的读写操作的带宽消耗提高四倍。多种硬件在选择多采样位置的方法上进行优化，但多采样仍然是代价很高的操作。</p>
+<p>相反的，在tile-based GPU上，多采样的代价是很小的，因为多采样的采样点只需要保留在on-chip缓存中，在所有处理完成后才写回framebuffer的主内存。因此，多采样不会带来多余的带宽消耗。</p>
+<p>当然，这里依然会有两个消耗代价：</p>
+<p>首先，4次多采样需要4倍的tile缓存。由于tile缓存容量相当的宝贵，一些GPU会在开启多采样时，缩小tile的尺寸，以容纳采样点需要的缓存。缩小的tile会带来一些额外的性能开销（每个tile都需要存储更多的图元），但是减半tile的尺寸并不一定会减半性能，所以当程序瓶颈在像素着色时，只会看到一个很小的性能下降。</p>
+<p>其次，多采样的另一个开销（在immediate立即模式GPU上也会存在）则是在物体边缘会生成更多的像素。如下图所示，每个多边形会检测到更多的像素。这还不止，这些多采样的区域，前景和背景几何体会同时向同一个像素贡献颜色以供混合，这些图元都需要被着色，因此硬件隐藏面剔除机制不能剔除掉这些图元。这些额外的图元消耗会根据场景的边缘多少而不同，但10%是一个比较好的初始猜测值。</p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/281520347243372.png" alt="" class="medium-zoom-image"></p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">性能分析方法 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>在立即模式GPU上，ARB_timer_query扩展可以用来获取某一段场景渲染的消耗。以个范围内需要分析的渲染命令被glBeginQuery和glEndQuery包裹起来，然后这些渲染命令消耗的时间会被测量，并返回。</p>
+<p>尽管这个扩展有可能被实现在tiled_based GPU上，但这个结果可能在帧粒度一下都不会有任何作用。这是因为，在tiled-based GPU上，命令不一定会按照他们提交的顺序来执行：所有的顶点处理会在第一遍完成，然后像素处理会按照tile的顺序依次执行。因此，性能分析需要依靠更多的干预技术，例如切换场景的启用/禁用开关，来观察性能的下降。硬件提供商提供的读取内部性能计数器的特供工具也能为确定渲染流水线的性能瓶颈提供很大的帮助。</p>
+<p>不同于后期优化，在开始开发时就引入一个性能衡量基准，来帮系统决定三角形，纹理，着色器复杂度的预算是一个通常的好办法。在这样做的时候，一定要记住，当提交了过多的三角形而没有交换，会导致一个性能消耗的陡然提升，这在第五节中已经提过。同时，确保哪些渲染命令真正被执行了也是十分重要的，在渲染调用后放置一个glClear在他们到达GPU前取消这些渲染调用（因为他们根本不起作用）。</p>
+<p>&nbsp;</p>
+<div>
+<h2><span style="text-decoration: underline">总结 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span><button class="cnblogs-toc-button" title="显示目录导航" aria-expanded="false"></button></h2>
+</div>
+<p>每一个GPU，每一个设备驱动都是不同的。而在优化和尝试中的不同选择意味着唯一能够真正决定性能瓶颈的选择就是去实际的测试它。然而，下面的这些没有科学根据的规则，可能是在tile-based GPU上发现高效率渲染的一个起点。</p>
+<ul>
+<li>在一帧的开始清空或抛弃整个渲染内容：包括颜色，深度，模板缓存。</li>
+<li>对于每一个framebuffer object，一帧中只绑定一次，并且，在解绑或使用framebuffer object的结果之前，要确保所有影响它的渲染指令提交完毕。</li>
+<li>在使用遮挡查询或其他取得渲染结果的机制时，记得渲染迟滞效应。并且，如果该程序在之前为立即模式GPU优化过，那么，在tile-based GPU上需要重新优化。</li>
+<li>将三角面数量控制在一个合适的水平，尽量避免大量的精细模型。</li>
+<li>在拥有内建的隐藏面提出的硬件上（POWER VR），就没有必要消耗CPU计算能力去从前往后的排序不透明物体了，在其他硬件上，这个步骤很有必要。同时，可以考虑快速深度渲染（depth only pass）。</li>
+<li>利用代价较低的多采样。</li>
+<li>记住，在移动平台上，性能必须和电量消耗做一个平衡。</li>
+</ul>
+</div>
+<div id="MySignature" role="contentinfo">
+    作者：<a href="http://gameknife.cnblogs.com/" target="_blank">gameKnife</a><br>出处：<a href="http://gameknife.cnblogs.com/" target="_blank">http://gameknife.cnblogs.com/</a><br>本文版权归作者和博客园共有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接，否则保留追究法律责任的权利。
+</div>
+<div class="clear"></div>
+<div id="blog_post_info_block" role="contentinfo"><div id="BlogPostCategory">
+    分类: 
+            <a href="https://www.cnblogs.com/gameknife/category/262458.html" target="_blank">图形技术</a>,             <a href="https://www.cnblogs.com/gameknife/category/262501.html" target="_blank">游戏开发</a></div>
+<div id="EntryTag">
+    标签: 
+            <a href="https://www.cnblogs.com/gameknife/tag/%E7%A7%BB%E5%8A%A8%E5%B9%B3%E5%8F%B0/">移动平台</a>,             <a href="https://www.cnblogs.com/gameknife/tag/%E7%A7%BB%E5%8A%A8%E6%98%BE%E7%A4%BA%E8%8A%AF%E7%89%87/">移动显示芯片</a>,             <a href="https://www.cnblogs.com/gameknife/tag/GPU/">GPU</a>,             <a href="https://www.cnblogs.com/gameknife/tag/tile-based/">tile-based</a>,             <a href="https://www.cnblogs.com/gameknife/tag/opengl/">opengl</a>,             <a href="https://www.cnblogs.com/gameknife/tag/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9B%BE%E5%BD%A2%E5%AD%A6/">计算机图形学</a></div>
+
+    <div id="blog_post_info">
+<div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(3515714,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+        <a id="green_channel_follow" onclick="follow(&#39;0482ca65-bac4-df11-ac81-842b2b196315&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/gameknife/" target="_blank"><img src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/u160383.jpg" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/gameknife/">kNiFe.cpp</a><br>
+            <a href="https://home.cnblogs.com/u/gameknife/followers/">粉丝 - <span class="follower-count">121</span></a>
+            <a href="https://home.cnblogs.com/u/gameknife/followees/">关注 - <span class="following-count">34</span></a><br>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow" class="follow-tip">
+                <a href="javascript:void(0);" onclick="follow(&#39;0482ca65-bac4-df11-ac81-842b2b196315&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(3515714,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">3</span>
+    </div>
+    <div class="buryit" onclick="votePost(3515714,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+    <div class="clear"></div>
+    <div id="post_next_prev">
+
+    <a href="https://www.cnblogs.com/gameknife/archive/2013/06/11/gkengine_optmize.html" class="p_n_p_prefix">« </a> 上一篇：    <a href="https://www.cnblogs.com/gameknife/archive/2013/06/11/gkengine_optmize.html" data-featured-image="" title="发布于 2013-06-11 20:09">gkENGINE渲染优化</a>
+    <br>
+    <a href="https://www.cnblogs.com/gameknife/p/3809235.html" class="p_n_p_prefix">» </a> 下一篇：    <a href="https://www.cnblogs.com/gameknife/p/3809235.html" data-featured-image="" title="发布于 2015-02-09 10:00">gkENGINE重开！</a>
+
+</div>
+</div>
+            </div>
+            <div class="postDesc">posted @ 
+<span id="post-date">2014-02-28 15:32</span>&nbsp;
+<a href="https://www.cnblogs.com/gameknife/">kNiFe.cpp</a>&nbsp;
+阅读(<span id="post_view_count">15557</span>)&nbsp;
+评论(<span id="post_comment_count">10</span>)&nbsp;
+<a href="https://i.cnblogs.com/EditPosts.aspx?postid=3515714" rel="nofollow">编辑</a>&nbsp;
+<a href="javascript:void(0)" onclick="AddToWz(3515714);return false;">收藏</a>&nbsp;
+<a href="javascript:void(0)" onclick="reportManager.report({ currentUserId: &#39;&#39;, targetType: &#39;blogPost&#39;, targetId: &#39;3515714&#39;, targetLink: &#39;https://www.cnblogs.com/gameknife/p/3515714.html&#39;, title: &#39;OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译&#39; })">举报</a></div>
+        </div>
+        
+<script>
+    var cb_entryId = 3515714, cb_entryCreatedDate = '2014-02-28 15:32', cb_postType = 1, cb_postTitle = 'OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译';
+    var allowComments = true, cb_blogId = 76184, cb_blogApp = 'gameknife', cb_blogUserGuid = '0482ca65-bac4-df11-ac81-842b2b196315';
+    mermaidRender.render()
+    markdown_highlight()
+    zoomManager.apply("#cnblogs_post_body img:not(.code_img_closed):not(.code_img_opened)");
+    updatePostStats(
+            [cb_entryId],
+            function(id, count) { $("#post_view_count").text(count) },
+            function(id, count) { $("#post_comment_count").text(count) })
+</script>
+        <a id="!comments"></a>
+<div id="blog-comments-placeholder"></div>
+<div id="comment_form" class="commentform">
+    <a name="commentform"></a>
+    <div id="divCommentShow"></div>
+    <div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="https://www.cnblogs.com/gameknife/p/3515714.html#" onclick="return RefreshPage();">刷新页面</a><a href="https://www.cnblogs.com/gameknife/p/3515714.html#top">返回顶部</a></div>
+    <div id="comment_form_container" style="visibility: visible;"><div class="login_tips">
+    登录后才能查看或发表评论，立即 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return account.login(&#39;!comments&#39;);">登录</a> 或者
+    <a href="https://www.cnblogs.com/">逛逛</a> 博客园首页
+</div>
+</div>
+    <div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+        <div id="cnblogs_ch"><a href="https://www.cnblogs.com/MASA/p/16543600.html" target="_blank" onclick="gtag(&#39;event&#39;, &#39;click&#39;, {&#39;event_category&#39;: &#39;ad&#39;, &#39;event_label&#39;: &#39;T2-MASA&#39;})">【推荐】MASA Framework 开启全新的.NET应用开发体验</a><br><a href="https://brands.cnblogs.com/specdd" target="_blank" onclick="gtag(&#39;event&#39;, &#39;click&#39;, {&#39;event_category&#39;: &#39;ad&#39;, &#39;event_label&#39;: &#39;T2-SpecDD专区&#39;})">【推荐】下一步，敏捷！云可达科技SpecDD敏捷开发专区</a><br><a href="https://curl.qcloud.com/k19RDMHo" target="_blank" onclick="gtag(&#39;event&#39;, &#39;click&#39;, {&#39;event_category&#39;: &#39;ad&#39;, &#39;event_label&#39;: &#39;T2-腾讯云&#39;})">【推荐】腾讯云多款云产品1折起，买云服务器送免费机器</a><br></div>
+    <div id="opt_under_post"></div>
+    <div id="cnblogs_c1" class="under-post-card" style="display: none;">
+            <div id="div-gpt-ad-1592365906576-0" style="width: 300px; height: 250px; display: none;" data-google-query-id="CNS0j-iT4vkCFQNDKgodZXwIXA"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none; width: 300px; height: 0px;"></div></div>
+    </div>
+    <div id="under_post_card1"><div class="under-post-card">
+<b>编辑推荐：</b>
+<br>
+
+· <a href="https://www.cnblogs.com/jackyfei/p/16602676.html" target="_blank">如何使用 .NET 6 的 IHostedService 和 BackgroundService？</a>
+    <br>
+· <a href="https://www.cnblogs.com/coco1s/p/16615333.html" target="_blank">纯 CSS 实现拼图游戏 </a>
+    <br>
+· <a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-6-33x.html" target="_blank">ASP.NET Core 6 框架揭秘实例演示：异常处理高阶用法</a>
+    <br>
+· <a href="https://www.cnblogs.com/Chang-LeHung/p/16599776.html" target="_blank">彻底了解线程池的原理——40行从零开始自己写线程池</a>
+    <br>
+· <a href="https://www.cnblogs.com/lesliexin/p/16588060.html" target="_blank">[MAUI]在窗口（页面）关闭后获取其返回值</a>
+    <br>
+</div></div>
+    <div id="under_post_card2"><div class="itnews under-post-card">
+    <b>最新新闻</b>：
+    <br>
+ ·          <a href="https://news.cnblogs.com/n/727214/" target="_blank">亲历者说：中国第一张商业化的高精地图是怎么诞生的？</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/727213/" target="_blank">Yann LeCun：语言的有限性决定了 AI 永远无法比肩人类智能</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/727211/" target="_blank">百度发布产业级超导量子计算机“乾始”</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/727210/" target="_blank">抖音电商进入深水区：拼多多比淘宝更焦虑？</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/727209/" target="_blank">孟羽童消失后年轻人才醒过神：“令人心动的offer”都是骗我的......</a>
+        <br>
+    » <a href="https://news.cnblogs.com/" title="IT 新闻" target="_blank">更多新闻...</a>
+</div></div>
+    <div id="HistoryToday" class="under-post-card"></div>
+    <script type="text/javascript">
+        var commentManager = new blogCommentManager();
+        commentManager.renderComments(0);
+        fixPostBody();
+
+            window.tocManager.displayDisableTocTips = false;
+            window.tocManager.generateToc();
+            
+                setTimeout(function() { countViews(cb_blogId, cb_entryId); }, 50);
+            
+            deliverT2();
+            deliverC1C2();
+            loadNewsAndKb();
+            
+                LoadPostCategoriesTags(cb_blogId, cb_entryId);
+            
+            LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+            GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+            loadOptUnderPost();
+            GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);
+                </script>
+</div>
+
+    </div>
+</div>
+            </div>
+        </div>
+
+        <div id="sideBar">
+            <div id="sideBarMain">
+                <div id="sidebar_news" class="newsItem">
+<h3 class="catListTitle">公告</h3>
+
+<div id="blog-news">
+    <script type="text/javascript">window['__document_write_ajax_callbacks__']['3']();</script><script type="text/javascript">window['__document_write_ajax_callbacks__']['1']();</script>
+    <div id="profile_block">
+        昵称：
+        <a href="https://home.cnblogs.com/u/gameknife/">
+            kNiFe.cpp
+        </a>
+        <br>
+        园龄：
+        <a href="https://home.cnblogs.com/u/gameknife/" title="入园时间：2010-09-20">
+            11年11个月
+        </a>
+        <br>
+        粉丝：
+        <a class="follower-count" href="https://home.cnblogs.com/u/gameknife/followers/">
+            121
+        </a>
+        <br>
+        关注：
+        <a class="folowing-count" href="https://home.cnblogs.com/u/gameknife/followees/">
+            34
+        </a>
+        <div id="p_b_follow" class="follow-tip">
+<a href="javascript:void(0)" onclick="follow(&#39;0482ca65-bac4-df11-ac81-842b2b196315&#39;)">+加关注</a></div>
+        <script type="text/javascript">window['__document_write_ajax_callbacks__']['4']();</script><script>window['__document_write_ajax_callbacks__']['2']();</script>
+    </div>
+</div></div>
+<div id="sidebar_c3"></div>
+                <div id="calendar"><div id="blog-calendar" style="">
+
+<table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar" border="0">
+    <tbody>
+        <tr>
+            <td colspan="7">
+                <table class="CalTitle" cellspacing="0" border="0">
+                    <tbody>
+                        <tr>
+                            <td class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2022/07/25&#39;); return false;">&lt;</a>
+                            </td>
+                            <td align="center">2022年8月</td>
+                            <td align="right" class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2022/09/25&#39;); return false;">&gt;</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    <tr>
+        <th class="CalDayHeader" align="center" abbr="日" scope="col">日</th>
+        <th class="CalDayHeader" align="center" abbr="一" scope="col">一</th>
+        <th class="CalDayHeader" align="center" abbr="二" scope="col">二</th>
+        <th class="CalDayHeader" align="center" abbr="三" scope="col">三</th>
+        <th class="CalDayHeader" align="center" abbr="四" scope="col">四</th>
+        <th class="CalDayHeader" align="center" abbr="五" scope="col">五</th>
+        <th class="CalDayHeader" align="center" abbr="六" scope="col">六</th>
+    </tr>
+            <tr>
+                            <td class="CalOtherMonthDay" align="center">31</td>
+                        <td class="" align="center">
+                            1
+                        </td>
+                        <td class="" align="center">
+                            2
+                        </td>
+                        <td class="" align="center">
+                            3
+                        </td>
+                        <td class="" align="center">
+                            4
+                        </td>
+                        <td class="" align="center">
+                            5
+                        </td>
+                    <td class="CalWeekendDay" align="center">
+                        6
+                    </td>
+            </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            7
+                        </td>
+                            <td class="" align="center">
+                                8
+                            </td>
+                            <td class="" align="center">
+                                9
+                            </td>
+                            <td class="" align="center">
+                                10
+                            </td>
+                            <td class="" align="center">
+                                11
+                            </td>
+                            <td class="" align="center">
+                                12
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            13
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            14
+                        </td>
+                            <td class="" align="center">
+                                15
+                            </td>
+                            <td class="" align="center">
+                                16
+                            </td>
+                            <td class="" align="center">
+                                17
+                            </td>
+                            <td class="" align="center">
+                                18
+                            </td>
+                            <td class="" align="center">
+                                19
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            20
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            21
+                        </td>
+                            <td class="" align="center">
+                                22
+                            </td>
+                            <td class="" align="center">
+                                23
+                            </td>
+                            <td class="" align="center">
+                                24
+                            </td>
+                            <td class="CalTodayDay" align="center">
+                                25
+                            </td>
+                            <td class="" align="center">
+                                26
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            27
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            28
+                        </td>
+                            <td class="" align="center">
+                                29
+                            </td>
+                            <td class="" align="center">
+                                30
+                            </td>
+                            <td class="" align="center">
+                                31
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                1
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                2
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            3
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalOtherMonthDay" align="center">
+                            4
+                        </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                5
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                6
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                7
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                8
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                9
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            10
+                        </td>
+                </tr>
+    </tbody>
+</table></div></div>                
+                <script>loadBlogDefaultCalendar();</script>
+                <div id="leftcontentcontainer">
+                    <!-- begin:SingleColumn -->
+                    <div id="blog-sidecolumn"><!-- 搜索 -->
+<div id="sidebar_search" class="sidebar-block">
+    <div id="sidebar_search" class="mySearch">
+        <h3 class="catListTitle">搜索</h3>
+        <div id="sidebar_search_box">
+            <div id="widget_my_zzk" class="div_my_zzk">
+                <input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk">
+            </div>
+            <div id="widget_my_google" class="div_my_zzk">
+                <input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 常用链接 -->
+<div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle">
+常用链接
+</h3>
+<ul>
+    <li><a href="https://www.cnblogs.com/gameknife/p/" title="我的博客的随笔列表">我的随笔</a></li>
+<li><a href="https://www.cnblogs.com/gameknife/MyComments.html" title="我的发表过的评论列表">我的评论</a></li>
+<li><a href="https://www.cnblogs.com/gameknife/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li>
+<li><a href="https://www.cnblogs.com/gameknife/comments" title="我的博客的评论列表">最新评论</a></li>
+<li><a href="https://www.cnblogs.com/gameknife/tag/" title="我的博客的标签列表">我的标签</a></li>
+
+</ul>
+</div>
+
+<!-- 最新随笔 -->
+
+
+<!-- 我的标签 -->
+<div id="sidebar_toptags" class="sidebar-block">
+<div class="catListTag">
+    <h3 class="catListTitle">我的标签</h3>
+    <ul>
+                <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9B%BE%E5%BD%A2%E5%AD%A6/">计算机图形学<span class="tag-count">(10)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/">游戏开发<span class="tag-count">(9)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/%E5%9B%BE%E5%BD%A2%E5%BC%95%E6%93%8E/">图形引擎<span class="tag-count">(6)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/GameKnife/">GameKnife<span class="tag-count">(5)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/3D%E6%B8%B8%E6%88%8F/">3D游戏<span class="tag-count">(4)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/GameKnifeEngine/">GameKnifeEngine<span class="tag-count">(3)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/%E5%90%8E%E5%A4%84%E7%90%86/">后处理<span class="tag-count">(3)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/%E5%8D%A1%E9%80%9A%E6%B8%B2%E6%9F%93/">卡通渲染<span class="tag-count">(2)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/%E5%8D%A1%E9%80%9A/">卡通<span class="tag-count">(2)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/gameknife/tag/NPR/">NPR<span class="tag-count">(2)</span></a>
+        </li>
+    <li>
+        <a href="https://www.cnblogs.com/gameknife/tag/">更多</a>
+    </li>
+
+    </ul>
+</div>
+</div>
+
+<!-- 积分与排名 -->
+
+
+<!-- 随笔分类、随笔档案、文章分类、新闻分类、相册、链接 -->
+<div id="sidebar_categories">
+
+    <div class="catListPostCategory">
+        <h3 class="catListTitle">
+            
+    <a class="sidebar-card-title-a" href="https://www.cnblogs.com/gameknife/categories">随笔分类</a>
+<span class="sidebar-category-item-count">
+    (39)
+</span>
+
+
+        </h3>
+        <ul>
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/category/262449.html" class="category-item-link" rel="" target="">纯粹的随笔(5)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/category/262458.html" class="category-item-link" rel="" target="">图形技术(15)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/category/262501.html" class="category-item-link" rel="" target="">游戏开发(19)</a>
+
+                    
+                </li>
+                                        
+        </ul>
+    </div>    <div class="catListPostArchive">
+        <h3 class="catListTitle">
+            
+随笔档案<span class="sidebar-category-item-count">
+    (28)
+</span>
+
+
+        </h3>
+        <ul>
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2015/03.html" class="category-item-link" rel="" target="">2015年3月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2015/02.html" class="category-item-link" rel="" target="">2015年2月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2014/02.html" class="category-item-link" rel="" target="">2014年2月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2013/06.html" class="category-item-link" rel="" target="">2013年6月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2013/04.html" class="category-item-link" rel="" target="">2013年4月(3)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2012/11.html" class="category-item-link" rel="" target="">2012年11月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2012/10.html" class="category-item-link" rel="" target="">2012年10月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2012/02.html" class="category-item-link" rel="" target="">2012年2月(2)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2011/11.html" class="category-item-link" rel="" target="">2011年11月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2011/10.html" class="category-item-link" rel="" target="">2011年10月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="false" style="display: none">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2011/04.html" class="category-item-link" rel="" target="">2011年4月(3)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="false" style="display: none">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2010/12.html" class="category-item-link" rel="" target="">2010年12月(2)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="false" style="display: none">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2010/09.html" class="category-item-link" rel="" target="">2010年9月(1)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="false" style="display: none">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2010/06.html" class="category-item-link" rel="" target="">2010年6月(3)</a>
+
+                    
+                </li>
+                                            <li data-category-list-item-visible="false" style="display: none">
+                    
+<a href="https://www.cnblogs.com/gameknife/archive/2010/05.html" class="category-item-link" rel="" target="">2010年5月(6)</a>
+
+                    
+                </li>
+                                        <li><a href="javascript:void(0)" onclick="sideColumnManager.loadMore(this)">更多</a></li>
+        </ul>
+    </div></div>
+
+<!-- 最新评论 -->
+<!-- 阅读排行榜 -->
+<div id="sidebar_topviewedposts" class="sidebar-block">
+<div id="topview_posts_wrap">
+    <h3 class="catListTitle">
+        <a href="https://www.cnblogs.com/gameknife/most-viewed" class="sidebar-card-title-a">
+    阅读排行榜
+</a>
+
+    </h3>
+    <div id="TopViewPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/p/3515714.html">
+                            1. OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译(15557)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2013/06/11/gkengine_optmize.html">
+                            2. gkENGINE渲染优化(6714)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2011/04/26/2028790.html">
+                            3. 毕设开发总结-3D游戏框架及网络对战游戏的开发(2)(4713)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2013/04/22/3026138.html">
+                            4. gkENGINE 开发两年半总结（上）(4662)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2012/02/17/2355570.html">
+                            5. #九阴真经#优选配置渲染流程简要分析[Flexi引擎](3924)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div></div>
+
+<!-- 评论排行榜 -->
+<div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+    <h3 class="catListTitle">
+        <a href="https://www.cnblogs.com/gameknife/most-commented" class="sidebar-card-title-a">评论排行榜</a>
+
+    </h3>
+    <div id="TopFeedbackPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2011/04/26/2028790.html">
+                            1. 毕设开发总结-3D游戏框架及网络对战游戏的开发(2)(25)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2013/04/22/3026138.html">
+                            2. gkENGINE 开发两年半总结（上）(18)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2011/11/30/2268509.html">
+                            3. gkENGINE - 个人图形引擎展示(17)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2013/06/11/gkengine_optmize.html">
+                            4. gkENGINE渲染优化(16)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/gameknife/archive/2011/04/25/2025663.html">
+                            5. 毕设开发总结-3D游戏框架及网络对战游戏的开发(1)(16)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div></div>
+
+<!-- 推荐排行榜 -->
+<div id="sidebar_topdiggedposts" class="sidebar-block">
+<div id="topdigg_posts_wrap">
+    <div class="catListView">
+        <h3 class="catListTitle">
+            <a href="https://www.cnblogs.com/gameknife/most-liked" class="sidebar-card-title-a">推荐排行榜</a>
+
+        </h3>
+        <div id="TopDiggPostsBlock">
+            <ul style="word-break: break-all">
+                        <li>
+                            <a href="https://www.cnblogs.com/gameknife/archive/2011/04/26/2028790.html">
+                                1. 毕设开发总结-3D游戏框架及网络对战游戏的开发(2)(11)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/gameknife/archive/2011/04/25/2025663.html">
+                                2. 毕设开发总结-3D游戏框架及网络对战游戏的开发(1)(7)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/gameknife/archive/2013/06/11/gkengine_optmize.html">
+                                3. gkENGINE渲染优化(5)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/gameknife/archive/2011/11/30/2268509.html">
+                                4. gkENGINE - 个人图形引擎展示(5)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/gameknife/archive/2010/12/28/1918448.html">
+                                5. GameKnifeEngine第一个游戏&lt;TANK 3D&gt; Demo版完成！(5)
+                            </a>
+                        </li>
+            </ul>
+        </div>
+    </div>
+</div></div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap" class="RecentComment">
+    <h3 class="catListTitle"><a href="https://www.cnblogs.com/gameknife/comments" class="sidebar-card-title-a">最新评论</a></h3>    
+    <div class="RecentCommentBlock">
+        <ul>
+                <li class="recent_comment_title"><a href="https://www.cnblogs.com/gameknife/archive/2010/12/28/1918448.html">1. Re:GameKnifeEngine第一个游戏&lt;TANK 3D&gt; Demo版完成！</a></li>
+                <li class="recent_comment_body">能否把这个作为gkengine的demo放在里面供下载，方便用gk</li>
+                <li class="recent_comment_author">--cccpz</li>
+                <li class="recent_comment_title"><a href="https://www.cnblogs.com/gameknife/p/3515714.html">2. Re:OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译</a></li>
+                <li class="recent_comment_body">@ lea硬件架构...</li>
+                <li class="recent_comment_author">--minggoddess</li>
+                <li class="recent_comment_title"><a href="https://www.cnblogs.com/gameknife/p/3515714.html">3. Re:OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译</a></li>
+                <li class="recent_comment_body">请教楼主个问题：tbdr架构会在parameter buffer中保存场景几何体frame data，如果在一个像素位置有透明和不透明的fragment同时存在，请问显卡是怎么处理的？我的理解是如果显...</li>
+                <li class="recent_comment_author">--雪落诗痕</li>
+                <li class="recent_comment_title"><a href="https://www.cnblogs.com/gameknife/archive/2013/06/11/gkengine_optmize.html">4. Re:gkENGINE渲染优化</a></li>
+                <li class="recent_comment_body">楼主的东西做的真好，技术水平很厉害。很向往达到楼主的水平。一直想做图形底层，但不喜欢游戏，不怎么想去游戏公司。目前，所从事的的行业也是和图形沾点边，但不深入，大部分是使用现成引擎开发。还望赐教。</li>
+                <li class="recent_comment_author">--远行的帆</li>
+                <li class="recent_comment_title"><a href="https://www.cnblogs.com/gameknife/archive/2013/04/26/3046110.html">5. Re:gkENGINE HDR流程简析</a></li>
+                <li class="recent_comment_body">赞一个</li>
+                <li class="recent_comment_author">--wisdomfriend</li>
+        </ul>
+    </div>
+</div></div>
+
+
+</div>
+                    <script>loadBlogSideColumn();</script>
+                    <!-- end:  SingleColumn -->
+                </div>
+            </div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+    <div id="footer">
+        <!--done-->
+Copyright © 2022 kNiFe.cpp
+<br><span id="poweredby">Powered by .NET 6 on Kubernetes</span>
+
+    </div>
+</div>
+
+
+
+
+<input type="hidden" id="antiforgery_token" value="CfDJ8EOBBtWq0dNFoDS-ZHPSe53r30aYRBGJkwKMPR33VjDENuSpLb6E4xfz45tCmjX7n_7caNVDzkH80TXdnFu4RkwklgBozX_F_peoKxi_d1oKo-0N306yJWu0STsbhfCJ_71x0WHGwQXE432fHa21D4s">
+<script async="" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/js"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var kv = getGACustom();
+    if (kv) {
+        gtag('set', kv);
+    }
+    gtag('config', 'UA-476124-1');
+</script>
+<script defer="" src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/hm.js.download"></script>
+
+<script type="text/javascript">
+var weibocode = '<if';
+weibocode += 'rame width="63" height="24" frameborder="0" allowtransparency="true" marginwidth="0" marginheight="0" scrolling="no" border="0" src="http://widget.weibo.com/relationship/followbutton.php?language=zh_cn&width=63&height=24&uid=1642909335&style=1&btn=red&dpc=1"></if';
+weibocode += 'rame>';
+document.getElementById('weibowidget').innerHTML = weibocode;
+</script><script type="text/javascript">getFollowStatus('0482ca65-bac4-df11-ac81-842b2b196315');</script><iframe src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/container.html" style="visibility: hidden; display: none;"></iframe><iframe src="./OpenGL Insights 阅读有感 - Tile Based架构下的性能调校 翻译 - kNiFe.cpp - 博客园_files/aframe.html" width="0" height="0" style="display: none;"></iframe></body></html>

@@ -1,0 +1,137 @@
+.footer-fragments > .layout { 
+    max-width: 100%; 
+    padding-left: 0; padding-right: 0;
+}
+
+#header-750 > div.content-fragment-content, #header-743 > div.content-fragment-content, #header-730 > div.content-fragment-content, #header-732 > div.content-fragment-content { background-color: #eeeded; }
+#fragment-2071092682_banner { padding: 0 35%; }
+#ctl02_ctl01_content > div { background-color: #eeeded; }
+.content-fragment-page > .layout { max-width: 1300px; padding-right: 40px; padding-left: 40px;}
+
+.content-fragment-page .layout-region.content .layout-region-inner .content-fragment .content-fragment-content { margin-top: 0px; }
+.content-fragment.thread-list .content-list.content>.content-item .icon span.unanswered:before, .content-fragment.thread-list .content-list.content>.content-item .icon a.unanswered:before, .content-fragment.thread-list .content-list.content>.content-item .icon span.discussion:before, .content-fragment.thread-list .content-list.content>.content-item .icon a.discussion:before {
+    margin-left: 3px;
+    margin-top: 3px;
+}
+
+/* CTA Button styling */
+
+a.cta.button, a.cta-square.button, div.cta.button, div.cta-square.button { 
+    background-color: #ffc700 !important;
+    border-color: #ffc700 !important;
+    border-style: solid !important;
+	border-bottom: 3px solid #ffc700 !important;
+    border-width: 3px;
+    border-radius: 40px !important;
+    color: #333e48 !important;
+    padding: 20px 50px;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    cursor: pointer;
+    display: -webkit-inline-box;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    font-family: Lato;
+    font-size: 1.25rem;
+    font-weight: 400;
+    max-width: 100%;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    line-height: 0;
+    margin: 15px 0;
+    overflow: hidden;
+    text-transform: none;
+    -webkit-transition: none;
+    -o-transition: none;
+    transition: none;
+    white-space: nowrap;
+    width: auto;
+} 
+
+a.cta-square:hover, a.cta.button:hover, div.cta.button:hover, div.cta-square.button:hover {     
+	background-color: #f6d452 !important;
+	border-color: #ffc700 !important;
+	border-bottom: 3px solid #ffc700 !important;
+	border-radius: 40px !important;
+    border-style: solid !important;
+    color: #333e48 !important;
+    line-height: 0;
+	}
+
+a.cta-square:visited, a.cta-square.button:visited:hover, a.cta.button:hover, a.cta.button:visited:hover { 
+	color: #333e48 !important; }
+
+.flex { display: flex; justify-content: space-between; }
+.flex .cta-square { width: 300px !important; }
+.flex .flexitem { width: 50%; }
+.flex .flexitem .fa.fa-pull-left { margin-right: 0px; }
+.flex .flexitem .button.cta-square { width: 100%; }
+
+.right-sidebar .flex { flex-direction: column;  }
+.right-sidebar .flex .cta-square { width:100% !important; }
+
+@media only screen and (max-width: 900px) {
+.flex { flex-direction: column; }
+.flex .cta-square { width: 100% !important; }
+.flex .flexitem { width: 100%; }
+}
+
+.blog-process p, .blog-process h4, .blog-process h3, .blog-process ul li, .blog-process h2, .blog-process h1, .blog-process i {color: #ffffff; }
+.blog-process h6 { text-align: center; font-weight: 300; color: #ffffff; margin-block-start: 1em; margin-block-end: 1em; }
+.blog-process.homenav.content-fragment.content.full > .content a:visited /*, .user-defined-markup a:visited */ { color: #ffffff; }
+.blog-process.content-fragment.content.full > .content ul li::before /*, .user-defined-markup ul li::before */ { color: #ffffff; }
+.blog-process .flex div { margin-right: auto; margin-left: auto; padding: 0 20px; vertical-align: middle; margin-bottom: 20px; }
+.blog-process .flex hr {margin-bottom: 20px; }
+.blog-process .flex span { float: left; font-size: 1rem; margin-bottom: 40px; }
+.blog-process ul li a { color: #ffffff; }
+.blog-process ul li a:visited { color: #ffffff; }
+/* #ctl02_ctl01_content > div { background-color: #eeeded; } */
+@media only screen and (min-width: 900px) {
+    .blog-process .flex div { max-width: 33%; }
+}
+
+.content-fragment .content.abbreviated .name .draft{
+    background-color: #ffffcc;
+    color: #000000; border: 1px solid #b0af57;
+    font-size: 12px; padding: 1px 5px;
+    top: -5px; position: relative;
+}
+
+/* drop down - this must be in custom styles*/
+.uiselect { padding-right: 0px !important; }    
+.uiselect > span{
+    background-image: linear-gradient(65deg, transparent 50%, #d4d5d5 50%),linear-gradient(115deg, #d4d5d5 50%, transparent 50%);
+    background-position: calc(100% - 15px) calc(1em - 6px),calc(100% - 7px) calc(1em - 6px),calc(100% - 2.5em) 0.5em;
+    background-size: 10px 14px, 10px 14px, 1px 1.5em;
+    background-repeat: no-repeat;
+   width: 100% !important;
+}
+
+@media only screen and (max-width: 650px) {
+    .content-fragment select:hover {
+        background-image: linear-gradient(65deg, transparent 50%, #d4d5d5 50%),linear-gradient(115deg, #d4d5d5 50%, transparent 50%);
+    }
+}
+/* bhargav Desai - 12/10*/
+.content-fragment select {
+    background-position: calc(100% - 15px) calc(1em - 3px), calc(100% - 7px) calc(1em - 3px), calc(100% - 2.5em) 0.5em !important;
+    background-image: linear-gradient(65deg, transparent 50%, #d4d5d5 50%),linear-gradient(115deg, #d4d5d5 50%, transparent 50%);
+    background-size: 10px 14px, 10px 14px, 1px 1.5em;
+    background-repeat: no-repeat;
+}
+.content-fragment select: hover{
+    background-image: linear-gradient(65deg, transparent 50%, #d4d5d5 50%),linear-gradient(115deg, #d4d5d5 50%, transparent 50%);
+}
+/**********************************************/
+
+.media-gallery-post-list .content-item.content.thumbnail h3 { height: 60px; overflow: hidden; }
+/*.media-gallery-post-list .avatar { height: 100px; }*/
+
+/* Ace editor body text disply improvements */
+
+.ace_editor { font-size: 15px !important; }
+
+/* Admin panel corrections from overrides */
+#_tc_ap.contextual-administration-panel-container .contextual-administration-panel-wrapper .contextual-panel .contextual-panel-heading .custom-panel-heading-content fieldset .button {line-height:6px;}
