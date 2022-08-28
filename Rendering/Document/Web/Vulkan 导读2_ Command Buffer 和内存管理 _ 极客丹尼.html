@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<!-- saved from url=(0037)https://broadgeek.com/2021/01/11/7c7/ -->
+<html lang="zh-CN" data-theme="light" class="windows desktop landscape"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Vulkan 导读2: Command Buffer 和内存管理 | 极客丹尼</title><meta name="keywords" content="Vulkan"><meta name="author" content="Danny S."><meta name="copyright" content="Danny S."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="导读2 主要是讲解第五章，之所以跳过2，3，4章是因为这三章关键概念很少，更多的是围绕Vulkan初始化阶段的准备工作。第五章重点讲解了CB和内存的概念，值得对其细节进行整理。 一个command buffer就是a collection of commands. Command buffer 会被提交到一个合适的 hardware queue 让GPU来处理。driver会fetches和val">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vulkan 导读2: Command Buffer 和内存管理">
+<meta property="og:url" content="https://broadgeek.com/2021/01/11/7c7/index.html">
+<meta property="og:site_name" content="极客丹尼">
+<meta property="og:description" content="导读2 主要是讲解第五章，之所以跳过2，3，4章是因为这三章关键概念很少，更多的是围绕Vulkan初始化阶段的准备工作。第五章重点讲解了CB和内存的概念，值得对其细节进行整理。 一个command buffer就是a collection of commands. Command buffer 会被提交到一个合适的 hardware queue 让GPU来处理。driver会fetches和val">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/geekdanny/images/master/blog/NFrL2w.png">
+<meta property="article:published_time" content="2021-01-11T22:26:51.000Z">
+<meta property="article:modified_time" content="2021-01-11T22:26:51.000Z">
+<meta property="article:author" content="Danny S.">
+<meta property="article:tag" content="Vulkan">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/geekdanny/images/master/blog/NFrL2w.png"><link rel="shortcut icon" href="https://raw.githubusercontent.com/geekdanny/images/master/kirito.ico"><link rel="canonical" href="https://broadgeek.com/2021/01/11/7c7/"><link rel="preconnect" href="https://cdn.jsdelivr.net/"><link rel="preconnect" href="https://busuanzi.ibruce.info/"><link rel="stylesheet" href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/index.css"><link rel="stylesheet" href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/all.min.css" media="all" onload="this.media=&#39;all&#39;"><link rel="stylesheet" href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/fancybox.css" media="all" onload="this.media=&#39;all&#39;"><link rel="stylesheet" href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/css" media="all" onload="this.media=&#39;all&#39;"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Vulkan 导读2: Command Buffer 和内存管理',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2021-01-11 14:26:51'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="https://broadgeek.com/atom.xml" title="极客丹尼" type="application/atom+xml">
+<link rel="stylesheet" href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/gitalk.min.css"><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/gitalk.min.js.download" async=""></script><script type="text/javascript" charset="utf-8" async="" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/L2Dwidget.0.min.js.download"></script>
+<style>
+  .live2d-widget-dialog-container {
+    width: 300px;
+    height: 120px;
+    position: absolute;
+    bottom: 65%;
+    right: 0px;
+    transform-origin: right;
+    padding: 12px;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+  }
+  .live2d-widget-dialog {
+    width: 100%;
+    height: 100%;
+    color: #917159;
+    font-size: 16px;
+    padding: 12px;
+    border: 2px solid rgb(236, 203, 180);
+    background: rgb(252, 248, 244);
+    box-sizing: border-box;
+    border-radius: 10px;
+    transform: rotate(-2deg);
+    opacity: 0;
+    transition: 200ms opacity;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px;
+    animation: live2d-widget-dialog-tingle 4s ease-in-out 0s infinite alternate;
+  }
+  @keyframes live2d-widget-dialog-tingle {
+    0% { transform: translate(-1px, 1.5px) rotate(-2deg); }
+    100% { transform: translate(1px, -1.5px) rotate(2deg); }
+  }
+</style>
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/avatar.jpg" onerror="onerror=null;src=&#39;/img/friend_404.gif&#39;" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="https://broadgeek.com/archives/" data-pjax-state=""><div class="headline">文章</div><div class="length-num">53</div></a><a href="https://broadgeek.com/tags/" data-pjax-state=""><div class="headline">标签</div><div class="length-num">50</div></a><a href="https://broadgeek.com/categories/" data-pjax-state=""><div class="headline">分类</div><div class="length-num">11</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="https://broadgeek.com/" data-pjax-state=""><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="https://broadgeek.com/archives/" data-pjax-state=""><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="https://broadgeek.com/tags/" data-pjax-state=""><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="https://broadgeek.com/categories/" data-pjax-state=""><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="https://broadgeek.com/about/" data-pjax-state=""><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg nav-fixed" id="page-header" style="background-image: url(&#39;https://raw.githubusercontent.com/geekdanny/images/master/blog/NFrL2w.png&#39;)"><nav id="nav" class="show"><span id="blog_name"><a id="site-name" href="https://broadgeek.com/" data-pjax-state="">极客丹尼</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" data-pjax-state=""><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="https://broadgeek.com/" data-pjax-state=""><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="https://broadgeek.com/archives/" data-pjax-state=""><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="https://broadgeek.com/tags/" data-pjax-state=""><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="https://broadgeek.com/categories/" data-pjax-state=""><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="https://broadgeek.com/about/" data-pjax-state=""><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page" data-pjax-state=""><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Vulkan 导读2: Command Buffer 和内存管理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-01-11T22:26:51.000Z" title="发表于 2021-01-11 14:26:51">2021-01-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-01-11T22:26:51.000Z" title="更新于 2021-01-11 14:26:51">2021-01-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="https://broadgeek.com/categories/%E5%9B%BE%E5%BD%A2%E6%8A%80%E6%9C%AF/" data-pjax-state="">图形技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Vulkan 导读2: Command Buffer 和内存管理"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv">295</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>导读2 主要是讲解第五章，之所以跳过2，3，4章是因为这三章关键概念很少，更多的是围绕Vulkan初始化阶段的准备工作。第五章重点讲解了CB和内存的概念，值得对其细节进行整理。</p>
+<p>一个command buffer就是a collection of commands. Command buffer 会被提交到一个合适的 hardware queue 让GPU来处理。driver会fetches和validates并compiles这些command buffers，然后再把它们交给GPU来处理。这一章节主要围绕command buffers 和 memory allocation的讲解了以下topics：</p>
+<ul>
+<li>Getting started with command buffers</li>
+<li>Understanding the command pool and command buffer APIs</li>
+<li>Recording command buffers</li>
+<li>Implementing the command buffer wrapper class</li>
+<li>Managing memory in Vulkan</li>
+</ul>
+<h1 id="Getting-started-with-command-buffers"><a href="https://broadgeek.com/2021/01/11/7c7/#Getting-started-with-command-buffers" class="headerlink" title="Getting started with command buffers" data-pjax-state=""></a>Getting started with command buffers</h1><p><strong>名词解释</strong></p>
+<p><strong>Command Buffer</strong>：a command buffer is a buffer or collection of commands in a single unit.</p>
+<p>一个CB 记录了多个可以被App调用和执行的Vulkan API commands。CB一旦被baked后，是可以<strong>反复使用</strong>的。CB们按照App的调用commands的次序来依次记录commands。这些commands是用来承载不同类型的jobs。这些jobs包括：binding vertex buffer， pipeline binding， recording Render Pass Commands， setting viewport and scissor， specifying drawing commands， controlling copy operations on imag and buffer contents 等。</p>
+<p>Command Buffer  有两种：</p>
+<ul>
+<li><strong>Primary command buffers</strong>：这种buffer是SCB的owners，并负责执行SCB。PCB是可以被直接提交到queues上。</li>
+<li><strong>Secondary command buffers：</strong>SCB是通过PCB来执行的。他们不可以直接被提交到queues上。</li>
+</ul>
+<p>一个APP可能会有成百上千个CB。由于数量巨大，所以CB都是通过command pool来创建的， CB本身是无法直接被创建的。</p>
+<p><a href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/640-20210111143521475.jpg" data-fancybox="gallery" data-caption="图片" data-thumb="https://raw.githubusercontent.com/geekdanny/images/master/blog/640-20210111143521475.jpg"><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/640-20210111143521475.jpg" alt="图片"></a></p>
+<p>CB是persistent的；它们一旦被创建，就可以被持续地复用。如果一个CB不再有用了，它也可以通过reset command来被renew，然后为下一个recording做好准备。这种做法跟“destroy 再create”的做法比就显得更加高效，</p>
+<h2 id="显式同步（Explicit-Synchronization）"><a href="https://broadgeek.com/2021/01/11/7c7/#%E6%98%BE%E5%BC%8F%E5%90%8C%E6%AD%A5%EF%BC%88Explicit-Synchronization%EF%BC%89" class="headerlink" title="显式同步（Explicit Synchronization）" data-pjax-state=""></a>显式同步（Explicit Synchronization）</h2><p>CB 是由每一个thread所负责的 command buffer pool来创建的。这种做法避免了不同threads之间需要显式地同步去创建CB。但是App必须要对在不同的threads之间共用的CBs做同步不管理。</p>
+<p>书中用了一段话比较了OpenGL跟Vulkan两者，把CB提交给GPU过程的区别。值得留意：</p>
+<p>*”Another differentiation is the submission of the command buffers in OpenGL: command* <em>buffers are pushed behind the scenes and are not in control of the application. An</em> <em>application that submits the commands has no guarantee when those jobs will be executed.</em> <em>This is because OpenGL executes command buffers in batches. It waits for the commands to</em> <em>build the batch and then it dispatches them together. On the other hand, Vulkan gives</em> <em>explicit control to the command buffer to allow the processing up front by submitting it to</em> <em>the desired queue.” P120, 《Learn Vulkan》</em></p>
+<p>CB 包含了很多个 commands。 这些Commands可以归类为三种：</p>
+<ul>
+<li><strong>Action</strong>: This command performs operations such as draw, dispatch, clear, copy,query/timestamp operations, and begin/end a subpass</li>
+<li><strong>State management:</strong> This includes descriptor sets, bind pipelines, and buffers, and it is used to set the dynamic state, push constants, and the Render Pass/subpass state</li>
+<li><strong>Synchronization:</strong> These commands are used for synchronization: pipeline barriers, set events, wait events, and Render Pass/subpass dependencies</li>
+</ul>
+<p><a href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/4jHl6KiBogy3N5x.png" data-fancybox="gallery" data-caption="4jHl6KiBogy3N5x" data-thumb="https://i.loli.net/2021/11/12/4jHl6KiBogy3N5x.png"><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/4jHl6KiBogy3N5x.png" alt="4jHl6KiBogy3N5x"></a></p>
+<h2 id="Command-Buffer-and-Queues"><a href="https://broadgeek.com/2021/01/11/7c7/#Command-Buffer-and-Queues" class="headerlink" title="Command Buffer and Queues" data-pjax-state=""></a>Command Buffer and Queues</h2><p>CB被提交到 hardware queue后会被异步处理掉。 队列提交可以通过batching CBs来一次完成。Vulkan有一种deferred command model：它可以让CB里对<strong>draw calls的收集</strong>和<strong>提交</strong>分别作为两个不同的operations来单独处理。这种做法方便了App可以在大部分场景下针对submission 做出适当的优化， 而这恰恰是OpenGL很难做到的。</p>
+<p>Vulkan 提供对硬件queue的逻辑view。每一个逻辑view都关联着一个hardware queue。 一个单一的hardware queue可以用多个逻辑queues。</p>
+<h3 id="The-Order-of-Execution"><a href="https://broadgeek.com/2021/01/11/7c7/#The-Order-of-Execution" class="headerlink" title="The Order of Execution" data-pjax-state=""></a>The Order of Execution</h3><p>CBs 可以被提交一个single queue或者多个queues上：</p>
+<ul>
+<li><strong>Single queue submission:</strong> Multiple command buffers submitted to a single queue may be executed or overlapped. In single queue submission, a command buffer must obey the order of the execution of operations as per the command order and the API order specification. This book only covers the submission commands used for vkQueueSubmit; it does not cover sparse memory binding command buffers (through vkQueueBindSparse).</li>
+<li><strong>Multiple queue submission:</strong> The command buffers submitted to multiple queues may be executed in any order unless explicit ordering constraints are applied through the synchronization mechanism via semaphores and fences.</li>
+</ul>
+<h2 id="Recording-Command-Buffers"><a href="https://broadgeek.com/2021/01/11/7c7/#Recording-Command-Buffers" class="headerlink" title="Recording Command Buffers" data-pjax-state=""></a><strong>Recording Command Buffers</strong></h2><p>一个CB是通过vkBeginCommandBuffer()和 vkEndCommandBuffer()这两个 APIs 来记录的。这两者之间的scope就是具体的Vulkan commands 被记录的范围。下图显示了一个Render Pass Instance在这两个API之间被记录的过程：</p>
+<p><a href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/mLADIpkoybuqYzM.png" data-fancybox="gallery" data-caption="6hjLts5QIilXu8M" data-thumb="https://i.loli.net/2021/11/12/mLADIpkoybuqYzM.png"><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/mLADIpkoybuqYzM.png" alt="6hjLts5QIilXu8M"></a></p>
+<h2 id="Queue-Submission"><a href="https://broadgeek.com/2021/01/11/7c7/#Queue-Submission" class="headerlink" title="Queue Submission" data-pjax-state=""></a><strong>Queue Submission</strong></h2><p>当一个CB完成记录后，它就可以被提交到一个queue上了。vkQueueSubmit() API 用来把一个CB或者在多个CB提交到正确的queue上。</p>
+<h2 id="Queue-Waiting"><a href="https://broadgeek.com/2021/01/11/7c7/#Queue-Waiting" class="headerlink" title="Queue Waiting" data-pjax-state=""></a>Queue Waiting</h2><p>当CBs被提交到queue后，App要等待所提交的工作被完成，才可以接受一下个batch。等待queue的API 是 vkQueueWaitIdle() API。</p>
+<h1 id="Managing-Memory-in-Vulkan"><a href="https://broadgeek.com/2021/01/11/7c7/#Managing-Memory-in-Vulkan" class="headerlink" title="Managing Memory in Vulkan" data-pjax-state=""></a>Managing Memory in Vulkan</h1><p>Vulkan 将内存分成两种：<strong>host memory</strong> 和 <strong>device memory</strong>。host memory被device memory 慢，但是可用的地方比较多。device memory 对GPU可见，所以更快。</p>
+<h2 id="Host-Memory"><a href="https://broadgeek.com/2021/01/11/7c7/#Host-Memory" class="headerlink" title="Host Memory" data-pjax-state=""></a><strong>Host Memory</strong></h2><p>书中段落开头一段话很重要，摘要如下：</p>
+<p><em>“Vulkan makes use of host memory to store API internal data structures in the implementation. Vulkan provides allocators, which allow an application to control memory allocation on behalf of host memory. If the application does not use allocators, then the Vulkan implementation uses a default allocation scheme to reserve a memory slot for its data structures.” （p137， 《Learn Vulkan》）</em></p>
+<p>这段话可以总结为以下信息：</p>
+<ul>
+<li>host memory 是用来存储API internal data strucutures</li>
+<li>App通过Allocator来分配和创建host 的memory</li>
+<li>如果APP不通过allocator，那么Vulkan使用默认alllocation scheme来为data structures保留内存的slot。</li>
+</ul>
+<p>至于内存的分配管理则是用callback来完成的：</p>
+<p><em>“Host memory is managed by the VkAllocationCallbacks control structure, which is passed to Vulkan APIs for custom management of host memory.”</em></p>
+<h2 id="Device-Memory"><a href="https://broadgeek.com/2021/01/11/7c7/#Device-Memory" class="headerlink" title="Device Memory" data-pjax-state=""></a><strong>Device Memory</strong></h2><p>书中段头解释的很清楚： </p>
+<p><em>“Device memory is GPU memory that is visible to the physical device. The physical device can read its memory regions directly. Device memory is very close to the physical device, and thus provides faster performance than host memory. Image objects, buffers objects, and uniform buffer objects are all allocated on device memory.”</em> P139，《Learn Vulkan》</p>
+<p>App 有责任通过调用 <em>vkGetPhysicalDeviceMemoryProperties()</em>API 来查询物理设备上可用的memory heaps 和 meomory properities，并更好的分配这些资源。</p>
+<h1 id="总结"><a href="https://broadgeek.com/2021/01/11/7c7/#%E6%80%BB%E7%BB%93" class="headerlink" title="总结" data-pjax-state=""></a>总结</h1><p>书中在这一章节介绍了CB和meomory allocation， 并给出了API的调用细节，导读里我没有针对具体的代码细节展开，代码可以自己看，很容易理解。Vulkan所分配的资源可以分为两种：<strong>buffers</strong> 和 <strong>images</strong>。我们会在导读3介绍images resources；然后在导读4里介绍 buffer resource，Render Pass，Framebuffer 和 shaders。所以导读4也将是最重要的一章！</p>
+<p>引用： 《Learning Vulkan》</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://broadgeek.com/" data-pjax-state="">Danny S.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://broadgeek.com/2021/01/11/7c7/" data-pjax-state="">https://broadgeek.com/2021/01/11/7c7/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://broadgeek.com/" target="_blank">极客丹尼</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="https://broadgeek.com/tags/Vulkan/" data-pjax-state="">Vulkan</a></div><div class="post_share"><div class="social-share share-component" data-image="https://raw.githubusercontent.com/geekdanny/images/master/blog/NFrL2w.png" data-sites="facebook,twitter,wechat,weibo,qq"><a class="social-share-icon icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fbroadgeek.com%2F2021%2F01%2F11%2F7c7%2F" target="_blank"></a><a class="social-share-icon icon-twitter" href="https://twitter.com/intent/tweet?text=Vulkan%20%E5%AF%BC%E8%AF%BB2%3A%20Command%20Buffer%20%E5%92%8C%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%20%7C%20%E6%9E%81%E5%AE%A2%E4%B8%B9%E5%B0%BC&amp;url=https%3A%2F%2Fbroadgeek.com%2F2021%2F01%2F11%2F7c7%2F&amp;via=https%3A%2F%2Fbroadgeek.com" target="_blank"></a><a class="social-share-icon icon-wechat" href="javascript:"><div class="wechat-qrcode"><h4>微信扫一扫：分享</h4><div class="qrcode" title="https://broadgeek.com/2021/01/11/7c7/"><canvas width="100" height="100" style="display: none;"></canvas><img alt="Scan me!" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAABsFJREFUeF7tne2W2zAIRJP3f+jtcVpvZC/4zmA5SVv6VzLCDB8DVrP32+32dZvw7+srFnO/339Ir+5dZY3PR/KXA9c92fqqVKZLZJJRlqJDxayLtRoQ0XIvBcTxlFH/yGvF95O2RUbIDCMJFDc57+Xspcj7jpAGZGsqx8jO3gZEjIj9NsfIzt4SIE4hJGUqRT0rmFGhdgjCaAy16EfPKOBVbLjIDVNWRZhjGNrbgAw08YFSQFUzT+kIedrLocLZ3pdGSBQZxJgqKS/rQ4i4kC5ZOXL6o6j/Gc9tQAYr/7OAUANFNSTzRPJwYjBOhFYi82NTVgNSq8OXsawGZDIgTi81k2Wt5zoDw0oaG5kkUWzFFmQDkoFFnQQ4sywnFzcgSWPYgDzH94otLokQ5eCjPUroE1+n0Yj6vJOSnHpHe8/acFPUzwprQM5a8Pfz969qVTw4vzJ6ybrrbGQT1Rt6lcjDqRkkgjEHhqeUBmSY21HjSM4xA5wG5G8AxKGqlfREIwaqR0pxJW+n7yG0HkUD6a1EUBghDYh+ayVLY1SbMnAakOTbz9siJLoGROEeeQWlLiVc1T5EkbXucZhXVW6lMUzTbgPy8yKfAkxULwj8aOQ00v20MewIYUheCojDtylcKZUR+A4jyzyQzftzh5M+nb3IzugqKYVhAxIzMnKklJ1RDXEo8BXjDIdAOGmEBpXkyRR1lBlS2tuAPO+akxEpW8xImeHtdwo3Usxpimjg1xGSXJpzQCJAqutOvVLJghMVtJfSWLa+sa2ashoQvrjQgOwsUIk88npyxCoIyLJoUkkvqyimphyqUTOKJ41WHHZJjM2Zi+FVUmp6FCD2dDgzOAEWnUUeTvqRLkqT/BZAUt78Z1qqeLVqvKqRiLE5fYoDPkWAur6ZZVHKakDyoq4aPHPIkGU1IJTcXgxIWvXF/7xT/axKqcFJM5QSlbQajX8iAuAUfesd1T6EmpoGpHbbcbFrqTFsQHaGM36hwoqQsxfliKpS/0Kh7zAnqgKVs0imsu6ce/peVgPCkFiArDWkOiJQKd+DY0PPQg2WWlzHvEyFnho/iaqKvZhSZ7FTJ/wbEHa0iLllAdCADB5HI3tqDYhWSxGyFnUKTQp9UmZMWWrUOc+QzD29JOZD8pwU7wD9XdQbEO97RwNCLiusUxRTFqCURb3auJ6dhbSXmI9T1ClNUGg7nwJI70gX9fzM8AQoOcQjRVNjSC/WgDzhaUB2c6AoJczM9eThbwOEXpxyJX2AonVq5rLzKymJyI6SvpxzSymrAeHJrjPD20SxWkMcBlGNkKijpeKrNFurDCd9Rc8QkSNdlI+AcoQ0IATHto+hD2speB0hx4amQq7UK5WpbmivwxCccTK9UCXX0jOPFyt8QFLkHvVSlJIUgoCjEzX/kjIz2YhiuAZk+DF+xWBRAVfpoSL/rwdEyYWqEauyVEblsKVq5BLjo6J9lNqOqhb+P3XVa2ekpAbEmGVl3XHEIChCiEAQwVS8nlKWuq5Eo+q0VlFXPPyowCvjDhpEEhBEMMh4lXV6ZtGpAREIhBoBTuQrHn5UZ5XnQ9pLBStiOdJh4u0MilYnGkmWAwil4ur65rnom3oDwjdJiHo76w2I0MlXyMpLI6Qa2sTHqWg6o5dIR2J0JF8lGvt9VMPSVKqmrAbEg6YMSHSVNAu9iHaSmqQYeTDJV3qSoyilCEnH5MFvNdJeygaLnvhX2sigZDB6vgHZWrABSf5C6VE/8fDkqyIk+kBFh1FUKKF5JIP6DEozDttx9p6NZqrDD6AbkKeZqr0DOWi0njltAzJY62MBqSBOzGxZp1SjpgSSo+jvNH7k4dRr0fPje+OtE+XllKaoAdlayUpZFRA6Qnb0Vfz//XvGdsnfU6cGiQCvsiynBtA3jFVHpfGM0l+1/2pAkqL+dkCqhZKKIxW8Ss+i6Ep60bqjN+0lcDfpnmZZlF5mvthMlkV60ToZmZzidMqiAzJgZr5YA/KCv6fueBqB63gdFe3owoXzpZQyB/UeqYNXfsmBFCdliYURyxrlKyxo3U8zOnovNYKz91eyUOmHA0jxBiS2wNsAqUaACmQ1gpz06eylyFGA+I7iK1JWA5KPSdDprgaEFHCKn9oRKzncIQikI+mlEozlnEtqCIUwgUQpqdJMLmfSc7ROZOIswWhAdp7xsYCQB29affFHyUYPzSJIDW0lAlVZ0btkkZDtVXsaSe7VoxPi/qSk83xFVgOSXOPc53i1mVMK+JGsjwXESVPEOs7KclKac9bZ7yUzwCN9L/keQofSegNCFhLWnW6UxP3PgPwCtsy2GQ9UtcoAAAAASUVORK5CYII=" style="display: block;"></div><div class="help"><p>微信里点“发现”，扫一下</p><p>二维码便可将本文分享至朋友圈。</p></div></div></a><a class="social-share-icon icon-weibo" href="https://service.weibo.com/share/share.php?url=https%3A%2F%2Fbroadgeek.com%2F2021%2F01%2F11%2F7c7%2F&amp;title=Vulkan%20%E5%AF%BC%E8%AF%BB2%3A%20Command%20Buffer%20%E5%92%8C%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%20%7C%20%E6%9E%81%E5%AE%A2%E4%B8%B9%E5%B0%BC&amp;pic=https%3A%2F%2Fraw.githubusercontent.com%2Fgeekdanny%2Fimages%2Fmaster%2Fblog%2FNFrL2w.png&amp;appkey=" target="_blank"></a><a class="social-share-icon icon-qq" href="http://connect.qq.com/widget/shareqq/index.html?url=https%3A%2F%2Fbroadgeek.com%2F2021%2F01%2F11%2F7c7%2F&amp;title=Vulkan%20%E5%AF%BC%E8%AF%BB2%3A%20Command%20Buffer%20%E5%92%8C%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%20%7C%20%E6%9E%81%E5%AE%A2%E4%B8%B9%E5%B0%BC&amp;source=Vulkan%20%E5%AF%BC%E8%AF%BB2%3A%20Command%20Buffer%20%E5%92%8C%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%20%7C%20%E6%9E%81%E5%AE%A2%E4%B8%B9%E5%B0%BC&amp;desc=%E5%AF%BC%E8%AF%BB2%20%E4%B8%BB%E8%A6%81%E6%98%AF%E8%AE%B2%E8%A7%A3%E7%AC%AC%E4%BA%94%E7%AB%A0%EF%BC%8C%E4%B9%8B%E6%89%80%E4%BB%A5%E8%B7%B3%E8%BF%872%EF%BC%8C3%EF%BC%8C4%E7%AB%A0%E6%98%AF%E5%9B%A0%E4%B8%BA%E8%BF%99%E4%B8%89%E7%AB%A0%E5%85%B3%E9%94%AE%E6%A6%82%E5%BF%B5%E5%BE%88%E5%B0%91%EF%BC%8C%E6%9B%B4%E5%A4%9A%E7%9A%84%E6%98%AF%E5%9B%B4%E7%BB%95Vulkan%E5%88%9D%E5%A7%8B%E5%8C%96%E9%98%B6%E6%AE%B5%E7%9A%84%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C%E3%80%82%E7%AC%AC%E4%BA%94%E7%AB%A0%E9%87%8D%E7%82%B9%E8%AE%B2%E8%A7%A3%E4%BA%86CB%E5%92%8C%E5%86%85%E5%AD%98%E7%9A%84%E6%A6%82%E5%BF%B5%EF%BC%8C%E5%80%BC%E5%BE%97%E5%AF%B9%E5%85%B6%E7%BB%86%E8%8A%82%E8%BF%9B%E8%A1%8C%E6%95%B4%E7%90%86%E3%80%82%20%E4%B8%80%E4%B8%AAcommand%20buffer%E5%B0%B1%E6%98%AFa%20collection%20of%20commands.%20Command%20buffer%20%E4%BC%9A%E8%A2%AB%E6%8F%90%E4%BA%A4%E5%88%B0%E4%B8%80%E4%B8%AA%E5%90%88%E9%80%82%E7%9A%84%20hardware%20queue%20%E8%AE%A9GPU%E6%9D%A5%E5%A4%84%E7%90%86%E3%80%82driver%E4%BC%9Afetches%E5%92%8Cval&amp;pics=https%3A%2F%2Fraw.githubusercontent.com%2Fgeekdanny%2Fimages%2Fmaster%2Fblog%2FNFrL2w.png&amp;summary=%22%E5%AF%BC%E8%AF%BB2%20%E4%B8%BB%E8%A6%81%E6%98%AF%E8%AE%B2%E8%A7%A3%E7%AC%AC%E4%BA%94%E7%AB%A0%EF%BC%8C%E4%B9%8B%E6%89%80%E4%BB%A5%E8%B7%B3%E8%BF%872%EF%BC%8C3%EF%BC%8C4%E7%AB%A0%E6%98%AF%E5%9B%A0%E4%B8%BA%E8%BF%99%E4%B8%89%E7%AB%A0%E5%85%B3%E9%94%AE%E6%A6%82%E5%BF%B5%E5%BE%88%E5%B0%91%EF%BC%8C%E6%9B%B4%E5%A4%9A%E7%9A%84%E6%98%AF%E5%9B%B4%E7%BB%95Vulkan%E5%88%9D%E5%A7%8B%E5%8C%96%E9%98%B6%E6%AE%B5%E7%9A%84%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C%E3%80%82%E7%AC%AC%E4%BA%94%E7%AB%A0%E9%87%8D%E7%82%B9%E8%AE%B2%E8%A7%A3%E4%BA%86CB%E5%92%8C%E5%86%85%E5%AD%98%E7%9A%84%E6%A6%82%E5%BF%B5%EF%BC%8C%E5%80%BC%E5%BE%97%E5%AF%B9%E5%85%B6%E7%BB%86%E8%8A%82%E8%BF%9B%E8%A1%8C%E6%95%B4%E7%90%86%E3%80%82%20%E4%B8%80%E4%B8%AAcommand%20buffer%E5%B0%B1%E6%98%AFa%20collection%20of%20commands.%20Command%20buffer%20%E4%BC%9A%E8%A2%AB%E6%8F%90%E4%BA%A4%E5%88%B0%E4%B8%80%E4%B8%AA%E5%90%88%E9%80%82%E7%9A%84%20hardware%20queue%20%E8%AE%A9GPU%E6%9D%A5%E5%A4%84%E7%90%86%E3%80%82driver%E4%BC%9Afetches%E5%92%8Cval%22" target="_blank"></a></div><link rel="stylesheet" href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/share.min.css" media="all" onload="this.media=&#39;all&#39;"><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/social-share.min.js.download" defer=""></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/wechat.jpg" alt="wechat"></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/alipay.jpg" alt="alipay"></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="https://broadgeek.com/2021/01/11/b21/" data-pjax-state=""><img class="prev-cover" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/image-20210111155306450.png" onerror="onerror=null;src=&#39;/img/404.jpg&#39;" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Vulkan 导读3: 分配Image资源和创建Swapchain</div></div></a></div><div class="next-post pull-right"><a href="https://broadgeek.com/2021/01/11/59e9/" data-pjax-state=""><img class="next-cover" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/640.jpg" onerror="onerror=null;src=&#39;/img/404.jpg&#39;" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Vulkan 导读1: 下一代图形API</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="https://broadgeek.com/2021/01/12/2270/" title="Setup Vulkan Development Environment with Clion on MacOS" data-pjax-state=""><img class="cover" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/FtU9D7.png" alt="cover"><div class="content is-center"><div class="date"><i class="fas fa-history fa-fw"></i> 2021-01-12</div><div class="title">Setup Vulkan Development Environment with Clion on MacOS</div></div></a></div><div><a href="https://broadgeek.com/2021/01/11/59e9/" title="Vulkan 导读1: 下一代图形API" data-pjax-state=""><img class="cover" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/640.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="fas fa-history fa-fw"></i> 2021-01-11</div><div class="title">Vulkan 导读1: 下一代图形API</div></div></a></div><div><a href="https://broadgeek.com/2021/01/11/b21/" title="Vulkan 导读3: 分配Image资源和创建Swapchain" data-pjax-state=""><img class="cover" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/image-20210111155306450.png" alt="cover"><div class="content is-center"><div class="date"><i class="fas fa-history fa-fw"></i> 2021-01-11</div><div class="title">Vulkan 导读3: 分配Image资源和创建Swapchain</div></div></a></div></div></div><hr><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"><div class="gt-container"><div class="gt-meta"><span class="gt-counts"><a class="gt-link gt-link-counts" href="https://github.com/geekdanny/geek-comments/issues/4" target="_blank" rel="noopener noreferrer">0</a> 条评论</span><div class="gt-user"><div class="gt-user-inner"><span class="gt-user-name">未登录用户</span><span class="gt-ico gt-ico-arrdown"><span class="gt-svg"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1619"><path d="M511.872 676.8c-0.003 0-0.006 0-0.008 0-9.137 0-17.379-3.829-23.21-9.97l-251.277-265.614c-5.415-5.72-8.743-13.464-8.744-21.984 0-17.678 14.33-32.008 32.008-32.008 9.157 0 17.416 3.845 23.25 10.009l228.045 241.103 228.224-241.088c5.855-6.165 14.113-10.001 23.266-10.001 8.516 0 16.256 3.32 21.998 8.736 12.784 12.145 13.36 32.434 1.264 45.233l-251.52 265.6c-5.844 6.155-14.086 9.984-23.223 9.984-0.025 0-0.051 0-0.076 0z" p-id="1620"></path></svg></span></span></div></div></div><div class="gt-header"><a class="gt-avatar-github"><span class="gt-ico gt-ico-github"><span class="gt-svg"><svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64 524C64 719.602 189.356 885.926 364.113 947.017 387.65799 953 384 936.115 384 924.767L384 847.107C248.118 863.007 242.674 773.052 233.5 758.001 215 726.501 171.5 718.501 184.5 703.501 215.5 687.501 247 707.501 283.5 761.501 309.956 800.642 361.366 794.075 387.658 787.497 393.403 763.997 405.637 743.042 422.353 726.638 281.774 701.609 223 615.67 223 513.5 223 464.053 239.322 418.406 271.465 381.627 251.142 320.928 273.421 269.19 276.337 261.415 334.458 256.131 394.888 302.993 399.549 306.685 432.663 297.835 470.341 293 512.5 293 554.924 293 592.81 297.896 626.075 306.853 637.426 298.219 693.46 258.054 747.5 262.966 750.382 270.652 772.185 321.292 753.058 381.083 785.516 417.956 802 463.809 802 513.5 802 615.874 742.99 701.953 601.803 726.786 625.381 750.003 640 782.295 640 818.008L640 930.653C640.752 939.626 640 948.664978 655.086 948.665 832.344 888.962 960 721.389 960 524 960 276.576 759.424 76 512 76 264.577 76 64 276.576 64 524Z"></path>
+</svg>
+</span></span></a><div class="gt-header-comment"><textarea class="gt-header-textarea " placeholder="说点什么" style="overflow: hidden; overflow-wrap: break-word; resize: none; height: 72px;"></textarea><div class="gt-header-preview markdown-body hide"></div><div class="gt-header-controls"><a class="gt-header-controls-tip" href="https://guides.github.com/features/mastering-markdown/" target="_blank" rel="noopener noreferrer"><span class="gt-ico gt-ico-tip"><span class="gt-svg"><svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 366.949535c-16.065554 0-29.982212 13.405016-29.982212 29.879884l0 359.070251c0 16.167882 13.405016 29.879884 29.982212 29.879884 15.963226 0 29.879884-13.405016 29.879884-29.879884L541.879884 396.829419C541.879884 380.763865 528.474868 366.949535 512 366.949535L512 366.949535z" p-id="3083"></path>
+  <path d="M482.017788 287.645048c0-7.776956 3.274508-15.553912 8.80024-21.181973 5.525732-5.525732 13.302688-8.80024 21.181973-8.80024 7.776956 0 15.553912 3.274508 21.079644 8.80024 5.525732 5.62806 8.80024 13.405016 8.80024 21.181973 0 7.776956-3.274508 15.656241-8.80024 21.181973-5.525732 5.525732-13.405016 8.697911-21.079644 8.697911-7.879285 0-15.656241-3.274508-21.181973-8.697911C485.292295 303.301289 482.017788 295.524333 482.017788 287.645048L482.017788 287.645048z" p-id="3084"></path>
+  <path d="M512 946.844409c-239.8577 0-434.895573-195.037873-434.895573-434.895573 0-239.8577 195.037873-434.895573 434.895573-434.895573 239.755371 0 434.895573 195.037873 434.895573 434.895573C946.895573 751.806535 751.755371 946.844409 512 946.844409zM512 126.17088c-212.740682 0-385.880284 173.037274-385.880284 385.777955 0 212.740682 173.037274 385.777955 385.880284 385.777955 212.740682 0 385.777955-173.037274 385.777955-385.777955C897.777955 299.208154 724.740682 126.17088 512 126.17088z" p-id="3085"></path>
+</svg>
+</span><span class="gt-ico-text">支持 Markdown 语法</span></span></a><button class="gt-btn gt-btn-preview"><span class="gt-btn-text">预览</span></button><button class="gt-btn gt-btn-login"><span class="gt-btn-text">使用 GitHub 登录</span></button></div></div></div><div class="gt-comments"><div style="position: relative;"></div><p class="gt-comments-null">来做第一个留言的人吧！</p></div></div></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/avatar.jpg" onerror="this.onerror=null;this.src=&#39;/img/friend_404.gif&#39;" alt="avatar"></div><div class="author-info__name">Danny S.</div><div class="author-info__description">白羊男子 指尖微凉<br> 一半明媚 一半忧伤</div></div><div class="card-info-data site-data is-center"><a href="https://broadgeek.com/archives/" data-pjax-state=""><div class="headline">文章</div><div class="length-num">53</div></a><a href="https://broadgeek.com/tags/" data-pjax-state=""><div class="headline">标签</div><div class="length-num">50</div></a><a href="https://broadgeek.com/categories/" data-pjax-state=""><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/wechat.jpg"><i class="fab fa-weixin"></i><span>微信</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/geekdanny" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:dhrsongcs@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">每天进步一点点</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage">35</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1 active"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#Getting-started-with-command-buffers" data-pjax-state=""><span class="toc-number">1.</span> <span class="toc-text">Getting started with command buffers</span></a><ol class="toc-child"><li class="toc-item toc-level-2 active"><a class="toc-link active" href="https://broadgeek.com/2021/01/11/7c7/#%E6%98%BE%E5%BC%8F%E5%90%8C%E6%AD%A5%EF%BC%88Explicit-Synchronization%EF%BC%89" data-pjax-state=""><span class="toc-number">1.1.</span> <span class="toc-text">显式同步（Explicit Synchronization）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#Command-Buffer-and-Queues" data-pjax-state=""><span class="toc-number">1.2.</span> <span class="toc-text">Command Buffer and Queues</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#The-Order-of-Execution" data-pjax-state=""><span class="toc-number">1.2.1.</span> <span class="toc-text">The Order of Execution</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#Recording-Command-Buffers" data-pjax-state=""><span class="toc-number">1.3.</span> <span class="toc-text">Recording Command Buffers</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#Queue-Submission" data-pjax-state=""><span class="toc-number">1.4.</span> <span class="toc-text">Queue Submission</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#Queue-Waiting" data-pjax-state=""><span class="toc-number">1.5.</span> <span class="toc-text">Queue Waiting</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#Managing-Memory-in-Vulkan" data-pjax-state=""><span class="toc-number">2.</span> <span class="toc-text">Managing Memory in Vulkan</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#Host-Memory" data-pjax-state=""><span class="toc-number">2.1.</span> <span class="toc-text">Host Memory</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#Device-Memory" data-pjax-state=""><span class="toc-number">2.2.</span> <span class="toc-text">Device Memory</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="https://broadgeek.com/2021/01/11/7c7/#%E6%80%BB%E7%BB%93" data-pjax-state=""><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="https://broadgeek.com/2022/04/20/5398/" title="C标准库 POSIX库 glibc库有什么关系" data-pjax-state=""><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/JVjPkp1tIU8xmZ6.png" onerror="this.onerror=null;this.src=&#39;/img/404.jpg&#39;" alt="C标准库 POSIX库 glibc库有什么关系"></a><div class="content"><a class="title" href="https://broadgeek.com/2022/04/20/5398/" title="C标准库 POSIX库 glibc库有什么关系" data-pjax-state="">C标准库 POSIX库 glibc库有什么关系</a><time datetime="2022-04-20T19:56:32.000Z" title="更新于 2022-04-20 12:56:32">2022-04-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="https://broadgeek.com/2022/04/20/49da/" title="一些常见的国际标准化组织" data-pjax-state=""><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/1wicXtVxAMlHZOf.png" onerror="this.onerror=null;this.src=&#39;/img/404.jpg&#39;" alt="一些常见的国际标准化组织"></a><div class="content"><a class="title" href="https://broadgeek.com/2022/04/20/49da/" title="一些常见的国际标准化组织" data-pjax-state="">一些常见的国际标准化组织</a><time datetime="2022-04-20T19:07:33.000Z" title="更新于 2022-04-20 12:07:33">2022-04-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="https://broadgeek.com/2021/12/12/dd3a/" title="骁龙8Gen1 SoC 在ARMv9上的落地表现" data-pjax-state=""><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/f93YwJV1RTSMNbx.png" onerror="this.onerror=null;this.src=&#39;/img/404.jpg&#39;" alt="骁龙8Gen1 SoC 在ARMv9上的落地表现"></a><div class="content"><a class="title" href="https://broadgeek.com/2021/12/12/dd3a/" title="骁龙8Gen1 SoC 在ARMv9上的落地表现" data-pjax-state="">骁龙8Gen1 SoC 在ARMv9上的落地表现</a><time datetime="2021-12-12T23:52:09.000Z" title="更新于 2021-12-12 15:52:09">2021-12-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="https://broadgeek.com/2021/12/12/c8bf/" title="ARMv9以及公版CPU有什么重大改进" data-pjax-state=""><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/ew5lOSUv6LWHtGr.jpg" onerror="this.onerror=null;this.src=&#39;/img/404.jpg&#39;" alt="ARMv9以及公版CPU有什么重大改进"></a><div class="content"><a class="title" href="https://broadgeek.com/2021/12/12/c8bf/" title="ARMv9以及公版CPU有什么重大改进" data-pjax-state="">ARMv9以及公版CPU有什么重大改进</a><time datetime="2021-12-12T18:04:13.000Z" title="更新于 2021-12-12 10:04:13">2021-12-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="https://broadgeek.com/2021/12/11/17d7/" title="移动GPU测试那些事" data-pjax-state=""><img src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/4c68-kkmphpr6926549.jpg" onerror="this.onerror=null;this.src=&#39;/img/404.jpg&#39;" alt="移动GPU测试那些事"></a><div class="content"><a class="title" href="https://broadgeek.com/2021/12/11/17d7/" title="移动GPU测试那些事" data-pjax-state="">移动GPU测试那些事</a><time datetime="2021-12-11T18:38:27.000Z" title="更新于 2021-12-11 10:38:27">2021-12-11</time></div></div></div></div></div></div></main><footer id="footer" style="background: black"><div id="footer-wrap"><div class="copyright">©2019 - 2022 By Danny S.</div><div class="footer_custom_text">回忆是一种重逢 遗忘是一种自由</div></div></footer></div><div id="rightside" style="opacity: 0.8; transform: translateX(-58px);"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="聊天"><i class="fas fa-sms"></i></button><a id="to_comment" href="https://broadgeek.com/2021/01/11/7c7/#post-comment" title="直达评论" data-pjax-state=""><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">本地搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"></div></div><hr><div id="local-search-results"></div></div></div><div id="search-mask"></div></div><div><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/utils.js.download"></script><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/main.js.download"></script><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/fancybox.umd.js.download"></script><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/local-search.js.download"></script><div class="js-pjax"><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '680c63616574c46feb6f',
+      clientSecret: '6ae95fb865944251ddd1751dd0d7e445aeddd831',
+      repo: 'geek-comments',
+      owner: 'geekdanny',
+      admin: ['geekdanny'],
+      id: '45638c6c7e6e7bb5808943813e5e5b6f',
+      updateCountCallback: commentCount
+    },null))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !false) {
+  if (false) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script></div><script>window.addEventListener('load', () => {
+  const changeContent = (content) => {
+    if (content === '') return content
+
+    content = content.replace(/<img.*?src="(.*?)"?[^\>]+>/ig, '[图片]') // replace image link
+    content = content.replace(/<a[^>]+?href=["']?([^"']+)["']?[^>]*>([^<]+)<\/a>/gi, '[链接]') // replace url
+    content = content.replace(/<pre><code>.*?<\/pre>/gi, '[代码]') // replace code
+    content = content.replace(/<[^>]+>/g,"") // remove html tag
+
+    if (content.length > 150) {
+      content = content.substring(0,150) + '...'
+    }
+    return content
+  }
+
+  const findTrueUrl = (array) => {
+    Promise.all(array.map(item =>
+      fetch(item.url).then(resp => resp.json()).then(data => {
+        const urlArray = data.body.match(/(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?/ig)
+        if (data.user.login === 'utterances-bot') {
+          return urlArray.pop()
+        } else {
+          return urlArray.shift()
+        }
+      })
+    )).then(res => {
+        array = array.map((i,index)=> {
+          return {
+            ...i,
+            url: res[index]
+          }
+        })
+
+        saveToLocal.set('github-newest-comments', JSON.stringify(array), 10/(60*24))
+        generateHtml(array)
+    });
+  }
+
+  const getComment = () => {
+    fetch('https://api.github.com/repos/geekdanny/geek-comments/issues/comments?sort=updated&direction=desc&per_page=6&page=1',{
+      "headers": {
+        Accept: 'application/vnd.github.v3.html+json'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        const githubArray = data.map(item => {
+          return {
+            'avatar': item.user.avatar_url,
+            'content': changeContent(item.body_html),
+            'nick': item.user.login,
+            'url': item.issue_url,
+            'date': item.updated_at,
+            'githubUrl': item.html_url
+          }
+        })
+        findTrueUrl(githubArray)
+      }).catch(e => {
+        const $dom = document.querySelector('#card-newest-comments .aside-list')
+        $dom.innerHTML= "无法获取评论，请确认相关配置是否正确"
+      })
+  }
+
+  const generateHtml = array => {
+    let result = ''
+
+    if (array.length) {
+      for (let i = 0; i < array.length; i++) {
+        result += '<div class=\'aside-list-item\'>'
+
+        if (true) {
+          const name = 'src'
+          result += `<a href='${array[i].url}' class='thumbnail'><img ${name}='${array[i].avatar}' alt='${array[i].nick}'></a>`
+        }
+
+        result += `<div class='content'>
+        <a class='comment' href='${array[i].url}' title='${array[i].content}'>${array[i].content}</a>
+        <div class='name'><span>${array[i].nick} / </span><time datetime="${array[i].date}">${btf.diffDate(array[i].date, true)}</time></div>
+        </div></div>`
+      }
+    } else {
+      result += '没有评论'
+    }
+
+    let $dom = document.querySelector('#card-newest-comments .aside-list')
+    $dom.innerHTML= result
+    window.lazyLoadInstance && window.lazyLoadInstance.update()
+    window.pjax && window.pjax.refresh($dom)
+  }
+
+  const newestCommentInit = () => {
+    if (document.querySelector('#card-newest-comments .aside-list')) {
+      const data = saveToLocal.get('github-newest-comments')
+      if (data) {
+        generateHtml(JSON.parse(data))
+      } else {
+        getComment()
+      }
+    }
+  }
+
+  newestCommentInit()
+  document.addEventListener('pjax:complete', newestCommentInit)
+})</script><div class="aplayer no-destroy no-reload aplayer-withlist aplayer-fixed aplayer-narrow" data-id="4900141628" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listfolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted="">
+<div class="aplayer-list" style="max-height: 250px">
+    <ol style="max-height: 250px">
+        
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">1</span>
+    <span class="aplayer-list-title">NUNA</span>
+    <span class="aplayer-list-author">队长</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">2</span>
+    <span class="aplayer-list-title">在你的身边</span>
+    <span class="aplayer-list-author">盛哲</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">3</span>
+    <span class="aplayer-list-title">下一个天亮</span>
+    <span class="aplayer-list-author">颜人中</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">4</span>
+    <span class="aplayer-list-title">必杀技</span>
+    <span class="aplayer-list-author">古巨基</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">5</span>
+    <span class="aplayer-list-title">再见莫妮卡</span>
+    <span class="aplayer-list-author">彭席彦 / Franky弗兰奇</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">6</span>
+    <span class="aplayer-list-title">一直很安静</span>
+    <span class="aplayer-list-author">王贰浪</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">7</span>
+    <span class="aplayer-list-title">多远都要在一起</span>
+    <span class="aplayer-list-author">G.E.M.邓紫棋</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">8</span>
+    <span class="aplayer-list-title">夏夜最后的烟火</span>
+    <span class="aplayer-list-author">颜人中</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">9</span>
+    <span class="aplayer-list-title">哪里都是你</span>
+    <span class="aplayer-list-author">队长</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">10</span>
+    <span class="aplayer-list-title">小城夏天</span>
+    <span class="aplayer-list-author">LBI利比</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">11</span>
+    <span class="aplayer-list-title">捕捉</span>
+    <span class="aplayer-list-author">张叶蕾</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">12</span>
+    <span class="aplayer-list-title">大雾</span>
+    <span class="aplayer-list-author">未知音素 / 张一乔</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">13</span>
+    <span class="aplayer-list-title">有些</span>
+    <span class="aplayer-list-author">颜人中</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">14</span>
+    <span class="aplayer-list-title">把回忆拼好给你</span>
+    <span class="aplayer-list-author">王贰浪</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">15</span>
+    <span class="aplayer-list-title">狂妄</span>
+    <span class="aplayer-list-author">桃德李Todd Li</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">16</span>
+    <span class="aplayer-list-title">某年某月某天</span>
+    <span class="aplayer-list-author">颜人中</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">17</span>
+    <span class="aplayer-list-title">11</span>
+    <span class="aplayer-list-author">队长 / 黄礼格</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">18</span>
+    <span class="aplayer-list-title">水星记</span>
+    <span class="aplayer-list-author">郭顶</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">19</span>
+    <span class="aplayer-list-title">每一秒钟</span>
+    <span class="aplayer-list-author">颜人中</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">20</span>
+    <span class="aplayer-list-title">Darling</span>
+    <span class="aplayer-list-author">空匪</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">21</span>
+    <span class="aplayer-list-title">星河</span>
+    <span class="aplayer-list-author">王巨星</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">22</span>
+    <span class="aplayer-list-title">时光洪流</span>
+    <span class="aplayer-list-author">程响</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">23</span>
+    <span class="aplayer-list-title">予你</span>
+    <span class="aplayer-list-author">队长</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">24</span>
+    <span class="aplayer-list-title">唯一</span>
+    <span class="aplayer-list-author">告五人</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">25</span>
+    <span class="aplayer-list-title">太久</span>
+    <span class="aplayer-list-author">刘思鉴 / 桃德李Todd Li</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">26</span>
+    <span class="aplayer-list-title">猜不透（完整版）</span>
+    <span class="aplayer-list-author">守夜冠军专用证</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">27</span>
+    <span class="aplayer-list-title">Dancing With Your Ghost</span>
+    <span class="aplayer-list-author">Sasha Alex Sloan</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">28</span>
+    <span class="aplayer-list-title">晚风</span>
+    <span class="aplayer-list-author">7copy / BT07</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">29</span>
+    <span class="aplayer-list-title">生存指南</span>
+    <span class="aplayer-list-author">Shang</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">30</span>
+    <span class="aplayer-list-title">阿拉斯加海湾</span>
+    <span class="aplayer-list-author">蓝心羽</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">31</span>
+    <span class="aplayer-list-title">四季予你</span>
+    <span class="aplayer-list-author">程响</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">32</span>
+    <span class="aplayer-list-title">星辰大海</span>
+    <span class="aplayer-list-author">黄霄雲</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">33</span>
+    <span class="aplayer-list-title">嘉宾</span>
+    <span class="aplayer-list-author">路飞文</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">34</span>
+    <span class="aplayer-list-title">我们俩</span>
+    <span class="aplayer-list-author">郭顶</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">35</span>
+    <span class="aplayer-list-title">海底</span>
+    <span class="aplayer-list-author">一支榴莲</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">36</span>
+    <span class="aplayer-list-title">雨爱</span>
+    <span class="aplayer-list-author">周星星</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">37</span>
+    <span class="aplayer-list-title">Love Is Gone (Acoustic)</span>
+    <span class="aplayer-list-author">SLANDER / Dylan Matthew</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">38</span>
+    <span class="aplayer-list-title">MELANCHOLY</span>
+    <span class="aplayer-list-author">White Cherry</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">39</span>
+    <span class="aplayer-list-title">收敛</span>
+    <span class="aplayer-list-author">不够</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">40</span>
+    <span class="aplayer-list-title">Jeremy Zucker-comethru Remix（Baron remix）</span>
+    <span class="aplayer-list-author">Baron</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">41</span>
+    <span class="aplayer-list-title">永不失联的爱</span>
+    <span class="aplayer-list-author">周兴哲</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">42</span>
+    <span class="aplayer-list-title">爱，存在</span>
+    <span class="aplayer-list-author">魏奇奇</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">43</span>
+    <span class="aplayer-list-title">与我无关</span>
+    <span class="aplayer-list-author">阿冗</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">44</span>
+    <span class="aplayer-list-title">泡沫</span>
+    <span class="aplayer-list-author">Swang多雷</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">45</span>
+    <span class="aplayer-list-title">迷人的危险</span>
+    <span class="aplayer-list-author">尚士达</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">46</span>
+    <span class="aplayer-list-title">世间美好与你环环相扣</span>
+    <span class="aplayer-list-author">柏松</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">47</span>
+    <span class="aplayer-list-title">冬眠</span>
+    <span class="aplayer-list-author">司南</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">48</span>
+    <span class="aplayer-list-title">我的名字</span>
+    <span class="aplayer-list-author">焦迈奇</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">49</span>
+    <span class="aplayer-list-title">太阳</span>
+    <span class="aplayer-list-author">杜宣达 / 王尔康</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">50</span>
+    <span class="aplayer-list-title">爱你</span>
+    <span class="aplayer-list-author">王贰浪</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">51</span>
+    <span class="aplayer-list-title">还是分开</span>
+    <span class="aplayer-list-author">张叶蕾</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">52</span>
+    <span class="aplayer-list-title">无人之岛</span>
+    <span class="aplayer-list-author">任然</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">53</span>
+    <span class="aplayer-list-title">心如止水</span>
+    <span class="aplayer-list-author">Ice Paper</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">54</span>
+    <span class="aplayer-list-title">拾忆（抖音版）</span>
+    <span class="aplayer-list-author">王巨星</span>
+</li>
+
+<li class="aplayer-list-light">
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">55</span>
+    <span class="aplayer-list-title">这就是爱吗</span>
+    <span class="aplayer-list-author">十豆彡</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">56</span>
+    <span class="aplayer-list-title">形容</span>
+    <span class="aplayer-list-author">沈以诚</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">57</span>
+    <span class="aplayer-list-title">大眠 (完整版)</span>
+    <span class="aplayer-list-author">小乐哥（王唯乐）</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">58</span>
+    <span class="aplayer-list-title">和你</span>
+    <span class="aplayer-list-author">余佳运</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">59</span>
+    <span class="aplayer-list-title">得不到你</span>
+    <span class="aplayer-list-author">隔壁老樊</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">60</span>
+    <span class="aplayer-list-title">你的答案</span>
+    <span class="aplayer-list-author">阿冗</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">61</span>
+    <span class="aplayer-list-title">我的名字</span>
+    <span class="aplayer-list-author">袁小葳</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">62</span>
+    <span class="aplayer-list-title">晚安</span>
+    <span class="aplayer-list-author">颜人中</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">63</span>
+    <span class="aplayer-list-title">不在</span>
+    <span class="aplayer-list-author">前男友</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">64</span>
+    <span class="aplayer-list-title">对不起, 我还爱你</span>
+    <span class="aplayer-list-author">回音哥</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">65</span>
+    <span class="aplayer-list-title">心事</span>
+    <span class="aplayer-list-author">徐秉龙</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">66</span>
+    <span class="aplayer-list-title">这一生关于你的风景</span>
+    <span class="aplayer-list-author">枯木逢春</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">67</span>
+    <span class="aplayer-list-title">即兴</span>
+    <span class="aplayer-list-author">小咪</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">68</span>
+    <span class="aplayer-list-title">太多</span>
+    <span class="aplayer-list-author">阿冗</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">69</span>
+    <span class="aplayer-list-title">我又想你了</span>
+    <span class="aplayer-list-author">陈信喆</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">70</span>
+    <span class="aplayer-list-title">小宇</span>
+    <span class="aplayer-list-author">桃德李Todd Li</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">71</span>
+    <span class="aplayer-list-title">不二臣</span>
+    <span class="aplayer-list-author">徐秉龙</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">72</span>
+    <span class="aplayer-list-title">椿</span>
+    <span class="aplayer-list-author">沈以诚</span>
+</li>
+
+<li>
+    <span class="aplayer-list-cur" style="background-color: #2980b9;"></span>
+    <span class="aplayer-list-index">73</span>
+    <span class="aplayer-list-title">可乐</span>
+    <span class="aplayer-list-author">赵紫骅</span>
+</li>
+
+    </ol>
+</div>
+<div class="aplayer-body" style="width: 400px;">
+    <div class="aplayer-pic" style="background-image: url(&quot;https://api.i-meto.com/meting/api?server=netease&amp;type=pic&amp;id=109951164581280547&amp;auth=d355f165f8b42b1550973f232630d48172571b74&quot;);background-color: #2980b9;">
+        <div class="aplayer-button aplayer-play"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 31"><path d="M15.552 15.168q0.448 0.32 0.448 0.832 0 0.448-0.448 0.768l-13.696 8.512q-0.768 0.512-1.312 0.192t-0.544-1.28v-16.448q0-0.96 0.544-1.28t1.312 0.192z"></path></svg></div>
+    </div>
+    <div class="aplayer-info" style="display: block;">
+        <div class="aplayer-music">
+            <span class="aplayer-title">这就是爱吗</span>
+            <span class="aplayer-author"> - 十豆彡</span>
+        </div>
+        <div class="aplayer-controller">
+            <div class="aplayer-bar-wrap">
+                <div class="aplayer-bar">
+                    <div class="aplayer-loaded" style="width: 0"></div>
+                    <div class="aplayer-played" style="width: 0; background: #2980b9;">
+                        <span class="aplayer-thumb" style="background: #2980b9;">
+                            <span class="aplayer-loading-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32"><path d="M4 16c0-6.6 5.4-12 12-12s12 5.4 12 12c0 1.2-0.8 2-2 2s-2-0.8-2-2c0-4.4-3.6-8-8-8s-8 3.6-8 8 3.6 8 8 8c1.2 0 2 0.8 2 2s-0.8 2-2 2c-6.6 0-12-5.4-12-12z"></path></svg></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="aplayer-time aplayer-time-narrow">
+                <span class="aplayer-time-inner">
+                    <span class="aplayer-ptime">00:00</span> / <span class="aplayer-dtime">00:00</span>
+                </span>
+                <span class="aplayer-icon aplayer-icon-back">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32"><path d="M25.468 6.947c-0.326-0.172-0.724-0.151-1.030 0.057l-6.438 4.38v-3.553c0-0.371-0.205-0.71-0.532-0.884-0.326-0.172-0.724-0.151-1.030 0.057l-12 8.164c-0.274 0.186-0.438 0.496-0.438 0.827s0.164 0.641 0.438 0.827l12 8.168c0.169 0.115 0.365 0.174 0.562 0.174 0.16 0 0.321-0.038 0.468-0.116 0.327-0.173 0.532-0.514 0.532-0.884v-3.556l6.438 4.382c0.169 0.115 0.365 0.174 0.562 0.174 0.16 0 0.321-0.038 0.468-0.116 0.327-0.173 0.532-0.514 0.532-0.884v-16.333c0-0.371-0.205-0.71-0.532-0.884z"></path></svg>
+                </span>
+                <span class="aplayer-icon aplayer-icon-play"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 31"><path d="M15.552 15.168q0.448 0.32 0.448 0.832 0 0.448-0.448 0.768l-13.696 8.512q-0.768 0.512-1.312 0.192t-0.544-1.28v-16.448q0-0.96 0.544-1.28t1.312 0.192z"></path></svg></span>
+                <span class="aplayer-icon aplayer-icon-forward">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32"><path d="M25.468 6.947c-0.326-0.172-0.724-0.151-1.030 0.057l-6.438 4.38v-3.553c0-0.371-0.205-0.71-0.532-0.884-0.326-0.172-0.724-0.151-1.030 0.057l-12 8.164c-0.274 0.186-0.438 0.496-0.438 0.827s0.164 0.641 0.438 0.827l12 8.168c0.169 0.115 0.365 0.174 0.562 0.174 0.16 0 0.321-0.038 0.468-0.116 0.327-0.173 0.532-0.514 0.532-0.884v-3.556l6.438 4.382c0.169 0.115 0.365 0.174 0.562 0.174 0.16 0 0.321-0.038 0.468-0.116 0.327-0.173 0.532-0.514 0.532-0.884v-16.333c0-0.371-0.205-0.71-0.532-0.884z"></path></svg>
+                </span>
+                <div class="aplayer-volume-wrap">
+                    <button type="button" class="aplayer-icon aplayer-icon-volume-down"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 28 32"><path d="M13.728 6.272v19.456q0 0.448-0.352 0.8t-0.8 0.32-0.8-0.32l-5.952-5.952h-4.672q-0.48 0-0.8-0.352t-0.352-0.8v-6.848q0-0.48 0.352-0.8t0.8-0.352h4.672l5.952-5.952q0.32-0.32 0.8-0.32t0.8 0.32 0.352 0.8zM20.576 16q0 1.344-0.768 2.528t-2.016 1.664q-0.16 0.096-0.448 0.096-0.448 0-0.8-0.32t-0.32-0.832q0-0.384 0.192-0.64t0.544-0.448 0.608-0.384 0.512-0.64 0.192-1.024-0.192-1.024-0.512-0.64-0.608-0.384-0.544-0.448-0.192-0.64q0-0.48 0.32-0.832t0.8-0.32q0.288 0 0.448 0.096 1.248 0.48 2.016 1.664t0.768 2.528z"></path></svg></button>
+                    <div class="aplayer-volume-bar-wrap">
+                        <div class="aplayer-volume-bar">
+                            <div class="aplayer-volume" style="height: 70%; background: rgb(41, 128, 185);"></div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="aplayer-icon aplayer-icon-order">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32"><path d="M22.667 4l7 6-7 6 7 6-7 6v-4h-3.653l-3.76-3.76 2.827-2.827 2.587 2.587h2v-8h-2l-12 12h-6v-4h4.347l12-12h3.653v-4zM2.667 8h6l3.76 3.76-2.827 2.827-2.587-2.587h-4.347v-4z"></path></svg>
+                </button>
+                <button type="button" class="aplayer-icon aplayer-icon-loop">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 29 32"><path d="M9.333 9.333h13.333v4l5.333-5.333-5.333-5.333v4h-16v8h2.667v-5.333zM22.667 22.667h-13.333v-4l-5.333 5.333 5.333 5.333v-4h16v-8h-2.667v5.333z"></path></svg>
+                </button>
+                <button type="button" class="aplayer-icon aplayer-icon-menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 22 32"><path d="M20.8 14.4q0.704 0 1.152 0.48t0.448 1.12-0.48 1.12-1.12 0.48h-19.2q-0.64 0-1.12-0.48t-0.48-1.12 0.448-1.12 1.152-0.48h19.2zM1.6 11.2q-0.64 0-1.12-0.48t-0.48-1.12 0.448-1.12 1.152-0.48h19.2q0.704 0 1.152 0.48t0.448 1.12-0.48 1.12-1.12 0.48h-19.2zM20.8 20.8q0.704 0 1.152 0.48t0.448 1.12-0.48 1.12-1.12 0.48h-19.2q-0.64 0-1.12-0.48t-0.48-1.12 0.448-1.12 1.152-0.48h19.2z"></path></svg>
+                </button>
+                <button type="button" class="aplayer-icon aplayer-icon-lrc">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32"><path d="M26.667 5.333h-21.333c-0 0-0.001 0-0.001 0-1.472 0-2.666 1.194-2.666 2.666 0 0 0 0.001 0 0.001v-0 16c0 0 0 0.001 0 0.001 0 1.472 1.194 2.666 2.666 2.666 0 0 0.001 0 0.001 0h21.333c0 0 0.001 0 0.001 0 1.472 0 2.666-1.194 2.666-2.666 0-0 0-0.001 0-0.001v0-16c0-0 0-0.001 0-0.001 0-1.472-1.194-2.666-2.666-2.666-0 0-0.001 0-0.001 0h0zM5.333 16h5.333v2.667h-5.333v-2.667zM18.667 24h-13.333v-2.667h13.333v2.667zM26.667 24h-5.333v-2.667h5.333v2.667zM26.667 18.667h-13.333v-2.667h13.333v2.667z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="aplayer-notice"></div>
+    <div class="aplayer-miniswitcher"><button class="aplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 32 32"><path d="M22 16l-10.105-10.6-1.895 1.987 8.211 8.613-8.211 8.612 1.895 1.988 8.211-8.613z"></path></svg></button></div>
+</div>
+<div class="aplayer-lrc">
+    <div class="aplayer-lrc-contents" style="transform: translateY(0); -webkit-transform: translateY(0);"></div>
+</div>
+</div><script defer="defer" id="ribbon" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/canvas-ribbon.min.js.download" size="150" alpha="0.6" zindex="-1" mobile="false" data-click="false"></script><link rel="stylesheet" href="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/APlayer.min.css" media="all" onload="this.media=&#39;all&#39;"><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/APlayer.min.js.download"></script><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/Meting.min.js.download"></script><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/pjax.min.js.download"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async="" data-pjax="" src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/busuanzi.pure.mini.js.download"></script></div><script src="./Vulkan 导读2_ Command Buffer 和内存管理 _ 极客丹尼_files/L2Dwidget.min.js.download"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.9}});</script><canvas width="3600" height="1982" style="opacity: 0.6; position: fixed; top: 0px; left: 0px; z-index: -1; width: 100%; height: 100%; pointer-events: none;"></canvas><div id="live2d-widget" class="live2d-widget-container" style="position: fixed; right: 0px; bottom: -20px; width: 150px; height: 300px; z-index: 99999; opacity: 0.9; pointer-events: none;"><canvas id="live2dcanvas" width="300" height="600" style="position: absolute; left: 0px; top: 0px; width: 150px; height: 300px;"></canvas></div></body></html>
