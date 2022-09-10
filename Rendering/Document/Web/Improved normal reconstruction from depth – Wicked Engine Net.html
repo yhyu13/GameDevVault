@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<!-- saved from url=(0078)https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="profile" href="http://gmpg.org/xfn/11">
+<link rel="pingback" href="https://wickedengine.net/xmlrpc.php">
+
+<title>Improved normal reconstruction from depth – Wicked Engine Net</title>
+<meta name="robots" content="max-image-preview:large">
+
+<!-- Async WordPress.com Remote Login -->
+
+<link rel="dns-prefetch" href="https://s0.wp.com/">
+<link rel="dns-prefetch" href="https://turanszkij.wordpress.com/">
+<link rel="dns-prefetch" href="https://wordpress.com/">
+<link rel="dns-prefetch" href="https://fonts.googleapis.com/">
+<link href="https://fonts.gstatic.com/" crossorigin="" rel="preconnect">
+<link rel="alternate" type="application/rss+xml" title="Wicked Engine Net » Feed" href="https://wickedengine.net/feed/">
+<link rel="alternate" type="application/rss+xml" title="Wicked Engine Net » Comments Feed" href="https://wickedengine.net/comments/feed/">
+<link rel="alternate" type="application/rss+xml" title="Wicked Engine Net » Improved normal reconstruction from depth Comments Feed" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/feed/">
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script><script src="./Improved normal reconstruction from depth – Wicked Engine Net_files/wp-emoji-release.min.js.download" type="text/javascript" defer=""></script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin="anonymous" rel="stylesheet" id="all-css-0-1" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/saved_resource(1)" type="text/css" media="all">
+<style id="wp-block-library-inline-css">
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id="global-styles-inline-css">
+body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-constrained > *){margin-block-start: 0;margin-block-end: 0;}:where(.is-layout-constrained > * + *){margin-block-start: 0.5em;margin-block-end: 0;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-constrained > *){margin-block-start: 0;margin-block-end: 0;}:where(.wp-block-columns.is-layout-constrained > * + *){margin-block-start: 2em;margin-block-end: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+.wp-block-audio{margin: 0 0 1em 0;}
+:where(.wp-block-columns.is-layout-constrained > *){margin-block-start: 0;margin-block-end: 0;}:where(.wp-block-columns.is-layout-constrained > * + *){margin-block-start: 2em;margin-block-end: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-table > table{margin: 0 0 1em 0;}
+.wp-block-video{margin: 0 0 1em 0;}
+.wp-block-embed{margin: 0 0 1em 0;}
+.wp-block-image{margin: 0 0 1em 0;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin="anonymous" rel="stylesheet" id="all-css-2-1" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/saved_resource(2)" type="text/css" media="all">
+<link rel="stylesheet" id="nucleare-fonts-css" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/css" media="all">
+<link crossorigin="anonymous" rel="stylesheet" id="all-css-4-1" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/saved_resource(3)" type="text/css" media="all">
+<link crossorigin="anonymous" rel="stylesheet" id="print-css-5-1" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/global-print.css" type="text/css" media="print">
+<link crossorigin="anonymous" rel="stylesheet" id="all-css-6-1" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/style-wpcom.css" type="text/css" media="all">
+<style id="jetpack-global-styles-frontend-style-inline-css">
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin="anonymous" rel="stylesheet" id="all-css-8-1" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/saved_resource(4)" type="text/css" media="all">
+<script id="wpcom-actionbar-placeholder-js-extra">
+var actionbardata = {"siteID":"116195412","siteURL":"https:\/\/wickedengine.net","xhrURL":"https:\/\/wickedengine.net\/wp-admin\/admin-ajax.php","nonce":"768f69408f","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7RxJy-ug","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin="anonymous" type="text/javascript" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/saved_resource(5)"></script>
+<script type="text/javascript">
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin="anonymous" rel="stylesheet" id="all-css-0-2" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/style.css" type="text/css" media="all">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://turanszkij.wordpress.com/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s0.wp.com/wp-includes/wlwmanifest.xml"> 
+<meta name="generator" content="WordPress.com">
+<link rel="canonical" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/">
+<link rel="shortlink" href="https://wp.me/p7RxJy-ug">
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwickedengine.net%2F2019%2F09%2F22%2Fimproved-normal-reconstruction-from-depth%2F&amp;for=wpcom-auto-discovery"><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwickedengine.net%2F2019%2F09%2F22%2Fimproved-normal-reconstruction-from-depth%2F&amp;for=wpcom-auto-discovery">
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Improved normal reconstruction from depth">
+<meta property="og:url" content="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/">
+<meta property="og:description" content="In a 3D renderer, we might want to read the scene normal vectors at some point, for example post processes. We can write them out using MRT – multiple render target outputs from the object re…">
+<meta property="article:published_time" content="2019-09-22T17:41:52+00:00">
+<meta property="article:modified_time" content="2022-04-23T17:14:23+00:00">
+<meta property="og:site_name" content="Wicked Engine Net">
+<meta property="og:image" content="https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=1200">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="602">
+<meta property="og:image:alt" content="">
+<meta property="og:locale" content="en_US">
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom">
+<meta name="twitter:text:title" content="Improved normal reconstruction from depth">
+<meta name="twitter:image" content="https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=640">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wickedengine.net/osd.xml" title="Wicked Engine Net">
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com">
+<meta name="theme-color" content="#000000">
+<meta name="application-name" content="Wicked Engine Net"><meta name="msapplication-window" content="width=device-width;height=device-height"><meta name="msapplication-tooltip" content="3D Engine Development"><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wickedengine.net/feed/;icon-uri=https://turanszkij.files.wordpress.com/2022/06/logo_512.png?w=16"><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s0.wp.com/i/favicon.ico"><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s0.wp.com/i/favicon.ico"><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s0.wp.com/i/favicon.ico"><meta name="description" content="In a 3D renderer, we might want to read the scene normal vectors at some point, for example post processes. We can write them out using MRT - multiple render target outputs from the object rendering shaders and write the surface normals to a texture. But that normal map texture usually contains normals that have…">
+<style type="text/css" id="custom-background-css">
+body.custom-background { background-color: #000000; }
+</style>
+	<style type="text/css" id="custom-colors-css">#wp-calendar > caption, .menu-toggle:focus, .menu-toggle:hover { color: #FFFFFF;}
+.social-links .top-search { color: #FFFFFF;}
+.widget.wp_widget_tag_cloud a, .more-link, .button, button, input[type="button"], input[type="reset"], input[type="submit"], #infinite-handle span { color: #FFFFFF;}
+.social-links .top-search:hover, .button:hover, button:hover, input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover, #infinite-handle span:hover, .button:focus, button:focus, input[type="button"]:focus, input[type="reset"]:focus, input[type="submit"]:focus, #infinite-handle span:focus, .button:active, button:active, input[type="button"]:active, input[type="reset"]:active, input[type="submit"]:active, #infinite-handle span:active { color: #424242;}
+.widget, .widget a:hover, .widget a:focus, .widget a:active { color: #7C7C7C;}
+.site-title a:hover, .site-title a:focus, .site-title a:active { color: #7C7C7C;}
+.site-info, .site-description { color: #7C7C7C;}
+body { background-color: #000000;}
+.widget.wp_widget_tag_cloud a, .more-link, .button, button, input[type="button"], input[type="reset"], input[type="submit"], #infinite-handle span { background-color: #de1b42;}
+#wp-calendar > caption { background-color: #de1b42;}
+.social-links .top-search { background-color: #de1b42;}
+#wp-calendar tbody td#today, blockquote, .main-navigation div > ul > li > ul > li:first-child { border-color: #de1b42;}
+.main-navigation div > ul > li > ul::before { border-bottom-color: #de1b42;}
+.entry-featured-image, .menu-toggle:focus, .menu-toggle:hover { background-color: #de1b42;}
+.widget a, .site-info a, .site-title a { color: #E5385A;}
+.main-navigation a { color: #D91A41;}
+.social-links a:hover { color: #D91A41;}
+.entry-title a:hover, .entry-title a:focus, a { color: #D91A41;}
+</style>
+<link rel="icon" href="https://turanszkij.files.wordpress.com/2022/06/logo_512.png?w=32" sizes="32x32">
+<link rel="icon" href="https://turanszkij.files.wordpress.com/2022/06/logo_512.png?w=192" sizes="192x192">
+<link rel="apple-touch-icon" href="https://turanszkij.files.wordpress.com/2022/06/logo_512.png?w=180">
+<meta name="msapplication-TileImage" content="https://turanszkij.files.wordpress.com/2022/06/logo_512.png?w=270">
+<link rel="stylesheet" type="text/css" id="gravatar-card-css" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/hovercard.min.css"><link rel="stylesheet" type="text/css" id="gravatar-card-services-css" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/services.min.css"><link href="./Improved normal reconstruction from depth – Wicked Engine Net_files/actionbar.css" type="text/css" rel="stylesheet"></head>
+
+<body class="post-template-default single single-post postid-1876 single-format-standard custom-background customizer-styles-applied highlander-enabled highlander-light">
+<div id="page" class="hfeed site">
+	<a class="skip-link screen-reader-text" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#content">Skip to content</a>
+
+	<div class="navigation-bar clear">
+		<div class="navigation-block">
+			<nav id="site-navigation" class="main-navigation" role="navigation">
+				<button class="menu-toggle" aria-controls="menu" aria-expanded="false"><i class="fa fa-bars"></i><span class="screen-reader-text">Open Menu</span></button>
+				<div class="menu-main-menu-container"><ul id="menu-main-menu" class="menu nav-menu" aria-expanded="false"><li id="menu-item-1782" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1782"><a href="https://wickedengine.net/"><i class="fa fa-home space-right"></i>Home</a></li>
+<li id="menu-item-1830" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1830"><a href="https://wickedengine.net/downloads/">Downloads</a></li>
+<li id="menu-item-1814" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1814"><a href="https://wickedengine.net/category/devblog/">DevBlog</a></li>
+<li id="menu-item-1825" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1825"><a target="_blank" rel="noopener" href="https://discord.gg/CFjRYmE">Discord</a></li>
+<li id="menu-item-1822" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1822"><a target="_blank" rel="noopener" href="https://github.com/turanszkij/WickedEngine">GitHub</a></li>
+<li id="menu-item-2370" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2370"><a href="https://www.patreon.com/wickedengine">Patreon</a></li>
+<li id="menu-item-1864" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1864"><a href="https://wickedengine.net/about/">About</a></li>
+<li id="menu-item-2073" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2073"><a href="https://wickedengine.net/privacy-policy/">Privacy Policy</a></li>
+</ul></div>			</nav><!-- #site-navigation -->
+
+							<div class="social-links">
+					
+											<div class="open-search top-search"><i class="fa fa-search"><span class="screen-reader-text">Search</span></i></div>
+									</div>
+					</div>
+	</div>
+
+			<div class="search-full">
+			<div class="search-container">
+				<form role="search" method="get" class="search-form" action="https://wickedengine.net/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search …" value="" name="s">
+				</label>
+				<input type="submit" class="search-submit" value="Search">
+			</form>				<span><a class="close-search"><i class="fa fa-close space-right"></i>Close</a></span>
+			</div>
+		</div>
+	
+	<header id="masthead" class="site-header" role="banner">
+		<div class="site-branding">
+									<h1 class="site-title"><a href="https://wickedengine.net/" rel="home">Wicked Engine Net</a></h1>
+			<h2 class="site-description">3D Engine Development</h2>
+		</div><!-- .site-branding -->
+	</header><!-- #masthead -->
+
+	<div id="content" class="site-content">
+
+	<div id="primary" class="content-area">
+		<main id="main" class="site-main" role="main">
+
+		
+			<article id="post-1876" class="post-1876 post type-post status-publish format-standard has-post-thumbnail hentry category-devblog">
+				<figure class="entry-featured-image">
+				<img width="810" height="406" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/normal_flat_sponza.png" class="attachment-nucleare-normal-post size-nucleare-normal-post wp-post-image" alt="" srcset="https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=810 810w, https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=1618 1618w, https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=300 300w, https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=768 768w, https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=1024 1024w" sizes="(max-width: 810px) 100vw, 810px" data-attachment-id="1898" data-permalink="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/normal_flat_sponza/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png" data-orig-size="2848,1429" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="normal_flat_sponza" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/normal_flat_sponza.png?w=809">			</figure>
+		<header class="entry-header">
+		<div class="entry-category">
+			<span class="cat-links"><a href="https://wickedengine.net/category/devblog/" rel="category tag">DevBlog</a></span>		</div><!-- .entry-meta -->
+		<h1 class="entry-title">Improved normal reconstruction from&nbsp;depth</h1>		<div class="entry-meta small-part">
+			<span class="posted-on"><i class="fa fa-clock-o space-left-right"></i><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/" rel="bookmark"><time class="entry-date published" datetime="2019-09-22T17:41:52+00:00">September 22, 2019</time><time class="updated" datetime="2022-04-23T17:14:23+00:00">April 23, 2022</time></a></span><span class="byline"> <i class="fa fa-user space-left-right"></i><span class="author vcard"><a class="url fn n" href="https://wickedengine.net/author/turanszkij/">turanszkij</a></span></span><span class="comments-link"><i class="fa fa-comments-o space-left-right"></i><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comments">12 Comments</a></span>		</div><!-- .entry-meta -->
+	</header><!-- .entry-header -->
+
+	<div class="entry-content">
+					
+<p>In a 3D renderer, we might want to read the scene normal vectors at some point, for example post processes. We can write them out using MRT – multiple render target outputs from the object rendering shaders and write the surface normals to a texture. But that normal map texture usually contains normals that have normal map perturbation applied on them, which some algorithms don’t like. Algorithms that need to ray trace/ray march from the surface in multiple directions around the normal direction are not good fit with these normal mapped textures, because there is a disconnect between what is in the normal map and what is the real surface triangle normal. </p>
+
+
+
+<span id="more-1876"></span>
+
+
+
+<p>SSAO for example falls into this category. We want to sample rays in the normal-oriented hemisphere from the surface and check those rays against the depth buffer. The depth buffer however, contains flat triangle geometry, that doesn’t include the normal map sufrace perturbation. Because of this, rays can go below the surface that the ray is started from, and that will result in some unwanted darkening.</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><img data-attachment-id="1886" data-permalink="https://wickedengine.net/hemisphere_fail/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/hemisphere_fail.png" data-orig-size="400,400" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="hemisphere_fail" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/hemisphere_fail.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/hemisphere_fail.png?w=400" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/hemisphere_fail.png" alt="" class="wp-image-1886" srcset="https://turanszkij.files.wordpress.com/2019/09/hemisphere_fail.png 400w, https://turanszkij.files.wordpress.com/2019/09/hemisphere_fail.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/hemisphere_fail.png?w=300 300w" sizes="(max-width: 400px) 100vw, 400px"></figure></div>
+
+
+<p>We could write out the flat surface normals with MRT, that would give us the perfect solution. But we probably don’t want to have yet an other render target to write in our object shader pass, to conserve memory bandwidth. </p>
+
+
+
+<p>There are ways to reconstruct the flat surface normals from the depth buffer. The idea is that we want to find the normal of the triangle that the depth buffer pixel belongs to. We can find out the slope of the triangle by first computing the pixel world position from the depth buffer, than using ddx(), ddy() and cross() to determine the normal direction:</p>
+
+
+
+<pre class="wp-block-code"><code>float depth = texture_depth.SampleLevel(sampler_point_clamp, uv, 0).r;
+float3 P = reconstructPosition(uv, depth, InverseViewProjection);
+float3 normal = normalize(cross(ddx(P), ddy(P)));</code></pre>
+
+
+
+<p>By the way, there are multiple ways to reconstruct world position from the depth buffer. One of those ways is by using the native depth buffer and the inverse view projection matrix that was used to render that depth:</p>
+
+
+
+<pre class="wp-block-code"><code>float3 reconstructPosition(in float2 uv, in float z, in float4x4 InvVP)
+{
+  float x = uv.x * 2.0f - 1.0f;
+  float y = (1.0 - uv.y) * 2.0f - 1.0f;
+  float4 position_s = float4(x, y, z, 1.0f);
+  float4 position_v = mul(InvVP, position_s);
+  return position_v.xyz / position_v.w;
+}</code></pre>
+
+
+
+<p>This solution to compute normals is only usable in a pixel shader. In a compute shader you don’t have access to ddx() and ddy() functions. What you can do instead is to compute world positions of nearby pixels, and use them as triangle corners. If you have the triangle corners, you can use cross() to compute the triangle normal, which gives you the flat normal of the current pixel:</p>
+
+
+
+<pre class="wp-block-code"><code>float2 uv0 = uv; // center
+float2 uv1 = uv + float2(1, 0) / depth_dimensions; // right 
+float2 uv2 = uv + float2(0, 1) / depth_dimensions; // top
+
+float depth0 = texture_depth.SampleLevel(sampler_point_clamp, uv0, 0).r;
+float depth1 = texture_depth.SampleLevel(sampler_point_clamp, uv1, 0).r;
+float depth2 = texture_depth.SampleLevel(sampler_point_clamp, uv2, 0).r;
+
+float3 P0 = reconstructPosition(uv0, depth0, InverseViewProjection);
+float3 P1 = reconstructPosition(uv1, depth1, InverseViewProjection);
+float3 P2 = reconstructPosition(uv2, depth2, InverseViewProjection);
+
+float3 normal = normalize(cross(P2 - P0, P1 - P0));</code></pre>
+
+
+
+<p>At this point, you might call it a day and use your flat normals. However, you might also notice some edge cases – both of these techniques literally fail on object edges. Even though different object might be at nearby pixels, we are only naively using the depth buffer and make the assumption that nearby samples are forming actual triangles that exist in the scene. </p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><img data-attachment-id="1878" data-permalink="https://wickedengine.net/normal_discontinuity/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity.png" data-orig-size="1424,714" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="normal_discontinuity" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity.png?w=809" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/normal_discontinuity.png" alt="" class="wp-image-1878" srcset="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity.png?w=1024 1024w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity.png?w=300 300w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity.png?w=768 768w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity.png 1424w" sizes="(max-width: 1024px) 100vw, 1024px"></figure></div>
+
+
+<p>The image above is a screenshot of the reconstructed normal buffer of the Cornell Box scene. Most notably, the edges of the boxes and the silhouette of the bunny became outlined, but that shouldn’t be the case. If we zoom in we see better:</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><img data-attachment-id="1879" data-permalink="https://wickedengine.net/normal_discontinuity_zoom/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_zoom.png" data-orig-size="486,379" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="normal_discontinuity_zoom" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_zoom.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_zoom.png?w=486" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/normal_discontinuity_zoom.png" alt="" class="wp-image-1879" srcset="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_zoom.png 486w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_zoom.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_zoom.png?w=300 300w" sizes="(max-width: 486px) 100vw, 486px"></figure></div>
+
+
+<p>If you use these flat normals, you can get strong artifacts with SSAO on the object edges:</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><img data-attachment-id="1881" data-permalink="https://wickedengine.net/ssao_bad/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/ssao_bad.png" data-orig-size="1424,714" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="ssao_bad" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/ssao_bad.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/ssao_bad.png?w=809" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/ssao_bad.png" alt="" class="wp-image-1881" srcset="https://turanszkij.files.wordpress.com/2019/09/ssao_bad.png?w=1024 1024w, https://turanszkij.files.wordpress.com/2019/09/ssao_bad.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/ssao_bad.png?w=300 300w, https://turanszkij.files.wordpress.com/2019/09/ssao_bad.png?w=768 768w, https://turanszkij.files.wordpress.com/2019/09/ssao_bad.png 1424w" sizes="(max-width: 1024px) 100vw, 1024px"></figure></div>
+
+
+<p>Notice the left edge of the boxes and the bunny. Those normals caused havoc on those parts. Interestingly, the right edges for example don’t show the artifact. But that depends on which nearby samples you select and reconstruct the triangle corners from, you could select triangles that would fail on right edges and not fail on left edges. In more complicated scenes however, with more color variety and not so huge edges, these artifacts could remain hidden.</p>
+
+
+
+<p>So what’s the solution? We should select the triangle that will be most correct for our center sample. The most correct triangle is the one whose corners are most probably on the same object as the center sample. We can approximate that by for example comparing depths of nearby samples to the center sample and picking the ones that are closest, and forming a triangle from those.</p>
+
+
+
+<p>An effective way to do this is to sample the pixel neighbors in a cross pattern. That will give us the center sample, the left from it, the one above it, the one on the right and finally the one below it. From these five samples, four triangles can be formed that we could be interested in:</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><img data-attachment-id="1889" data-permalink="https://wickedengine.net/triangle_order-1/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/triangle_order-1.png" data-orig-size="400,400" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="triangle_order-1" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/triangle_order-1.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/triangle_order-1.png?w=400" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/triangle_order-1.png" alt="" class="wp-image-1889" srcset="https://turanszkij.files.wordpress.com/2019/09/triangle_order-1.png 400w, https://turanszkij.files.wordpress.com/2019/09/triangle_order-1.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/triangle_order-1.png?w=300 300w" sizes="(max-width: 400px) 100vw, 400px"></figure></div>
+
+
+<p>We will select the best triangle corner of the horizontal cross axis, and one best corner from the vertical cross axis by comparing their depth values to the center sample and selecting the closest one. For the base triangle corner, we will always use the center sample. When we decided on the best P0, P1 and P2 triangle corners, use the cross product just like before to determine the triangle normal:</p>
+
+
+
+<pre class="wp-block-code"><code>float3 normal = normalize(cross(P2 - P0, P1 - P0));</code></pre>
+
+
+
+<p>Watch out however for the triangle winding order. If you assume counter clockwise order like me, then stick with it for all candidate triangles! That means, triangles in the cross pattern can be formed like this for counter clockwise ordering:</p>
+
+
+
+<pre class="wp-block-code"><code>triangle 0 = P0: center, P1: right, P2: up
+triangle 1 = P0: center, P1: down, P2: right
+triangle 2 = P0: center, P1: up, P2: left
+triangle 3 = P0: center, P1: left, P2: down</code></pre>
+
+
+
+<p>And with this technique, those edge artifacts are gone:</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><img data-attachment-id="1883" data-permalink="https://wickedengine.net/ssao_correct/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/ssao_correct.png" data-orig-size="1424,714" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="ssao_correct" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/ssao_correct.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/ssao_correct.png?w=809" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/ssao_correct.png" alt="" class="wp-image-1883" srcset="https://turanszkij.files.wordpress.com/2019/09/ssao_correct.png?w=1024 1024w, https://turanszkij.files.wordpress.com/2019/09/ssao_correct.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/ssao_correct.png?w=300 300w, https://turanszkij.files.wordpress.com/2019/09/ssao_correct.png?w=768 768w, https://turanszkij.files.wordpress.com/2019/09/ssao_correct.png 1424w" sizes="(max-width: 1024px) 100vw, 1024px"></figure></div>
+
+
+<p>Now we are taking a lot of samples per pixel and also doing complicated math for all neighbors (position reconstruction) and branching in the shader, so it will introduce perfromance penalty. The good thing is that it can be optimized more in a compute shader, with group shared memory. We can store the depths and reconstructed positions for a whole 8×8 pixel tile in shared memory efficiently. We will also have an extra border of pixels stored around the tile. Additionally, we can avoid storing depths and reconstructed positions separately, and instead just store reconstructed positions in view space – the view space positions’ Z value stores linear distance, which we can use instead of depth to determine the best triangle candidate. I will demonstrate the full technique in HLSL shader code.</p>
+
+
+
+<p>First, we create the group shared memory for the 8×8 pixel tile + one pixel border:</p>
+
+
+
+<pre class="wp-block-code"><code>static const uint POSTPROCESS_BLOCKSIZE = 8; // 8x8 pixel tile
+static const uint TILE_BORDER = 1;
+static const uint TILE_SIZE = POSTPROCESS_BLOCKSIZE + TILE_BORDER * 2;
+groupshared float2 tile_XY[TILE_SIZE*TILE_SIZE]; // view space position XY
+groupshared float tile_Z[TILE_SIZE*TILE_SIZE]; // view space position Z</code></pre>
+
+
+
+<p>The groupshared memory is storing view space positions. I separated the Z values into a deinterleaved array, because those will be loaded more frequently than XY components, when we determine the best corner points.</p>
+
+
+
+<p>The compute shader is running in a 8×8 block size:</p>
+
+
+
+<pre class="wp-block-code"><code>[numthreads(POSTPROCESS_BLOCKSIZE, POSTPROCESS_BLOCKSIZE, 1)]
+void main(uint3 DTid : SV_DispatchThreadID, uint3 Gid : SV_GroupID, uint3 GTid : SV_GroupThreadID, uint groupIndex : SV_GroupIndex)
+{
+  // ... shader body continues here...</code></pre>
+
+
+
+<p>First thing, we will preload the tile shared memory with the border region with view space positions:</p>
+
+
+
+<pre class="wp-block-code"><code>const int2 tile_upperleft = Gid.xy * POSTPROCESS_BLOCKSIZE - TILE_BORDER;
+for (uint t = groupIndex; t &lt; TILE_SIZE * TILE_SIZE; t += POSTPROCESS_BLOCKSIZE * POSTPROCESS_BLOCKSIZE)
+{
+  const uint2 pixel = tile_upperleft + unflatten2D(t, TILE_SIZE);
+  const float2 uv = (pixel + 0.5f) * xPPResolution_rcp;
+  const float depth = texture_depth.SampleLevel(sampler_linear_clamp, uv,0);
+  const float3 position = reconstructPosition(uv, depth, InverseProjection);
+  tile_XY[t] = position.xy;
+  tile_Z[t] = position.z;
+}
+GroupMemoryBarrierWithGroupSync();
+</code></pre>
+
+
+
+<p>Some things to note from the above code block:<br>– <strong>xPPResolution_rcp</strong> is a shader constant, containing the postprocess texture resolution reciprocal. That is: 1.0f / resolution.xy<br>– I am using <strong>InverseProjection</strong> matrix for the reconstructPosition. That will give the view space position, instead of world space position if I were using <strong>InverseViewProjection</strong> matrix.<br>– The <strong>unflatten2D()</strong> function converts 1D array index to 2D array index, and looks like this:</p>
+
+
+
+<pre class="wp-block-code"><code>uint2 unflatten2D(uint idx, uint2 dim)
+{
+  return uint2(idx % dim.x, idx / dim.x);
+}</code></pre>
+
+
+
+<p>We must synchronize at the end with <strong>GroupMemoryBarrierWithGroupSync()</strong> to wait all threads to finish populating its part of the group shared memory.</p>
+
+
+
+<p>Next thing is to load the depth/view space Z values in the cross pattern and perform the comparisons:</p>
+
+
+
+<pre class="wp-block-code"><code>const uint cross_idx[5] = {
+  flatten2D(TILE_BORDER + GTid.xy, TILE_SIZE),			// 0: center
+  flatten2D(TILE_BORDER + GTid.xy + int2(1, 0), TILE_SIZE),	// 1: right
+  flatten2D(TILE_BORDER + GTid.xy + int2(-1, 0), TILE_SIZE),	// 2: left
+  flatten2D(TILE_BORDER + GTid.xy + int2(0, 1), TILE_SIZE),	// 3: down
+  flatten2D(TILE_BORDER + GTid.xy + int2(0, -1), TILE_SIZE),	// 4: up
+};
+
+const float center_Z = tile_Z[cross_idx[0]];
+
+const uint best_Z_horizontal = abs(tile_Z[cross_idx[1]] - center_Z) &lt; abs(tile_Z[cross_idx[2]] - center_Z) ? 1 : 2;
+const uint best_Z_vertical = abs(tile_Z[cross_idx[3]] - center_Z) &lt; abs(tile_Z[cross_idx[4]] - center_Z) ? 3 : 4;
+</code></pre>
+
+
+
+<p>Here, the <strong>flatten2D()</strong> function is resposible for converting from 2D array index to 1D array index. It can be implemented like this:</p>
+
+
+
+<pre class="wp-block-code"><code>uint flatten2D(uint2 coord, uint2 dim)
+{
+  return coord.x + coord.y * dim.x;
+}</code></pre>
+
+
+
+<p>At the end of this, we will know which neighbor is the best in horizontal direction (<strong>best_Z_horizontal</strong>) and which is best in vertical direction (<strong>best_Z_vertical</strong>). The horizontal can be either 1 (right) or 2 (left), while the vertical can be 3 (down) or 4 (up).</p>
+
+
+
+<p>Finally, determine the best triangle corners with branching and create the triangle normal:</p>
+
+
+
+<pre class="wp-block-code"><code>float3 P1 = 0, P2 = 0;
+if (best_Z_horizontal == 1 &amp;&amp; best_Z_vertical == 4)
+{
+  P1 = float3(tile_XY[cross_idx[1]], tile_Z[cross_idx[1]]);
+  P2 = float3(tile_XY[cross_idx[4]], tile_Z[cross_idx[4]]);
+}
+else if (best_Z_horizontal == 1 &amp;&amp; best_Z_vertical == 3)
+{
+  P1 = float3(tile_XY[cross_idx[3]], tile_Z[cross_idx[3]]);
+  P2 = float3(tile_XY[cross_idx[1]], tile_Z[cross_idx[1]]);
+}
+else if (best_Z_horizontal == 2 &amp;&amp; best_Z_vertical == 4)
+{
+  P1 = float3(tile_XY[cross_idx[4]], tile_Z[cross_idx[4]]);
+  P2 = float3(tile_XY[cross_idx[2]], tile_Z[cross_idx[2]]);
+}
+else if (best_Z_horizontal == 2 &amp;&amp; best_Z_vertical == 3)
+{
+  P1 = float3(tile_XY[cross_idx[2]], tile_Z[cross_idx[2]]);
+  P2 = float3(tile_XY[cross_idx[3]], tile_Z[cross_idx[3]]);
+}
+
+const float3 P0 = float3(tile_XY[cross_idx[0]], tile_Z[cross_idx[0]]);
+const float3 normal = normalize(cross(P2 - P0, P1 - P0));
+</code></pre>
+
+
+
+<p>Of course, computing the normals in view space means that you will either need to convert them to world-space, or do the SSAO in view space. I chose to do the rest of the shader in view space instead of converting, and reuse the view space position and normal for shooting the rays in view space.</p>
+
+
+
+<p>And the normal buffer result is – although not perfect – is closer to what we want. There are still some errors along the edges, but in a reduced amount, and they don’t interfere with the SSAO:</p>
+
+
+
+<figure class="wp-block-image size-large"><img data-attachment-id="1892" data-permalink="https://wickedengine.net/normal_improved/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/normal_improved.png" data-orig-size="1424,714" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="normal_improved" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/normal_improved.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/normal_improved.png?w=809" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/normal_improved.png" alt="" class="wp-image-1892" srcset="https://turanszkij.files.wordpress.com/2019/09/normal_improved.png?w=1024 1024w, https://turanszkij.files.wordpress.com/2019/09/normal_improved.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/normal_improved.png?w=300 300w, https://turanszkij.files.wordpress.com/2019/09/normal_improved.png?w=768 768w, https://turanszkij.files.wordpress.com/2019/09/normal_improved.png 1424w" sizes="(max-width: 1024px) 100vw, 1024px"></figure>
+
+
+
+<p>However, I’ve had a slight mistake here, because the SSAO postprocess resolution is half of the depth buffer resolution. When I match the postprocess resolution with the depth buffer resolution, the normal reconstruction is actually nearly perfect (there are a few rogue pixels here and there on sharp corners, but you have to look for them really hard):</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><img data-attachment-id="1904" data-permalink="https://wickedengine.net/normal_improved-2/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/normal_improved-2.png" data-orig-size="2848,1429" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="normal_improved-2" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/normal_improved-2.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/normal_improved-2.png?w=809" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/normal_improved-2.png" alt="" class="wp-image-1904" srcset="https://turanszkij.files.wordpress.com/2019/09/normal_improved-2.png?w=1024 1024w, https://turanszkij.files.wordpress.com/2019/09/normal_improved-2.png?w=2048 2048w, https://turanszkij.files.wordpress.com/2019/09/normal_improved-2.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/normal_improved-2.png?w=300 300w, https://turanszkij.files.wordpress.com/2019/09/normal_improved-2.png?w=768 768w" sizes="(max-width: 1024px) 100vw, 1024px"></figure></div>
+
+
+<p>And this is with matching resolution, but not using the improvement, the outline is still present and will mess up the SSAO:</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><img data-attachment-id="1901" data-permalink="https://wickedengine.net/normal_discontinuity_2/" data-orig-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_2.png" data-orig-size="2848,1429" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="normal_discontinuity_2" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_2.png?w=300" data-large-file="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_2.png?w=809" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/normal_discontinuity_2.png" alt="" class="wp-image-1901" srcset="https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_2.png?w=1024 1024w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_2.png?w=2048 2048w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_2.png?w=150 150w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_2.png?w=300 300w, https://turanszkij.files.wordpress.com/2019/09/normal_discontinuity_2.png?w=768 768w" sizes="(max-width: 1024px) 100vw, 1024px"></figure></div>
+
+
+<p>However, I don’t have to match their resolution in practice, because the SSAO results were already good with the improved reconstruction. At the end of the day, implementing the reconstruction improvement was worth it.</p>
+
+
+
+<p>Well, that’s it, I hope you found it useful. I think it was definitely useful for me at least to document this for myself for future reference. <img draggable="false" role="img" class="emoji" alt="🙂" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/1f642.svg" scale="0"></p>
+
+
+
+<p>Take a look at <a href="https://github.com/turanszkij/WickedEngine/blob/master/WickedEngine/shaders/ssaoCS.hlsl">SSAO implementation in Wicked Engine</a> using this technique and feel free to use it for whatever you want.</p>
+
+
+
+<p>I also saw this improvement technique described in a <a href="https://stackoverflow.com/questions/37627254/how-to-reconstruct-normal-from-depth-without-artifacts-on-edge">stackoverflow answer</a>.</p>
+
+
+
+<p><a href="https://atyuwen.github.io/posts/normal-reconstruction/">This</a> is an other technique for normal reconstruction from Yuwen Wu. It discusses and solves a corner case that was not described here.</p>
+
+
+
+<p>Mistakes, typos, questions? Let me know in the comments.</p>
+<div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon-text sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul data-sharing-events-added="true"><li class="share-twitter"><a rel="nofollow noopener noreferrer" data-shared="sharing-twitter-1876" class="share-twitter sd-button share-icon" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?share=twitter&amp;nb=1" target="_blank" title="Click to share on Twitter"><span>Twitter</span></a></li><li class="share-facebook"><a rel="nofollow noopener noreferrer" data-shared="sharing-facebook-1876" class="share-facebook sd-button share-icon" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?share=facebook&amp;nb=1" target="_blank" title="Click to share on Facebook"><span>Facebook</span></a></li><li class="share-end"></li></ul></div></div></div><div class="sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded" id="like-post-wrapper-116195412-1876-631be17573d8f" data-src="//widgets.wp.com/likes/index.html?ver=20220105#blog_id=116195412&amp;post_id=1876&amp;origin=turanszkij.wordpress.com&amp;obj_id=116195412-1876-631be17573d8f&amp;domain=wickedengine.net" data-name="like-post-frame-116195412-1876-631be17573d8f" data-title="Like or Reblog"><h3 class="sd-title">Like this:</h3><div class="likes-widget-placeholder post-likes-widget-placeholder" style="height: 55px;"><span class="button"><span>Like</span></span> <span class="loading">Loading...</span></div><span class="sd-text-color"></span><a class="sd-link-color"></a></div></div>					</div><!-- .entry-content -->
+
+	<footer class="entry-footer">
+		<div class="entry-bottom small-part">
+					</div>
+	</footer><!-- .entry-footer -->
+</article><!-- #post-## -->
+
+				<nav class="navigation post-navigation" role="navigation">
+		<h1 class="screen-reader-text">Post navigation</h1>
+		<div class="nav-links">
+			<div class="nav-previous"><a href="https://wickedengine.net/2019/02/24/thoughts-on-light-culling-stream-compaction-vs-flat-bit-arrays/" rel="prev"><div class="the-navigation-arrow"><i class="fa prev-next fa-2x fa-angle-left"></i></div> <div class="meta-nav"><span class="small-part">Previous Post</span><div class="next-prev-name">Thoughts on light culling: stream compaction vs flat bit&nbsp;arrays</div></div></a></div><div class="nav-next"><a href="https://wickedengine.net/2019/09/29/entity-component-system/" rel="next"><div class="meta-nav"><span class="small-part">Next Post</span><div class="next-prev-name">Entity-component system</div></div> <div class="the-navigation-arrow"><i class="fa prev-next fa-2x fa-angle-right"></i></div></a></div>		</div><!-- .nav-links -->
+	</nav><!-- .navigation -->
+	
+			
+<div id="comments" class="comments-area">
+
+	
+			<h2 class="comments-title">
+			12 thoughts on “<span>Improved normal reconstruction from&nbsp;depth</span>”		</h2>
+
+		<ol class="comment-list">
+					<li id="comment-1130" class="comment byuser comment-author-tiantian20007 even thread-even depth-1 parent highlander-comment">
+			<article id="div-comment-1130" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/1cbd38f13e8a6e88a5cebba86907528d.jpeg" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-1cbd38f13e8a6e88a5cebba86907528d-0" originals="50" src-orig="https://1.gravatar.com/avatar/1cbd38f13e8a6e88a5cebba86907528d?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn">Dai Tianqi</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1130"><time datetime="2020-02-21T10:14:51+00:00">February 21, 2020 at 10:14 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hi, I’m confuse about the POSTPROCESS_BLOCKSIZE. As the code in this article: [numthreads(POSTPROCESS_BLOCKSIZE, POSTPROCESS_BLOCKSIZE, 1)]<br>
+It should means each compute shader thread group has POSTPROCESS_BLOCKSIZE*POSTPROCESS_BLOCKSIZE threads in it, and each thread correspond a pixel in the sreen right?<br>
+If that is correct, each pixel will run the main function. So why there is a for loop in that main function? Each pixel just need to sample their own depth and store it in the groupshared memory.</p>
+<p id="comment-like-1130" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1130&amp;_wpnonce=c7167dbe49" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1130" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1130#respond" data-commentid="1130" data-postid="1876" data-belowelement="div-comment-1130" data-respondelement="respond" data-replyto="Reply to Dai Tianqi" aria-label="Reply to Dai Tianqi"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		<ul class="children">
+		<li id="comment-1131" class="comment byuser comment-author-turanszkij bypostauthor odd alt depth-2 highlander-comment">
+			<article id="div-comment-1131" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/16966a6ceb89c12c57fbc3ed44f32f12.png" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-16966a6ceb89c12c57fbc3ed44f32f12-0" originals="50" src-orig="https://1.gravatar.com/avatar/16966a6ceb89c12c57fbc3ed44f32f12?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn"><a href="https://turanszkij.wordpress.com/" rel="external nofollow ugc" class="url">turanszkij</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1131"><time datetime="2020-02-21T11:13:05+00:00">February 21, 2020 at 11:13 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hi, you are right, each thread is for handling one pixel. However, the pixels need neighbor depth information too, so there are more depth samples than pixels. For example, pixels on the sides of the tile are sampling outside the tile too and storing into groupshared. With the for loop, each thread can potentially sample multiple times, depending on the border size.</p>
+<p id="comment-like-1131" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1131&amp;_wpnonce=7c7d1a8b9b" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1131" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1131#respond" data-commentid="1131" data-postid="1876" data-belowelement="div-comment-1131" data-respondelement="respond" data-replyto="Reply to turanszkij" aria-label="Reply to turanszkij"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-1414" class="comment even thread-odd thread-alt depth-1 parent highlander-comment">
+			<article id="div-comment-1414" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/f006e79f12c5eec14b0eec50537d0910" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-f006e79f12c5eec14b0eec50537d0910-0" originals="50" src-orig="https://0.gravatar.com/avatar/f006e79f12c5eec14b0eec50537d0910?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn">MinhPhuoc Hong</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1414"><time datetime="2020-08-12T14:17:13+00:00">August 12, 2020 at 2:17 pm</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Is there any resource explaining about reconstructing normal vectors as you described in the article?. Since I do not understand why it works.</p>
+<p>Thanks in advance.</p>
+<p id="comment-like-1414" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1414&amp;_wpnonce=fd8fcdcbf6" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1414" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1414#respond" data-commentid="1414" data-postid="1876" data-belowelement="div-comment-1414" data-respondelement="respond" data-replyto="Reply to MinhPhuoc Hong" aria-label="Reply to MinhPhuoc Hong"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		<ul class="children">
+		<li id="comment-1416" class="comment byuser comment-author-turanszkij bypostauthor odd alt depth-2 parent highlander-comment">
+			<article id="div-comment-1416" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/16966a6ceb89c12c57fbc3ed44f32f12.png" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-16966a6ceb89c12c57fbc3ed44f32f12-1" originals="50" src-orig="https://1.gravatar.com/avatar/16966a6ceb89c12c57fbc3ed44f32f12?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn"><a href="https://turanszkij.wordpress.com/" rel="external nofollow ugc" class="url">turanszkij</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1416"><time datetime="2020-08-13T08:34:09+00:00">August 13, 2020 at 8:34 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hi, I was hoping that this blog would make you understand. Basically, you unproject the 3 depth values from screen space to world space or view space. The 3 points form a triangle. The triangle always has a normal vector. To get the normal vector, you compute the cross product from two of the triangle sides. (The cross product is always perpendicular to the two vectors it’s computed from)</p>
+<p id="comment-like-1416" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1416&amp;_wpnonce=a4bbaf7c13" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1416" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1416#respond" data-commentid="1416" data-postid="1876" data-belowelement="div-comment-1416" data-respondelement="respond" data-replyto="Reply to turanszkij" aria-label="Reply to turanszkij"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		<ul class="children">
+		<li id="comment-1420" class="comment even depth-3 highlander-comment">
+			<article id="div-comment-1420" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/f006e79f12c5eec14b0eec50537d0910" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-f006e79f12c5eec14b0eec50537d0910-1" originals="50" src-orig="https://0.gravatar.com/avatar/f006e79f12c5eec14b0eec50537d0910?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn">MinhPhuoc Hong</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1420"><time datetime="2020-08-16T04:53:11+00:00">August 16, 2020 at 4:53 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thank for reply. I know how to compute a normal vector from two triangle sides, but I do not understand why using a cross product of ddx() and ddy() creates a normal vector we want.</p>
+<p>Thank you.</p>
+<p id="comment-like-1420" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1420&amp;_wpnonce=8090ae7ed2" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1420" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+							</article><!-- .comment-body -->
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-1429" class="comment byuser comment-author-turanszkij bypostauthor odd alt depth-2 highlander-comment">
+			<article id="div-comment-1429" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/16966a6ceb89c12c57fbc3ed44f32f12.png" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-16966a6ceb89c12c57fbc3ed44f32f12-2" originals="50" src-orig="https://1.gravatar.com/avatar/16966a6ceb89c12c57fbc3ed44f32f12?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn"><a href="https://turanszkij.wordpress.com/" rel="external nofollow ugc" class="url">turanszkij</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1429"><time datetime="2020-08-21T08:30:30+00:00">August 21, 2020 at 8:30 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I see, the ddx() gives the derivative of world positions on x-axis in the 2×2 pixel quad, the ddy() gives the derivative on the y-axis. Derivative here means slope between two points, so it is the same as computing two edges of a triangle. Then the cross product is perpendicular to those edges.</p>
+<p id="comment-like-1429" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1429&amp;_wpnonce=642ad78dbe" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1429" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1429#respond" data-commentid="1429" data-postid="1876" data-belowelement="div-comment-1429" data-respondelement="respond" data-replyto="Reply to turanszkij" aria-label="Reply to turanszkij"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-1427" class="comment even thread-even depth-1 parent highlander-comment">
+			<article id="div-comment-1427" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/9ce50c443108396a37439b0884911ed0" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-9ce50c443108396a37439b0884911ed0-0" originals="50" src-orig="https://0.gravatar.com/avatar/9ce50c443108396a37439b0884911ed0?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn">Baichuan</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1427"><time datetime="2020-08-21T08:14:03+00:00">August 21, 2020 at 8:14 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hi, how to visualize the normal map?</p>
+<p id="comment-like-1427" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1427&amp;_wpnonce=6c46704c9d" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1427" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1427#respond" data-commentid="1427" data-postid="1876" data-belowelement="div-comment-1427" data-respondelement="respond" data-replyto="Reply to Baichuan" aria-label="Reply to Baichuan"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		<ul class="children">
+		<li id="comment-1428" class="comment byuser comment-author-turanszkij bypostauthor odd alt depth-2 parent highlander-comment">
+			<article id="div-comment-1428" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/16966a6ceb89c12c57fbc3ed44f32f12.png" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-16966a6ceb89c12c57fbc3ed44f32f12-3" originals="50" src-orig="https://1.gravatar.com/avatar/16966a6ceb89c12c57fbc3ed44f32f12?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn"><a href="https://turanszkij.wordpress.com/" rel="external nofollow ugc" class="url">turanszkij</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1428"><time datetime="2020-08-21T08:25:23+00:00">August 21, 2020 at 8:25 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>The visualizer I used here used the formula: float4 output = float4(normal.xyz * 0.5f + 0.5f, 1);<br>
+And writing the output to a R8G8B8A8_UNORM format texture.</p>
+<p id="comment-like-1428" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1428&amp;_wpnonce=e1773084be" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1428" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1428#respond" data-commentid="1428" data-postid="1876" data-belowelement="div-comment-1428" data-respondelement="respond" data-replyto="Reply to turanszkij" aria-label="Reply to turanszkij"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		<ul class="children">
+		<li id="comment-1432" class="comment even depth-3 highlander-comment">
+			<article id="div-comment-1432" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/9ce50c443108396a37439b0884911ed0" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-9ce50c443108396a37439b0884911ed0-1" originals="50" src-orig="https://0.gravatar.com/avatar/9ce50c443108396a37439b0884911ed0?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn">Baichuan</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1432"><time datetime="2020-08-22T06:33:21+00:00">August 22, 2020 at 6:33 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thanks very much. </p>
+<p>I want to ask why should we construct the equation “normal.xyz * 0.5f + 0.5f”? Is that because we map the range(-1,1) to (0,1) so that we can distinguish the normal1 and normal2 such as (-1, -1, 1) and (0,0,1) in visualized image?</p>
+<p>Another question is that I have the depth map and the camera intrinsics K, but I get the normal map like the 4th image full of red color. There is no distinct color difference in my normal image. I don’t know what is wrong. Could you run the code using my depth map and camera intrinsics K to generate a normal map? I will be appreciated if you will.</p>
+<p>Looking forward to your reply. My email is <a href="mailto:862843076@qq.com">862843076@qq.com</a></p>
+<p id="comment-like-1432" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1432&amp;_wpnonce=d9ba57616e" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1432" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+							</article><!-- .comment-body -->
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-1430" class="comment odd alt thread-odd thread-alt depth-1 parent highlander-comment">
+			<article id="div-comment-1430" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/9ce50c443108396a37439b0884911ed0" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-9ce50c443108396a37439b0884911ed0-2" originals="50" src-orig="https://0.gravatar.com/avatar/9ce50c443108396a37439b0884911ed0?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn">Baichuan</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1430"><time datetime="2020-08-22T02:28:21+00:00">August 22, 2020 at 2:28 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>How to get the visualized picture from the normal?</p>
+<p id="comment-like-1430" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1430&amp;_wpnonce=64db1d3f6e" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1430" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1430#respond" data-commentid="1430" data-postid="1876" data-belowelement="div-comment-1430" data-respondelement="respond" data-replyto="Reply to Baichuan" aria-label="Reply to Baichuan"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		<ul class="children">
+		<li id="comment-1431" class="comment even depth-2 highlander-comment">
+			<article id="div-comment-1431" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/9ce50c443108396a37439b0884911ed0" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-9ce50c443108396a37439b0884911ed0-3" originals="50" src-orig="https://0.gravatar.com/avatar/9ce50c443108396a37439b0884911ed0?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn">Baichuan</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1431"><time datetime="2020-08-22T02:29:13+00:00">August 22, 2020 at 2:29 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Sorry. I put the same question.</p>
+<p id="comment-like-1431" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1431&amp;_wpnonce=70aab84b77" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1431" class="comment-like-feedback">Like</span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1431#respond" data-commentid="1431" data-postid="1876" data-belowelement="div-comment-1431" data-respondelement="respond" data-replyto="Reply to Baichuan" aria-label="Reply to Baichuan"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-1564" class="comment byuser comment-author-dudeson77 odd alt thread-even depth-1 highlander-comment">
+			<article id="div-comment-1564" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/fa9c406e5bd8080ee5f9ef941f2212fa.png" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-fa9c406e5bd8080ee5f9ef941f2212fa-0" originals="50" src-orig="https://0.gravatar.com/avatar/fa9c406e5bd8080ee5f9ef941f2212fa?s=50&amp;d=identicon&amp;r=G" scale="2">						<b class="fn"><a href="http://kateshardware.wordpress.com/" rel="external nofollow ugc" class="url">Tara</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata small-part">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-1564"><time datetime="2020-10-18T05:37:04+00:00">October 18, 2020 at 5:37 am</time></a>					</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Glad to see my approach being used somewhere other than my own engine.</p>
+<p id="comment-like-1564" data-liked="comment-not-liked" class="comment-likes comment-not-liked"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?like_comment=1564&amp;_wpnonce=6a68d4aa3c" class="comment-like-link needs-login" rel="nofollow" data-blog="116195412"><span>Like</span></a><span id="comment-like-count-1564" class="comment-like-feedback">Liked by <a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#" class="view-likers" data-like-count="1">1 person</a></span></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply small-part"><a rel="nofollow" class="comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/?replytocom=1564#respond" data-commentid="1564" data-postid="1876" data-belowelement="div-comment-1564" data-respondelement="respond" data-replyto="Reply to Tara" aria-label="Reply to Tara"><span class="reply-link">Reply<i class="fa fa-reply space-left"></i></span></a></div>			</article><!-- .comment-body -->
+		</li><!-- #comment-## -->
+		</ol><!-- .comment-list -->
+
+		
+	
+	
+		<div id="respond" class="comment-respond js">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wickedengine.net/wp-comments-post.php" method="post" id="commentform" class="comment-form" novalidate=""><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="129ac0ab89"><input type="hidden" name="_wp_http_referer" value="/2019/09/22/improved-normal-reconstruction-from-depth/">
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest">
+
+<div class="comment-form-field comment-textarea">
+	
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..." placeholder="Enter your comment here..." style="overflow: hidden; overflow-wrap: break-word; resize: none; height: 38px;"></textarea></div>
+</div>
+
+<div id="comment-form-identity" style="display: none;">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-form-guest" id="postas-guest" class="nascar-signin-link" title="Login via Guest">
+									</a>
+			</li>
+			<li>
+				<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link" title="Login via WordPress.com">
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24"><rect x="0" fill="none" width="24" height="24"></rect><g><path fill="#0087be" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"></path></g></svg>				</a>
+			</li>
+			<li>
+				<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link" title="Login via Twitter">
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24"><rect x="0" fill="none" width="24" height="24"></rect><g><path fill="#1DA1F2" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"></path></g></svg>				</a>
+			</li>
+			<li>
+				<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link" title="Login via Facebook">
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24"><rect x="0" fill="none" width="24" height="24"></rect><g><path fill="#3B5998" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"></path></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="./Improved normal reconstruction from depth – Wicked Engine Net_files/ad516503a11cd5ca435acc9bb6523536" alt="Gravatar" width="25" class="no-grav grav-hashed grav-hijack" id="grav-ad516503a11cd5ca435acc9bb6523536-0" originals="25" scale="2">
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value=""></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value=""></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value=""></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./Improved normal reconstruction from depth – Wicked Engine Net_files/ad516503a11cd5ca435acc9bb6523536" alt="WordPress.com Logo" width="25" class="no-grav grav-hashed grav-hijack" id="grav-ad516503a11cd5ca435acc9bb6523536-1" originals="25" scale="2">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="">
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="">
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="">
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( &#39;wordpress&#39; );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24"><rect x="0" fill="none" width="24" height="24"></rect><g><path fill="#0087be" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"></path></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./Improved normal reconstruction from depth – Wicked Engine Net_files/ad516503a11cd5ca435acc9bb6523536" alt="Twitter picture" width="25" class="no-grav grav-hashed grav-hijack" id="grav-ad516503a11cd5ca435acc9bb6523536-2" originals="25" scale="2">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="">
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="">
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="">
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( &#39;twitter&#39; );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24"><rect x="0" fill="none" width="24" height="24"></rect><g><path fill="#1DA1F2" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"></path></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/" alt="Facebook photo" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="">
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="">
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="">
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( &#39;facebook&#39; );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24"><rect x="0" fill="none" width="24" height="24"></rect><g><path fill="#3B5998" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"></path></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe" style="display: none;">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog" style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit" style="display: none;"><input name="submit" type="submit" id="comment-submit" class="submit" value="Post Comment"> <input type="hidden" name="comment_post_ID" value="1876" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="a74f0e0155"></p>
+<input type="hidden" name="genseq" value="1662771573">
+<p style="display: none !important;"><label>Δ<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="1662771609354"><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+		
+		</main><!-- #main -->
+	</div><!-- #primary -->
+
+
+<div id="secondary" class="widget-area" role="complementary">
+	<aside id="search-1" class="widget widget_search"><h2 class="widget-title">Search</h2><form role="search" method="get" class="search-form" action="https://wickedengine.net/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search …" value="" name="s">
+				</label>
+				<input type="submit" class="search-submit" value="Search">
+			</form></aside>
+		<aside id="recent-posts-4" class="widget widget_recent_entries">
+		<h2 class="widget-title">Recent Posts</h2>
+		<ul>
+											<li>
+					<a href="https://wickedengine.net/2022/07/18/game-dev-journey-10-years/">Game dev journey: 10&nbsp;years</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2022/05/08/derivatives-in-compute-shader/">Derivatives in compute&nbsp;shader</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2022/04/23/shader-compiler-tools/">Shader compiler tools</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2021/06/07/future-geometry-pipeline/">Future geometry pipeline</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2021/05/06/graphics-api-abstraction/">Graphics API abstraction</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2021/04/06/bindless-descriptors/">Bindless Descriptors</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2020/09/06/variable-rate-shading-first-impressions/">Variable Rate Shading: first&nbsp;impressions</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2020/04/26/capsule-collision-detection/">Capsule Collision Detection</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2020/01/05/tile-based-optimization-for-post-processing/">Tile-based optimization for post&nbsp;processing</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2019/09/29/entity-component-system/">Entity-component system</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/" aria-current="page">Improved normal reconstruction from&nbsp;depth</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2019/02/24/thoughts-on-light-culling-stream-compaction-vs-flat-bit-arrays/">Thoughts on light culling: stream compaction vs flat bit&nbsp;arrays</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2018/11/24/simple-job-system-using-standard-c/">Simple job system using standard&nbsp;C++</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2018/05/21/scalabe-gpu-fluid-simulation/">GPU Fluid Simulation</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2018/02/03/thoughts-on-skinning-and-lds/">Thoughts on Skinning and&nbsp;LDS</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2018/01/18/easy-transparent-shadow-maps/">Easy Transparent Shadow&nbsp;Maps</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2018/01/10/optimizing-tile-based-light-culling/">Optimizing tile-based light&nbsp;culling</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2018/01/05/next-power-of-two-in-hlsl/">Next power of two in&nbsp;HLSL</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2017/11/07/gpu-based-particle-simulation/">GPU-based particle simulation</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2017/10/22/which-blend-state-for-me/">Which blend state for&nbsp;me?</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2017/10/12/forward-decal-rendering/">Forward+ decal rendering</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2017/09/09/skinning-in-compute-shader/">Skinning in a Compute&nbsp;Shader</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2017/09/07/area-lights/">Area Lights</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2017/08/30/voxel-based-global-illumination/">Voxel-based Global Illumination</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2017/06/05/should-we-get-rid-of-vertex-buffers/">Should we get rid of Vertex&nbsp;Buffers?</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2016/11/13/how-to-resolve-an-msaa-depthbuffer/">How to Resolve an MSAA&nbsp;DepthBuffer</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2016/11/13/abuse-the-immediate-constant-buffer/">Abuse the immediate constant&nbsp;buffer!</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2016/11/04/smooth-lens-flare-in-the-geometry-shader/">Smooth Lens Flare in the Geometry&nbsp;Shader</a>
+									</li>
+											<li>
+					<a href="https://wickedengine.net/2016/11/01/welcome-brave-developer/">Welcome brave developer!</a>
+									</li>
+					</ul>
+
+		</aside><aside id="media_image-3" class="widget widget_media_image"><h2 class="widget-title">Wicked Engine</h2><style>.widget.widget_media_image { overflow: hidden; }.widget.widget_media_image img { height: auto; max-width: 100%; }</style><a href="https://github.com/turanszkij/WickedEngine"><img width="150" height="150" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/logo_small.png" class="image wp-image-2506  attachment-150x150 size-150x150" alt="" loading="lazy" style="max-width: 100%; height: auto;" title="Wicked Engine" srcset="https://turanszkij.files.wordpress.com/2022/06/logo_small.png?w=150 150w, https://turanszkij.files.wordpress.com/2022/06/logo_small.png 256w" sizes="(max-width: 150px) 100vw, 150px" data-attachment-id="2506" data-permalink="https://wickedengine.net/logo_small-2/" data-orig-file="https://turanszkij.files.wordpress.com/2022/06/logo_small.png" data-orig-size="256,256" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="logo_small" data-image-description="" data-image-caption="" data-medium-file="https://turanszkij.files.wordpress.com/2022/06/logo_small.png?w=256" data-large-file="https://turanszkij.files.wordpress.com/2022/06/logo_small.png?w=256"></a></aside></div><!-- #secondary -->
+
+	</div><!-- #content -->
+
+	<footer id="colophon" class="site-footer" role="contentinfo">
+
+		
+		<div class="site-info small-part">
+			<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			
+					</div><!-- .site-info -->
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#top" class="to-top"><i class="fa fa-angle-up fa-lg"><span class="screen-reader-text">Back to top</span></i></a>
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/nucleare","blog_id":116195412,"post_id":1876,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src="./Improved normal reconstruction from depth – Wicked Engine Net_files/gprofiles.js.download" id="grofiles-cards-js"></script>
+<script id="wpgroho-js-extra">
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin="anonymous" type="text/javascript" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/wpgroho.js.download"></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-1cbd38f13e8a6e88a5cebba86907528d">
+	</div>
+	<div class="grofile-hash-map-16966a6ceb89c12c57fbc3ed44f32f12">
+	</div>
+	<div class="grofile-hash-map-f006e79f12c5eec14b0eec50537d0910">
+	</div>
+	<div class="grofile-hash-map-9ce50c443108396a37439b0884911ed0">
+	</div>
+	<div class="grofile-hash-map-fa9c406e5bd8080ee5f9ef941f2212fa">
+	</div>
+	</div>
+<script id="highlander-comments-js-extra">
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/turanszkij.wordpress.com\/public.api\/connect\/?action=request&domain=wickedengine.net","logoutURL":"https:\/\/turanszkij.wordpress.com\/wp-login.php?action=logout&_wpnonce=1deffc1e3b","homeURL":"https:\/\/wickedengine.net\/","postID":"1876","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"0","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin="anonymous" type="text/javascript" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/saved_resource(6)"></script>
+	<div id="actionbar" class="actnbr-pub-nucleare actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"></path></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"></path></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wickedengine.net/">
+				<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/logo_512.png" class="avatar avatar-50" height="50" width="50" srcset="https://turanszkij.files.wordpress.com/2022/06/logo_512.png?w=50&amp;zoom=2 2x" scale="2">				Wicked Engine Net			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com/" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 43 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address">
+										</div>
+										<input type="hidden" name="action" value="subscribe">
+										<input type="hidden" name="blog_id" value="116195412">
+										<input type="hidden" name="source" value="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/">
+										<input type="hidden" name="sub-type" value="actionbar-follow">
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="4a6bb7ab64">										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwickedengine.net%252F2019%252F09%252F22%252Fimproved-normal-reconstruction-from-depth%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"></path></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wickedengine.net/">
+				<img alt="" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/logo_512.png" class="avatar avatar-50" height="50" width="50" srcset="https://turanszkij.files.wordpress.com/2022/06/logo_512.png?w=50&amp;zoom=2 2x" scale="2">				Wicked Engine Net			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://turanszkij.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fturanszkij.wordpress.com%2F2019%2F09%2F22%2Fimproved-normal-reconstruction-from-depth%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"></path></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"></path></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"></path></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwickedengine.net%252F2019%252F09%252F22%252Fimproved-normal-reconstruction-from-depth%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7RxJy-ug">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/116195412/posts/1876">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+			<div id="jp-carousel-loading-overlay">
+			<div id="jp-carousel-loading-wrapper">
+				<span id="jp-carousel-library-loading">&nbsp;</span>
+			</div>
+		</div>
+		<div class="jp-carousel-overlay" style="display: none;">
+
+		<div class="jp-carousel-container">
+			<!-- The Carousel Swiper -->
+			<div class="jp-carousel-wrap swiper-container jp-carousel-swiper-container jp-carousel-transitions" itemscope="" itemtype="https://schema.org/ImageGallery">
+				<div class="jp-carousel swiper-wrapper"></div>
+				<div class="jp-swiper-button-prev swiper-button-prev">
+					<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<mask id="maskPrev" mask-type="alpha" maskUnits="userSpaceOnUse" x="8" y="6" width="9" height="12">
+							<path d="M16.2072 16.59L11.6496 12L16.2072 7.41L14.8041 6L8.8335 12L14.8041 18L16.2072 16.59Z" fill="white"></path>
+						</mask>
+						<g mask="url(#maskPrev)">
+							<rect x="0.579102" width="23.8823" height="24" fill="#FFFFFF"></rect>
+						</g>
+					</svg>
+				</div>
+				<div class="jp-swiper-button-next swiper-button-next">
+					<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<mask id="maskNext" mask-type="alpha" maskUnits="userSpaceOnUse" x="8" y="6" width="8" height="12">
+							<path d="M8.59814 16.59L13.1557 12L8.59814 7.41L10.0012 6L15.9718 12L10.0012 18L8.59814 16.59Z" fill="white"></path>
+						</mask>
+						<g mask="url(#maskNext)">
+							<rect x="0.34375" width="23.8822" height="24" fill="#FFFFFF"></rect>
+						</g>
+					</svg>
+				</div>
+			</div>
+			<!-- The main close buton -->
+			<div class="jp-carousel-close-hint">
+				<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<mask id="maskClose" mask-type="alpha" maskUnits="userSpaceOnUse" x="5" y="5" width="15" height="14">
+						<path d="M19.3166 6.41L17.9135 5L12.3509 10.59L6.78834 5L5.38525 6.41L10.9478 12L5.38525 17.59L6.78834 19L12.3509 13.41L17.9135 19L19.3166 17.59L13.754 12L19.3166 6.41Z" fill="white"></path>
+					</mask>
+					<g mask="url(#maskClose)">
+						<rect x="0.409668" width="23.8823" height="24" fill="#FFFFFF"></rect>
+					</g>
+				</svg>
+			</div>
+			<!-- Image info, comments and meta -->
+			<div class="jp-carousel-info">
+				<div class="jp-carousel-info-footer">
+					<div class="jp-carousel-pagination-container">
+						<div class="jp-swiper-pagination swiper-pagination"></div>
+						<div class="jp-carousel-pagination"></div>
+					</div>
+					<div class="jp-carousel-photo-title-container">
+						<h2 class="jp-carousel-photo-caption"></h2>
+					</div>
+					<div class="jp-carousel-photo-icons-container">
+						<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#" class="jp-carousel-icon-btn jp-carousel-icon-info" aria-label="Toggle photo metadata visibility">
+							<span class="jp-carousel-icon">
+								<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<mask id="maskInfo" mask-type="alpha" maskUnits="userSpaceOnUse" x="2" y="2" width="21" height="20">
+										<path fill-rule="evenodd" clip-rule="evenodd" d="M12.7537 2C7.26076 2 2.80273 6.48 2.80273 12C2.80273 17.52 7.26076 22 12.7537 22C18.2466 22 22.7046 17.52 22.7046 12C22.7046 6.48 18.2466 2 12.7537 2ZM11.7586 7V9H13.7488V7H11.7586ZM11.7586 11V17H13.7488V11H11.7586ZM4.79292 12C4.79292 16.41 8.36531 20 12.7537 20C17.142 20 20.7144 16.41 20.7144 12C20.7144 7.59 17.142 4 12.7537 4C8.36531 4 4.79292 7.59 4.79292 12Z" fill="white"></path>
+									</mask>
+									<g mask="url(#maskInfo)">
+										<rect x="0.8125" width="23.8823" height="24" fill="#FFFFFF"></rect>
+									</g>
+								</svg>
+							</span>
+						</a>
+												<a href="https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/#" class="jp-carousel-icon-btn jp-carousel-icon-comments" aria-label="Toggle photo comments visibility">
+							<span class="jp-carousel-icon">
+								<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<mask id="maskComments" mask-type="alpha" maskUnits="userSpaceOnUse" x="2" y="2" width="21" height="20">
+										<path fill-rule="evenodd" clip-rule="evenodd" d="M4.3271 2H20.2486C21.3432 2 22.2388 2.9 22.2388 4V16C22.2388 17.1 21.3432 18 20.2486 18H6.31729L2.33691 22V4C2.33691 2.9 3.2325 2 4.3271 2ZM6.31729 16H20.2486V4H4.3271V18L6.31729 16Z" fill="white"></path>
+									</mask>
+									<g mask="url(#maskComments)">
+										<rect x="0.34668" width="23.8823" height="24" fill="#FFFFFF"></rect>
+									</g>
+								</svg>
+
+								<span class="jp-carousel-has-comments-indicator" aria-label="This image has comments."></span>
+							</span>
+						</a>
+											</div>
+				</div>
+				<div class="jp-carousel-info-extra">
+					<div class="jp-carousel-info-content-wrapper">
+						<div class="jp-carousel-photo-title-container">
+							<h2 class="jp-carousel-photo-title"></h2>
+						</div>
+						<div class="jp-carousel-comments-wrapper">
+															<div id="jp-carousel-comments-loading">
+									<span>Loading Comments...</span>
+								</div>
+								<div class="jp-carousel-comments"></div>
+								<div id="jp-carousel-comment-form-container">
+									<span id="jp-carousel-comment-form-spinner">&nbsp;</span>
+									<div id="jp-carousel-comment-post-results"></div>
+																														<form id="jp-carousel-comment-form">
+												<label for="jp-carousel-comment-form-comment-field" class="screen-reader-text">Write a Comment...</label>
+												<textarea name="comment" class="jp-carousel-comment-form-field jp-carousel-comment-form-textarea" id="jp-carousel-comment-form-comment-field" placeholder="Write a Comment..."></textarea>
+												<div id="jp-carousel-comment-form-submit-and-info-wrapper">
+													<div id="jp-carousel-comment-form-commenting-as">
+																													<fieldset>
+																<label for="jp-carousel-comment-form-email-field">Email (Required)</label>
+																<input type="text" name="email" class="jp-carousel-comment-form-field jp-carousel-comment-form-text-field" id="jp-carousel-comment-form-email-field">
+															</fieldset>
+															<fieldset>
+																<label for="jp-carousel-comment-form-author-field">Name (Required)</label>
+																<input type="text" name="author" class="jp-carousel-comment-form-field jp-carousel-comment-form-text-field" id="jp-carousel-comment-form-author-field">
+															</fieldset>
+															<fieldset>
+																<label for="jp-carousel-comment-form-url-field">Website</label>
+																<input type="text" name="url" class="jp-carousel-comment-form-field jp-carousel-comment-form-text-field" id="jp-carousel-comment-form-url-field">
+															</fieldset>
+																											</div>
+													<input type="submit" name="submit" class="jp-carousel-comment-form-button" id="jp-carousel-comment-form-button-submit" value="Post Comment">
+												</div>
+											</form>
+																											</div>
+													</div>
+						<div class="jp-carousel-image-meta">
+							<div class="jp-carousel-title-and-caption">
+								<div class="jp-carousel-photo-info">
+									<h3 class="jp-carousel-caption" itemprop="caption description"></h3>
+								</div>
+
+								<div class="jp-carousel-photo-description"></div>
+							</div>
+							<ul class="jp-carousel-image-exif" style="display: none;"></ul>
+							<a class="jp-carousel-image-download" target="_blank" style="display: none;">
+								<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<mask id="mask0" mask-type="alpha" maskUnits="userSpaceOnUse" x="3" y="3" width="19" height="18">
+										<path fill-rule="evenodd" clip-rule="evenodd" d="M5.84615 5V19H19.7775V12H21.7677V19C21.7677 20.1 20.8721 21 19.7775 21H5.84615C4.74159 21 3.85596 20.1 3.85596 19V5C3.85596 3.9 4.74159 3 5.84615 3H12.8118V5H5.84615ZM14.802 5V3H21.7677V10H19.7775V6.41L9.99569 16.24L8.59261 14.83L18.3744 5H14.802Z" fill="white"></path>
+									</mask>
+									<g mask="url(#mask0)">
+										<rect x="0.870605" width="23.8823" height="24" fill="#FFFFFF"></rect>
+									</g>
+								</svg>
+								<span class="jp-carousel-download-text"></span>
+							</a>
+							<div class="jp-carousel-image-map" style="display: none;"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		</div>
+		
+	<script type="text/javascript">
+		window.WPCOM_sharing_counts = {"https:\/\/wickedengine.net\/2019\/09\/22\/improved-normal-reconstruction-from-depth\/":1876};
+	</script>
+				<link crossorigin="anonymous" rel="stylesheet" id="all-css-0-3" href="./Improved normal reconstruction from depth – Wicked Engine Net_files/saved_resource(7)" type="text/css" media="all">
+<script id="comment-like-js-extra">
+var comment_like_text = {"loading":"Loading...","swipeUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/comment-likes\/js\/lib\/swipe.js?ver=20131008"};
+</script>
+<script id="coblocks-lightbox-js-extra">
+var coblocksLigthboxData = {"closeLabel":"Close Gallery","leftLabel":"Previous","rightLabel":"Next"};
+</script>
+<script id="jetpack-carousel-js-extra">
+var jetpackSwiperLibraryPath = {"url":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/jetpack-plugin\/production\/_inc\/build\/carousel\/swiper-bundle.min.js"};
+var jetpackCarouselStrings = {"widths":[370,700,1000,1200,1400,2000],"is_logged_in":"","lang":"en","ajaxurl":"https:\/\/wickedengine.net\/wp-admin\/admin-ajax.php","nonce":"74c39817e1","display_exif":"1","display_comments":"1","single_image_gallery":"1","single_image_gallery_media_file":"","background_color":"black","comment":"Comment","post_comment":"Post Comment","write_comment":"Write a Comment...","loading_comments":"Loading Comments...","download_original":"View full size <span class=\"photo-size\">{0}<span class=\"photo-size-times\">\u00d7<\/span>{1}<\/span>","no_comment_text":"Please be sure to submit some text with your comment.","no_comment_email":"Please provide an email address to comment.","no_comment_author":"Please provide your name to comment.","comment_post_error":"Sorry, but there was an error posting your comment. Please try again later.","comment_approved":"Your comment was approved.","comment_unapproved":"Your comment is in moderation.","camera":"Camera","aperture":"Aperture","shutter_speed":"Shutter Speed","focal_length":"Focal Length","copyright":"Copyright","comment_registration":"0","require_name_email":"1","login_url":"https:\/\/turanszkij.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fwickedengine.net%2F2019%2F09%2F22%2Fimproved-normal-reconstruction-from-depth%2F","blog_id":"116195412","meta_data":["camera","aperture","shutter_speed","focal_length","copyright"],"stats_query_args":"blog=116195412&v=wpcom&tz=0&user_id=0&subd=turanszkij","is_public":"1"};
+</script>
+<script id="sharing-js-js-extra">
+var sharing_js_options = {"lang":"en","counts":"1","is_stats_active":"1"};
+</script>
+<script crossorigin="anonymous" type="text/javascript" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/saved_resource(8)"></script>
+<script type="text/javascript">
+var windowOpen;
+			( function () {
+				function matches( el, sel ) {
+					return !! (
+						el.matches && el.matches( sel ) ||
+						el.msMatchesSelector && el.msMatchesSelector( sel )
+					);
+				}
+
+				document.body.addEventListener( 'click', function ( event ) {
+					if ( ! event.target ) {
+						return;
+					}
+
+					var el;
+					if ( matches( event.target, 'a.share-twitter' ) ) {
+						el = event.target;
+					} else if ( event.target.parentNode && matches( event.target.parentNode, 'a.share-twitter' ) ) {
+						el = event.target.parentNode;
+					}
+
+					if ( el ) {
+						event.preventDefault();
+
+						// If there's another sharing window open, close it.
+						if ( typeof windowOpen !== 'undefined' ) {
+							windowOpen.close();
+						}
+						windowOpen = window.open( el.getAttribute( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+						return false;
+					}
+				} );
+			} )();
+var windowOpen;
+			( function () {
+				function matches( el, sel ) {
+					return !! (
+						el.matches && el.matches( sel ) ||
+						el.msMatchesSelector && el.msMatchesSelector( sel )
+					);
+				}
+
+				document.body.addEventListener( 'click', function ( event ) {
+					if ( ! event.target ) {
+						return;
+					}
+
+					var el;
+					if ( matches( event.target, 'a.share-facebook' ) ) {
+						el = event.target;
+					} else if ( event.target.parentNode && matches( event.target.parentNode, 'a.share-facebook' ) ) {
+						el = event.target.parentNode;
+					}
+
+					if ( el ) {
+						event.preventDefault();
+
+						// If there's another sharing window open, close it.
+						if ( typeof windowOpen !== 'undefined' ) {
+							windowOpen.close();
+						}
+						windowOpen = window.open( el.getAttribute( 'href' ), 'wpcomfacebook', 'menubar=1,resizable=1,width=600,height=400' );
+						return false;
+					}
+				} );
+			} )();
+</script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script>	<iframe src="./Improved normal reconstruction from depth – Wicked Engine Net_files/master.html" scrolling="no" id="likes-master" name="likes-master" style="display:none;"></iframe>
+	<div id="likes-other-gravatars" style="display: none;">
+		<div class="likes-text">
+			<span>%d</span> bloggers like this:		</div>
+		<ul class="wpl-avatars sd-like-gravatars"></ul>
+	</div>
+
+		<script src="./Improved normal reconstruction from depth – Wicked Engine Net_files/w.js.download" defer=""></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'116195412','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'116195412','v':'wpcom','tz':'0','user_id':'0','post':'1876','subd':'turanszkij'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9qdFhwXWtsSWt3RHlLUTgxeD05OHxiQj1ianVPP3VCLFhHNDJuaEU1dlpMYlRSTjY/cFJxWkFRbEIrcmZ+Y0tOcE1qW29XMjA4Q0dFLz9LeWFIfkJ+VW84JmJSZWd1anpWMVJIRnZmbDVCQTVjTzQyRWFXfHQ0WWFIWU02W01KZkQvNjF+ZmZSZ0tyTVlmMjJ2UTdFdHx0VHRwUkYyeT0meC1ZMHBfeU1TJVloM056fkN8bEs5emM/SGdteSVfQg=='}]);
+_stq.push([ 'clickTrackerInit', '116195412', '1876' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script defer="" id="bilmur" data-customproperties="{&quot;enq_jquery&quot;:&quot;1&quot;,&quot;logged_in&quot;:&quot;0&quot;,&quot;wptheme&quot;:&quot;pub\/nucleare&quot;}" data-provider="wordpress.com" data-service="simple" src="./Improved normal reconstruction from depth – Wicked Engine Net_files/bilmur.min.js.download"></script><script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+
+
+<!--
+	generated 36 seconds ago
+	generated in 0.225 seconds
+	served from batcache in 0.003 seconds
+	expires in 264 seconds
+-->
+<style>img#wpstats {
+			position: absolute !important;
+			clip: rect(0, 0, 0, 0);
+			padding: 0 !important;
+			border: 0 !important;
+			height: 0 !important;
+			width: 0 !important;
+			overflow: hidden;
+		}</style><img src="./Improved normal reconstruction from depth – Wicked Engine Net_files/g.gif" alt=":)" id="wpstats" scale="0"><div class="comment-likes-overlay" style="display: none;"></div><script src="./Improved normal reconstruction from depth – Wicked Engine Net_files/actionbar.js.download" defer=""></script></body></html>
