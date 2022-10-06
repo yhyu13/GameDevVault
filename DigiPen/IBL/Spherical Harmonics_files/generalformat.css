@@ -1,0 +1,43 @@
+body {
+    margin: 60px auto;
+    width: 70%;
+	background-color: #eee;
+}
+
+footer {
+    font-size: .8em;
+}
+
+footer ul{
+font-family:'Helvetica', 'Arial', 'Sans-Serif';
+    padding: 5px 0px;
+    list-style: none;
+    font-weight: bold;
+	border-top: 1px solid #d5d5d5;
+}
+
+.footer ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+.miniature {
+	width: 150px;
+	height: 150px;
+}
+
+
+.thumbnail {
+    display: inline;
+    margin: 10px;
+	width: 250px;
+	height: 250px;
+	float: left;
+	background-color: #ddd;
+}
+
+.fieldset-auto-width {
+         display: inline-block;
+}
+
+ 

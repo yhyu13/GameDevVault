@@ -1,0 +1,81 @@
+(function(){
+	var a2Script = document.createElement('script');
+	a2Script.src = 'https://c.steelhousemedia.com/static/a2static/a2v1.0.0.js?1';
+
+	var a2LoadedCallback = function() {
+		var config = {
+	editMode: false,
+	snapshot: false,
+	videoMode: false,
+	videoSnapshot: false,
+	disableVideo: false,
+	videoRecord: false,
+	videoRecordDelay: 0,
+	macros: {
+		aid: '30166',
+		http: 'https',
+		clickthrough: 'https://ad.doubleclick.net/ddm/trackclk/N52505.1870362STEELHOUSE.COM/B23659838.270618126;dc_trk_aid=465124663;dc_trk_cid=130578073;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=?http://insight.adsrvr.org/track/clk?imp=8d70949e-5c5d-4d64-8484-849d07b421e5&ag=8m3l9xf&sfe=1130ea29&sig=oVLYzRAZPejBrG5fCXz6f6NyaSjRexkX1N9ulSCi_po.&crid=73rp8ded&cf=1501446&fq=8&td_s=www.gamedev.net&rcats=hhr&mcat=&mste=www.gamedev.net&mfld=4&mssi=qwz12ffrc28s&mfsi=gtfn9c4zhx&sv=pubmatic&uhow=21&agsa=&wp=1.686957&rgco=United%20States&rgre=Washington&rgme=819&rgci=Redmond&rgz=98052&dt=PC&osf=Windows&os=Windows10&br=Chrome&svpid=109126&rlangs=en&mlang=&did=&rcxt=Other&tmpc=18.51&vrtd=&osi=&osv=&daid=&dnr=0&vpb=&c=OAFAAVAB&dur=CicKDWNoYXJnZS1hbGwtMTgiFgju__________8BEgljcm9zc3dpc2UKGQoHNTNqY2R4dhDcKyILCJPe7XYSBG5vbmUQ3Cs.&crrelr=&npt=&svscid=554565&mdl=Chrome%20-%20Windows&adpt=pubo&ipl=1966557&ict=Unknown&said=92D9023F-3EE6-437C-8FC8-ABEFFF1D5372&auct=1&r=https://delivery.steelhousemedia.com/click?sh_click=Y2I9NTIzMDQ5NDAyIXNoX3JpZD0yOWFjYzc2YS05NTZiLTQzOGMtYTkwOS1jMmZkMWRiNDE1ODQhY2xpY2tfdXJsPWFIUjBjSE02THk5M2QzY3VjbTl6WlhSMFlYTjBiMjVsTG1OdmJTOXNjQzl6WW5OeUwySnNkV1YxYm14cGJXbDBaV1F4T1RrL1kybGtQV0poTFhKdExYTjBMWE52WTJsaGJHUnBjM1JoYm1ObFlteDFaV05oY25RbVpHWmhQVEVtZFhSdFgzTnZkWEpqWlQxemRHVmxiR2h2ZFhObEpuVjBiVjl0WldScGRXMDlaR2x6Y0d4aGVTWjFkRzFmWTI5dWRHVnVkRDF6YjJOcFlXeGthWE4wWVc1alpXSnNkV1ZqWVhKMEpuVjBiVjlqWVcxd1lXbG5iajF5WlhSaGNtZGxkR2x1Wnc9PSFtcz0xNjM4NCFjcmlkPTEzNTAwMTQhY2dpZD0yODg2OTchY2lkPTEyOTk4NiFndWlkPWViMzk4OThiLWM3ZTEtMzBkMy1hNzYzLWU5NzIwZjA2M2ExOCFhaWQ9MzAxNjYhYXNpZD0xYzk5ZTllNi1jM2E1LTRiODQtOTEwYi0zNzRmMTMyZWNkNjMhc2hfcmVmPWQzZDNMbWRoYldWa1pYWXVibVYwIWVpZD0xNDc=',
+		click_url: 'https://www.rosettastone.com/lp/sbsr/blueunlimited199',
+		urlprefix: 'https://ad.doubleclick.net/ddm/trackclk/N52505.1870362STEELHOUSE.COM/B23659838.270618126;dc_trk_aid=465124663;dc_trk_cid=130578073;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=?',
+		urlsuffix: 'cid=ba-rm-st-socialdistancebluecart&dfa=1&utm_source=steelhouse&utm_medium=display&utm_content=socialdistancebluecart&utm_campaign=retargeting',
+		media_url: 'https://t.steelhousemedia.com',
+		slos_cdn_url: 'https://c.steelhousemedia.com/storage',
+		watermark: '<style>#adchoices_-373605050014139677 {background:  url(https://c.steelhousemedia.com/static/a2/img/adchoicesicon.png) no-repeat right; border-style: none; border: 0; margin: 0; padding: 0; position: absolute; z-index: 4998; display: inline-block; visibility: visible; height: 15px; width: 20px; right: 0px; top: 0px;} #adchoices_-373605050014139677:hover {width: 77px; background:  url(https://c.steelhousemedia.com/static/a2/img/ASquared.png) no-repeat right};</style><a id="adchoices_-373605050014139677" target="_blank" href="https://www.steelhouse.com/relevantads" onclick="if (event.stopPropagation) event.stopPropagation(); else event.cancelBubble = true;"></a><a target="_blank" onclick="if (event.stopPropagation) event.stopPropagation(); else event.cancelBubble = true;" href="https://www.steelhouse.com/information-about-steelhouse-ads/?utm_source=Watermark&utm_medium=Retargeting&utm_campaign=All " style="border-style: none; border: 0; margin: 0; padding: 0; position: absolute; z-index: 4998; background: transparent; display: inline-block; visibility: visible; right: 0px; bottom: 0px; " ><img title="SteelHouse.com" src="https://c.steelhousemedia.com/static/a2/img/ASquared.png" style="border-style: none; border: 0; margin: 0; padding: 0; position: absolute; z-index: 4998; background: transparent; display: inline-block; visibility: visible; right: 0px; bottom: 0px; " /></a><div id="sh_target_1c99e9e6-c3a5-4b84-910b-374f132ecd63" style="display:none"></div>"<div id="sh_target_1c99e9e6-c3a5-4b84-910b-374f132ecd63" style="display:none"></div>"',
+		dppid: 'rvp,rvc,10',
+		secondsleft: 31536000,
+		guid: 'eb39898b-c7e1-30d3-a763-e9720f063a18',
+		tdid: '526e2769-5896-440f-9f62-93fccb15b653',
+		cid: '129986',
+		crid: '1350014',
+		cgid: '288697',
+		asid: '1c99e9e6-c3a5-4b84-910b-374f132ecd63'
+	}
+};
+
+
+config.macros['adunits'] = [];
+
+
+
+		var a2App = new A2(config);
+
+		var adcode = '<a2:frame width=\"728\" height=\"90\"><a2:scenes><a2:scene><a2:img src=\"30166/k5rqIrHt_728x904.gif\" style=\"position: absolute; top:0px; left: 0px; width: 728px; height: 90px;\" editor:selected=\"true\"></a2:scene></a2:scenes></a2:frame>';
+
+		var div = document.createElement('div');
+		a2Script.parentNode.insertBefore(div, a2Script);
+		a2App.render(adcode, div);
+	};
+
+	var checkA2 = function () {
+		var a2Interval = setInterval(function(){
+			if (typeof A2 !== 'undefined') {
+				clearInterval(a2Interval);
+				a2Interval = null;
+				a2LoadedCallback();
+			}
+		}, 10);
+	};
+
+	var attachA2 = function () {
+		document.body.appendChild(a2Script);
+		checkA2();
+	};
+
+	var sbt = '';
+	if (sbt !== '' && document.getElementById(sbt)) {
+		var sbtNode = document.getElementById(sbt);
+		sbtNode.parentNode.insertBefore(a2Script, sbtNode);
+		checkA2();
+	} else {
+		if (document.body) {
+			attachA2();
+		} else {
+			var tid = setInterval( function () {
+				if ( document.readyState !== 'complete' ) return;
+				clearInterval( tid );
+				attachA2();
+			}, 10 );
+		}
+	}
+})();
+(function(){var i;var v;var b;var m;var g;var a=false;var j=0.5;var f=false;var h=false;var p=false;var l=0;var o=0;var k=0;function d(){if(!f){l++;f=true;u("view_impression")}}function t(){d();if(!h&&f){o++;h=true;u("view_viewed")}}function r(e){d();if(!p&&f){l++;p=true;n("view_untrackable",e)}}function c(e){if(e==""){return 0}return parseInt(e)}function q(e){var x={};x.guid="eb39898b-c7e1-30d3-a763-e9720f063a18";x.ad_served_id="1c99e9e6-c3a5-4b84-910b-374f132ecd63";x.exchange_id=c("147");x.advertiser_id=c("30166");x.campaign_id=c("129986");x.group_id=c("288697");x.creative_id=c("1350014");x.domain=decodeURIComponent("");x.message=e;return JSON.stringify(x)}function u(e){n(e,"")}function n(x,z){var y;var A=q(z);var e="https://events.steelhousemedia.com/event/"+x+"?json="+encodeURIComponent(A);if(window.XMLHttpRequest){y=new XMLHttpRequest()}else{if(window.ActiveXObject){y=new ActiveXObject("Microsoft.XMLHTTP")}}y.open("GET",e,true);y.setRequestHeader("Accept","application/vnd.steelhouse-v1.0+json");y.setRequestHeader("Content-Type","application/vnd.steelhouse-v1.0+json");y.send(null)}d();try{w()}catch(s){r(s.message)}function w(){if(typeof $sf==="undefined"&&typeof IntersectionObserver==="undefined"){i=(parent.window||window).innerHeight;v=(parent.window||window).innerWidth}var y=null;var x=100;var E=1000;var z=0;var B=null;var A=null;var F=null;var C=setInterval(e,x);function e(){if(!A){A=document.getElementById("sh_target_1c99e9e6-c3a5-4b84-910b-374f132ecd63")}if(!A){return}if(!F){F=A.parentNode}if(!F){return}b=F.getBoundingClientRect();m=b.height*b.width;if(m>=242500){j=0.3}if(typeof IntersectionObserver!=="undefined"&&typeof $sf==="undefined"){if(typeof g==="undefined"){var G={root:null,threshold:[0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1]};g=new IntersectionObserver(function(H){a=H[0].intersectionRatio>=j},G)}g.observe(F)}if(y=="COMPLETED"){clearInterval(C);if(typeof g!=="undefined"){g.disconnect()}}if(D()&&!y){y="STARTED";B=setInterval(function(){if(z<E){if(!D()&&y==="STARTED"){z=0;y=null;clearInterval(B)}else{z+=x}}else{t();y="COMPLETED";clearInterval(B)}},x)}}function D(){if(typeof $sf!=="undefined"){return $sf.ext.inViewPercentage()>=(j*100)}else{if(typeof IntersectionObserver!=="undefined"){return a}else{var M=b.top;var H=b.bottom;var L=b.left;var J=b.right;var G=H-M;var I=J-L;var K=(G)*I;i=(parent.window||window).innerHeight;v=(parent.window||window).innerWidth;if(H<0||M>=i||J<0||L>=v){return false}if(M<0){M=0}if(H>i){H=i}if(L<0){L=0}if(J>v){J=v}G=H-M;I=J-L;K=G*I;return K>=(m*j)}}}}})();

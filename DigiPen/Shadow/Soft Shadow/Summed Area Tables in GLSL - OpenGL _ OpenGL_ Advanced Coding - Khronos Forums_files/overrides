@@ -1,0 +1,2 @@
+I18n._mfOverrides = {};
+I18n._overrides = {"js.dates.medium.date_year":"MMM D, YYYY","js.dates.tiny.date_year":"MMM YYYY","js.dates.long_date_with_year_without_time":"MMM D, YYYY"};

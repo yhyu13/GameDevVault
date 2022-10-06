@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<!-- saved from url=(0060)https://jose-villegas.github.io/post/deferred_voxel_shading/ -->
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+ <title>Deferred Voxel Shading for Real Time Global Illumination</title>
+
+
+
+<meta name="description" content="Game &amp; Graphics Programming">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+
+<link rel="stylesheet" href="./Deferred Voxel Shading for Real Time Global Illumination_files/bootstrap.min.css">
+<link rel="stylesheet" id="ct-tracks-google-fonts-css" href="./Deferred Voxel Shading for Real Time Global Illumination_files/css" type="text/css" media="all">
+<link rel="stylesheet" href="./Deferred Voxel Shading for Real Time Global Illumination_files/font-awesome.min.css">
+
+<link href="./Deferred Voxel Shading for Real Time Global Illumination_files/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+<link href="./Deferred Voxel Shading for Real Time Global Illumination_files/custom.css" rel="stylesheet">
+<link rel="shortcut icon" href="https://jose-villegas.github.io/img/favicon.png">
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-173116509-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async="" src="./Deferred Voxel Shading for Real Time Global Illumination_files/analytics.js.download"></script>
+
+<script async="" src="./Deferred Voxel Shading for Real Time Global Illumination_files/embed.js.download" data-timestamp="1617694050502"></script><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 2px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: 1em}
+.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
+.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 2px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: 1em}
+.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
+.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style><link rel="prefetch" as="style" href="https://c.disquscdn.com/next/embed/styles/lounge.c82b267b396dfbc10ae5113342115da8.css"><link rel="prefetch" as="script" href="https://c.disquscdn.com/next/embed/common.bundle.f485ba8b89bf2153fdb9f493ec342aed.js"><link rel="prefetch" as="script" href="https://c.disquscdn.com/next/embed/lounge.bundle.5c8cd56736a07a84352a4d37a862a762.js"><link rel="prefetch" as="script" href="https://disqus.com/next/config.js"><script async="" id="dsq_recs_scr" src="./Deferred Voxel Shading for Real Time Global Illumination_files/recommendations.js.download"></script><link rel="prefetch" as="style" href="https://c.disquscdn.com/next/recommendations/styles/recommendations.eff219b98b7c4167b4b289065f36f391.css"><link rel="prefetch" as="script" href="https://c.disquscdn.com/next/recommendations/common.bundle.9aad4e5af3027dd4fbeac9669fb17819.js"><link rel="prefetch" as="script" href="https://c.disquscdn.com/next/recommendations/recommendations.bundle.4214219f8f12995fa46e1e83745b2a0e.js"><link rel="prefetch" as="script" href="https://disqus.com/next/config.js"><script src="./Deferred Voxel Shading for Real Time Global Illumination_files/alfie_v4.63f1ab6d6b9d5807dc0c94ef3fe0b851.js.download" async="" charset="UTF-8"></script></head>
+  <body data-new-gr-c-s-check-loaded="14.982.0" data-gr-ext-installed=""><div id="MathJax_Message" style="display: none;"></div>
+    <div id="root">
+      <div class="container-fluid">
+        <div class="row site-header">
+          <div class="col-md-12">
+            <div class="row">
+              <div class="col-md-12 top-navigation">
+                <div class="row">
+  <div class="col-sm-6">
+    <div class="categories-block">
+      <a href="https://jose-villegas.github.io/post/deferred_voxel_shading/" class="track-categories">//</a>
+      
+      <a href="https://jose-villegas.github.io/categories/games">games</a>
+      
+      <a href="https://jose-villegas.github.io/categories/graphics">graphics</a>
+      
+      <a href="https://jose-villegas.github.io/categories/work">work</a>
+      
+    </div>
+  </div>
+
+  <div class="col-sm-6">
+    <div class="social-media-block">
+
+      
+      
+      
+      
+      
+      <a href="mailto:villegasjose.gg@gmail.com" data-animate-hover="pulse" class="email">
+        <i class="fa fa-envelope"></i>
+      </a>
+      
+      
+      <a href="https://www.linkedin.com/in/villegasjose" data-animate-hover="pulse">
+        <i class="fa fa-linkedin"></i>
+      </a>
+      
+      
+      
+      <a href="https://github.com/jose-villegas" data-animate-hover="pulse">
+        <i class="fa fa-github"></i>
+      </a>
+      
+
+    </div>
+  </div>
+</div>
+
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-10 header col-md-offset-1">
+                <link rel="stylesheet" href="./Deferred Voxel Shading for Real Time Global Illumination_files/default.min.css">
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/highlight.min.js.download"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<script type="text/javascript" src="./Deferred Voxel Shading for Real Time Global Illumination_files/MathJax.js.download">
+</script>
+
+<div class="row" style="height: 30px;"></div>
+<div class="row">
+  <div class="col-md-6">
+    <div class="site-title">
+      
+      <a href="https://jose-villegas.github.io/post/deferred_voxel_shading/"> José Villegas </a>
+      
+    </div>
+    <p class="col-md-6 site-description">
+        Game &amp; Graphics Programming
+		</p>
+  </div>
+  <div class="col-md-6">
+    <div class="menu">
+      
+      
+        <a href="https://jose-villegas.github.io/">Home / </a>
+      
+        <a href="https://jose-villegas.github.io/about/">About / </a>
+      
+        <a href="https://jose-villegas.github.io/contact/">Contact / </a>
+      
+    </div>
+  </div>
+
+</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-10 main-content col-md-offset-1">
+            
+
+<div class="post-image" style="background-image: url(https://res.cloudinary.com/jose-villegas/image/upload/v1497325463/DVSGI/dvsgi_x6b8eu.png)"></div>
+<div class="col-md-12 entry">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="entry-meta">
+        Thursday, 18 January, 2018
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="entry-header">
+       Deferred Voxel Shading for Real Time Global Illumination
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+      <div class="entry-sidebar">
+        CATEGORIES        
+        <div class="entry-categories">
+        
+          <a href="https://jose-villegas.github.io/categories/games">games</a> 
+        
+          <a href="https://jose-villegas.github.io/categories/graphics">graphics</a> 
+        
+          <a href="https://jose-villegas.github.io/categories/work">work</a> 
+        
+        </div>
+        TAGS        
+        <div class="entry-tags">
+        
+          <a href="https://jose-villegas.github.io/tags/c++">c++</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/csharp">csharp</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/development">development</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/effects">effects</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/gamejams">gamejams</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/games">games</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/global-illumination">global-illumination</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/image-processing">image-processing</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/opengl">opengl</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/shaders">shaders</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/unity">unity</a> 
+        
+          <a href="https://jose-villegas.github.io/tags/voxels">voxels</a> 
+        
+        </div>
+      </div>
+    </div>
+    <div class="col-md-10">
+      <div class="entry-content">
+        <p>Computing indirect illumination is a challenging and complex problem for real-time rendering in 3D applications. This global illumination approach computes indirect lighting in real time utilizing a simpliﬁed version of the outgoing radiance and the scene stored in voxels.</p>
+
+<p>This was my master thesis for computer graphics, I also published a paper about this technique.</p>
+
+<h1 id="table-of-contents">Table of Contents</h1>
+
+<ul>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#table-of-contents">Table of Contents</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#overview">Overview</a>
+
+<ul>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#1-voxelization">1. Voxelization</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#11-voxel-structure">1.1. Voxel Structure</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#12-dynamic-voxelization">1.2. Dynamic Voxelization</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#2-voxel-illumination">2. Voxel Illumination</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#21-normal-weighted-attenuation">2.1. Normal-Weighted Attenuation</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#22-voxel-occlusion">2.2. Voxel Occlusion</a>
+
+<ul>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#221-soft-voxel-shadows">2.2.1. Soft Voxel Shadows</a></li>
+</ul></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#23-emission">2.3. Emission</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#3-anisotropic-voxels">3. Anisotropic Voxels</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#4-voxel-cone-tracing">4. Voxel Cone Tracing</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#41-indirect-illumination">4.1. Indirect Illumination</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#42-ambient-occlusion">4.2. Ambient Occlusion</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#43-soft-shadows">4.3. Soft Shadows</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#voxel-global-illumination">Voxel Global Illumination</a></li>
+</ul></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#results">Results</a>
+
+<ul>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#voxelization">Voxelization</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#voxel-illumination">Voxel Illumination</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#voxel-cone-tracing">Voxel Cone Tracing</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#comparison">Comparison</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#optimizations">Optimizations</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#show-off">Show Off</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#dynamic-update">Dynamic Update</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#indirect-lighting">Indirect Lighting</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#ambient-occlusion">Ambient Occlusion</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#soft-shadows">Soft Shadows</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#emissive-materials--area-lights">Emissive Materials / Area Lights</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#teasers">Teasers</a></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#recording">Recording</a></li>
+</ul></li>
+<li><a href="https://jose-villegas.github.io/post/deferred_voxel_shading/#source-code--executable">Source Code &amp; Executable</a></li>
+</ul>
+
+<h1 id="overview">Overview</h1>
+
+<p>Deferred voxel shading is a four-step real-time global illumination technique inspired by voxel cone tracing and deferred rendering. This approach enables us to obtain an accurate approximation of a plethora of indirect illumination effects including: indirect diffuse, specular reflectance, color-blending, emissive materials, indirect shadows and ambient occlusion. The steps that comprehend this technique are described below.</p>
+
+<div class="image-table">
+<table>
+  <tbody><tr>
+    <th>Technique Overview</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/dvsgi_overview_vlucdk.svg" style="width: 100%;"></td>
+  </tr>
+</tbody></table>
+</div>
+
+<h2 id="1-voxelization">1. Voxelization</h2>
+
+<p>The first step is to voxelize the scene, my implemention voxelizes scene albedo, normal and emission to approximate emissive materials. For this conservative voxelization and atomic operations on 3D textures are used as described <a href="https://www.seas.upenn.edu/~pcozzi/OpenGLInsights/OpenGLInsights-SparseVoxelization.pdf">here</a>.</p>
+
+<pre><code class="language-c hljs cpp">...
+layout(binding = <span class="hljs-number">0</span>, r32ui) uniform <span class="hljs-keyword">volatile</span> coherent uimage3D voxelAlbedo;
+layout(binding = <span class="hljs-number">1</span>, r32ui) uniform <span class="hljs-keyword">volatile</span> coherent uimage3D voxelNormal;
+layout(binding = <span class="hljs-number">2</span>, r32ui) uniform <span class="hljs-keyword">volatile</span> coherent uimage3D voxelEmission;
+...
+<span class="hljs-comment">// average normal per fragments sorrounding the voxel volume</span>
+imageAtomicRGBA8Avg(voxelNormal, position, normal);
+<span class="hljs-comment">// average albedo per fragments sorrounding the voxel volume</span>
+imageAtomicRGBA8Avg(voxelAlbedo, position, albedo);
+<span class="hljs-comment">// average emission per fragments sorrounding the voxel volume</span>
+imageAtomicRGBA8Avg(voxelEmission, position, emissive);
+...
+</code></pre>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Scene</th>
+      <th scope="col">Albedo</th>
+      <th scope="col">Normal</th>
+      <th scope="col">Emission</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td scope="row">
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/scene_culelk.png" class="img-responsive center-block" alt="Scene">
+      </td>
+      <td>
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/v_albedo_qtc4ov.png" class="img-responsive center-block" alt="Albedo">
+      </td>
+      <td>
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/v_normal_ryzmrh.png" class="img-responsive center-block" alt="Normal">
+      </td>
+      <td>
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/v_emission_aibyaf.png" class="img-responsive center-block" alt="Emission">
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="1-1-voxel-structure">1.1. Voxel Structure</h3>
+
+<p>My voxel structure is inspired by deferred rendering, where a G-Buffer contains relevant data to later be used in a separate light pass. Normal, albedo and emission values are stored in voxels during the voxelization process, every attribute has its own 3D texture associated. This information is sufficient to calculate the diffuse reflectance and normal attenuation on a separate light pass where, instead of computing the lighting per pixel it is done per voxel. The structure can be extended to support a more complicated reflectance model but this may imply a higher memory consumption to store additional data.</p>
+
+<p>Furthermore, another structure is used for the voxel cone tracing pass. The resulting values of the lighting computations per voxel are stored in another 3D texture which we will call <em>radiance volume</em>. To approximate the incrementing diameter of the cone, and its sampling volume, levels of detail of the voxelized scene are used. For anisotropic voxels six 3D textures at half resolution of the radiance volume are required, one per every axis direction positive and negative, the levels of details are stored within the mipmap levels of these textures which we will call <em>directional volumes</em>.</p>
+
+<p>The radiance volume represents the maximum level of detail for the voxelized scene, this texture is separated from the directional volumes. To bind these two structures, linear interpolation is used between samples of both structures when the mipmap level required for the diameter of the cone ranges between, the maximum level and the first filtered level of detail.</p>
+
+<div class="image-table">
+<table>
+  <tbody><tr>
+    <th>A visualization of the voxel structure</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/voxel_structure_dsmsvc.svg" style="width: 60%;"></td>
+  </tr>
+</tbody></table>
+</div>
+
+<h3 id="1-2-dynamic-voxelization">1.2. Dynamic Voxelization</h3>
+
+<p>For dynamic updates, the conservative voxelization of static and dynamic geometry are separated. While static voxelization happens only once, dynamic voxelization happens per frame or when needed. The voxelization for both types of geometry rely on the same process, hence a way to indicate which voxels are static is needed. In my approach I use a single value 3D texture to identify voxels as static, this texture will be called <em>flag volume</em>.</p>
+
+<p>During static voxelization, after a voxel is generated a value is written to the <em>flag volume</em> indicating this position as static. In contrast, during the dynamic voxelization, before generating a voxel, a value is read from the <em>flag volume</em> at the writing position of the voxel, if the value indicates this position is marked as static then writing is discarded, leaving the static voxels untouched.</p>
+
+<p>To constantly revoxelize the scene it is necessary to clear from the 3D textures the previous stored dynamic voxels. This is done before the dynamic voxelization using compute shaders. The <em>flag volume</em> is read to clear voxels under two conditions: if the voxel exists and if it’s dynamic.</p>
+
+<h2 id="2-voxel-illumination">2. Voxel Illumination</h2>
+
+<p>The second step is voxel illumination, for this we calculate the outgoing radiance per voxel using the data stored from the voxelization step. For this we only need the voxel normal, and its position which can be easily extracted by projecting the voxel 3D coordinates in world-space, then we can calculate the direct lighting per voxel. This is all done in a compute shader.</p>
+
+<p>One of the advantages of this technique is that it’s compatible with all standard light types like point, spot and directional lights, another is that we don’t need shadow maps, though they can help greatly with precision specially for directional lights. Other techniques calculate the voxel radiance per light’s shadow map, meaning that for every shadow-mapped light that wants to contribute to the voxel radiance the illumination step has to be repeated.</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Scene</th>
+      <th scope="col">Voxel Direct Lighting</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td scope="row">
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/scene_culelk.png" class="img-responsive center-block" alt="Scene">
+      </td>
+      <td>
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/v_direct_vrnajc.png" class="img-responsive center-block" alt="Voxel direct lighting">
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="2-1-normal-weighted-attenuation">2.1. Normal-Weighted Attenuation</h3>
+
+<p>A disvantage of this technique is the loss of precision averaging all the geometry normals within a voxel. The resulting averaged normal may end up pointing towards a non-convenient direction. This problem is notable when the normal vectors within the space of a voxel are uneven:</p>
+
+<p></p><center><p></p>
+
+<p><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/uneven_normals_n3klcb.svg" alt=""></p>
+
+<p></p></center><p></p>
+
+<p>To reduce this issue my proposal utilizes a normal-weighted attenuation, where first the normal attenuation is calculated per every face of the voxel as follows:</p>
+
+<p>\begin{equation}
+D_{x,y,z} = (\hat{i}\cdot\Psi, \hat{j}\cdot\Psi, \hat{k}\cdot\Psi)
+\end{equation}</p>
+
+<p>Then three dominant faces are selected depending on the axes sign of the voxel averaged normal vector:</p>
+
+<p>\begin{equation}
+D_{\omega} =
+\begin{cases}
+max\{D_\omega, 0\}, &amp; N_\omega&gt;0\\
+max\{-D_\omega, 0\}, &amp; \text{otherwise}
+\end{cases}
+\end{equation}</p>
+
+<p>And finally, the resulting attenuation is the product of every dominant face normal attenuation, multiplied with the weight per axis of the averaged normal vector of the voxel, the resulting reflectance model is computed as follows:</p>
+
+<p>\begin{equation}
+\begin{split}
+W &amp;= N^2\\
+V_{r} &amp;= L_{i}\frac{\rho}{\pi}(W_x D_x + W_y D_y + W_z D_z)
+\end{split}
+\end{equation}
+where \(L_i\) is the light source intensity, \(\rho\) the voxel albedo, \(N\) the normal vector of the voxel and \(\Psi\) the light direction.</p>
+
+<!-- <div class="img-comp-container">
+  <div class="img-comp-img">
+    <img src="https://res.cloudinary.com/jose-villegas/image/upload/v1497414410/DVSGI/shading_standard_e7vzft.png">
+  </div>
+  <div class="img-comp-img img-comp-overlay">
+    <img src="https://res.cloudinary.com/jose-villegas/image/upload/v1497414410/DVSGI/shading_directional_uwyxxw.png">
+  </div>
+</div> -->
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Original</th>
+      <th scope="col">Normal Weighted Attenuation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td scope="row">
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/shading_standard_e7vzft.png" class="img-responsive center-block" alt="Scene">
+      </td>
+      <td>
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/shading_directional_uwyxxw.png" class="img-responsive center-block" alt="Voxel direct lighting">
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="2-2-voxel-occlusion">2.2. Voxel Occlusion</h3>
+
+<p>To generate accurate results during the cone tracing step the voxels need to be occluded, otherwise voxelized geometry that is supposed to have little to no outgoing radiance will contribute to the indirect lighting calculations.</p>
+
+<p>The classic shadow mapping or alike techniques can be used to compute the voxels occlusion. The position of the voxel is projected in light space and the depth of the projected point is compared with the stored depth from the shadow map to determine if the voxel is occluded.</p>
+
+<p>My proposal also computes occlusion using raycasting within a volume. Any of the resulting volumes from the voxelization process can be used since the algorithm only needs to determine if a voxel exists at a certain position. To determine occlusion of a voxel, a ray is traced from the position of voxel in the direction of the light, the volume is sampled to determine if at the position of the ray there is a voxel, if this condition is true then the voxel is occluded.</p>
+
+<h4 id="2-2-1-soft-voxel-shadows">2.2.1. Soft Voxel Shadows</h4>
+
+<p>Instead of stopping the ray as soon a voxel is found, soft shadows can be approximated with a single ray accumulating a value \(\kappa\) per collision and dividing by the traced distance \(t\), i.e. \(\nu = \nu + (1 - \nu)\kappa\div t\), where \(1 - \nu\) represents the occlusion value after the accumulation is finished. This technique exploits the observation that, from the light point of view, the number of collisions will usually be higher for the rays that pass through the borders of the voxelized geometry.</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Hard Voxel Shadows</th>
+      <th scope="col">Soft Voxel Shadows</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td scope="row">
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/hard_voxel_shadows_ovj32i.svg" class="img-responsive center-block" alt="Scene">
+      </td>
+      <td>
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/soft_voxel_shadows_gcmlzm.svg" class="img-responsive center-block" alt="Voxel direct lighting">
+      </td>
+    </tr>
+    <tr>
+      <td scope="row">
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/hard_traced_takadd.png" class="img-responsive center-block" alt="Scene">
+      </td>
+      <td>
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/soft_traced_upabyg.png" class="img-responsive center-block" alt="Voxel direct lighting">
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="2-3-emission">2.3. Emission</h3>
+
+<p>Adding to the final radiance value the emission term can be used approximate emissive surfaces such as area lights, neon lights, digital screens, etc., this provides a crude approximation of the emission term the rendering equation. After the direct illumination value is obtained the emission term from the voxelization process is added to this value per voxel. During the cone tracing step, these voxels will appear to be bright even on occluded areas, hence indirect light is accumulated per cone from these regions of the voxelized scene.</p>
+
+<h2 id="3-anisotropic-voxels">3. Anisotropic Voxels</h2>
+
+<p>For more precise results during the cone tracing step anisotropic voxels are used. The mipmapping levels, as seen in the <em>directional volumes</em> in the voxel structure, will store per every voxel six directional values, one per every directional axis positive and negative. Each cone has an origin, aperture angle and direction, this last factor determines which three volumes are sampled. The directional sample is obtained by linearly interpolating the three samples obtained from the selected directional volumes.</p>
+
+<p>To generate the anisotropic voxels I use the process detailed by Crassin <a href="https://maverick.inria.fr/Publications/2011/CNSGE11b/">here</a>. To compute a directional value a step of volumetric integration is done in depth and the directional values are averaged to obtain the resulting value for a certain direction. In my approach this is done using compute shaders, executing a thread per every voxel at the mipmap level that is going to be filtered using the values from the previous level, this process is done per every mipmap level.</p>
+
+<div class="image-table">
+<table>
+  <tbody><tr>
+    <th>Process to generate anisotropic voxels</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/aniso_cropped_aekdhv.png" style="width: 40%;"></td>
+  </tr>
+</tbody></table>
+</div>
+
+<h2 id="4-voxel-cone-tracing">4. Voxel Cone Tracing</h2>
+
+<p>Voxel cone tracing is similar to ray marching, the cone advances a certain length every step, except that the sampling volume increases along the diameter of the cone. The mipmap levels in the directional volumes are used to approximate the expansion of the sampling volume during the cone trace, to ensure smooth variation between samples quadrilinear interpolation is used which is natively supported with graphics hardware for 3D textures. This step is done in the fragment shader as a screenspace effect, a deferred rendering backend is needed, though voxel cone tracing can be done in forward rendering regardless, it would be extremely inneficient and expensive.</p>
+
+<p>The shape of the cone is meant to exploit the spatial and directional coherence of the many rays packed within the space of a cone. This behavior is used in many approaches such as packet ray-tracing.</p>
+
+<div class="image-table">
+<table>
+  <tbody><tr>
+    <th>Visual representation of a cone used for cone tracing</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/cone_oyxusj.svg" style="width: 80%;"></td>
+  </tr>
+</tbody></table>
+</div>
+
+<p>As seen in the figure above each cone is defined by an origin \(C_o\), a direction \(C_d\) and an aperture angle \(\theta\). During the cone steps the diameter of the cone is defined by \(d\), this value can be extracted using the traced distance \(t\) with the following equation: \(d=2t\times\tan(\theta\div 2)\). Which mipmap level should be sampled depending on the diameter of the cone can be obtained using the following equation: \(V_{level} = log_2(d\div V_{size})\), where \(V_{size}\) is the size of a voxel at the maximum level of detail.</p>
+
+<p>As described by Crassin <a href="https://maverick.inria.fr/Publications/2011/CNSGE11b/">here</a>, for each cone trace we keep track of the occlusion value \(\alpha\) and the color value \(c\) which represents the indirect light towards the cone origin \(C_o\). In each step we retrieve from the voxel structure the occlusion value \(\alpha_2\) and the outgoing radiance \(c_2\). Then the \(c\) and \(\alpha\) values are updated using volumetric front-to-back accumulation as follows: \(c =\alpha c + (1-\alpha)\alpha_2c_2\) and \(\alpha=\alpha+(1-\alpha)\alpha_2\).</p>
+
+<p>To ensure good integration quality between samples the distance \(d’\) between steps is modified by a factor \(\beta\). With \(\beta = 1\) the value of \(d’\) is equivalent to the current diameter \(d\) of the cone, values less than \(1\) produce higher quality results but require more samples which reduces the performance.</p>
+
+<h3 id="4-1-indirect-illumination">4.1. Indirect Illumination</h3>
+
+<p>Indirect lighting is approximated with a crude Monte Carlo approximation. The hemisphere region for the integral in the rendering equation can be partitioned into a sum of integrals. For a regular partition, each partitioned region resembles a cone. For each cone their contribution is approximated using voxel cone tracing, the resulting values are then weighted to obtain the accumulated contribution at the cones origin.</p>
+
+<p>The distribution of the cones matches the shape of the BRDF, for a Blinn-Phong material a few large cones distributed over the normal oriented hemisphere estimate the diffuse reflection, while a single cone in the reflected direction, where its aperture depends on the specular exponent, approximates the specular reflection.</p>
+
+<!-- <div class="image-table">
+
+
+|                                                          Diffuse Cones                                                           |                                                           Specular Cone                                                           |                                                              BRDF                                                              |
+| :------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://res.cloudinary.com/jose-villegas/image/upload/v1497581804/DVSGI/diffuse_cones_oo7hsx.svg" style="width: 60%;"/> | <img src="https://res.cloudinary.com/jose-villegas/image/upload/v1497581807/DVSGI/specular_cones_faycaz.svg" style="width: 60%;"/> | <img src="https://res.cloudinary.com/jose-villegas/image/upload/v1497581810/DVSGI/brdf_cones_b4hmdk.svg" style="width: 60%;"/> |
+
+
+</div> -->
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Diffuse Cones</th>
+      <th scope="col">Specular Cone</th>
+      <th scope="col">BDRF</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td scope="row">
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/diffuse_cones_oo7hsx.svg" class="img-responsive center-block" alt="Scene">
+      </td>
+      <td>
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/specular_cones_faycaz.svg" class="img-responsive center-block" alt="Voxel direct lighting">
+      </td>
+      <td scope="row">
+        <img src="./Deferred Voxel Shading for Real Time Global Illumination_files/brdf_cones_b4hmdk.svg" class="img-responsive center-block" alt="Scene">
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="4-2-ambient-occlusion">4.2. Ambient Occlusion</h3>
+
+<p>Ambient occlusion can be approximated using the same cones used for the diffuse reflection for efficiency. For the ambient occlusion term \(\delta\) we only accumulate the occlusion value \(\alpha_2\), at each step the accumulated value is multiplied with the weighting function \(f(r) = \frac{1}{1+\lambda r}\), where \(r\) is the current radius of the cone and \(\lambda\) an user defined value which controls how fast \(f(r)\) decays along the traced distance. At each cone step the ambient occlusion term is updated as: \(\delta = \delta + (1-\delta)\alpha_2f(r)\).</p>
+
+<h3 id="4-3-soft-shadows">4.3. Soft Shadows</h3>
+
+<p>Cone tracing can also be used to achieve soft shadows tracing a cone from the surface point \(x\) towards the direction of the light The cone aperture controls how soft and scattered the resulting shadow is. For soft shadows with cones we only accumulate the occlusion value \(\alpha_2\) at each step.</p>
+
+<div class="image-table">
+<table>
+  <tbody><tr>
+    <th>Cone Soft Shadows</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/cone_shadow_jwx9pd.svg" style="width: 40%;"></td>
+  </tr>
+</tbody></table>
+</div>
+
+<h2 id="voxel-global-illumination">Voxel Global Illumination</h2>
+
+<p>To calculate the diffuse reflection over a surface point using voxel cone tracing we need its normal vector, albedo and the incoming radiance at that point. Since we voxelize the geometry normal vectors and the albedo into 3D textures, all the needed information for the indirect diffuse term is available after calculating the voxel direct illumination. In my approach I perform voxel cone tracing per voxel using compute shaders to calculate the first bounce of indirect diffuse at each voxel. This step is done after the outgoing radiance values from the voxel direct illumination pass are anisotropically filtered.</p>
+
+<p>For each voxel we use its averaged normal vector to generate a set of cones around the normal oriented hemisphere to calculate the indirect diffuse at the position of the voxel. The weighted result from all the cones is then multiplied by the albedo of the voxel and added to the direct illumination value. The resulting outgoing radiance for the radiance volume now stores the direct illumination, and the first bounce of indirect diffuse. The anisotropic filtering process needs be repeated for the new values. This enables us to approximate the second bounce of indirect lighting during the final voxel cone tracing step per pixel. This can be extended to support multiple bounces.</p>
+
+<h1 id="results">Results</h1>
+
+<p>The results here were tested on an AMD 380 R9 GPU on different scenes with increasing geometric complexity and dynamic objects added to the scene. The scenes used for testing are listed below:</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Model</th>
+      <th scope="col"># Vertices</th>
+      <th scope="col"># Triangles</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td scope="row">S1</td>
+      <td scope="row">
+        <a href="https://graphics.cs.williams.edu/data/meshes.xml">Cornell Box</a>
+      </td>
+      <td scope="row">72</td>
+      <td scope="row">36</td>
+    </tr>
+    <tr>
+      <td scope="row">S2</td>
+      <td scope="row">
+        <a href="https://graphics.cs.williams.edu/data/meshes.xml">Sibenik Cathedral</a>
+      </td>
+      <td scope="row">40.479</td>
+      <td scope="row">75.283</td>
+    </tr>
+    <tr>
+      <td scope="row">S3</td>
+      <td scope="row">
+        <a href="https://www.crytek.com/cryengine/cryengine3/downloads">Crytek Sponza</a>
+      </td>
+      <td scope="row">153.635</td>
+      <td scope="row">278.163</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="voxelization">Voxelization</h2>
+
+<p>The times per frame for the dynamic and static voxelization of each scene are show below:</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Static</th>
+      <th scope="col">Clear Dynamic</th>
+      <th scope="col">Dynamic</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td scope="row">S1</td>
+      <td scope="row">0.51 ms</td>
+      <td scope="row">0.78 ms</td>
+      <td scope="row">1.30 ms</td>
+    </tr>
+    <tr>
+      <td scope="row">S2</td>
+      <td scope="row">1.80 ms</td>
+      <td scope="row">0.58 ms</td>
+      <td scope="row">2.11 ms</td>
+    </tr>
+    <tr>
+      <td scope="row">S3</td>
+      <td scope="row">11.29 ms</td>
+      <td scope="row">0.60 ms</td>
+      <td scope="row">2.03 ms</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For the voxelization process, a higher resolution for the voxel representation can actually be beneficial, because it reduces thread collisions for the writing operations, in the scene S3 there is a higher time for the static voxelization this reason, S3 has a higher triangle density per voxel meaning more syncing operations are needed.</p>
+
+<h2 id="voxel-illumination">Voxel Illumination</h2>
+
+<p>The table below shows the results for voxel direct illumination with shadow mapping or raycasting for voxel occlusion and voxel global illumination, it also includes the time for anisotropic filtering after both steps. For voxel direct illumination the times are similar between all scenes using shadow mapping, while raycasting costs more performance it enables occlusion for any type of light source without shadow mapping.</p>
+
+<table class="table">
+<thead>
+<tr>
+<th>Name</th>
+<th>Direct (with Shadow Mapping)</th>
+<th>Direct (with Raycasting)</th>
+<th>Anistropic Filtering</th>
+<th>Global Illumination</th>
+<th>Anistropic Filtering</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>1.33 ms</td>
+<td>20.32 ms</td>
+<td>1.39 ms</td>
+<td>8.41 ms</td>
+<td>1.38 ms</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>0.95 ms</td>
+<td>4.57 ms</td>
+<td>1.38 ms</td>
+<td>3.88 ms</td>
+<td>1.37 ms</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>1.13 ms</td>
+<td>3.31 ms</td>
+<td>1.37 ms</td>
+<td>5.44 ms</td>
+<td>1.38 ms</td>
+</tr>
+</tbody>
+</table>
+
+<p>For raycasting, the amount of empty space in the scene affects how early the traced rays end, which affects the general performance. For high density scenes such as S3 most rays end early, in contrast the scene S1 takes a considerable amount of time using raycasting because the scene is mostly empty space, this same condition also applies for the voxel indirect diffuse step.</p>
+
+<table class="table">
+<thead>
+<tr>
+<th>Scene</th>
+<th>Voxel Direct</th>
+<th>Voxel Direct + Indirect Diffuse</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/cornell_scene.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/direct_voxel_cornell.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/gi_voxel_cornell.png" style="width: 100%;"></td>
+</tr>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/sibenik_scene.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/voxel_direct_sibenik.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/voxel_gi_sibenik.png" style="width: 100%;"></td>
+</tr>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/sponza_scene.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/voxel_direct_sponza.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/voxel_gi_sponza.png" style="width: 100%;"></td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="voxel-cone-tracing">Voxel Cone Tracing</h2>
+
+<p>Once the voxel structure is anisotropically filtered we can proceed with voxel cone tracing per pixel for the final composition of the image. In my approach six cones with an aperture of 60 degrees are used to approximate the indirect diffuse term, for the indirect specular in these test I utilize a specular cone with an aperture of 10 degrees. The next table shows the performance for indirect lighting on different scenes. For all the scenes my implementation achieves results over 30FPS (\(&lt; 33.3 ms\)) under constant dynamic update, meaning objects and lights are changing and moving per frame. The dynamic update includes dynamic voxelization, voxel direct illumination, voxel global illumination and the necessary anistropic filtering steps. For a screen resolution of \(1920x1080\) pixels my implementation obtains an average framerate of \(28.57 ms\) for the scene S3, \(27.02 ms\) for S2 and \(27.77 ms\) for S1 under constant dynamic update, these results show that even with a high resolution the technique can achieve over 30FPS for all the scenes.</p>
+
+<table class="table">
+<thead>
+<tr>
+<th>Scene</th>
+<th>Direct</th>
+<th>Indirect (Diffuse + Specular)</th>
+<th>Direct + Indirect</th>
+<th>Dynamic Stress</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>1.03 ms</td>
+<td>7.27 ms</td>
+<td>7.67 ms</td>
+<td>17.81 ms</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>1.32 ms</td>
+<td>7.62 ms</td>
+<td>8.32 ms</td>
+<td>17.60 ms</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>1.34 ms</td>
+<td>7.81 ms</td>
+<td>8.41 ms</td>
+<td>16.97 ms</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="comparison">Comparison</h2>
+
+<p>Below a visual comparison between a reference image rendered in a path-tracer for 3 hours, another real time global illumination technique called <a href="https://www.crytek.com/download/Light_Propagation_Volumes.pdf">light propagation volumes</a> and my technique. The image generated by my technique is closer to the reference image, specially the indirect diffuse reaching the right columns that aren’t directly hit by the light source. Light propagation volumes is also limited in the sense that it only provides approximation for the indirect diffuse term, whereas voxel cone tracing achieves specular reflection and many other light phenomena.</p>
+
+<table class="table">
+<thead>
+<tr>
+<th>Reference (3~ hours)</th>
+<th><a href="https://www.crytek.com/download/Light_Propagation_Volumes.pdf">Light Propagation Volumes</a> (18.86 ms)</th>
+<th>My approach (17.34 ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/reference.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/lpv_comp.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/sponza_comp.png" style="width: 100%;"></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="optimizations">Optimizations</h3>
+
+<p>In my implementation the dynamic update can be set to update at a given number of frames or on demand, a simple optimization for example is to update each 5~3 frames, this can easily give results over 60FPS for most scenes with little to zero notable difference.</p>
+
+<p>Since the lighting step is separate from the voxelization step, revoxelization is only truly needed when objects move within the scene. For changes that only involve lighting revoxelization is unnecesary.</p>
+
+<p>One optimization to consider that wasn’t implemented in my application is to separate the indirect lighting calculation from voxel cone tracing at a lower resolution. The higher the resolution the more surface points that need to be cone traced since each pixel represents a position in scene. A disvantage of doing this is that it creates some notable artifacts, though they can be somewhat reduced through clever use of screen-space techniques.</p>
+
+<h2 id="show-off">Show Off</h2>
+
+<h3 id="dynamic-update">Dynamic Update</h3>
+
+<div class="table">
+<table>
+  <tbody><tr>
+    <th>Cornell Box</th>
+    <th>Sibenik Cathedral</th>
+    <th>Crytek Sponza</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <video width="100%" autoplay="" loop="">
+        <source src="https://res.cloudinary.com/jose-villegas/video/upload/v1497754650/DVSGI/cornell.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+    </td>
+    <td align="center">
+      <video width="100%" autoplay="" loop="">
+        <source src="https://res.cloudinary.com/jose-villegas/video/upload/v1497753449/DVSGI/sibenik.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+    </td>
+    <td align="center">
+      <video width="100%" autoplay="" loop="">
+        <source src="https://res.cloudinary.com/jose-villegas/video/upload/v1497753449/DVSGI/sponza.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+    </td>
+  </tr>
+</tbody></table>
+</div>
+
+<h3 id="indirect-lighting">Indirect Lighting</h3>
+
+<div class="table">
+<table>
+  <tbody><tr>
+    <th>Emissive Material</th>
+    <th>Indirect Shadows</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <video width="100%" autoplay="" loop="">
+        <source src="https://res.cloudinary.com/jose-villegas/video/upload/v1497757150/DVSGI/emissive.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+    </td>
+    <td align="center">
+      <video width="100%" autoplay="" loop="">
+        <source src="https://res.cloudinary.com/jose-villegas/video/upload/v1497757746/DVSGI/indirect_shadows.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+    </td>
+  </tr>
+</tbody></table>
+</div>
+
+<h3 id="ambient-occlusion">Ambient Occlusion</h3>
+
+<table class="table">
+<thead>
+<tr>
+<th>Cornell Box</th>
+<th>Sibenik Cathedral</th>
+<th>Crytek Sponza</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/cornell_ao.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/sibenik_ao.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/sponza_ao.png" style="width: 100%;"></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="soft-shadows">Soft Shadows</h3>
+
+<table class="table">
+<thead>
+<tr>
+<th>1 degree aperture</th>
+<th>5 degree aperture</th>
+<th>10 degree aperture</th>
+<th>25 degree aperture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/shadow_1.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/shadow_5.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/shadow_10.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/shadow_25.png" style="width: 100%;"></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="emissive-materials-area-lights">Emissive Materials / Area Lights</h3>
+
+<table class="table">
+<thead>
+<tr>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/area_sponza.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/area_shadows.png" style="width: 100%;"></td>
+</tr>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/fine_emissive.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/area_teapot.png" style="width: 100%;"></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="teasers">Teasers</h3>
+
+<table class="table">
+<thead>
+<tr>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/teaser.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/teaser2.png" style="width: 100%;"></td>
+</tr>
+<tr>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/teaser3.png" style="width: 100%;"></td>
+<td><img src="./Deferred Voxel Shading for Real Time Global Illumination_files/teaser4.png" style="width: 100%;"></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="recording">Recording</h3>
+
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+  <iframe src="./Deferred Voxel Shading for Real Time Global Illumination_files/HwGSoTyP-oM.html" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen="" title="YouTube Video"></iframe>
+</div>
+
+
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+  <iframe src="./Deferred Voxel Shading for Real Time Global Illumination_files/52nkpkVZt-g.html" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen="" title="YouTube Video"></iframe>
+</div>
+
+
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+  <iframe src="./Deferred Voxel Shading for Real Time Global Illumination_files/e1r5VrDtG7k.html" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen="" title="YouTube Video"></iframe>
+</div>
+
+
+<h1 id="source-code-executable">Source Code &amp; Executable</h1>
+
+<p>All the source code for this project can be found in this link <a href="https://github.com/jose-villegas/VCTRenderer">here</a></p>
+
+<p>The executable application for this technique can be found in this link <a href="https://github.com/jose-villegas/VCTRenderer/releases">here</a></p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+  <div id="disqus_recommendations" style="margin-bottom: 12px;"><iframe id="dsq-app4934" name="dsq-app4934" allowtransparency="true" frameborder="0" scrolling="no" tabindex="0" title="Disqus" width="100%" src="./Deferred Voxel Shading for Real Time Global Illumination_files/saved_resource.html" style="width: 100% !important; border: none !important; overflow: hidden !important; height: 0px !important; display: inline !important; box-sizing: border-box !important;" horizontalscrolling="no" verticalscrolling="no"></iframe></div><div id="disqus_thread"><iframe id="dsq-app7289" name="dsq-app7289" allowtransparency="true" frameborder="0" scrolling="no" tabindex="0" title="Disqus" width="100%" src="./Deferred Voxel Shading for Real Time Global Illumination_files/saved_resource(1).html" style="width: 1px !important; min-width: 100% !important; border: none !important; overflow: hidden !important; height: 654px !important;" horizontalscrolling="no" verticalscrolling="no"></iframe></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "https-jose-villegas-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
+          </div>
+        </div>
+        <div class="row site-footer">
+          <div class="col-md-12">
+            <div class="row">
+  <div class="col-md-12 footer-menu">
+      
+      
+
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-12">
+    <div class="social-media-block-footer">
+      
+      
+      
+      
+      
+      <a href="mailto:villegasjose.gg@gmail.com" data-animate-hover="pulse" class="email">
+        <i class="fa fa-envelope"></i>
+      </a>
+      
+      
+      <a href="https://www.linkedin.com/in/villegasjose" data-animate-hover="pulse">
+        <i class="fa fa-linkedin"></i>
+      </a>
+      
+      
+      
+      <a href="https://github.com/jose-villegas" data-animate-hover="pulse">
+        <i class="fa fa-github"></i>
+      </a>
+      
+
+    </div>
+  </div>
+</div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="./Deferred Voxel Shading for Real Time Global Illumination_files/jquery.min.js.download"></script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/bootstrap.min.js.download"></script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/jquery.cookie.js.download"> </script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/ekko-lightbox.js.download"></script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/jquery.scrollTo.min.js.download"></script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/masonry.pkgd.min.js.download"></script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/imagesloaded.pkgd.min.js.download"></script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/owl.carousel.min.js.download"></script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/front.js.download"></script>
+<script src="./Deferred Voxel Shading for Real Time Global Illumination_files/custom.js.download"></script>
+
+  
+
+<iframe style="display: none;" src="./Deferred Voxel Shading for Real Time Global Illumination_files/saved_resource(2).html"></iframe><iframe style="display: none;" src="./Deferred Voxel Shading for Real Time Global Illumination_files/saved_resource(3).html"></iframe></body></html>

@@ -1,0 +1,395 @@
+// Escape words with mixed case
+function addCurliesForBibTex(str) {
+    return str.replace(/\b([a-zA-Z0-9':]+[A-Z][a-zA-Z0-9':]*)\b/g, "{$1}")
+}
+
+// Convert HTML accents to Latex accents
+function fixAccentsForBibTex(str) {
+    str = str.replace(/&eacute/g,  "{\\'e}");
+    str = str.replace(/&auml/g,    "{\\\"a}");
+    str = str.replace(/&Aacute;/g, "{\\'A}");
+    return str;
+}
+
+/** Given an array of people with names and affiliations, produces a minimal listing */
+function formatPeople(personArray) {
+    var s = '';
+
+    if(!personArray) return;
+
+    s += '<p>';
+    for (var i = 0; i < personArray.length; ++i) {
+        var person = personArray[i];
+        if (i > 0) {
+            s += '<br/>';
+        }
+        if (person.url) {
+           s += '<a href = "' + person.url + '">';
+        }
+        s += person.name;
+        if (person.url) {
+            s += '</a>';
+        }
+
+        var affils = person.affiliationList || null;
+        if (affils) s += ', ';
+        s += formatList(affils);
+    }
+
+    s += '</p>'
+    return s;
+} 
+
+function formatTopBox(paper) {
+    var s = '<div>' +
+    '<table>' +
+    ' <tr>' +
+    '  <td valign=top>';
+
+    //give the icon.png a link to the first hyperlink in contentList
+    if (paper.contentList && 
+        paper.contentList[0] && 
+        paper.contentList[0].href && 
+        paper.contentList[0].href.charAt(0) != '#') {
+        s += '  <a href="' + paper.contentList[0].href + '"><div style="background-image: url(\'icon.png\')" class="icon"></div></a>';
+    } else if (paper.contentList && 
+               paper.contentList[1] && 
+               paper.contentList[1].href && 
+               paper.contentList[1].href.charAt(0) != '#') {
+        //if the first content doesn't have a link (probably cause the first content is a chunk of html) then use the second link
+        s += '  <a href="' + paper.contentList[1].href + '"><div style="background-image: url(\'icon.png\')" class="icon"></div></a>';
+    } else { 
+        s += '  <a><div style="background-image: url(\'icon.png\')" class="icon"></div></a>';
+    }
+
+    //add a twitter button
+    s +='  <br>' +
+    '<a href="http://twitter.com/share" class="twitter-share-button" data-count="none" data-via="morgan3d">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>' +
+    '  </td>' +
+    '  <td width=5>' +
+    '  </td>' +
+    '  <td valign=top>';
+
+    s += '<center>'
+    //add in venue (if there is one) and authors
+    if (paper.venue)
+        s += '<i>' + paper.venue + '</i>';
+
+    if (paper.awards)
+        s += '</br>' + paper.awards
+    s += '</center>'
+
+    s += formatPeople(paper.authors);
+    
+    
+    //add in links
+    s += '<table> <tr valign=top><td>';
+    if (paper.contentList.length > 0) {
+        s += '   <p>';
+        for (var i = 0; i < paper.contentList.length; ++i) {
+            if (i > 0) s += "<br/>";
+
+            var content = paper.contentList[i];
+
+            if (content.insertBreak) {
+                s += '</td><td width=50></td><td>';
+                continue;
+            }
+
+            if (content.href) {
+                s += '<a href="' + content.href + '">' + (content.bold ? '<b>' : '') + content.name + (content.bold ? '</b>' : '') + '</a> ';
+                if (content.size || content.format) {
+                    var size = content.size ? content.size : "";
+                    var format = content.format ? content.format : "";
+                    s += '(' + size + (size && format ? ' ' : '') + format + ')';
+                }
+            } else {
+                //if content doesn't have a href then it's ust a big block of html that was passed in already formatted.
+                s += content.name
+            }
+        }
+        s += '    <br>' +
+        '   </p></td> </tr> </table>'
+    }
+
+    s+= '   </td>' +
+    '</tr>' +
+    '</table>';
+
+    s += paper.optionalHeaderHTML ? paper.optionalHeaderHTML : '';
+
+    if (paper.copyright) {
+        s += '<font size=1>' + 
+            paper.copyright + 
+            '</font';
+    }
+
+    s += '</div>';
+
+    return s;
+}
+
+function formatHeader(anchor, title) {
+    return '<a name="' + anchor +'"></a><h1>' + title + '</h1>';
+}
+
+function formatPictures(paper) {
+    var s = '';
+    var imageList = paper.imageNameList || null;
+    var oi = paper.orderedImages || null;
+    
+    if ((!imageList || imageList.length === 0) && 
+        (!oi || oi.firstIndex > oi.lastIndex)) {
+        return s;
+      }
+
+    s += formatHeader('images', 'Selected Images');
+
+    imageWidth = paper.imageWidths ? paper.imageWidths : 100;
+
+    if (oi) {
+        for (var i = oi.firstIndex; i <= oi.lastIndex; ++i) {
+            var imageName = i + oi.extension;
+            s +=  '<a href="' + imageName + '"><img src="' + imageName + '" height="' + imageWidth + '" border="2"/></a>';
+        }
+    }
+
+    if (imageList) {
+        for (var i = 0; i < imageList.length; ++i) {
+            var imageName = imageList[i];
+
+            if (imageName.note) {
+                //imageName.note is not an image but rather a chunk of html code that is meant to be added right in the middle of the images.
+                s += imageName.note;
+                
+            } else if (imageName.thumbnail) {
+                //imageName is not a picture. It's a video
+                s += '<a href="' + imageName.href + '"><img src="' +imageName.thumbnail + '" height="'+ imageWidth +'" border="2"/></a>';
+
+            } else {
+                s +=  '<a href="' + imageName + '"><img src="' + imageName + '" height="'+ imageWidth +'" border="2"/></a>';
+            }
+        }
+    }
+    return s;
+}
+
+function formatBibTex(paper, isFirstBib) {
+    //only want the header and stuff for the first bib
+    var s = isFirstBib ? formatHeader('bibtex', 'BibTex') : '';
+    s += '<pre><font size=3>';
+
+    var authorNames = "";
+    for (var i = 0; i < paper.authors.length; ++i) {
+        if (i > 0) authorNames += " and ";
+        authorNames += paper.authors[i].name;
+    }
+
+    var pd = paper.publishDate || null;
+
+    s +="@" + paper.bibtexClass + "{" + paper.shortName + ", \n" +
+    "  author = {" + fixAccentsForBibTex(authorNames) + "}, \n";
+
+    if (paper.editors && paper.editors.length > 0) {
+        var editorNames = "";
+        for (var i = 0; i < paper.editors.length; ++i) {
+            if (i > 0) editorNames += " and ";
+            editorNames += paper.editors[i];
+        }
+        s += "  editor = {" + fixAccentsForBibTex(editorNames) + "}, \n";
+    }
+    if (paper.specialBibTexFormatTitle) {
+        s += "  title = {" + paper.specialBibTexFormatTitle + "}, \n"; 
+    } else {
+        s += "  title = {" + addCurliesForBibTex(paper.title) + "}, \n";
+    }
+
+    if (paper.venue && (paper.bibtexClass !== 'misc')) {
+        var prefix = 'note';
+        if (paper.bibtexClass === 'inproceedings' || 
+            paper.bibtexClass === 'incollection' ||
+            paper.bibtexClass === 'inbook') {
+            prefix = 'booktitle';
+        }
+        
+        if (paper.bibtexClass === 'thesis') prefix = 'school';
+        if (paper.bibtexClass === 'article') prefix = 'journal';
+        if (paper.bibtexClass === 'misc') { prefix = 'note'; }
+        if (paper.bibtexClass === 'techreport') { prefix = 'institution'; }
+
+        var venue = (paper.venue ? paper.venue : paper.note);
+        venue = stripHTML(venue);
+
+        if (paper.bibtexClass != 'book') {
+           s += "  " + prefix + " = {" + addCurliesForBibTex(venue) + "},\n";
+        }
+    }
+
+    if (paper.note || (paper.venue && (paper.bibtexClass === 'misc'))) {
+        var note = paper.note;
+        if (paper.bibtexClass === 'misc') {
+            console.dir(paper);
+            note += ' ' + addCurliesForBibTex(stripHTML(paper.venue));
+        }
+        s += "  note = {" + note + "},\n";
+    }
+
+    if (pd && pd.month) {
+        s += "  month = {"+ paper.publishDate.month + "},\n";
+    }
+
+    if (pd && pd.day) {
+        s += "  day = {"+ paper.publishDate.day + "},\n";
+    }
+
+    if (pd && pd.year) {
+        s += "  year = {"+ paper.publishDate.year + "}, \n";
+    }
+
+    if (paper.numPages) {
+        s += "  pages = {" + paper.numPages + "},\n";
+    }
+
+    if (paper.pages) {
+        s += "  pages = {" + paper.pages + "},\n";
+    }
+
+    if (paper.number) {
+        s += "  number = {" + paper.number + "},\n";
+    }
+    
+    if (paper.volume) {
+        s += "  volume = {" + paper.volume + "},\n";
+    }
+     
+    s += "  url = {" + (paper.url ? paper.url : location) + "}, \n";
+
+    if (paper.publisher) {
+        s += "  publisher = {" + addCurliesForBibTex(paper.publisher) + "},\n";
+    }
+
+    if (paper.location) {
+        s += "  location = {" + paper.location + "},\n";
+    }
+
+    //if there's some BibTex field that isn't specifically accounted for here then just slap it in bibTexInformation
+    var bti = paper.bibTexInformation;
+    if (bti) {
+        for (var i = 0; i < bti.length; ++i) {
+            if (bti[i].fieldName && bti[i].value) {
+                s += '  ' + bti[i].fieldName + ' = {' + bti[i].value + '},\n';
+            }
+        }
+    }
+
+    s += '}' + 
+    '</font>' +
+    '</pre>';
+
+    //if there are extra bibs we gotta add them in too
+    if (paper.extraBibs) {
+        for (var i = 0; i < paper.extraBibs.length; i++) {
+            //we want the second, third, fourth, etc bibs all to be in the same 
+            s += formatBibTex(paper.extraBibs[i], false);
+        }
+    }
+
+    return s;
+}
+
+function formatAbstract(paper) {
+    var s = '';
+    if (!paper.abstractText) return s;
+
+    s += formatHeader('abstract', 'Abstract') + '<p>' + paper.abstractText + '</p>';
+
+    return s;
+}
+
+function formatYoutubeLink(paper) {
+    var s =  '';
+    if (!paper.youtubeLink) return s;
+
+    s += formatHeader('video', 'Video') +
+    '<iframe width="' + paper.youtubeLink.width + '" height="' + paper.youtubeLink.height + '" src="'+ paper.youtubeLink.link + '" frameborder="0" allowfullscreen></iframe>';
+
+    return s;
+}
+
+function formatArbitrarySections(paper) {
+    var s = '';
+    if (paper.extraSections) {
+        for (var i = 0; i < paper.extraSections.length; ++i) {
+            var section = paper.extraSections[i];
+            s += formatHeader(section.name, section.title) + 
+            '<p>' + section.text + '</p>';
+        }
+    }
+
+    return s;
+}
+ 
+/** A complete page for a paper */
+function generatePaperPageHTML(paper) {
+    var s = 
+        '<html>' + 
+        ('<head>' +
+         '<title>' + paper.title +'</title>' +
+         '<link rel="stylesheet" href="../../ce.css" type="text/css">' +
+         '</head>') +
+
+
+        ('<body>' +
+         ('<div class="main">' + 
+          ('<div class="titleBar" style="padding-top:20px;padding-bottom:20px;">' +
+           paper.title + 
+           '</center></div>') +
+          ('<div class="content paper">' +
+
+           formatTopBox(paper) +
+         
+           formatAbstract(paper) +
+           
+           formatYoutubeLink(paper) +
+           
+           formatPictures(paper) +
+           
+           formatArbitrarySections(paper) +
+           
+           formatBibTex(paper, true) +
+         
+           '</div>') +
+          '</div>') +
+         '</body>') +
+        '</html>';
+    return s;
+}
+
+document.write(generatePaperPageHTML(paper));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

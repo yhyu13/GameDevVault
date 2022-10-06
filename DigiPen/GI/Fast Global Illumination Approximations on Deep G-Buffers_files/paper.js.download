@@ -1,0 +1,103 @@
+paper = {
+    shortName: "Mara2014DeepGBuffer",
+
+    optionalHeaderHTML: '<center></i><b>A <a href="../DeepGBuffer16/">newer version</a> of this work appeared in HPG 2016</b><i></center>',
+
+    title: "Fast Global Illumination Approximations on Deep G-Buffers",
+
+    authors: [
+              {name:        "Michael Mara", 
+               affiliationList: ["NVIDIA", "Stanford University"]},
+              {name:        "Morgan McGuire", 
+               affiliationList: ["NVIDIA", "Williams College"]},
+              {name:        "Derek Nowrouzezahrai", 
+               affiliationList: ["University of Montreal"]},
+              {name:        "David Luebke", 
+               affiliationList: ["NVIDIA"]},
+             ],
+
+    //The first thing in the download list should be the paper pdf as it will be linked to the icon picture
+    contentList: [
+                    {name: "NVIDIA tech report",
+                    bold: 'true',
+                    size: "41 MB",
+                    format: "PDF",
+                    href: "Mara2014DeepGBuffer.pdf"},
+
+                    {name: "NVIDIA tech report (brightened)",
+                    size: "41 MB",
+                    format: "PDF",
+                    href: "Mara2014DeepGBuffer-bright.pdf"},
+
+                    {name: "NVIDIA tech report (low res)",
+                    size: "2 MB",
+                    format: "PDF",
+                    href: "Mara2014DeepGBuffer-small.pdf"},
+
+                    {name: "NVIDIA tech report (low res, brightened)",
+                    size: "2 MB",
+                    format: "PDF",
+                    href: "Mara2014DeepGBuffer-bright-small.pdf"},
+
+                    {name: "Supplemental results and code",
+                    size: "6.8 MB",
+                    format: "PDF",
+                    href: "supplemental.pdf"},
+
+                    {name: "Abstract",
+                    href: "#abstract"},
+                  
+
+                    {name: "Video results",
+                    bold: true,
+                    format: "YouTube",
+                    href: "#video"},
+
+                    {name: "Video results",
+                    size: "154 MB",
+                    format: "MP4",
+                    href: "Mara2014DeepGBuffer.mp4"},
+
+                    {name: "Demo",
+                    bold: true,
+                    size: "154 MB",
+                    format: "Windows EXE + Source",
+                    href: "Mara2014DeepGBufferDemo.zip"},
+
+                    {name: "Images",
+                    href: "#images"},
+
+                    {name: "BibTex",
+                    href: "#bibtex"},
+                    
+                  ],
+
+    //orderedImages refers to images named in integer sequence (e.g. 1.jpg, 2.jpg, 3.jpg or 1.png, 2.png, 3.png)
+    orderedImages: {firstIndex: 1,
+                    lastIndex: 11,
+                    extension: ".png"},
+
+    //be sure that the link is embedable (i.e. it starts with https://www.youtube.com/embed/)
+    youtubeLink: {link: "https://www.youtube.com/embed/SXEDMv6VaSc",
+                  width: 560,
+                  height: 315,
+                  }, //add in resolution: width, height: aspect ratio
+
+    //if you don't want to add month or day then just set them to null
+    publishDate: {year: "2014",
+                 month: "June",
+                 day: "16",
+                },
+
+    abstractText: "Deep Geometry Buffers (G-buffers) combine the fine-scale and efficiency of screen-space data with much of the robustness of voxels. We introduce a new hardware-aware method for computing two-layer deep G-buffers and show how to produce dynamic indirect radiosity, ambient occlusion (AO), and mirror reflection from them in real-time. Our illumination computation approaches the performance of today's screen-space AO-only rendering passes on current GPUs and far exceeds their quality. Our G-buffer generation method is order-independent, guarantees a minimum separation between layers, operates in a (small) bounded memory footprint, and avoids any sorting. Moreover, to address the increasingly expensive cost of pre-rasterization computations, our approach requires only a single pass over the scene geometry. We show how to apply Monte Carlo sampling and reconstruction to these to efficiently compute global illumination terms from the deep G-buffers." +
+                  "<br/><br/>The resulting illumination captures small-scale detail and dynamic illumination effects and is more substantially more robust than screen space estimates. It necessarily still view-dependent and lower-quality than offline rendering. However, it is real-time, temporally coherent, and plausible based on visible geometry. Furthermore, the lighting algorithms automatically identify undersampled areas to fill from broad-scale or precomputed illumination. All techniques described are both practical today for real-time rendering and designed to scale with near-future hardware architecture and content trends. We include pseudocode for deep G-buffer generation, and source code and a demo for the global illumination sampling and filtering.",
+
+    numPages: '16',
+
+    //(e.g. "misc" or "inproceedings")
+    bibtexClass: "techreport",
+
+    number: 'NVR-2014-001',
+
+    note: "NVIDIA Corporation",
+};

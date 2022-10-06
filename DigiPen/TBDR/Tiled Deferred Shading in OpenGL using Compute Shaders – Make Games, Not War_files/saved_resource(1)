@@ -1,0 +1,32 @@
+
+var ftGUID_4171605="4467547FDCD78A";
+var ftConfID_4171605="20766752";
+var ftParams_4171605="ftx=&fty=&ftadz=&ftscw=&ft_custom=SlAwU0BVM1NKVzRfTFY3X0BTNRiDzGw=&ftOBA=1&ft_ifb=1&ft_domain=johanmedestrom.wordpress.com&ft_agentEnv=0&ft_referrer=https%3A%2F%2Fjohanmedestrom.wordpress.com%2F2016%2F03%2F30%2Ftiled-deferred-shading-in-opengl-using-compute-shaders%2F&ft_keyword=__13330890__498434__&ft_section=__13330890__498434____10829409653592091774439303586990502398&cachebuster=843056.738408585";
+var ftKeyword_4171605="";
+var ftCustom_4171605="SlAwU0BVM1NKVzRfTFY3X0BTNRiDzGw=";
+var ftSection_4171605="__13330890__498434____10829409653592091774439303586990502398";
+var ftSegment_4171605="xtx,acfv,w2b,ab5j,wbo,fs18_13972_1_1592714763,um2,x2o";
+var ftSegmentList_4171605=[{s:'xtx'},{s:'acfv'},{s:'w2b'},{s:'ab5j'},{s:'wbo'},{m:'fs18_13972_vp',s:'fs18_13972_1_1592714763'},{s:'um2'},{m:'c12345_Resi_RTG_SUB_NONSUB',s:'x2o'}];
+var ftRuleMatch_4171605="0";
+var ftTimestamp_4171605="1594340503";
+var ftGeoC2_4171605="us";
+var ftGeoState_4171605="wa";
+var ftGeoCity_4171605="redmond";
+var ftISP_4171605="comcast cable communications inc.";
+var ftSpeed_4171605="cable";
+var ftDMA_4171605="819";
+var ftLong_4171605="-122.12";
+var ftLat_4171605="47.68";
+var ftPostal_4171605="98052";
+var ftTimeZone_4171605="-700";
+var ftMobileCarrier_4171605="";
+var ftImp4171605 = {};
+ftImp4171605.privacy = "x";
+ftImp4171605.guidAge = "107";
+ftImp4171605.impID = "038ED857-9506-B82D-E5A9-2352E0731FED";
+ftImp4171605.duid = "FT:4467547FDCD78A";
+
+ftImp4171605.ft_tpplid = "";
+ftImp4171605.ft_c = {};
+
+document.write('<scr'+'ipt src="https://cdn.flashtalking.com/xre/417/4171605/3041893/js/j-4171605-3041893.js" id="ftscript_m4171605" name="ftscript_m4171605"></scr'+'ipt>');

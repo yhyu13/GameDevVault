@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<!-- saved from url=(0043)http://cpp-rendering.io/indirect-rendering/ -->
+<html lang="en-US"><!--<![endif]--><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<meta name="viewport" content="width=device-width">
+	<title>Indirect Rendering : "A way to a million draw calls" - CPP Rendering</title>
+	<link rel="profile" href="http://gmpg.org/xfn/11">
+	<link rel="pingback" href="http://cpp-rendering.io/xmlrpc.php">
+	<!--[if lt IE 9]>
+	<script src="http://cpp-rendering.io/wp-content/themes/twentyfourteen/js/html5.js"></script>
+	<![endif]-->
+	
+	<!-- This site is optimized with the Yoast SEO plugin v14.2 - https://yoast.com/wordpress/plugins/seo/ -->
+	<meta name="description" content="This article deals with the using of indirect drawing in an efficient way in rendering application using culling on the GPU.">
+	<meta name="robots" content="index, follow">
+	<meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+	<meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+	<link rel="canonical" href="http://cpp-rendering.io/indirect-rendering/">
+	<meta property="og:locale" content="en_US">
+	<meta property="og:type" content="article">
+	<meta property="og:title" content="Indirect Rendering : &quot;A way to a million draw calls&quot; - CPP Rendering">
+	<meta property="og:description" content="This article deals with the using of indirect drawing in an efficient way in rendering application using culling on the GPU.">
+	<meta property="og:url" content="http://cpp-rendering.io/indirect-rendering/">
+	<meta property="og:site_name" content="CPP Rendering">
+	<meta property="article:published_time" content="2016-09-16T03:58:20+00:00">
+	<meta property="article:modified_time" content="2016-09-18T16:07:30+00:00">
+	<meta name="twitter:card" content="summary_large_image">
+	<script type="application/ld+json" class="yoast-schema-graph">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"http://cpp-rendering.io/#website","url":"http://cpp-rendering.io/","name":"CPP Rendering","description":"Blog talking about 3D rendering, Qt and C++","potentialAction":[{"@type":"SearchAction","target":"http://cpp-rendering.io/?s={search_term_string}","query-input":"required name=search_term_string"}],"inLanguage":"en-US"},{"@type":"WebPage","@id":"http://cpp-rendering.io/indirect-rendering/#webpage","url":"http://cpp-rendering.io/indirect-rendering/","name":"Indirect Rendering : \"A way to a million draw calls\" - CPP Rendering","isPartOf":{"@id":"http://cpp-rendering.io/#website"},"datePublished":"2016-09-16T03:58:20+00:00","dateModified":"2016-09-18T16:07:30+00:00","author":{"@id":"http://cpp-rendering.io/#/schema/person/09245be359f1180ef4089e5711845802"},"description":"This article deals with the using of indirect drawing in an efficient way in rendering application using culling on the GPU.","inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["http://cpp-rendering.io/indirect-rendering/"]}]},{"@type":["Person"],"@id":"http://cpp-rendering.io/#/schema/person/09245be359f1180ef4089e5711845802","name":"Antoine MORRIER","image":{"@type":"ImageObject","@id":"http://cpp-rendering.io/#personlogo","inLanguage":"en-US","url":"http://2.gravatar.com/avatar/5feffd11eb09d4f7c2c5a98de08becd6?s=96&d=mm&r=g","caption":"Antoine MORRIER"}}]}</script>
+	<!-- / Yoast SEO plugin. -->
+
+
+<link rel="dns-prefetch" href="http://secure.gravatar.com/">
+<link rel="dns-prefetch" href="http://fonts.googleapis.com/">
+<link rel="dns-prefetch" href="http://s.w.org/">
+<link href="https://fonts.gstatic.com/" crossorigin="" rel="preconnect">
+<link rel="alternate" type="application/rss+xml" title="CPP Rendering » Feed" href="http://cpp-rendering.io/feed/">
+<link rel="alternate" type="application/rss+xml" title="CPP Rendering » Comments Feed" href="http://cpp-rendering.io/comments/feed/">
+<link rel="alternate" type="application/rss+xml" title="CPP Rendering » Indirect Rendering : “A way to a million draw calls” Comments Feed" href="http://cpp-rendering.io/indirect-rendering/feed/">
+		<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/12.0.0-1\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/12.0.0-1\/svg\/","svgExt":".svg","source":{"concatemoji":"http:\/\/cpp-rendering.io\/wp-includes\/js\/wp-emoji-release.min.js?ver=5.4.2"}};
+			/*! This file is auto-generated */
+			!function(e,a,t){var r,n,o,i,p=a.createElement("canvas"),s=p.getContext&&p.getContext("2d");function c(e,t){var a=String.fromCharCode;s.clearRect(0,0,p.width,p.height),s.fillText(a.apply(this,e),0,0);var r=p.toDataURL();return s.clearRect(0,0,p.width,p.height),s.fillText(a.apply(this,t),0,0),r===p.toDataURL()}function l(e){if(!s||!s.fillText)return!1;switch(s.textBaseline="top",s.font="600 32px Arial",e){case"flag":return!c([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])&&(!c([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!c([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]));case"emoji":return!c([55357,56424,55356,57342,8205,55358,56605,8205,55357,56424,55356,57340],[55357,56424,55356,57342,8203,55358,56605,8203,55357,56424,55356,57340])}return!1}function d(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(i=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},o=0;o<i.length;o++)t.supports[i[o]]=l(i[o]),t.supports.everything=t.supports.everything&&t.supports[i[o]],"flag"!==i[o]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[i[o]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(r=t.source||{}).concatemoji?d(r.concatemoji):r.wpemoji&&r.twemoji&&(d(r.twemoji),d(r.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script><script src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/wp-emoji-release.min.js(1).download" type="text/javascript" defer=""></script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel="stylesheet" id="twentyfourteen-jetpack-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/twentyfourteen.css" type="text/css" media="all">
+<link rel="stylesheet" id="crayon-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/crayon.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="crayon-theme-qtcreator-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/qtcreator.css" type="text/css" media="all">
+<link rel="stylesheet" id="crayon-font-monaco-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/monaco.css" type="text/css" media="all">
+<link rel="stylesheet" id="wp-block-library-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/style.min.css" type="text/css" media="all">
+<style id="wp-block-library-inline-css" type="text/css">
+.has-text-align-justify{text-align:justify;}
+</style>
+<link rel="stylesheet" id="wp-block-library-theme-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/theme.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="twentyfourteen-lato-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/css" type="text/css" media="all">
+<link rel="stylesheet" id="genericons-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/genericons.css" type="text/css" media="all">
+<link rel="stylesheet" id="twentyfourteen-style-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/style(2).css" type="text/css" media="all">
+<link rel="stylesheet" id="twentyfourteen-block-style-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/blocks.css" type="text/css" media="all">
+<!--[if lt IE 9]>
+<link rel='stylesheet' id='twentyfourteen-ie-css'  href='http://cpp-rendering.io/wp-content/themes/twentyfourteen/css/ie.css?ver=20131205' type='text/css' media='all' />
+<![endif]-->
+<link rel="stylesheet" id="social-logos-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/social-logos.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="jetpack_css-css" href="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/jetpack.css" type="text/css" media="all">
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/jquery.js.download"></script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/jquery-migrate.min.js.download"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var related_posts_js_options = {"post_heading":"h4"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/related-posts.min.js.download"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var CrayonSyntaxSettings = {"version":"_2.7.2_beta","is_admin":"0","ajaxurl":"http:\/\/cpp-rendering.io\/wp-admin\/admin-ajax.php","prefix":"crayon-","setting":"crayon-setting","selected":"crayon-setting-selected","changed":"crayon-setting-changed","special":"crayon-setting-special","orig_value":"data-orig-value","debug":""};
+var CrayonSyntaxStrings = {"copy":"Press %s to Copy, %s to Paste","minimize":"Click To Expand Code"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/crayon.min.js.download"></script>
+<link rel="https://api.w.org/" href="http://cpp-rendering.io/wp-json/">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://cpp-rendering.io/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://cpp-rendering.io/wp-includes/wlwmanifest.xml"> 
+<meta name="generator" content="WordPress 5.4.2">
+<link rel="shortlink" href="https://wp.me/p77aPZ-3g">
+<link rel="alternate" type="application/json+oembed" href="http://cpp-rendering.io/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fcpp-rendering.io%2Findirect-rendering%2F">
+<link rel="alternate" type="text/xml+oembed" href="http://cpp-rendering.io/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fcpp-rendering.io%2Findirect-rendering%2F&amp;format=xml">
+
+<link rel="dns-prefetch" href="http://v0.wordpress.com/">
+<link rel="dns-prefetch" href="http://i0.wp.com/">
+<link rel="dns-prefetch" href="http://i1.wp.com/">
+<link rel="dns-prefetch" href="http://i2.wp.com/">
+<link rel="dns-prefetch" href="http://jetpack.wordpress.com/">
+<link rel="dns-prefetch" href="http://s0.wp.com/">
+<link rel="dns-prefetch" href="http://s1.wp.com/">
+<link rel="dns-prefetch" href="http://s2.wp.com/">
+<link rel="dns-prefetch" href="http://public-api.wordpress.com/">
+<link rel="dns-prefetch" href="http://0.gravatar.com/">
+<link rel="dns-prefetch" href="http://1.gravatar.com/">
+<link rel="dns-prefetch" href="http://2.gravatar.com/">
+<link rel="dns-prefetch" href="http://widgets.wp.com/">
+<style type="text/css">img#wpstats{display:none}</style><style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style><style type="text/css">
+/* <![CDATA[ */
+img.graphviz { vertical-align: middle; border: none; }
+/* ]]> */
+</style>
+		<style type="text/css" id="twentyfourteen-header-css">
+				.site-title a {
+			color: #0066bf;
+		}
+		</style>
+		<style type="text/css" id="custom-background-css">
+body.custom-background { background-color: #000000; }
+</style>
+	<link rel="icon" href="https://i1.wp.com/cpp-rendering.io/wp-content/uploads/2016/02/cropped-pm-1.png?fit=32%2C32" sizes="32x32">
+<link rel="icon" href="https://i1.wp.com/cpp-rendering.io/wp-content/uploads/2016/02/cropped-pm-1.png?fit=192%2C192" sizes="192x192">
+<link rel="apple-touch-icon" href="https://i1.wp.com/cpp-rendering.io/wp-content/uploads/2016/02/cropped-pm-1.png?fit=180%2C180">
+<meta name="msapplication-TileImage" content="https://i1.wp.com/cpp-rendering.io/wp-content/uploads/2016/02/cropped-pm-1.png?fit=270%2C270">
+</head>
+
+<body class="post-template-default single single-post postid-202 single-format-standard custom-background wp-embed-responsive masthead-fixed full-width singular nimbus-is-editor" data-gr-c-s-loaded="true">
+<div id="page" class="hfeed site">
+	
+	<header id="masthead" class="site-header" role="banner">
+		<div class="header-main">
+			<h1 class="site-title"><a href="http://cpp-rendering.io/" rel="home">CPP Rendering</a></h1>
+
+			<div class="search-toggle">
+				<a href="http://cpp-rendering.io/indirect-rendering/#search-container" class="screen-reader-text" aria-expanded="false" aria-controls="search-container">Search</a>
+			</div>
+
+			<nav id="primary-navigation" class="site-navigation primary-navigation" role="navigation">
+				<button class="menu-toggle">Primary Menu</button>
+				<a class="screen-reader-text skip-link" href="http://cpp-rendering.io/indirect-rendering/#content">Skip to content</a>
+				<div class="menu-twit-container"><ul id="primary-menu" class="nav-menu"><li id="menu-item-237" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-237"><a href="https://realtimeillumination.wordpress.com/">Old blog</a></li>
+<li id="menu-item-238" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-238"><a href="http://cpp-rendering.io/wp-content/uploads/2016/11/cv.pdf">resumé</a></li>
+<li id="menu-item-239" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-239"><a href="https://twitter.com/cpprendering">Twitter</a></li>
+</ul></div>			</nav>
+		</div>
+
+		<div id="search-container" class="search-box-wrapper hide">
+			<div class="search-box">
+				<form role="search" method="get" class="search-form" action="http://cpp-rendering.io/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search …" value="" name="s">
+				</label>
+				<input type="submit" class="search-submit" value="Search">
+			</form>			</div>
+		</div>
+	</header><!-- #masthead -->
+
+	<div id="main" class="site-main">
+
+	<div id="primary" class="content-area">
+		<div id="content" class="site-content" role="main">
+			
+<article id="post-202" class="post-202 post type-post status-publish format-standard hentry category-opengl category-tutorial tag-azdo tag-batching tag-cpp11 tag-indirect-drawing tag-opengl">
+	
+	<header class="entry-header">
+				<div class="entry-meta">
+			<span class="cat-links"><a href="http://cpp-rendering.io/category/rendering/opengl/" rel="category tag">OpenGL</a>, <a href="http://cpp-rendering.io/category/rendering/tutorial/" rel="category tag">Tutorial</a></span>
+		</div>
+			<h1 class="entry-title">Indirect Rendering : “A way to a million draw calls”</h1>
+		<div class="entry-meta">
+			<span class="entry-date"><a href="http://cpp-rendering.io/indirect-rendering/" rel="bookmark"><time class="entry-date" datetime="2016-09-16T03:58:20+00:00">September 16, 2016</time></a></span> <span class="byline"><span class="author vcard"><a class="url fn n" href="http://cpp-rendering.io/author/qnope/" rel="author">Antoine MORRIER</a></span></span>			<span class="comments-link"><a href="http://cpp-rendering.io/indirect-rendering/#respond">Leave a comment</a></span>
+						</div><!-- .entry-meta -->
+	</header><!-- .entry-header -->
+
+		<div class="entry-content">
+		<p>Hello !<br>
+This time I am going to talk about the Multi Draw Indirect (MDI) rendering. This feature allows you to enjoy both the purpose of multiDraw and indirect drawing.</p>
+<h1>Where does the overhead comes from?</h1>
+<h2>Issuing a lot of commands</h2>
+<p>Issue a drawcall in GPU based rendering is a really heavy operation for the CPU. Knowing this, drawing a lot of models could be really expensive. &nbsp;A naive draw loop could be seemed like that:</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5eeee5c331a24536143865" class="crayon-syntax crayon-theme-qtcreator crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin: 12px auto; float: none; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 12px !important; height: 18px !important; line-height: 18px !important; margin-top: -19px; display: none; position: absolute; z-index: 2;"><span class="crayon-title"></span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-nums-button crayon-pressed" title="Toggle Line Numbers"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code" style="display: none;"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">foreach(object) {
+    writeUniformData(object, uniformData);
+    glDraw...();
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table" style="">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5eeee5c331a24536143865-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a24536143865-2">2</div><div class="crayon-num" data-line="crayon-5eeee5c331a24536143865-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a24536143865-4">4</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5eeee5c331a24536143865-1"><span class="crayon-st">foreach</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a24536143865-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">writeUniformData</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">uniformData</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a24536143865-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">glDraw</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a24536143865-4"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0006 seconds] -->
+<p></p>
+<p>The problem is solved using glMultiDraw.<br>
+The new code is:</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5eeee5c331a2e241340951" class="crayon-syntax crayon-theme-qtcreator crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin: 12px auto; float: none; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 12px !important; height: 18px !important; line-height: 18px !important; margin-top: -19px; display: none; position: absolute; z-index: 2;"><span class="crayon-title"></span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-nums-button crayon-pressed" title="Toggle Line Numbers"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code" style="display: none;"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">foreach(object)
+    writeUniformData(object, uniformData[i]);
+glMultiDraw...();</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table" style="">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5eeee5c331a2e241340951-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a2e241340951-2">2</div><div class="crayon-num" data-line="crayon-5eeee5c331a2e241340951-3">3</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5eeee5c331a2e241340951-1"><span class="crayon-st">foreach</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a2e241340951-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">writeUniformData</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">uniformData</span><span class="crayon-sy">[</span><span class="crayon-v">i</span><span class="crayon-sy">]</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a2e241340951-3"><span class="crayon-v">glMultiDraw</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0004 seconds] -->
+<p></p>
+<h2>Unknown data</h2>
+<p>Now, admit you want to use culling to improve performance. You know that if you perform it on the GPU side, you will be more efficient than if you use the CPU, but you don’t know how to use the result without passing data from the GPU to the CPU… &nbsp;This is where indirect drawing is efficient.</p>
+<p>Your old code is</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5eeee5c331a33661819640" class="crayon-syntax crayon-theme-qtcreator crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin: 12px auto; float: none; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 12px !important; height: 18px !important; line-height: 18px !important; margin-top: -19px; display: none; position: absolute; z-index: 2;"><span class="crayon-title"></span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-nums-button crayon-pressed" title="Toggle Line Numbers"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code" style="display: none;"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">cullingOnCPU(allObject); // quiet slow
+
+foreach(object)
+    if(object-&gt;isVisible())
+        writeUniformData(object, uniformData[i]);
+glMultiDraw...();</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table" style="">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5eeee5c331a33661819640-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a33661819640-2">2</div><div class="crayon-num" data-line="crayon-5eeee5c331a33661819640-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a33661819640-4">4</div><div class="crayon-num" data-line="crayon-5eeee5c331a33661819640-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a33661819640-6">6</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5eeee5c331a33661819640-1"><span class="crayon-e">cullingOnCPU</span><span class="crayon-sy">(</span><span class="crayon-v">allObject</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span><span class="crayon-h"> </span><span class="crayon-c">// quiet slow</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a33661819640-2">&nbsp;</div><div class="crayon-line" id="crayon-5eeee5c331a33661819640-3"><span class="crayon-st">foreach</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a33661819640-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-o">-&gt;</span><span class="crayon-e">isVisible</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5eeee5c331a33661819640-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">writeUniformData</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">uniformData</span><span class="crayon-sy">[</span><span class="crayon-v">i</span><span class="crayon-sy">]</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a33661819640-6"><span class="crayon-v">glMultiDraw</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0007 seconds] -->
+<p></p>
+<p>Using MDI, you could have something like that</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5eeee5c331a37493677653" class="crayon-syntax crayon-theme-qtcreator crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin: 12px auto; float: none; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 12px !important; height: 18px !important; line-height: 18px !important; margin-top: -19px; display: none; position: absolute; z-index: 2;"><span class="crayon-title"></span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-nums-button crayon-pressed" title="Toggle Line Numbers"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code" style="display: none;"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">cullingOnGPU(allObject);
+
+foreach(object)
+    writeUniformData(object, uniformData[i]);
+glMultiDrawIndirect...();</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table" style="">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5eeee5c331a37493677653-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a37493677653-2">2</div><div class="crayon-num" data-line="crayon-5eeee5c331a37493677653-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a37493677653-4">4</div><div class="crayon-num" data-line="crayon-5eeee5c331a37493677653-5">5</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5eeee5c331a37493677653-1"><span class="crayon-e">cullingOnGPU</span><span class="crayon-sy">(</span><span class="crayon-v">allObject</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a37493677653-2">&nbsp;</div><div class="crayon-line" id="crayon-5eeee5c331a37493677653-3"><span class="crayon-st">foreach</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a37493677653-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">writeUniformData</span><span class="crayon-sy">(</span><span class="crayon-t">object</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">uniformData</span><span class="crayon-sy">[</span><span class="crayon-v">i</span><span class="crayon-sy">]</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a37493677653-5"><span class="crayon-v">glMultiDrawIndirect</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0005 seconds] -->
+<p></p>
+<p>And you don’t have to get the result from the CPU.</p>
+<h2>ARB (MULTI) DRAW INDIRECT</h2>
+<h2>Data and functions</h2>
+<p>This extension provides two structures to perform a drawCall. One for glDrawArrays and one for glDrawElements.</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5eeee5c331a3b381073665" class="crayon-syntax crayon-theme-qtcreator crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin: 12px auto; float: none; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 12px !important; height: 18px !important; line-height: 18px !important; margin-top: -19px; display: none; position: absolute; z-index: 2;"><span class="crayon-title"></span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-nums-button crayon-pressed" title="Toggle Line Numbers"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code" style="display: none;"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">typedef  struct {
+    GLuint  count;
+    GLuint  primCount;
+    GLuint  first;
+    GLuint  baseInstance;
+} DrawArraysIndirectCommand;
+
+typedef  struct {
+    GLuint  count;
+    GLuint  primCount;
+    GLuint  firstIndex;
+    GLint   baseVertex;
+    GLuint  baseInstance;
+} DrawElementsIndirectCommand;
+
+
+void glMultiDrawArraysIndirect(GLenum mode,
+                           const void *indirect,
+                           GLsizei drawcount,
+                           GLsizei stride);
+
+
+void glMultiDrawElementsIndirect(GLenum mode,
+                             GLenum type,
+                             const void *indirect,
+                             GLsizei drawcount,
+                             GLsizei stride);</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table" style="">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-2">2</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-4">4</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-6">6</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-8">8</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-10">10</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-12">12</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-13">13</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-14">14</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-15">15</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-16">16</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-17">17</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-18">18</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-19">19</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-20">20</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-21">21</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-22">22</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-23">23</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-24">24</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-25">25</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a3b381073665-26">26</div><div class="crayon-num" data-line="crayon-5eeee5c331a3b381073665-27">27</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-1"><span class="crayon-r">typedef</span><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-t">struct</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLuint&nbsp;&nbsp;</span><span class="crayon-v">count</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLuint&nbsp;&nbsp;</span><span class="crayon-v">primCount</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLuint&nbsp;&nbsp;</span><span class="crayon-v">first</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLuint&nbsp;&nbsp;</span><span class="crayon-v">baseInstance</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-6"><span class="crayon-sy">}</span><span class="crayon-h"> </span><span class="crayon-v">DrawArraysIndirectCommand</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-7">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-8"><span class="crayon-r">typedef</span><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-t">struct</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLuint&nbsp;&nbsp;</span><span class="crayon-v">count</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLuint&nbsp;&nbsp;</span><span class="crayon-v">primCount</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLuint&nbsp;&nbsp;</span><span class="crayon-v">firstIndex</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLint&nbsp;&nbsp; </span><span class="crayon-v">baseVertex</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">GLuint&nbsp;&nbsp;</span><span class="crayon-v">baseInstance</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-14"><span class="crayon-sy">}</span><span class="crayon-h"> </span><span class="crayon-v">DrawElementsIndirectCommand</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-15">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-16">&nbsp;</div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-17"><span class="crayon-t">void</span><span class="crayon-h"> </span><span class="crayon-e">glMultiDrawArraysIndirect</span><span class="crayon-sy">(</span><span class="crayon-e">GLenum </span><span class="crayon-v">mode</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-18"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-m">const</span><span class="crayon-h"> </span><span class="crayon-t">void</span><span class="crayon-h"> </span><span class="crayon-o">*</span><span class="crayon-v">indirect</span><span class="crayon-sy">,</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-19"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">GLsizei </span><span class="crayon-v">drawcount</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-20"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">GLsizei </span><span class="crayon-v">stride</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-21">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-22">&nbsp;</div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-23"><span class="crayon-t">void</span><span class="crayon-h"> </span><span class="crayon-e">glMultiDrawElementsIndirect</span><span class="crayon-sy">(</span><span class="crayon-e">GLenum </span><span class="crayon-v">mode</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-24"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">GLenum </span><span class="crayon-v">type</span><span class="crayon-sy">,</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-25"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-m">const</span><span class="crayon-h"> </span><span class="crayon-t">void</span><span class="crayon-h"> </span><span class="crayon-o">*</span><span class="crayon-v">indirect</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a3b381073665-26"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">GLsizei </span><span class="crayon-v">drawcount</span><span class="crayon-sy">,</span></div><div class="crayon-line" id="crayon-5eeee5c331a3b381073665-27"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">GLsizei </span><span class="crayon-v">stride</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0019 seconds] -->
+<p></p>
+<p><strong>count</strong> specifies the number of elements (vertices) to be rendered<br>
+<strong>primcount</strong> specifies the number of instances to be rendered (in our cases, it will be 0 or 1)<br>
+<strong>first</strong> specifies the position of the first vertex<br>
+<strong>firstIndex</strong> specifies the position of the first index<br>
+<strong>baseVertex</strong> specifies the position of the first vertex<br>
+<strong>baseInstance</strong> specifies the first instance to be rendered (a bit tricky, but I am going to explain that later).</p>
+<h2>How to Use it</h2>
+<p>These structures should be put into an OpenGL Buffer Object using the target&nbsp;<strong>GL_DRAW_INDIRECT_BUFFER</strong>.<br>
+Admit you have a big scene with, for 5000 distinct objects <em>and</em>&nbsp;100 000 meshes. You&nbsp;<em>must&nbsp;</em>have:</p>
+<ol>
+<li>5 000 matrices in a SSBO</li>
+<li>“<em>5 000</em>” materials (not really true, but you understand the idea) in a SSBO</li>
+<li>100 000 commands in your indirect buffer</li>
+<li>A SSBO which contains&nbsp;<em>bounding boxes&nbsp;</em>data by meshes (to perform culling for each meshes).</li>
+</ol>
+<p>Now, what you want is RENDER all the scene. The steps to do that are :</p>
+<ol>
+<li>Fill matrices / materials /&nbsp;<em>bouding boxes / indirect&nbsp;</em>buffer</li>
+<li>make a dispatch using a compute shader to perform culling</li>
+<li>Issue a memory barrier</li>
+<li>render</li>
+</ol>
+<p>The first step is straightforward.<br>
+The second is easy, you use the indirect buffer as a SSBO in the compute shader and set the&nbsp;<strong>primCount&nbsp;</strong>value to 0 if the mesh is not visible or 1 instead<br>
+You are intending to issue an indirect command…<br>
+render.</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5eeee5c331a41398931983" class="crayon-syntax crayon-theme-qtcreator crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin: 12px auto; float: none; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 12px !important; height: 18px !important; line-height: 18px !important; margin-top: -19px; display: none; position: absolute; z-index: 2;"><span class="crayon-title"></span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-nums-button crayon-pressed" title="Toggle Line Numbers"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">fillBuffers();
+glDispatchIndirect();
+glMemoryBarrier(GL_COMMAND_BARRIER_BIT /*|GL_SHADER_STORAGE_BARRIER_BIT*/);
+glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
+glBindVertexArray(vao);
+glMultiDraw*Indirect();</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table" style="">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5eeee5c331a41398931983-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a41398931983-2">2</div><div class="crayon-num" data-line="crayon-5eeee5c331a41398931983-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a41398931983-4">4</div><div class="crayon-num" data-line="crayon-5eeee5c331a41398931983-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a41398931983-6">6</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5eeee5c331a41398931983-1"><span class="crayon-e">fillBuffers</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a41398931983-2"><span class="crayon-e">glDispatchIndirect</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a41398931983-3"><span class="crayon-e">glMemoryBarrier</span><span class="crayon-sy">(</span><span class="crayon-v">GL_COMMAND_BARRIER_BIT</span><span class="crayon-h"> </span><span class="crayon-c">/*|GL_SHADER_STORAGE_BARRIER_BIT*/</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a41398931983-4"><span class="crayon-e">glBindBuffer</span><span class="crayon-sy">(</span><span class="crayon-v">GL_DRAW_INDIRECT_BUFFER</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">indirectBuffer</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5eeee5c331a41398931983-5"><span class="crayon-e">glBindVertexArray</span><span class="crayon-sy">(</span><span class="crayon-v">vao</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a41398931983-6"><span class="crayon-e ">glMultiDraw*</span><span class="crayon-e">Indirect</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0006 seconds] -->
+<p></p>
+<p>Beautiful ! But how do I know which data I have to use?</p>
+<ol>
+<li>The first way is to use gl_DrawIDARB which is pretty explicit.</li>
+<li>The way we are going to see and the one I am advising, is to use the baseInstance from structures seen prior.</li>
+</ol>
+<p>Why gl_DrawIDARB is not convenient? Simply because it is slower than the second way on most implementations, and because we will not be able to use <em>ARB INDIRECT PARAMETERS</em> with it.</p>
+<p>So, for the second way, we must add one or several buffers to the prior list (two in our cases, &nbsp;one for indexing the matrix buffer, and one for indexing the material buffer). These buffers will contain integer values (the index of the matrix / material in their SSBO). Because they will be used through baseInstance, you understand that these buffers will be vertex buffers using a divisor through glVertexBindingDivisor.</p>
+<h3>A Caveat?</h3>
+<p>As you noticed, when you&nbsp;<em>remove</em> a command setting&nbsp;<strong>primCount</strong> to 0, the command is not really removed… Here is coming the extension ARB INDIRECT PARAMETERS. Instead of settings the&nbsp;<strong>primCount</strong> to 0, you let it to one, but if the mesh is not visible, you don’t add to the really used buffer command, using an atomic counter, you know exactly how many meshes should be rendered.<br>
+You have to bind the atomic buffer to GL_PARAMETER_BUFFER_ARB and use the functions</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5eeee5c331a46218270491" class="crayon-syntax crayon-theme-qtcreator crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin: 12px auto; float: none; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 12px !important; height: 18px !important; line-height: 18px !important; margin-top: -19px; display: none; position: absolute; z-index: 2;"><span class="crayon-title"></span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-nums-button crayon-pressed" title="Toggle Line Numbers"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code" style="display: none;"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon" style="background-size: 48px 128px; background-image: url(&quot;http://cpp-rendering.io/wp-content/plugins/crayon-syntax-highlighter/css/images/toolbar/buttons@2x.png&quot;);"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">void MultiDrawArraysIndirectCountARB(enum mode,
+                                     const void *indirect,
+                                     intptr drawcount,
+                                     sizei maxdrawcount,
+                                     sizei stride);
+
+void MultiDrawElementsIndirectCountARB(enum mode,
+                                       enum type,
+                                       const void *indirect,
+                                       intptr drawcount,
+                                       sizei maxdrawcount,
+                                       sizei stride);</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table" style="">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5eeee5c331a46218270491-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a46218270491-2">2</div><div class="crayon-num" data-line="crayon-5eeee5c331a46218270491-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a46218270491-4">4</div><div class="crayon-num" data-line="crayon-5eeee5c331a46218270491-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a46218270491-6">6</div><div class="crayon-num" data-line="crayon-5eeee5c331a46218270491-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a46218270491-8">8</div><div class="crayon-num" data-line="crayon-5eeee5c331a46218270491-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a46218270491-10">10</div><div class="crayon-num" data-line="crayon-5eeee5c331a46218270491-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-5eeee5c331a46218270491-12">12</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5eeee5c331a46218270491-1"><span class="crayon-t">void</span><span class="crayon-h"> </span><span class="crayon-e">MultiDrawArraysIndirectCountARB</span><span class="crayon-sy">(</span><span class="crayon-t">enum</span><span class="crayon-h"> </span><span class="crayon-v">mode</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a46218270491-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-m">const</span><span class="crayon-h"> </span><span class="crayon-t">void</span><span class="crayon-h"> </span><span class="crayon-o">*</span><span class="crayon-v">indirect</span><span class="crayon-sy">,</span></div><div class="crayon-line" id="crayon-5eeee5c331a46218270491-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">intptr </span><span class="crayon-v">drawcount</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a46218270491-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">sizei </span><span class="crayon-v">maxdrawcount</span><span class="crayon-sy">,</span></div><div class="crayon-line" id="crayon-5eeee5c331a46218270491-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">sizei </span><span class="crayon-v">stride</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a46218270491-6">&nbsp;</div><div class="crayon-line" id="crayon-5eeee5c331a46218270491-7"><span class="crayon-t">void</span><span class="crayon-h"> </span><span class="crayon-e">MultiDrawElementsIndirectCountARB</span><span class="crayon-sy">(</span><span class="crayon-t">enum</span><span class="crayon-h"> </span><span class="crayon-v">mode</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a46218270491-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-t">enum</span><span class="crayon-h"> </span><span class="crayon-v">type</span><span class="crayon-sy">,</span></div><div class="crayon-line" id="crayon-5eeee5c331a46218270491-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-m">const</span><span class="crayon-h"> </span><span class="crayon-t">void</span><span class="crayon-h"> </span><span class="crayon-o">*</span><span class="crayon-v">indirect</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a46218270491-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">intptr </span><span class="crayon-v">drawcount</span><span class="crayon-sy">,</span></div><div class="crayon-line" id="crayon-5eeee5c331a46218270491-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">sizei </span><span class="crayon-v">maxdrawcount</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-5eeee5c331a46218270491-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-e">sizei </span><span class="crayon-v">stride</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0012 seconds] -->
+<p></p>
+<h1>References</h1>
+<p><iframe src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/IjwhmRCrc1zA3X.html" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen=""> </iframe> </p>
+<div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/CassEveritt/approaching-zero-driver-overhead" title="Approaching zero driver overhead" target="_blank">Approaching zero driver overhead</a> </strong> from <strong><a href="http://www.slideshare.net/CassEveritt" target="_blank">Cass Everitt</a></strong> </div>
+<p><a href="https://www.opengl.org/registry/specs/ARB/indirect_parameters.txt">Indirect Parameters<br>
+</a><a href="https://www.opengl.org/registry/specs/ARB/multi_draw_indirect.txt">Multi Draw Indirect<br>
+</a><a href="https://www.g-truc.net/post-0518.html">Surviving without drawID</a></p>
+<div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-twitter"><a rel="nofollow noopener noreferrer" data-shared="sharing-twitter-202" class="share-twitter sd-button share-icon no-text" href="http://cpp-rendering.io/indirect-rendering/?share=twitter&amp;nb=1" target="_blank" title="Click to share on Twitter"><span></span><span class="sharing-screen-reader-text">Click to share on Twitter (Opens in new window)</span></a></li><li class="share-facebook"><a rel="nofollow noopener noreferrer" data-shared="sharing-facebook-202" class="share-facebook sd-button share-icon no-text" href="http://cpp-rendering.io/indirect-rendering/?share=facebook&amp;nb=1" target="_blank" title="Click to share on Facebook"><span></span><span class="sharing-screen-reader-text">Click to share on Facebook (Opens in new window)</span></a></li><li class="share-end"></li></ul></div></div></div><div class="sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-loaded" id="like-post-wrapper-105144311-202-5eeee5c347be9" data-src="https://widgets.wp.com/likes/#blog_id=105144311&amp;post_id=202&amp;origin=cpp-rendering.io&amp;obj_id=105144311-202-5eeee5c347be9" data-name="like-post-frame-105144311-202-5eeee5c347be9"><h3 class="sd-title">Like this:</h3><div class="likes-widget-placeholder post-likes-widget-placeholder" style="height: 55px; display: none;"><span class="button"><span>Like</span></span> <span class="loading">Loading...</span></div><iframe name="like-post-frame-105144311-202-5eeee5c347be9" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/saved_resource(5).html" height="55px" width="100%" frameborder="0" scrolling="no"></iframe><span class="sd-text-color"></span><a class="sd-link-color"></a></div>
+<div id="jp-relatedposts" class="jp-relatedposts" style="display: block;">
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+<div class="jp-relatedposts-items jp-relatedposts-items-minimal jp-relatedposts-grid "><p class="jp-relatedposts-post jp-relatedposts-post0" data-post-id="184" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://cpp-rendering.io/opengl-azdo-bindless-textures/" title="OpenGL AZDO : Bindless Textures : batching problem solved
+
+Hello! After playing with Vulkan, I had to assume that it is not as easy as I wanted to use. Since this thing done, I preferred to come back to OpenGL. However, Vulkan let sme learn a lot of things about how OpenGL works internally. I am going to make…" data-origin="202" data-position="0">OpenGL AZDO : Bindless Textures : batching problem solved</a></span><span class="jp-relatedposts-post-date">April 16, 2016</span><span class="jp-relatedposts-post-context">In "OpenGL"</span></p><p class="jp-relatedposts-post jp-relatedposts-post1" data-post-id="244" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://cpp-rendering.io/barriers-vulkan-not-difficult/" title="Barriers in Vulkan : They are not that difficult
+
+Hi ! Yes, I know, I lied, I said that my next article will be about buffers or images, but, finally, I&#39;d prefer to talk about barriers first. However, barriers are, IMHO, a really difficult thing to well understand, so, this article might countain some mistakes. In that case, please,…" data-origin="202" data-position="1">Barriers in Vulkan : They are not that difficult</a></span><span class="jp-relatedposts-post-date">November 10, 2016</span><span class="jp-relatedposts-post-context">In "Tutorial"</span></p><p class="jp-relatedposts-post jp-relatedposts-post2" data-post-id="119" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://cpp-rendering.io/lava-erupting-vulkan/" title="Lava erupting from Vulkan : Initialization or Hello World
+
+Hi there ! A Few weeks ago, February 16th to be precise, Vulkan, the new graphic API from Khronos was released. It is a new API which gives much more control about the GPUs than OpenGL (API I loved before Vulkan ^_^). OpenGL&#39;s problems Driver Overhead Fast rendering problems could be…" data-origin="202" data-position="2">Lava erupting from Vulkan : Initialization or Hello World</a></span><span class="jp-relatedposts-post-date">March 6, 2016</span><span class="jp-relatedposts-post-context">In "Lava"</span></p></div></div>	</div><!-- .entry-content -->
+	
+	<footer class="entry-meta"><span class="tag-links"><a href="http://cpp-rendering.io/tag/azdo/" rel="tag">AZDO</a><a href="http://cpp-rendering.io/tag/batching/" rel="tag">batching</a><a href="http://cpp-rendering.io/tag/cpp11/" rel="tag">C++11</a><a href="http://cpp-rendering.io/tag/indirect-drawing/" rel="tag">Indirect drawing</a><a href="http://cpp-rendering.io/tag/opengl/" rel="tag">OpenGL</a></span></footer></article><!-- #post-202 -->
+		<nav class="navigation post-navigation" role="navigation">
+		<h1 class="screen-reader-text">Post navigation</h1>
+		<div class="nav-links">
+			<a href="http://cpp-rendering.io/opengl-azdo-bindless-textures/" rel="prev"><span class="meta-nav">Previous Post</span>OpenGL AZDO : Bindless Textures : batching problem solved</a><a href="http://cpp-rendering.io/vulkan-memory-management-2/" rel="next"><span class="meta-nav">Next Post</span>Vulkan Memory Management : How to write your own allocator</a>			</div><!-- .nav-links -->
+		</nav><!-- .navigation -->
+		
+<div id="comments" class="comments-area">
+
+	
+	
+		<div id="respond" class="comment-respond">
+							<h3 id="reply-title" class="comment-reply-title">Leave a Reply					<small><a rel="nofollow" id="cancel-comment-reply-link" href="http://cpp-rendering.io/indirect-rendering/#respond" style="display:none;">Cancel reply</a></small>
+				</h3>
+						<form id="commentform" class="comment-form">
+				<iframe title="Comment Form" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/saved_resource(6).html" style="width: 100%; height: 59px; border: 0px;" name="jetpack_remote_comment" class="jetpack_remote_comment" id="jetpack_remote_comment" sandbox="allow-same-origin allow-top-navigation allow-scripts allow-forms allow-popups" scrolling="no"></iframe>
+									<!--[if !IE]><!-->
+					<script>
+						document.addEventListener('DOMContentLoaded', function () {
+							var commentForms = document.getElementsByClassName('jetpack_remote_comment');
+							for (var i = 0; i < commentForms.length; i++) {
+								commentForms[i].allowTransparency = false;
+								commentForms[i].scrolling = 'no';
+							}
+						});
+					</script>
+					<!--<![endif]-->
+							</form>
+		</div>
+
+		
+		<input type="hidden" name="comment_parent" id="comment_parent" value="">
+
+		
+</div><!-- #comments -->
+		</div><!-- #content -->
+	</div><!-- #primary -->
+
+<div id="secondary">
+		<h2 class="site-description">Blog talking about 3D rendering, Qt and C++</h2>
+	
+		<nav role="navigation" class="navigation site-navigation secondary-navigation">
+		<div class="menu-twit-container"><ul id="menu-twit" class="menu"><li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-237"><a href="https://realtimeillumination.wordpress.com/">Old blog</a></li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-238"><a href="http://cpp-rendering.io/wp-content/uploads/2016/11/cv.pdf">resumé</a></li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-239"><a href="https://twitter.com/cpprendering">Twitter</a></li>
+</ul></div>	</nav>
+	
+		<div id="primary-sidebar" class="primary-sidebar widget-area" role="complementary">
+		<aside id="search-2" class="widget widget_search"><form role="search" method="get" class="search-form" action="http://cpp-rendering.io/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search …" value="" name="s">
+				</label>
+				<input type="submit" class="search-submit" value="Search">
+			</form></aside>		<aside id="recent-posts-2" class="widget widget_recent_entries">		<h1 class="widget-title">Recent Posts</h1>		<ul>
+											<li>
+					<a href="http://cpp-rendering.io/multithreading-monadic-expression/">Multithreading in an expressive way with monadic expression</a>
+									</li>
+											<li>
+					<a href="http://cpp-rendering.io/range-expressive-smart-iterators/">Range : Be expressive using smart iterators with Range based containers</a>
+									</li>
+											<li>
+					<a href="http://cpp-rendering.io/mipmap-generation/">Mipmap generation : Transfers, transition layout</a>
+									</li>
+											<li>
+					<a href="http://cpp-rendering.io/buffer-management-vulkan/">Buffer management with Vulkan : transfer, Staging buffer</a>
+									</li>
+											<li>
+					<a href="http://cpp-rendering.io/barriers-vulkan-not-difficult/">Barriers in Vulkan : They are not that difficult</a>
+									</li>
+					</ul>
+		</aside><aside id="recent-comments-2" class="widget widget_recent_comments"><h1 class="widget-title">Recent Comments</h1><ul id="recentcomments"><li class="recentcomments"><span class="comment-author-link"><a href="https://www.porndodo.com/" rel="external nofollow ugc" class="url">PornDodo</a></span> on <a href="http://cpp-rendering.io/multithreading-monadic-expression/#comment-304">Multithreading in an expressive way with monadic expression</a></li><li class="recentcomments"><span class="comment-author-link">Antoine MORRIER</span> on <a href="http://cpp-rendering.io/multithreading-monadic-expression/#comment-303">Multithreading in an expressive way with monadic expression</a></li><li class="recentcomments"><span class="comment-author-link"><a href="https://exorank.com/resellers.php" rel="external nofollow ugc" class="url">SEO Reseller Program</a></span> on <a href="http://cpp-rendering.io/multithreading-monadic-expression/#comment-302">Multithreading in an expressive way with monadic expression</a></li><li class="recentcomments"><span class="comment-author-link">Antoine MORRIER</span> on <a href="http://cpp-rendering.io/barriers-vulkan-not-difficult/#comment-216">Barriers in Vulkan : They are not that difficult</a></li><li class="recentcomments"><span class="comment-author-link"><a href="https://github.com/devshgraphicsprogramming" rel="external nofollow ugc" class="url">devsh</a></span> on <a href="http://cpp-rendering.io/barriers-vulkan-not-difficult/#comment-210">Barriers in Vulkan : They are not that difficult</a></li></ul></aside><aside id="archives-2" class="widget widget_archive"><h1 class="widget-title">Archives</h1>		<ul>
+				<li><a href="http://cpp-rendering.io/2017/12/">December 2017</a></li>
+	<li><a href="http://cpp-rendering.io/2017/01/">January 2017</a></li>
+	<li><a href="http://cpp-rendering.io/2016/11/">November 2016</a></li>
+	<li><a href="http://cpp-rendering.io/2016/09/">September 2016</a></li>
+	<li><a href="http://cpp-rendering.io/2016/04/">April 2016</a></li>
+	<li><a href="http://cpp-rendering.io/2016/03/">March 2016</a></li>
+	<li><a href="http://cpp-rendering.io/2016/02/">February 2016</a></li>
+	<li><a href="http://cpp-rendering.io/2016/01/">January 2016</a></li>
+		</ul>
+			</aside><aside id="categories-2" class="widget widget_categories"><h1 class="widget-title">Categories</h1>		<ul>
+				<li class="cat-item cat-item-9"><a href="http://cpp-rendering.io/category/qt/c/">C++</a>
+</li>
+	<li class="cat-item cat-item-47"><a href="http://cpp-rendering.io/category/c-2/">C++</a>
+</li>
+	<li class="cat-item cat-item-24"><a href="http://cpp-rendering.io/category/vulkan/lava/">Lava</a>
+</li>
+	<li class="cat-item cat-item-31"><a href="http://cpp-rendering.io/category/rendering/opengl/">OpenGL</a>
+</li>
+	<li class="cat-item cat-item-8"><a href="http://cpp-rendering.io/category/qt/qml/">QML</a>
+</li>
+	<li class="cat-item cat-item-5"><a href="http://cpp-rendering.io/category/rendering/">Rendering</a>
+</li>
+	<li class="cat-item cat-item-6"><a href="http://cpp-rendering.io/category/rendering/tutorial/">Tutorial</a>
+</li>
+	<li class="cat-item cat-item-25"><a href="http://cpp-rendering.io/category/vulkan/tutorial-vulkan/">Tutorial</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://cpp-rendering.io/category/uncategorized/">Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-23"><a href="http://cpp-rendering.io/category/vulkan/">Vulkan</a>
+</li>
+		</ul>
+			</aside><aside id="meta-2" class="widget widget_meta"><h1 class="widget-title">Meta</h1>			<ul>
+						<li><a rel="nofollow" href="http://cpp-rendering.io/wp-login.php">Log in</a></li>
+			<li><a href="http://cpp-rendering.io/feed/">Entries feed</a></li>
+			<li><a href="http://cpp-rendering.io/comments/feed/">Comments feed</a></li>
+			<li><a href="https://wordpress.org/">WordPress.org</a></li>			</ul>
+			</aside>	</div><!-- #primary-sidebar -->
+	</div><!-- #secondary -->
+
+		</div><!-- #main -->
+
+		<footer id="colophon" class="site-footer" role="contentinfo">
+
+			
+			<div class="site-info">
+												<a href="https://wordpress.org/" class="imprint">
+					Proudly powered by WordPress				</a>
+			</div><!-- .site-info -->
+		</footer><!-- #colophon -->
+	</div><!-- #page -->
+
+	
+	<script type="text/javascript">
+		window.WPCOM_sharing_counts = {"http:\/\/cpp-rendering.io\/indirect-rendering\/":202};
+	</script>
+				<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/photon.min.js.download"></script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/comment-reply.min.js.download"></script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/functions.js.download"></script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/wp-embed.min.js.download"></script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/postmessage.min.js.download"></script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/jquery.jetpack-resize.min.js.download"></script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/queuehandler.min.js.download"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var sharing_js_options = {"lang":"en","counts":"1","is_stats_active":"1"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/sharing.min.js.download"></script>
+<script type="text/javascript">
+var windowOpen;
+			jQuery( document.body ).on( 'click', 'a.share-twitter', function() {
+				// If there's another sharing window open, close it.
+				if ( 'undefined' !== typeof windowOpen ) {
+					windowOpen.close();
+				}
+				windowOpen = window.open( jQuery( this ).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+var windowOpen;
+			jQuery( document.body ).on( 'click', 'a.share-facebook', function() {
+				// If there's another sharing window open, close it.
+				if ( 'undefined' !== typeof windowOpen ) {
+					windowOpen.close();
+				}
+				windowOpen = window.open( jQuery( this ).attr( 'href' ), 'wpcomfacebook', 'menubar=1,resizable=1,width=600,height=400' );
+				return false;
+			});
+</script>
+	<iframe src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/master.html" scrolling="no" id="likes-master" name="likes-master" style="display:none;"></iframe>
+	<div id="likes-other-gravatars"><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+	
+		<!--[if IE]>
+		<script type="text/javascript">
+			if ( 0 === window.location.hash.indexOf( '#comment-' ) ) {
+				// window.location.reload() doesn't respect the Hash in IE
+				window.location.hash = window.location.hash;
+			}
+		</script>
+		<![endif]-->
+		<script type="text/javascript">
+			(function () {
+				var comm_par_el = document.getElementById( 'comment_parent' ),
+					comm_par = ( comm_par_el && comm_par_el.value ) ? comm_par_el.value : '',
+					frame = document.getElementById( 'jetpack_remote_comment' ),
+					tellFrameNewParent;
+
+				tellFrameNewParent = function () {
+					if ( comm_par ) {
+						frame.src = "https://jetpack.wordpress.com/jetpack-comment/?blogid=105144311&postid=202&comment_registration=0&require_name_email=1&stc_enabled=1&stb_enabled=1&show_avatars=1&avatar_default=mystery&greeting=Leave+a+Reply&greeting_reply=Leave+a+Reply+to+%25s&color_scheme=light&lang=en_US&jetpack_version=8.5&show_cookie_consent=10&has_cookie_consent=0&token_key=%3Bnormal%3B&sig=e4a6fb52492505ddae9d92db7c2529e5890e4cb2#parent=http%3A%2F%2Fcpp-rendering.io%2Findirect-rendering%2F" + '&replytocom=' + parseInt( comm_par, 10 ).toString();
+					} else {
+						frame.src = "https://jetpack.wordpress.com/jetpack-comment/?blogid=105144311&postid=202&comment_registration=0&require_name_email=1&stc_enabled=1&stb_enabled=1&show_avatars=1&avatar_default=mystery&greeting=Leave+a+Reply&greeting_reply=Leave+a+Reply+to+%25s&color_scheme=light&lang=en_US&jetpack_version=8.5&show_cookie_consent=10&has_cookie_consent=0&token_key=%3Bnormal%3B&sig=e4a6fb52492505ddae9d92db7c2529e5890e4cb2#parent=http%3A%2F%2Fcpp-rendering.io%2Findirect-rendering%2F";
+					}
+				};
+
+				
+				if ( 'undefined' !== typeof addComment ) {
+					addComment._Jetpack_moveForm = addComment.moveForm;
+
+					addComment.moveForm = function ( commId, parentId, respondId, postId ) {
+						var returnValue = addComment._Jetpack_moveForm( commId, parentId, respondId, postId ),
+							cancelClick, cancel;
+
+						if ( false === returnValue ) {
+							cancel = document.getElementById( 'cancel-comment-reply-link' );
+							cancelClick = cancel.onclick;
+							cancel.onclick = function () {
+								var cancelReturn = cancelClick.call( this );
+								if ( false !== cancelReturn ) {
+									return cancelReturn;
+								}
+
+								if ( ! comm_par ) {
+									return cancelReturn;
+								}
+
+								comm_par = 0;
+
+								tellFrameNewParent();
+
+								return cancelReturn;
+							};
+						}
+
+						if ( comm_par == parentId ) {
+							return returnValue;
+						}
+
+						comm_par = parentId;
+
+						tellFrameNewParent();
+
+						return returnValue;
+					};
+				}
+
+				
+				// Do the post message bit after the dom has loaded.
+				document.addEventListener( 'DOMContentLoaded', function () {
+					var iframe_url = "https:\/\/jetpack.wordpress.com";
+					if ( window.postMessage ) {
+						if ( document.addEventListener ) {
+							window.addEventListener( 'message', function ( event ) {
+								var origin = event.origin.replace( /^http:\/\//i, 'https://' );
+								if ( iframe_url.replace( /^http:\/\//i, 'https://' ) !== origin ) {
+									return;
+								}
+								jQuery( frame ).height( event.data );
+							});
+						} else if ( document.attachEvent ) {
+							window.attachEvent( 'message', function ( event ) {
+								var origin = event.origin.replace( /^http:\/\//i, 'https://' );
+								if ( iframe_url.replace( /^http:\/\//i, 'https://' ) !== origin ) {
+									return;
+								}
+								jQuery( frame ).height( event.data );
+							});
+						}
+					}
+				})
+
+			})();
+		</script>
+
+		<script type="text/javascript" src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/e-202025.js.download" async="async" defer="defer"></script>
+<script type="text/javascript">
+	_stq = window._stq || [];
+	_stq.push([ 'view', {v:'ext',j:'1:8.5',blog:'105144311',post:'202',tz:'0',srv:'cpp-rendering.io'} ]);
+	_stq.push([ 'clickTrackerInit', '105144311', '202' ]);
+</script>
+
+
+<div class="nsc-panel nsc-panel-compact nsc-hide">
+    <div class="nsc-panel-move"></div>
+    <div class="nsc-panel-tooltip">
+        <div class="nsc-panel-tooltip-layout" layout="row" layout-align="start center">CTRL+V to toggle the panel</div>
+    </div>
+
+    <div class="nsc-panel-layout" flex="" layout="row" layout-align="start center">
+        <div class="nsc-panel-groups" flex="" layout="row" layout-align="start start">
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <div class="nsc-panel-button separated active">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+                            <span class="nsc-icon nsc-icon-cursor-normal" data-i18n="videoPanelSimpleCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorRing">&nbsp;</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown to-top">
+                        <ul flex="" layout="row" layout-align="start center">
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-shade" data-i18n="videoPanelFocusMouse" data-event="nimbus-editor-active-tools" data-event-param="cursorShadow">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-circle" data-i18n="videoPanelAnimatedCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorRing">&nbsp;</span>
+                            </li>
+                            <!--<li class="nsc-panel-dropdown-icon " flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-tail"></span>-->
+                            <!--</li>-->
+                            <!--<li class="nsc-panel-dropdown-icon " flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-long"></span>-->
+                            <!--</li>-->
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-normal" data-i18n="videoPanelSimpleCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorDefault">&nbsp;</span>
+                            </li>
+                            <!--<li class="nsc-panel-dropdown-icon" flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-none" data-event="nimbus-editor-active-tools" data-event-param="cursorNone"></span>-->
+                            <!--</li>-->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- /group -->
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-pen" data-i18n="videoPanelPen" data-event="nimbus-editor-active-tools" data-event-param="pen">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-arrow-line" data-i18n="videoPanelArrow" data-event="nimbus-editor-active-tools" data-event-param="arrow">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-square" data-i18n="videoPanelSquare" data-event="nimbus-editor-active-tools" data-event-param="square">&nbsp;</span>
+                </button>
+                <div class="nsc-panel-button separated">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+                            <span class="nsc-icon nsc-icon-attention" data-i18n="videoPanelMark" data-event="nimbus-editor-active-tools" data-event-param="notifRed">&nbsp;</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown to-top">
+                        <ul flex="" layout="row" layout-align="start center">
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-attention" data-i18n="videoPanelMark" data-event="nimbus-editor-active-tools" data-event-param="notifRed">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-question" data-i18n="videoPanelQuestion" data-event="nimbus-editor-active-tools" data-event-param="notifBlue">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-done" data-i18n="videoPanelCheckmark" data-event="nimbus-editor-active-tools" data-event-param="notifGreen">&nbsp;</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="nsc-panel-button assembled">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+							<span class="nsc-icon nsc-icon-fill-none nsc-panel-icon-fill">
+								<span class="nsc-panel-icon-fill-inner" id="nsc_panel_button_colors" style="background:#00FF00;" data-event="nimbus-editor-active-color" data-event-param="#00FF00">&nbsp;</span>
+							</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown">
+                        <div class="nsc-panel-drop-area">
+                            <div class="nsc-panel-colors">
+
+                                <!-- picked -->
+                                <div class="nsc-colors-picked">
+                                    <div class="nsc-colors-picked-layout" flex="" layout="row" layout-align="start start" layout-wrap="">
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#000000">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #000000;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#0000FF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #0000FF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FF00FF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FF00FF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#00FFFF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #00FFFF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#00FF00">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #00FF00;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FFFF00">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FFFF00;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FF0000">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FF0000;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FFFFFF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FFFFFF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <!--<div class="nsc-colors-picked-item">-->
+                                        <!--<button class="nsc-colors-picked-button custom" type="button"> -->
+                                        <!--<i class="nsc-icon ic-color-custom"></i> -->
+                                        <!--</button>-->
+                                        <!--</div>-->
+                                    </div>
+                                </div>
+                                <!-- /picked -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /group -->
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <button class="nsc-panel-button nsc-hide" type="button">
+                    <span class="nsc-icon nsc-icon-eraser" data-i18n="videoPanelClear" data-event="nimbus-editor-active-tools" data-event-param="clear">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-eraser-all" data-i18n="videoPanelClearAll" data-event="nimbus-editor-active-tools" data-event-param="clearAll">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-webcam" data-i18n="videoPanelCamera" id="nimbus_web_camera_toggle">&nbsp;</span>
+                </button>
+            </div>
+            <!-- /group -->
+        </div>
+
+        <div class="nsc-panel-actions" flex="none" layout="row" layout-align="start center">
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_play" style="display: none;">
+                <span class="nsc-icon nsc-icon-play">&nbsp;</span>
+            </button>
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_pause">
+                <span class="nsc-icon nsc-icon-pause">&nbsp;</span>
+            </button>
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_stop">
+                <span class="nsc-icon nsc-icon-stop">&nbsp;</span>
+            </button>
+        </div>
+
+        <!-- panel togglers -->
+        <div class="nsc-panel-togglers" layout="row" layout-align="start center" flex="none">
+            <button class="nsc-panel-toggle-button" type="button">
+                <span class="nsc-icon nsc-icon-panel-close" data-i18n="videoPanelHideShowPanel">&nbsp;</span>
+            </button>
+        </div>
+        <!-- /panel togglers -->
+
+    </div>
+</div>
+<div class="nsc-video-editor nsc-hide events" style="width: 1263px; height: 5690px;"><canvas width="1263" height="5690" style="width: 1263px; height: 5690px; position: absolute; top: 0px; left: 0px; z-index: 0;"></canvas><canvas width="1263" height="5690" style="width: 1263px; height: 5690px; position: absolute; top: 0px; left: 0px; z-index: 1;"></canvas><canvas width="1263" height="5690" style="width: 1263px; height: 5690px; position: absolute; top: 0px; left: 0px; z-index: 2;"></canvas></div><div class="nsc-content-camera nsc-hide" style="top: 0px; left: 0px;">
+    <div class="nsc-content-camera-buttons" flex="none" layout="row" layout-align="start start">
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_collapse" style="display: none">
+            <span class="nsc-icon nsc-icon-panel-collapse"></span>
+        </button>
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_expand">
+            <span class="nsc-icon nsc-icon-panel-expand"></span>
+        </button>
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_close">
+            <span class="nsc-icon nsc-icon-panel-close"></span>
+        </button>
+    </div>
+    <div class="nsc-content-camera-container">
+        <div class="nsc-content-camera-shadow"></div>
+    </div>
+</div>
+<img src="./Indirect Rendering _ _A way to a million draw calls_ - CPP Rendering_files/g.gif" alt=":)" width="6" height="5" id="wpstats"></body></html>

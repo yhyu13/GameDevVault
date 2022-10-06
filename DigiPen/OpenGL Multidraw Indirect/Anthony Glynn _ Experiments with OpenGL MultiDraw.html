@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<!-- saved from url=(0043)http://www.antglynn.com/articles/multidraw/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      
+      <title>Anthony Glynn | Experiments with OpenGL MultiDraw</title>
+      <script src="./Anthony Glynn _ Experiments with OpenGL MultiDraw_files/jquery-2.1.4.js.download"></script>
+      <link rel="stylesheet" href="./Anthony Glynn _ Experiments with OpenGL MultiDraw_files/bootstrap.css">
+      <link rel="stylesheet" href="./Anthony Glynn _ Experiments with OpenGL MultiDraw_files/bootstrap-responsive.css">
+      <link rel="stylesheet" href="./Anthony Glynn _ Experiments with OpenGL MultiDraw_files/bootstrap-theme.css">
+   </head>
+   <body data-gr-c-s-loaded="true" class="nimbus-is-editor">
+      <div class="container">
+         <h3>/ <a href="http://www.antglynn.com/">Home</a> / Articles &gt;</h3>
+         <hr>
+         <center><h1>Experiments with OpenGL MultiDraw</h1></center>
+         <br>
+
+
+<p>After watching the GDC 2014 talk <a href="http://gdcvault.com/play/1020791/">Approaching Zero Driver Overhead in OpenGL</a> I was keen to try out a couple of the techniques presented. Persistently mapped buffers were relatively straightforward to implement, however rendering using Multi-Draw commands took some effort to get right, and required that I make a simple test project. I’m presenting the results of my test project experiments here, partly as a future reference for myself, but perhaps someone else will stumble upon this and hopefully find it useful. The full source code is available at the bottom of this page.</p>
+
+<h3>Why Use Multi-Draw commands?</h3>
+<p>We usually want to store multiple objects in a single Vertex Array Object (VAO) as this removes the overhead of changing the VAO bound to OpenGL. This would normally mean iterating over the objects in the VAO, and dispatching a glDraw command for each object. We can reduce driver overhead further by hoisting the draw command out of the objects loop. Instead we batch together the draw command parameters for each object in the VAO, and then kick them off to the GPU using a single glMultiDraw function call. Our inner-most loop is now being performed on the GPU instead of the CPU.</p>
+
+<p>Things start to get a little trickier if the objects have additional data in uniform buffers. Instead taking a single uniform value as parameter, the vertex shader should take an array of uniforms. The shader must now also know which draw call it is processing, in order to find the correct data from the uniform storage. If you’re lucky, you might have access to a built-in GLSL parameter: gl_DrawID. This parameter is however not supported everywhere, but we can implement this functionality ourselves. We can also leverage the instancing interface for additional behaviour.</p>
+
+<h3>Test 1: Simple Coloured Triangles</h3>
+<p>The first test program draws four triangles, one in each quadrant of the image. Each triangle vertex is assigned a colour. The vertex positions for all four triangles are stored in a single VAO, and all the vertex colours in a second VAO.</p>
+
+Here is our vertex shader...:
+<pre>#version 430
+
+layout(location = 0) in vec2 Vertex;
+layout(location = 1) in vec3 Colour;
+
+out vec3 FragColour;
+
+void main()
+{
+   gl_Position = vec4(Vertex, 0, 1);
+   FragColour = Colour;
+};
+</pre>
+
+
+...and our fragment shader:
+<pre>#version 430
+
+in vec3 FragColour;
+
+out vec4 color;
+
+void main()
+{
+   color = vec4(FragColour, 1);
+};
+</pre>
+
+Since we are creating such a trivial test environment, we initialise our data at the same as we create our OpenGL handles, and leave our VAO bound to the context:
+<pre>GLuint VertexArrayID;
+glGenVertexArrays(1, &amp;VertexArrayID);
+glBindVertexArray(VertexArrayID);
+
+const float VertexBufferData[] = {
+    0.0f,  0.0f,
+    0.5f,  1.0f,
+    1.0f,  0.0f,
+
+   -1.0f,  0.0f,
+   -0.5f,  1.0f,
+    0.0f,  0.0f,
+
+    0.0f, -1.0f,
+    0.5f,  0.0f,
+    1.0f, -1.0f,
+
+   -1.0f, -1.0f,
+   -0.5f,  0.0f,
+    0.0f, -1.0f,
+};
+
+GLuint VertexBufferID;
+glGenBuffers(1, &amp;VertexBufferID);
+glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID);
+glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferData), VertexBufferData, GL_STATIC_DRAW);
+glEnableVertexAttribArray(0);
+glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+const float ColourBufferData[] = {
+   1.0f, 0.0f, 0.0f,
+   0.0f, 1.0f, 0.0f,
+   1.0f, 1.0f, 0.0f,
+
+   0.0f, 0.0f, 1.0f,
+   1.0f, 0.0f, 0.0f,
+   0.0f, 1.0f, 0.0f,
+
+   1.0f, 1.0f, 0.0f,
+   0.0f, 0.0f, 1.0f,
+   1.0f, 0.0f, 0.0f,
+
+   0.0f, 1.0f, 0.0f,
+   1.0f, 1.0f, 0.0f,
+   0.0f, 0.0f, 1.0f,
+};
+
+GLuint ColourBufferID;
+glGenBuffers(1, &amp;ColourBufferID);
+glBindBuffer(GL_ARRAY_BUFFER, ColourBufferID);
+glBufferData(GL_ARRAY_BUFFER, sizeof(ColourBufferData), ColourBufferData, GL_STATIC_DRAW);
+glEnableVertexAttribArray(1);
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+</pre>
+
+Inside our main loop we then need only make our draw call:
+<pre>glDrawArrays(GL_TRIANGLES, 0, 12);
+</pre>
+
+<center><img src="./Anthony Glynn _ Experiments with OpenGL MultiDraw_files/MultiDrawTest2.png" height="400px"><br>Test 1 Output</center>
+
+<h3>Test 2: MultiDraw</h3>
+<p>We now replace our glDrawArrays call with glMultiDrawArraysIndirect. In order to do this, we need to pass it a an array of draw commands.</p>
+
+First we need to define a data structure for a single command:
+<pre>typedef struct {
+   GLuint Count;
+   GLuint InstanceCount;
+   GLuint First;
+   GLuint BaseInstance;
+} draw_arrays_indirect_command;
+</pre>
+
+After our previous initialisation code, we create and populate our command buffer:
+<pre>const GLuint CommandCount = 4;
+draw_arrays_indirect_command Commands[CommandCount];
+for(GLuint CommandIndex = 0; CommandIndex &lt; CommandCount; ++CommandIndex)
+{
+   draw_arrays_indirect_command* Command = Commands + CommandIndex;
+   Command-&gt;Count = 3;
+   Command-&gt;InstanceCount = 1;
+   Command-&gt;First = CommandIndex * 3;
+   Command-&gt;BaseInstance = 0;
+}
+</pre>
+
+And finally we replace our draw call:
+<pre>glMultiDrawArraysIndirect(GL_TRIANGLES, Commands, CommandCount, 0);
+</pre>
+
+<h3>Test 3: Colour Indexing</h3>
+<p>In our first step towards more interesting behaviour, we will change how vertex colour data is sent to the GPU. Instead of specifying three 32-bit floating point values per colour for each vertex, we will store the colours in a separate buffer, and only send an index into that buffer per vertex. To simplify things initially, we will store the colour tables in the vertex buffer.</p>
+
+We update the vertex shader to define our colours, and to perform the colour table lookup:
+<pre>#version 430
+
+layout(location = 0) in vec2 Vertex;
+layout(location = 1) in uint ColourIndex;
+
+const vec3 Colours[4] = {
+   vec3(1.0f, 0.0f, 0.0f),
+   vec3(0.0f, 1.0f, 0.0f),
+   vec3(1.0f, 1.0f, 0.0f),
+   vec3(0.0f, 0.0f, 1.0f),
+};
+
+out vec3 FragColour;
+
+void main()
+{
+   gl_Position = vec4(Vertex, 0, 1);
+   FragColour = Colours[ColourIndex];
+};
+</pre>
+
+And in our initialisation code, we replace the colour buffer with a colour index buffer:
+<pre>const unsigned int ColourIndexBufferData[] = {0, 1, 2, 3, 1, 1, 2, 2, 2, 3, 3, 3};
+
+GLuint ColourIndexBufferID;
+glGenBuffers(1, &amp;ColourIndexBufferID);
+glBindBuffer(GL_ARRAY_BUFFER, ColourIndexBufferID);
+glBufferData(GL_ARRAY_BUFFER, sizeof(ColourIndexBufferData), ColourIndexBufferData, GL_STATIC_DRAW);
+glEnableVertexAttribArray(1);
+glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 0, NULL);
+</pre>
+
+<center><img src="./Anthony Glynn _ Experiments with OpenGL MultiDraw_files/MultiDrawTest3.png" height="400px"><br>Test 3 Output</center>
+
+<h3>Test 4: SSBOs</h3>
+<p>If we want to change the values in our colour table at runtime, we can’t keep it in our shader. We could pass the colour table in a uniform buffer, but here we will try a Shader Storage Buffer Object (SSBO). SSBOs operate in a similar manner to uniform buffers but can be much larger, and can be written to from the shader.</p>
+
+We update the vertex shader to access the colours from a SSBO :
+<pre>#version 430
+
+layout(location = 0) in vec2 Vertex;
+layout(location = 1) in uint ColourIndex;
+
+layout(std140, binding = 0) buffer CB0
+{
+   vec3 Colours[];
+};
+
+out vec3 FragColour;
+
+void main()
+{
+   gl_Position = vec4(Vertex, 0, 1);
+   FragColour = Colours[ColourIndex];
+};
+</pre>
+
+In the initialisation code we create the SSBO:
+<pre>We might initially be tempted to create the SSBO as follows:
+const float ColoursBufferData[] = {
+   1.0f, 0.0f, 0.0f, 0.0f,
+   0.0f, 1.0f, 0.0f, 0.0f,
+   1.0f, 1.0f, 0.0f, 0.0f,
+   0.0f, 0.0f, 1.0f, 0.0f,
+};
+
+GLuint ColoursBufferID;
+glGenBuffers(1, &amp;ColoursBufferID);
+glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ColoursBufferID);
+glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ColoursBufferData), ColoursBufferData, GL_STATIC_DRAW);
+</pre>
+
+<b>Note:</b> You may have noticed that we are padding the colour table with an additional floating point value per colour. This is due to using the implementation independant layout std140. Without the std140 layout qualifier, different implementations may align or pad the data differently, and we would need to query OpenGL for each variable's index and offset. The layout is defined in the <a href="https://www.opengl.org/registry/doc/glspec45.core.pdf">OpenGL specification</a>, but the bit we care about states:
+   <center><i>If the member is a three-component vector with components consuming N basic machine units, the base alignment is 4N.</i></center>
+Hence, we need to provide four 32-bit floating point values per colour, and the last value will be ignored by the shader.
+
+<h3>Test 5: Using the Instancing interface</h3>
+<p>If we want to send a single colour value for the whole triangle, then instead of duplicating the colour index for each vertex, we can use the instancing interface to send a single colour index per triangle. This allows us to reduce the size of our colour index buffer.</p>
+
+For our colour index attribute, we set the VertexAttribDivisor to 1. This means our draw command will always return to the start of the colour index buffer for each command.
+<pre>const unsigned int ColourIndexBufferData[] = {0, 1, 2, 3};
+
+GLuint ColourIndexBufferID;
+glGenBuffers(1, &amp;ColourIndexBufferID);
+glBindBuffer(GL_ARRAY_BUFFER, ColourIndexBufferID);
+glBufferData(GL_ARRAY_BUFFER, sizeof(ColourIndexBufferData), ColourIndexBufferData, GL_STATIC_DRAW);
+glEnableVertexAttribArray(1);
+glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 0, NULL);
+glVertexAttribDivisor(1, 1);
+</pre>
+
+In order for the draw command to access the correct data, we then modify the base instance:
+<pre>const GLuint CommandCount = 4;
+draw_arrays_indirect_command Commands[CommandCount];
+for(GLuint CommandIndex = 0; CommandIndex &lt; CommandCount; ++CommandIndex)
+{
+   draw_arrays_indirect_command* Command = Commands + CommandIndex;
+   Command-&gt;Count = 3;
+   Command-&gt;InstanceCount = 1;
+   Command-&gt;First = CommandIndex * 3;
+   Command-&gt;BaseInstance = CommandIndex;
+}
+</pre>
+
+<center><img src="./Anthony Glynn _ Experiments with OpenGL MultiDraw_files/MultiDrawTest5.png" height="400px"><br>Test 5 Output</center>
+<br>
+
+         <h3>Download</h3>
+         <ul>
+            <li>
+               <a href="http://www.antglynn.com/articles/multidraw/MultiDrawTest.zip">Source Code</a> (.zip file)<br>
+               Includes SDL 2.0.4 (zlib license)
+            </li>
+         </ul>
+
+         <h3>Building &amp; Running</h3>
+         <ul>
+            <li>
+               Microsoft Windows:
+               <ul>
+                  <li>Open a shell containing the path and environment variables for Microsoft’s C++ command-line build tools.</li>
+                  <li>Navigate to the project root directory.</li>
+                  <li>
+                     Run the build.bat file:
+                     <br>
+                     <code>&gt; build</code>
+                  </li>
+                  <li>
+                     The executable is contained in the new build directory:
+                     <br>
+                     <code>&gt; build\voxel.exe</code>
+                  </li>
+               </ul>
+            </li>
+         </ul>
+
+         <hr>
+         <div><center>Copyright © 2016 Anthony Glynn</center></div>
+         <hr>
+      </div>
+   
+
+<div class="nsc-panel nsc-panel-compact nsc-hide">
+    <div class="nsc-panel-move"></div>
+    <div class="nsc-panel-tooltip">
+        <div class="nsc-panel-tooltip-layout" layout="row" layout-align="start center">CTRL+V to toggle the panel</div>
+    </div>
+
+    <div class="nsc-panel-layout" flex="" layout="row" layout-align="start center">
+        <div class="nsc-panel-groups" flex="" layout="row" layout-align="start start">
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <div class="nsc-panel-button separated active">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+                            <span class="nsc-icon nsc-icon-cursor-normal" data-i18n="videoPanelSimpleCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorRing">&nbsp;</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown to-top">
+                        <ul flex="" layout="row" layout-align="start center">
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-shade" data-i18n="videoPanelFocusMouse" data-event="nimbus-editor-active-tools" data-event-param="cursorShadow">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-circle" data-i18n="videoPanelAnimatedCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorRing">&nbsp;</span>
+                            </li>
+                            <!--<li class="nsc-panel-dropdown-icon " flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-tail"></span>-->
+                            <!--</li>-->
+                            <!--<li class="nsc-panel-dropdown-icon " flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-long"></span>-->
+                            <!--</li>-->
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-normal" data-i18n="videoPanelSimpleCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorDefault">&nbsp;</span>
+                            </li>
+                            <!--<li class="nsc-panel-dropdown-icon" flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-none" data-event="nimbus-editor-active-tools" data-event-param="cursorNone"></span>-->
+                            <!--</li>-->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- /group -->
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-pen" data-i18n="videoPanelPen" data-event="nimbus-editor-active-tools" data-event-param="pen">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-arrow-line" data-i18n="videoPanelArrow" data-event="nimbus-editor-active-tools" data-event-param="arrow">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-square" data-i18n="videoPanelSquare" data-event="nimbus-editor-active-tools" data-event-param="square">&nbsp;</span>
+                </button>
+                <div class="nsc-panel-button separated">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+                            <span class="nsc-icon nsc-icon-attention" data-i18n="videoPanelMark" data-event="nimbus-editor-active-tools" data-event-param="notifRed">&nbsp;</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown to-top">
+                        <ul flex="" layout="row" layout-align="start center">
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-attention" data-i18n="videoPanelMark" data-event="nimbus-editor-active-tools" data-event-param="notifRed">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-question" data-i18n="videoPanelQuestion" data-event="nimbus-editor-active-tools" data-event-param="notifBlue">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-done" data-i18n="videoPanelCheckmark" data-event="nimbus-editor-active-tools" data-event-param="notifGreen">&nbsp;</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="nsc-panel-button assembled">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+							<span class="nsc-icon nsc-icon-fill-none nsc-panel-icon-fill">
+								<span class="nsc-panel-icon-fill-inner" id="nsc_panel_button_colors" style="background:#00FF00;" data-event="nimbus-editor-active-color" data-event-param="#00FF00">&nbsp;</span>
+							</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown">
+                        <div class="nsc-panel-drop-area">
+                            <div class="nsc-panel-colors">
+
+                                <!-- picked -->
+                                <div class="nsc-colors-picked">
+                                    <div class="nsc-colors-picked-layout" flex="" layout="row" layout-align="start start" layout-wrap="">
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#000000">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #000000;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#0000FF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #0000FF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FF00FF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FF00FF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#00FFFF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #00FFFF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#00FF00">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #00FF00;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FFFF00">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FFFF00;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FF0000">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FF0000;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FFFFFF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FFFFFF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <!--<div class="nsc-colors-picked-item">-->
+                                        <!--<button class="nsc-colors-picked-button custom" type="button"> -->
+                                        <!--<i class="nsc-icon ic-color-custom"></i> -->
+                                        <!--</button>-->
+                                        <!--</div>-->
+                                    </div>
+                                </div>
+                                <!-- /picked -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /group -->
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <button class="nsc-panel-button nsc-hide" type="button">
+                    <span class="nsc-icon nsc-icon-eraser" data-i18n="videoPanelClear" data-event="nimbus-editor-active-tools" data-event-param="clear">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-eraser-all" data-i18n="videoPanelClearAll" data-event="nimbus-editor-active-tools" data-event-param="clearAll">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-webcam" data-i18n="videoPanelCamera" id="nimbus_web_camera_toggle">&nbsp;</span>
+                </button>
+            </div>
+            <!-- /group -->
+        </div>
+
+        <div class="nsc-panel-actions" flex="none" layout="row" layout-align="start center">
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_play" style="display: none;">
+                <span class="nsc-icon nsc-icon-play">&nbsp;</span>
+            </button>
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_pause">
+                <span class="nsc-icon nsc-icon-pause">&nbsp;</span>
+            </button>
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_stop">
+                <span class="nsc-icon nsc-icon-stop">&nbsp;</span>
+            </button>
+        </div>
+
+        <!-- panel togglers -->
+        <div class="nsc-panel-togglers" layout="row" layout-align="start center" flex="none">
+            <button class="nsc-panel-toggle-button" type="button">
+                <span class="nsc-icon nsc-icon-panel-close" data-i18n="videoPanelHideShowPanel">&nbsp;</span>
+            </button>
+        </div>
+        <!-- /panel togglers -->
+
+    </div>
+</div>
+<div class="nsc-video-editor nsc-hide events" style="width: 1263px; height: 6423px;"><canvas width="1263" height="6423" style="width: 1263px; height: 6423px; position: absolute; top: 0px; left: 0px; z-index: 0;"></canvas><canvas width="1263" height="6423" style="width: 1263px; height: 6423px; position: absolute; top: 0px; left: 0px; z-index: 1;"></canvas><canvas width="1263" height="6423" style="width: 1263px; height: 6423px; position: absolute; top: 0px; left: 0px; z-index: 2;"></canvas></div><div class="nsc-content-camera nsc-hide">
+    <div class="nsc-content-camera-buttons" flex="none" layout="row" layout-align="start start">
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_collapse" style="display: none">
+            <span class="nsc-icon nsc-icon-panel-collapse"></span>
+        </button>
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_expand">
+            <span class="nsc-icon nsc-icon-panel-expand"></span>
+        </button>
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_close">
+            <span class="nsc-icon nsc-icon-panel-close"></span>
+        </button>
+    </div>
+    <div class="nsc-content-camera-container">
+        <div class="nsc-content-camera-shadow"></div>
+    </div>
+</div>
+</body></html>

@@ -1,0 +1,89 @@
+paper = {
+    shortName: "Mara2016DeepGBuffer",
+
+    venue: "Proceedings of the High Performance Graphics 2016",
+
+    title: "Deep G-Buffers for Stable Global Illumination Approximation",
+
+    authors: [
+              {name:        "Michael Mara", 
+               affiliationList: ["NVIDIA", "Stanford University"]},
+              {name:        "Morgan McGuire", 
+               affiliationList: ["NVIDIA", "Williams College"]},
+              {name:        "Derek Nowrouzezahrai", 
+               affiliationList: ["University of Montreal"]},
+              {name:        "David Luebke", 
+               affiliationList: ["NVIDIA"]},
+             ],
+
+    //The first thing in the download list should be the paper pdf as it will be linked to the icon picture
+    contentList: [  {name: '<br/><b>Extended Version</b> (15 pages, more details than the proceedings version):' +
+                            '<ul>' +
+                            '<li><a href="Mara2016DeepGBuffer-extended.pdf">Gamma 2.2 ("Darker")</a> (61 MB PDF)</li>' +
+                            '<li><a href="Mara2016DeepGBuffer-extended-small.pdf">Gamma 2.2 Low Resolution</a> (2.4 MB PDF)</li>' +
+                            '<li><a href="Mara2016DeepGBuffer-extended-bright.pdf">Gamma 2.0 ("Brighter")</a> (61 MB PDF)</li>' +
+                            '<li><a href="Mara2016DeepGBuffer-extended-bright-small.pdf">Gamma 2.0 Low Resolution</a> (2.4 MB PDF)</li>' +
+                            '<li><a href="supplemental.pdf">Supplemental result and code index</a> (4.5 MB PDF)</li>' +
+                            '</ul>',
+                    },
+
+                    {name: "Proceedings Version",
+                    bold: true,
+                    size: "12 pages, 47 MB",
+                    format: "PDF",
+                    href: "Mara2016DeepGBuffer.pdf"},
+
+                    {name: "Abstract",
+                    href: "#abstract"},
+                    
+                    {name: "Demo",
+                    bold: true,
+                    size: "108 MB",
+                    format: "Windows EXE + Source",
+                    href: "Mara2016DeepGBuffersDemo.zip"},
+
+                    {name: "Video results",
+                    bold: true,
+                    format: "YouTube",
+                    href: "#video"},
+
+                    {name: "Video results",
+                    size: "94 MB",
+                    format: "MP4",
+                    href: "Mara2016DeepGBuffer.mp4"},
+
+                    {name: "Images",
+                    href: "#images"},
+
+                    {name: "BibTex",
+                    href: "#bibtex"},
+                    
+                  ],
+
+    //orderedImages refers to images named in integer sequence (e.g. 1.jpg, 2.jpg, 3.jpg or 1.png, 2.png, 3.png)
+    orderedImages: {firstIndex: 1,
+                    lastIndex: 11,
+                    extension: ".png"},
+
+    //be sure that the link is embedable (i.e. it starts with https://www.youtube.com/embed/)
+    youtubeLink: {link: "https://www.youtube.com/embed/FOifsDM65s0",
+                  width: 560,
+                  height: 315,
+                  }, //add in resolution: width, height: aspect ratio
+
+    //if you don't want to add month or day then just set them to null
+    publishDate: {year: "2016",
+                 month: "June",
+                 day: "24",
+                },
+
+    abstractText: "We introduce a new hardware-accelerated method for constructing Deep G-buffers that is 2x-8x faster than the previous depth peeling method and produces more stable results. We then build several high-performance shading algorithms atop our representation, including dynamic diffuse interreflection, ambient occlusion (AO), and mirror reflection effects." +
+"<br/><br/>Our construction method s order-independent, guarantees a minimum separation between layers, operates in a (small) bounded memory footprint, and does not require per-pixel sorting. Moreover, addressing the increasingly expensive cost of pre-rasterization, our approach requires only a single pass over the scene geometry. Our global illumination algorithms approach the speed of the fastest screen-space AO-only techniques while significantly exceeding their quality: we capture small-scale details and complex radiometric effects more robustly than screen-space techniques, and we implicitly handle dynamic illumination conditions. We include the pseudocode for our Deep G-buffer construction in the paper and the full source code of our technique in our supplemental document.",
+
+    numPages: '11',
+
+    //(e.g. "misc" or "inproceedings")
+    bibtexClass: "inproceedings",
+
+    note: "HPG",
+};

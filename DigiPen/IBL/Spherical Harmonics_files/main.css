@@ -1,0 +1,122 @@
+body {
+    margin: 60px auto;
+    width: 70%;
+	background-color: #eee;
+}
+.header nav ul {
+    font-family:'Helvetica', 'Arial', 'Sans-Serif';
+    padding: 0px;
+    list-style: none;
+    font-weight: bold;
+}
+
+.header nav{
+	border-bottom: 1px solid #d5d5d5;
+}
+
+.header nav ul li, footer ul li {
+    display: inline;
+    margin-right: 20px;
+}
+a {
+    text-decoration: none;
+    color: #333;
+}
+a:hover {
+    text-decoration: underline;
+}
+h1 {
+    font-size: 3em;
+    font-family:'Helvetica', 'Arial', 'Sans-Serif';
+}
+p {
+    font-size: 1.5em;
+    line-height: 1.4em;
+    color: #222;
+}
+
+p a {
+    text-decoration: none;
+    color: #161;
+     text-decoration: underline;
+}
+
+footer {
+    
+    font-size: .8em;
+}
+
+footer ul{
+font-family:'Helvetica', 'Arial', 'Sans-Serif';
+    padding: 5px 0px;
+    list-style: none;
+    font-weight: bold;
+	border-top: 1px solid #d5d5d5;
+}
+
+ul.posts { 
+    margin: 20px auto 40px; 
+    font-size: 1.5em;
+}
+
+ul.posts li {
+    list-style: none;
+}
+
+.fieldset-auto-width {
+         display: inline-block;
+}
+
+.videoWrapper {
+	position: relative;
+}
+.videoWrapper iframe {
+	display: block;
+    margin: auto;
+}
+
+
+.listUrls nav {
+	border-bottom: none;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    font-size: 1.5em;
+    line-height: 1.4em;
+    color: #222;
+}
+
+.listTechnologies ul li {
+    font-size: 1.5em;
+    line-height: 1.4em;
+    color: #333;
+}
+
+.slider {
+  display: inline-block;
+  width: 100px;
+  height: 30px;
+  margin: 1em;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+ 
+.color{
+  display: inline-block;
+  width: 100px;
+  float: left;
+}
+
+.firstLine td{
+    border-bottom: 2px solid black;
+}
+
+.secondLine td{
+    border-bottom: 1px solid black;
+}

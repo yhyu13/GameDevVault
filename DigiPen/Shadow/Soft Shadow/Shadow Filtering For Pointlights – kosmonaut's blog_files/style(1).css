@@ -1,0 +1,726 @@
+/*COMCAST DYNAMIC UNITS*/
+
+html,
+body,
+div,
+span,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+abbr,
+address,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+samp,
+small,
+strong,
+sub,
+sup,
+var,
+b,
+i,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+body {
+    font-family: sans-serif;
+    line-height: 1;
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+    display: block;
+}
+
+nav ul {
+    list-style: none;
+}
+
+blockquote,
+q {
+    quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+a {
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+/* change colours to suit your needs */
+
+ins {
+    background-color: #ff9;
+    color: #000;
+    text-decoration: none;
+}
+
+/* change colours to suit your needs */
+
+mark {
+    background-color: #ff9;
+    color: #000;
+    font-style: italic;
+    font-weight: bold;
+}
+
+del {
+    text-decoration: line-through;
+}
+
+abbr[title],
+dfn[title] {
+    border-bottom: 1px dotted;
+    cursor: help;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* change border colour to suit your needs */
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #cccccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+input,
+select {
+    vertical-align: middle;
+}
+
+sub,
+sup {
+
+    font-size: 45%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+sup {
+    top: -0.8em;
+    
+}
+
+
+/*------- Calling FT hosted Comcast Fonts --------*/
+/*/ Xfinity Brown Regular /*/
+
+@font-face {
+  font-family: 'XfinityBrownWeb-Regular';
+  src: url:('https://cdn.flashtalking.com/93411/fonts/7d1c67efe403cb3f72ae695a3b3a4e1809ec8710.eot'); /* IE9 Compat Modes */
+  src: url('https://cdn.flashtalking.com/93411/fonts/40915d5c7fac9eb0b4397623fac4cd6d0a48852d.woff2') format('woff2'),
+   url('https://cdn.flashtalking.com/93411/fonts/1bf1652af0afef4076dc2fd7e065fbe531cdf610.woff') format('woff'); /* Legacy iOS */
+}
+
+/*/ XfinityBrownWeb-Bold /*/
+@font-face {
+  font-family: 'XfinityBrownWeb-Bold';
+  src: url('https://cdn.flashtalking.com/93411/fonts/57cfca5154c2481062a796915c0bdab3ed0f6fd6.eot'); /* IE9 Compat Modes */
+  src: url('https://cdn.flashtalking.com/93411/fonts/d4b3e162de98cb3f43636cde35fcc00e89f83fdf.woff2') format('woff2'),
+   url('https://cdn.flashtalking.com/93411/fonts/1ccbf188da2dd4565c47b990c13da23365f1251e.woff') format('woff'); /* Legacy iOS */
+}
+
+/*/ XfinityBrownWeb-BoldItalic /*/
+@font-face {
+  font-family: 'XfinityBrownWeb-BoldItalic';
+  src: url('https://cdn.flashtalking.com/93411/fonts/dd78931fcea87798824b2ea15508b3018ea83801.eot'); /* IE9 Compat Modes */
+  src: url('https://cdn.flashtalking.com/93411/fonts/925713410a76312ac03b99b396ff01617ccd51b4.woff2') format('woff2'),
+   url('https://cdn.flashtalking.com/93411/fonts/a241002feb1cb850183df40e8eac072407f86886.woff') format('woff'); /* Legacy iOS */
+}
+
+/*/ XfinityBrownWeb-Light /*/
+@font-face {
+  font-family: 'XfinityBrownWeb-Light';
+  src: url('https://cdn.flashtalking.com/93411/fonts/0cd2571b390e50c7237ba186315923424f49f8ad.eot'); /* IE9 Compat Modes */
+  src: url('https://cdn.flashtalking.com/93411/fonts/24941008179701317ed1b84ece7f42ed6a90c2d4.woff2') format('woff2'),
+   url('https://cdn.flashtalking.com/93411/fonts/74e41835de34c8deb73e1f979e66fe374ac4ccb9.woff') format('woff'); /* Legacy iOS */
+}
+
+/*/ XfinityBrownWeb-LightItalic /*/
+@font-face {
+  font-family: 'XfinityBrownWeb-LightItalic';
+  src: url('https://cdn.flashtalking.com/93411/fonts/289be44322768fce8ee7f2f396e63bb7bd4741eb.eot'); /* IE9 Compat Modes */
+  src: url('https://cdn.flashtalking.com/93411/fonts/ee87a989f489f04b7ce40ad162c93a2681c95db1.woff2') format('woff2'),
+   url('https://cdn.flashtalking.com/93411/fonts/196109e48488e6306e22a4d01083b2cf62f52247.woff') format('woff'); /* Legacy iOS */
+}
+
+/* ---------------------------------- Font Style Classses ---------------------------------- */
+
+.xbr { font-family : 'XfinityBrownWeb-Regular'; font-style:normal;}
+.xsb { font-family : 'XfinityBrownWeb-Bold'; font-style:normal;}
+.xsbi { font-family: 'XfinityBrownWeb-BoldItalic', sans-serif; font-style:normal;}
+.xli { font-family : 'XfinityBrownWeb-Light'; font-style: normal;}
+.xsli { font-family : 'XfinityBrownWeb-LightItalic'; font-style: normal;}
+
+
+/* ---------------------------------- Styles ---------------------------------- */
+
+html {
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+div, img, ft-dynamic {
+   position : absolute;
+}
+
+
+
+#frame1BackgroundImage, 
+{
+    background-size: 100% 100%;
+}
+
+#container {
+    width: 300px;
+    height: 250px;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+    border: 1px solid #808080;
+}
+/* ---------------------------------- NON DYNAMIC ELEMENTS ---------------------------------- */
+#logo {
+    bottom:6px;
+    left:6px;
+    width: 65px;
+    height: 21px;
+}
+
+
+#dotted_line{
+    position: absolute;
+    top: 78px;
+    left: 147px;
+    width: 2px;
+    height: 90px;
+    background-image: url(dotted_line.svg);
+    background-size: 100% 100%;   
+}
+
+#GreyBackground{
+    position: absolute;
+    top:0px;
+    left:0px;
+    width: 300px;
+    height: 250px;
+    background-color: #f2f4f5;
+}
+
+#bottomBar_grey {   
+    top: 203px;
+    left: -74px;
+    height: 430px;
+    width: 430px;
+    background-color: #ebeef0;
+    transform: rotate(83.5deg);
+}
+
+
+/* ---------------------------------- IMAGE DYNAMIC ELEMENTS ---------------------------------- */
+#ScrollAnimationContainer{
+    position: absolute;
+    top:0px;
+    left:150px;
+    width: 150px;
+    height: 966px;
+}
+
+
+#F2F3DevicesContainer{
+    position: absolute;
+    top:0px;
+    left:0px;
+    width: 150px;
+    height: 966px;
+}
+
+#F2F3Devices img{
+    position: absolute;
+    top:0px;
+    left:0px;
+    width: 150px;
+    height: 966px;
+    background-size: 100% 100%;
+}
+
+#EFDevicesContainer{
+    position: absolute;
+    top:59px;
+    left:139px;
+    width: 161px;
+    height: 148px;
+}
+
+#EFDevices img{
+    position: absolute;
+    top:0px;
+    left:0px;
+    width: 161px;
+    height: 148px;
+    background-size: 100% 100%;
+}
+
+/* ---------------------------------- HEADLINE DYNAMIC ELEMENTS ---------------------------------- */
+#F1HeadlineHolder{
+    position: absolute;
+    top: 26px;
+    left: 12px;
+    width: 274px;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+#F1Headline{
+    position: relative;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -1.6px;
+    font-size: 40px;
+}
+
+#F1SubHeadlineHolder{
+    position: absolute;
+    top: 124px;
+    left: 12px;
+    width: 274px;
+    height: 35px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+#F1SubHeadline01{
+    position: relative;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -1.1px;
+    font-size: 25px;
+    margin-right: 6px;
+}
+
+#F1SubHeadlineAnimationHolder{
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#F1SubHeadline02{
+    position: absolute;
+    top:0px;
+    left:0px;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -1.1px;
+    font-size: 25px;
+}
+
+#F1SubHeadline03{
+    position: absolute;
+    top:0px;
+    left:0px;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -1.1px;
+    font-size: 25px;
+}
+
+#F1SubHeadline04{
+    position: absolute;
+    top:0px;
+    left:0px;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -1.1px;
+    font-size: 25px;
+}
+
+#F1SubHeadline05{
+    position: absolute;
+    top:0px;
+    left:0px;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -1.1px;
+    font-size: 25px;
+}
+
+#F2HeadlineHolder{
+    position: absolute;
+    top: 52px;
+    left: 12px;
+    width: 130px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#F2Headline{
+    position: relative;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -.8px;
+    font-size: 20px;
+}
+
+#F3HeadlineMask{
+    position: absolute;
+    top: 52px;
+    left: 12px;
+    width: 130px;
+    height: 150px;
+    overflow: hidden;
+}
+
+#F3HeadlineHolder{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 130px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#F3Headline{
+    position: relative;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -.8px;
+    font-size: 20px;
+}
+
+.wordbold {
+    font-size: 20px;
+    font-family : 'XfinityBrownWeb-Bold'; 
+    font-style:normal;
+}
+
+/* ---------------------------------- END FRAME DYNAMIC ELEMENTS ---------------------------------- */
+#EFHeadlineMask{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 300px;
+    height: 75px;
+    overflow: hidden;
+}
+
+
+#EFHeadlineHolder{
+    position: absolute;
+    top: 10px;
+    left: 16px;
+    width: 266px;
+    height: 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#EFHeadline{
+    position: relative;
+    text-align: left;
+    line-height: 1;
+    letter-spacing: -.3px;
+    font-size: 22px;
+}
+
+
+#offerContainer{
+    position: absolute;
+    top: 69px;
+    left: 17px;
+    width: 132px;
+    height: 108px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#line_Offer{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 3px;
+    height: 100%;
+    background-color: #cc0033;
+}
+
+#endOfferHolder {
+    position: relative;
+    width: 128px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#offerTitle {
+    position: relative;
+    text-align: left;
+    line-height: 1.1;
+    letter-spacing: -.6px;
+    font-size: 14px;
+    margin-bottom: 4px;
+    margin-left: 12px;
+}
+
+.offerTitleSmall {
+    font-size: 12px;
+    letter-spacing: -.4px;
+}
+
+#priceHolder {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    margin-left: 12px;
+    margin-bottom: -4px;
+}
+
+.sup {
+    top: -21px;
+    font-size: 40%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+    margin-right: 1px;
+}
+
+#offerPrice {
+    position: relative;
+    text-align: left;
+    line-height: 1;
+    letter-spacing: -.7px;
+    font-size: 48px;
+}
+
+
+#rightContent {
+    position: relative;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#offerCents {
+    position: relative;
+    font-size: 18px;
+    text-align: left;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+#offerEach {
+    position: relative;
+    font-size: 19px;
+    text-align: left;
+    line-height: 1;
+}
+
+#offerTerms {
+    position: relative;
+    font-size: 9px;
+    line-height: 1;
+    text-align: left;
+    margin-top: -2px;
+}
+
+#offerAgrmt {
+    position: relative;
+    font-size: 8px;
+    text-align: left;
+    line-height: 1.3;
+    letter-spacing: 0px;
+    margin-left: 12px;
+}
+
+#offerBoltOnTurnOnOffHolder{
+    top: 69px;
+    right: 14px;
+    width: 120px;
+    height: 108px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#offerBoltOnTurnOnOff{
+    position: relative;
+    text-align: left;
+    line-height: 1.2;
+    font-size: 11px;
+}
+
+#ctaBg {
+    bottom: 47px;
+    left: 17px;
+    width: 85px;
+    height: 20px;
+    overflow: hidden;
+    background-color: #3399cc;
+    border-radius: 45px;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(to right, rgba(204, 204, 204, 0), rgba(255, 255, 255, 0.3), rgba(204, 204, 204, 0));
+    background-position: -100px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#cta {
+    position: relative;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: -.3px;
+    line-height: 11px;
+    width: 100%;
+    color: white;
+    white-space: nowrap;
+    padding: 1px 0 0 1px;
+}
+
+#phoneNumber {
+    position: absolute;
+    bottom: 30px;
+    right:6px;
+    font-size: 10px;
+}
+
+#legalDisclaimer{
+    position: absolute;
+    right: 6px;
+    bottom:2px;
+    width: 190px;
+    height:23px;
+    letter-spacing: -.4px;
+    font-size: 9px;
+    line-height: 1.2;
+    text-align: right
+
+}
+
+/*------------------ Static Image Variable ------------------- */
+
+#staticImage img {
+    position: absolute;
+    width: 300px;
+    height: 250px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid #808080;
+}
+
+/*------------------ JS Switching Classes ------------------- */
+.hidden {
+    display: none;
+}
+
+.visible {
+    display: inline-block;
+}

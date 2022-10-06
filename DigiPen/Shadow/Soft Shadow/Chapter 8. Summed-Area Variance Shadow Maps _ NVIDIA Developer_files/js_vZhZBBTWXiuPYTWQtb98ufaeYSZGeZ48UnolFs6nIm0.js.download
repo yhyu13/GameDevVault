@@ -1,0 +1,107 @@
+/**
+ * @file
+ * Contains UX enchancements for codefilter.module.
+ */
+
+(function ($) {
+
+  Drupal.behaviors.codefilter = {
+    attach: function (context) {
+      var $expandablePre = $('pre.codeblock.nowrap-expand', context);
+      // Stop if the expandable pre is null.
+      // For non prism pages or if the feature is turned off.
+      if (!$expandablePre[0]) {
+        return;
+      }
+      // Getting padding as we can't get CSS attribute selectors through JS.
+      var em = Number($expandablePre.css('font-size').replace(/[^\d]/g, ''));
+
+      // Provide expanding text boxes when code blocks are too long.
+      $expandablePre.find('code').each(function () {
+        var $code = $(this);
+        var $pre = $code.parent();
+        var contents_width = $code.width() + (em * 2);
+        var width = $pre.width() + (em * 2);
+
+        if (contents_width > width) {
+          $pre.hover(function () {
+            $pre.css('width', width).animate({ width: contents_width + 'px' }, {
+              duration: 100,
+              queue: false
+            });
+          },
+          function () {
+            $pre.css('width', contents_width).animate({ width: width + 'px' }, {
+              duration: 100,
+              queue: false
+            });
+          });
+        }
+      });
+    }
+  }
+
+})(jQuery);
+;
+(function ($) {
+  jQuery(document).ready(function($) {
+    jQuery('[class*="quicksurvey-"]').attr('onClick', 'quickSurveyExecute(this)');
+  });
+}(jQuery));
+
+function quickSurveyExecute(e) {
+  var classes = jQuery(e).attr('class');
+  matches = classes.match(/quicksurvey-(\d*)\D?/);
+  survey_id = matches[1];
+
+  download_url = e.href.toString();
+  // Local URL of our survey form callback
+  survey_url = '/qs/' + survey_id + '?download_url=' + download_url;
+
+  // Old dynamic divs seem to stick around :(
+  jQuery("#quicksurvey-output").remove();
+
+  var outputHolder = jQuery("<div id='quicksurvey-output'></div>");
+
+  // HACK TODO: without this delay, the immediate download dialogue somehow
+  // causes the modal window to break (show empty or not at all).
+  surveyDelay = 500;
+  setTimeout(function() {
+    // .get will not execute the function unless it's successful
+    jQuery.get(survey_url, null, function(data){
+      outputHolder.html(data.content);
+      // A 204 is returned by our module if the user doesn't have permission or
+      // has already hit a submission limit. Else the appropriate webform is
+      // generated.
+      outputHolder.dialog({
+        autoOpen: false,
+        show: "slow",
+        width: "auto",
+        height: "auto",
+        draggable: true,
+        closeOnEscape: true,
+        resizable: false,
+        title: data.title,
+        modal: true
+      });
+
+      // wrap all ui.dialog content in our own ID so we can target CSS
+      jQuery('#quicksurvey-output').parent().attr("id", "quicksurvey-output-wrapper");
+      outputHolder.dialog('open');
+
+      // Make sure our modal is viewable regardless of Y scroll value. 140px is
+      // the min amount of space so we don't cover up header.
+      topPosition = Math.max(window.scrollY, 140) + 'px !important';
+      jQuery('#quicksurvey-output-wrapper').css('top', topPosition);
+
+      // Keep our modal centered if user resizes browser
+      jQuery(window).resize(function() {
+        leftMargin = (jQuery(window).width() - jQuery('#quicksurvey-output-wrapper').width()) / 2;
+        jQuery('#quicksurvey-output-wrapper').css('left', leftMargin);
+      });
+    }, 'json');
+  }, surveyDelay);
+
+  return true;
+}
+;

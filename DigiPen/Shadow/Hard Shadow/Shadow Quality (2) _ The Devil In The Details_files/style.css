@@ -1,0 +1,87 @@
+/*
+ Theme Name:     Twenty Eleven Customized
+ Author:         Theodor Mader
+ Author URI:     http://theomader.com
+ Template:       twentyeleven
+ Version:        1.0.0
+*/
+
+@import url("../twentyeleven/style.css");
+
+/* =Theme customization starts here
+-------------------------------------------------------------- */
+
+/* Disable 'powered by wordpress' link in footer */
+#site-generator {
+	display:none;
+}
+
+/* Add an extra 10 pixels so the largest entry in the sidebar menu can be displayed without line break */
+#page {
+    margin: 2em auto;
+    max-width: 1010px;
+}
+
+/* scale up syntaxhighlighter boxes on mouse hover */
+.syntaxhighlighter {
+    transition: width 0.2s ease 0s;
+}
+
+.syntaxhighlighter:hover {
+    width: 155% !important;
+}
+
+/*
+.syntaxhighlighter:hover {
+    overflow: visible !important; 
+    width: auto !important;
+}
+*/
+
+.kernel {
+    border-bottom: none;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.kernel td{
+    border-top: none;
+}
+
+.depthBoundsSlider .google-visualization-controls-slider-horizontal {
+  width: 50%;
+  background-color: #E2E2E2
+  border: 1px solid #000000;
+}
+
+.depthBoundsSlider .google-visualization-controls-slider-handle {
+  background-color: #E2E2E2;
+}
+
+.depthBoundsSlider .google-visualization-controls-slider-thumb {
+  width: 8px;
+  background-color: #989898 ;
+  border: 1px solid #000000;
+}
+
+
+.depthBoundsSlider .google-visualization-controls-rangefilter-thumblabel {
+  color: #000000;
+  font-family: Arial;
+  font-weight: inherit;
+  font-size: 13px;
+  min-width:80px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+
+.depthBoundsSlider .charts-inline-block {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+}
+
+.google-visualization-controls-rangefilter-thumblabel:first-child {
+  text-align: right;
+}

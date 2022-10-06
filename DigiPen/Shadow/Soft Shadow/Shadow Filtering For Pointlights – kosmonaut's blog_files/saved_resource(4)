@@ -1,0 +1,31 @@
+
+var ftGUID_4265702="4467547FDCD78A";
+var ftConfID_4265702="21070320";
+var ftParams_4265702="ftx=&fty=&ftadz=&ftscw=ebuy=23570285;esid=4094539;epid=275469599;ecid=125329126;eadv=4053494;eaid=470595273;erid=125363781;eexpid=;eexcid=;erv=1;eiid=CK2gi4TMv-oCFYuCYgodn50Jdg;&ft_custom=4053494__23570285__4094539__125329126&ftOBA=1&ft_agentEnv=0&ft_referrer=https%3A%2F%2Fc0.pubmine.com%2Fsf%2F0.0.3%2Fhtml%2Fsafeframe.html&ft_keyword=275469599&ft_section=10829409653592091774439303586990502398%7C%7C275469599&cachebuster=4224.522026678556";
+var ftKeyword_4265702="";
+var ftCustom_4265702="4053494__23570285__4094539__125329126";
+var ftSection_4265702="10829409653592091774439303586990502398||275469599";
+var ftSegment_4265702="xtx,acfv,w2b,ab5j,wbo,fs18_13972_1_1592714763,um2,x2o";
+var ftSegmentList_4265702=[{s:'xtx'},{s:'acfv'},{s:'w2b'},{s:'ab5j'},{s:'wbo'},{m:'fs18_13972_vp',s:'fs18_13972_1_1592714763'},{s:'um2'},{m:'c12345_Resi_RTG_SUB_NONSUB',s:'x2o'}];
+var ftRuleMatch_4265702="00001000";
+var ftTimestamp_4265702="1594277951";
+var ftGeoC2_4265702="us";
+var ftGeoState_4265702="wa";
+var ftGeoCity_4265702="redmond";
+var ftISP_4265702="comcast cable communications inc.";
+var ftSpeed_4265702="cable";
+var ftDMA_4265702="819";
+var ftLong_4265702="-122.12";
+var ftLat_4265702="47.68";
+var ftPostal_4265702="98052";
+var ftTimeZone_4265702="-700";
+var ftMobileCarrier_4265702="";
+var ftImp4265702 = {};
+ftImp4265702.privacy = "x";
+ftImp4265702.guidAge = "106";
+ftImp4265702.impID = "32E0F71B-C7C5-5176-B91E-F0FB9C7F349D";
+ftImp4265702.duid = "FT:4467547FDCD78A";
+ftImp4265702.ft_tpplid = "";
+ftImp4265702.ft_c = {};
+
+document.write('<scr'+'ipt src="https://cdn.flashtalking.com/xre/426/4265702/3103521/js/j-4265702-3103521.js" id="ftscript_m4265702" name="ftscript_m4265702"></scr'+'ipt>');

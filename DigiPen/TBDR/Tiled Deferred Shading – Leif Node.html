@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)https://leifnode.com/2015/05/tiled-deferred-shading/ -->
+<html lang="en-US"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Tiled Deferred Shading – Leif Node</title>
+<meta property="template" content="tempera">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+
+<link rel="profile" href="http://gmpg.org/xfn/11">
+<link rel="pingback" href="https://leifnode.com/xmlrpc.php">
+<link rel="alternate" type="application/rss+xml" title="Leif Node » Feed" href="https://leifnode.com/feed/">
+<link rel="alternate" type="application/rss+xml" title="Leif Node » Comments Feed" href="https://leifnode.com/comments/feed/">
+<link rel="alternate" type="application/rss+xml" title="Leif Node » Tiled Deferred Shading Comments Feed" href="https://leifnode.com/2015/05/tiled-deferred-shading/feed/">
+<link rel="stylesheet" id="temperas-css" href="./Tiled Deferred Shading – Leif Node_files/style.css" type="text/css" media="all">
+<link rel="stylesheet" id="tempera_googlefonttitle-css" href="./Tiled Deferred Shading – Leif Node_files/css" type="text/css" media="all">
+<link rel="stylesheet" id="tempera_headingsgooglefont-css" href="./Tiled Deferred Shading – Leif Node_files/css" type="text/css" media="all">
+<script async="" src="./Tiled Deferred Shading – Leif Node_files/analytics.js.download"></script><script type="text/javascript" src="./Tiled Deferred Shading – Leif Node_files/jquery.js.download"></script>
+<script type="text/javascript" src="./Tiled Deferred Shading – Leif Node_files/jquery-migrate.min.js.download"></script>
+<script type="text/javascript" src="./Tiled Deferred Shading – Leif Node_files/frontend.js.download"></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://leifnode.com/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://leifnode.com/wp-includes/wlwmanifest.xml"> 
+<link rel="prev" title="Video Reel" href="https://leifnode.com/2015/04/video-reel/">
+<link rel="next" title="Voxel Cone Traced Global Illumination" href="https://leifnode.com/2015/05/voxel-cone-traced-global-illumination/">
+<meta name="generator" content="WordPress 3.9.32">
+<link rel="shortlink" href="https://leifnode.com/?p=463">
+<link rel="author" href="http://leifnode.com/">
+<!-- All in One SEO Pack 2.2.3 by Michael Torbert of Semper Fi Web Design[-1,-1] -->
+<link rel="author" href="https://plus.google.com/116631475725004809719">
+<meta name="description" content="I&#39;ve been looking at a lot of resources on current rendering algorithms to get nice looking real-time graphics and thought that it&#39;s time that I actually go and">
+
+<link rel="canonical" href="https://leifnode.com/2015/05/tiled-deferred-shading/">
+<meta property="og:title" content="Tiled Deferred ShadingLeif Node | Leif Node">
+<meta property="og:type" content="activity">
+<meta property="og:url" content="https://leifnode.com/2015/05/tiled-deferred-shading/">
+<meta property="og:image" content="https://leifnode.com/wp-content/plugins/all-in-one-seo-pack/images/default-user-image.png">
+<meta property="og:site_name" content="Leif Node">
+<meta property="og:description" content="I&#39;ve been looking at a lot of resources on current rendering algorithms to get nice looking real-time graphics and thought that it&#39;s time that I actually go and implement some of them. This is the first project that I worked on in a series of three that I used to improve my understanding of some graphics algorithms. I&#39;m also using physically based shading in some of these screen shots. Deferred Shading Deferred shading is an alternative method of doing lighting calculations for a 3D scene. The traditional method of forward shading is to go render each object to the back buffer and do lighting calculations for that object at the same time. Forward shading has been the primary method that most rasterizer-based renderers use for a long time. Standard forward rendering has the drawback that it quickly becomes hard to manage when you want to have more than a few dynamic lights affecting an object. The most common solutions are to either pass an array of lights into each shader and let the">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:description" content="I&#39;ve been looking at a lot of resources on current rendering algorithms to get nice looking real-time graphics and thought that it&#39;s time that I actually go and implement some of them. This is the first project that I worked on in a series of three that I used to improve my understanding of some graphics algorithms. I&#39;m also using physically based shading in some of these screen shots. Deferred Shading Deferred shading is an alternative method of doing lighting calculations for a 3D scene. The traditional method of forward shading is to go render each object to the back buffer and do lighting calculations for that object at the same time. Forward shading has been the primary method that most rasterizer-based renderers use for a long time. Standard forward rendering has the drawback that it quickly becomes hard to manage when you want to have more than a few dynamic lights affecting an object. The most common solutions are to either pass an array of lights into each shader and let the">
+<meta itemprop="image" content="https://leifnode.com/wp-content/plugins/all-in-one-seo-pack/images/default-user-image.png">
+			<script>
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+			ga('create', 'UA-41263763-1', { 'cookieDomain': 'leifnode.com','allowLinker': true } );
+			
+			ga('send', 'pageview');
+			</script>
+<!-- /all in one seo pack -->
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+<style type="text/css"> #header, #main, #topbar-inner { max-width: 1150px; } #container.one-column { } #container.two-columns-right #secondary { width:230px; float:right; } #container.two-columns-right #content { width:830px; float:left; } /*fallback*/ #container.two-columns-right #content { width:calc(100% - 260px); float:left; } #container.two-columns-left #primary { width:230px; float:left; } #container.two-columns-left #content { width:830px; float:right; } /*fallback*/ #container.two-columns-left #content { width:-moz-calc(100% - 260px); float:right; width:-webkit-calc(100% - 260px); width:calc(100% - 260px); } #container.three-columns-right .sidey { width:115px; float:left; } #container.three-columns-right #primary { margin-left:30px; margin-right:30px; } #container.three-columns-right #content { width:800px; float:left; } /*fallback*/ #container.three-columns-right #content { width:-moz-calc(100% - 290px); float:left; width:-webkit-calc(100% - 290px); width:calc(100% - 290px);} #container.three-columns-left .sidey { width:115px; float:left; } #container.three-columns-left #secondary {margin-left:30px; margin-right:30px; } #container.three-columns-left #content { width:800px; float:right;} /*fallback*/ #container.three-columns-left #content { width:-moz-calc(100% - 290px); float:right; width:-webkit-calc(100% - 290px); width:calc(100% - 290px); } #container.three-columns-sided .sidey { width:115px; float:left; } #container.three-columns-sided #secondary { float:right; } #container.three-columns-sided #content { width:800px; float:right; /*fallback*/ width:-moz-calc(100% - 290px); float:right; width:-webkit-calc(100% - 290px); float:right; width:calc(100% - 290px); float:right; margin: 0 145px 0 -1090px; } body { font-family: Arial, Helvetica, sans-serif; } #content h1.entry-title a, #content h2.entry-title a, #content h1.entry-title , #content h2.entry-title { font-family: "Roboto"; } .widget-title, .widget-title a { line-height: normal; font-family: Open Sans Light; } .entry-content h1, .entry-content h2, .entry-content h3, .entry-content h4, .entry-content h5, .entry-content h6, #comments #reply-title, .nivo-caption h2, #front-text1 h1, #front-text2 h1, .column-header-image { font-family: "Roboto"; } #site-title span a { font-family: Yanone Kaffeesatz Light; } #access ul li a, #access ul li a span { font-family: Droid Sans; } body { color: #444444; background-color: #171717 } a { color: #1693A5; } a:hover,.entry-meta span a:hover, .comments-link a:hover { color: #D6341D; } #header { background-color: ; } #site-title span a { color:#f5f5f5; } #site-description { color:#dbdbdb; } .socials a { background-color: #1693A5; } .socials-hover { background-color: #D6341D; } /* Main menu top level */ #access a, #nav-toggle span { color: #333333; } #access, #nav-toggle {background-color: #EAEAEA; } #access > .menu > ul > li > a > span { border-color: #cccccc; -moz-box-shadow: 1px 0 0 #ffffff; -webkit-box-shadow: 1px 0 0 #ffffff; box-shadow: 1px 0 0 #ffffff; } #access a:hover {background-color: #f7f7f7; } #access ul li.current_page_item > a, #access ul li.current-menu-item > a, #access ul li.current_page_ancestor > a, #access ul li.current-menu-ancestor > a { background-color: #f7f7f7; } /* Main menu Submenus */ #access > .menu > ul > li > ul:before {border-bottom-color:#2D2D2D;} #access ul ul ul:before { border-right-color:#2D2D2D;} #access ul ul li { background-color:#2D2D2D; border-top-color:#3b3b3b; border-bottom-color:#222222} #access ul ul li a{color:#BBBBBB} #access ul ul li a:hover{background:#3b3b3b} #access ul ul li.current_page_item > a, #access ul ul li.current-menu-item > a, #access ul ul li.current_page_ancestor > a, #access ul ul li.current-menu-ancestor > a { background-color:#3b3b3b; } #topbar { background-color: #000000;border-bottom-color:#282828; box-shadow:3px 0 3px #000000; } .topmenu ul li a { color: #CCCCCC; } .topmenu ul li a:hover { color: #EEEEEE; border-bottom-color: #1693A5; } #main { background-color: #FFFFFF; } #author-info, #entry-author-info, .page-title { border-color: #1693A5; background: #F7F7F7; } #entry-author-info #author-avatar, #author-info #author-avatar { border-color: #EEEEEE; } .sidey .widget-container { color: #333333; background-color: ; } .sidey .widget-title { color: #666666; background-color: #F7F7F7;border-color:#cfcfcf;} .sidey .widget-container a {color:;} .sidey .widget-container a:hover {color:;} .entry-content h1, .entry-content h2, .entry-content h3, .entry-content h4, .entry-content h5, .entry-content h6 { color: #444444; } .sticky .entry-header {border-color:#1693A5 } .entry-title, .entry-title a { color: #444444; } .entry-title a:hover { color: #000000; } #content h3.entry-format { color: #333333; background-color: #EAEAEA; } #footer { color: #AAAAAA; background-color: ; } #footer2 { color: #AAAAAA; background-color: #F7F7F7; } #footer a { color: ; } #footer a:hover { color: ; } #footer2 a, .footermenu ul li:after { color: ; } #footer2 a:hover { color: ; } #footer .widget-container { color: #333333; background-color: ; } #footer .widget-title { color: #666666; background-color: #F7F7F7;border-color:#cfcfcf } a.continue-reading-link, #cryout_ajax_more_trigger { color:#333333 !important; background:#EAEAEA; border-bottom-color:#1693A5; } a.continue-reading-link:after { background-color:#D6341D; } a.continue-reading-link i.icon-right-dir {color:#1693A5} a.continue-reading-link:hover i.icon-right-dir {color:#D6341D} .page-link a, .page-link > span > em {border-color:#CCCCCC} .columnmore a {background:#D6341D;color:#F7F7F7} .columnmore a:hover {background:#1693A5;} .file, .button, #respond .form-submit input#submit, input[type=submit], input[type=reset] { background-color: #FFFFFF; border-color: #CCCCCC; box-shadow: 0 -10px 10px 0 #F7F7F7 inset; } .file:hover, .button:hover, #respond .form-submit input#submit:hover { background-color: #F7F7F7; } .entry-content tr th, .entry-content thead th { color: #444444; } .entry-content fieldset, #content tr td,#content tr th, #content thead th { border-color: #CCCCCC; } #content tr.even td { background-color: #F7F7F7 !important; } hr { background-color: #CCCCCC; } input[type="text"], input[type="password"], input[type="email"], input[type="file"], textarea, select, input[type="color"],input[type="date"],input[type="datetime"],input[type="datetime-local"],input[type="month"],input[type="number"],input[type="range"], input[type="search"],input[type="tel"],input[type="time"],input[type="url"],input[type="week"] { background-color: #F7F7F7; border-color: #CCCCCC #EEEEEE #EEEEEE #CCCCCC; color: #444444; } input[type="submit"], input[type="reset"] { color: #444444; background-color: #FFFFFF; border-color: #CCCCCC; box-shadow: 0 -10px 10px 0 #F7F7F7 inset; } input[type="text"]:hover, input[type="password"]:hover, input[type="email"]:hover, textarea:hover, input[type="color"]:hover, input[type="date"]:hover, input[type="datetime"]:hover, input[type="datetime-local"]:hover, input[type="month"]:hover, input[type="number"]:hover, input[type="range"]:hover, input[type="search"]:hover, input[type="tel"]:hover, input[type="time"]:hover, input[type="url"]:hover, input[type="week"]:hover { background-color: rgba(247,247,247,0.4); } .entry-content code { border-color: #CCCCCC; border-bottom-color:#1693A5;} .entry-content pre { border-color: #CCCCCC; background-color:#F7F7F7;} .entry-content blockquote { border-color: #EEEEEE; } abbr, acronym { border-color: #444444; } .comment-meta a { color: #444444; } #respond .form-allowed-tags { color: #999999; } .reply a{ background-color: #F7F7F7; border-color: #EEEEEE; } .reply a:hover { background-color: #EAEAEA;color: #1693A5; } .entry-meta .icon-metas:before {color:#CCCCCC;} .entry-meta span a, .comments-link a {color:#666666;} .entry-meta span a:hover, .comments-link a:hover {color:;} .nav-next a:hover {} .nav-previous a:hover { } .pagination { border-color:#ededed;} .pagination span, .pagination a { background:#F7F7F7; border-left-color:#dddddd; border-right-color:#ffffff; } .pagination a:hover { background: #ffffff; } #searchform input[type="text"] {color:#999999;} .caption-accented .wp-caption { background-color:rgba(22,147,165,0.8); color:#FFFFFF} .tempera-image-one .entry-content img[class*='align'],.tempera-image-one .entry-summary img[class*='align'], .tempera-image-two .entry-content img[class*='align'],.tempera-image-two .entry-summary img[class*='align'] { border-color:#1693A5;} #content p, #content ul, #content ol, #content, #frontpage blockquote { text-align:Default ; } #content p, #content ul, #content ol, .sidey, .sidey a, table, table td { font-size:15px; word-spacing:Default; letter-spacing:Default; } #content p, #content ul, #content ol, .sidey, .sidey a { line-height:1.7em; } #content h1.entry-title, #content h2.entry-title { font-size:34px ;} .widget-title, .widget-title a { font-size:18px ;} #content .entry-content h1 { font-size: 38px;} #content .entry-content h2 { font-size: 34px;} #content .entry-content h3 { font-size: 29px;} #content .entry-content h4 { font-size: 24px;} #content .entry-content h5 { font-size: 19px;} #content .entry-content h6 { font-size: 14px;} #site-title span a { font-size:38px ;} #access ul li a { font-size:14px ;} #access ul ul ul a {font-size:12px;} .nocomments, .nocomments2 {display:none;} #header-container > div { margin:40px 0 0 0px;} #content p, #content ul, #content ol, #content dd, #content pre, #content hr { margin-bottom: 1.0em; } footer.entry-meta {background-image:none !important;padding-top:0;} #nav-toggle { text-align: left; } #toTop {background:#FFFFFF;margin-left:1300px;} #toTop:hover .icon-back2top:before {color:#D6341D;} #main {margin-top:20px; } #forbottom {margin-left: 30px; margin-right: 30px;} #header-widget-area { width: 33%; } #branding { height:120px; } </style> 
+<style type="text/css">/* Tempera Custom CSS */</style>
+<link rel="stylesheet" id="tempera_style_mobile" href="./Tiled Deferred Shading – Leif Node_files/style-mobile.css" type="text/css" media="all"><script type="text/javascript">var cryout_global_content_width = 920;var cryout_toTop_offset = 1150;</script><!--[if lt IE 9]>
+<script>
+document.createElement('header');
+document.createElement('nav');
+document.createElement('section');
+document.createElement('article');
+document.createElement('aside');
+document.createElement('footer');
+</script>
+<![endif]-->
+<script type="text/javascript">
+function makeDoubleDelegate(function1, function2) {
+	/* concatenate functions */
+    return function() { if (function1) function1(); if (function2) function2(); }
+}
+
+function tempera_onload() {
+    /* Add responsive videos */
+    jQuery(".entry-content").fitVids();
+	}; // tempera_onload
+
+jQuery(document).ready(function(){
+	/* enable mobile menu handle */
+	tempera_mobilemenu_init();
+});
+
+// make sure not to lose previous onload events
+window.onload = makeDoubleDelegate(window.onload, tempera_onload );
+</script>
+</head>
+<body class="single single-post postid-463 single-format-standard tempera-image-none caption-dark magazine-layout nimbus-is-editor" data-gr-c-s-loaded="true" style="">
+
+
+<div id="wrapper" class="hfeed">
+<div id="topbar"><div id="topbar-inner"> <div class="socials" id="sheader">
+			<a target="_blank" rel="nofollow" href="http://www.linkedin.com/profile/view?id=189013571" class="socialicons social-LinkedIn" title="LinkedIn">
+				<img alt="LinkedIn" src="./Tiled Deferred Shading – Leif Node_files/LinkedIn.png">
+			<div class="socials-hover"></div></a>
+			<a target="_blank" rel="nofollow" href="https://twitter.com/erkenbrach" class="socialicons social-Twitter" title="Twitter">
+				<img alt="Twitter" src="./Tiled Deferred Shading – Leif Node_files/Twitter.png">
+			<div class="socials-hover" style="width: 0px; height: 0px; top: 50%; left: 50%; overflow: hidden;"></div></a>
+			<a target="_blank" rel="nofollow" href="http://www.youtube.com/channel/UCsDN09vCwiotRnxeelaMsyQ" class="socialicons social-YouTube" title="YouTube">
+				<img alt="YouTube" src="./Tiled Deferred Shading – Leif Node_files/YouTube.png">
+			<div class="socials-hover"></div></a>
+			<a target="_blank" rel="nofollow" href="http://plus.google.com/116631475725004809719" class="socialicons social-GooglePlus" title="GooglePlus">
+				<img alt="GooglePlus" src="./Tiled Deferred Shading – Leif Node_files/GooglePlus.png">
+			<div class="socials-hover"></div></a>
+			<a target="_blank" rel="nofollow" href="https://www.facebook.com/lerkenbrach" class="socialicons social-Facebook" title="Facebook">
+				<img alt="Facebook" src="./Tiled Deferred Shading – Leif Node_files/Facebook.png">
+			<div class="socials-hover"></div></a></div> </div></div>
+
+<div id="header-full">
+	<header id="header">
+		<div id="masthead">
+			<div id="branding" role="banner">
+				<img id="bg_image" alt="" title="" src="./Tiled Deferred Shading – Leif Node_files/cropped-particles2.png"><div id="header-container">
+<div><div id="site-title"><span> <a href="https://leifnode.com/" title="Leif Node" rel="home">Leif Node</a> </span></div><div id="site-description">Leif Erkenbrach's programming blog</div></div></div>								<div style="clear:both;"></div>
+			</div><!-- #branding -->
+			<a id="nav-toggle"><span>&nbsp;</span></a>
+			<nav id="access" role="navigation">
+				<div class="skip-link screen-reader-text"><a href="https://leifnode.com/2015/05/tiled-deferred-shading/#content" title="Skip to content">Skip to content</a></div>
+<div class="menu"><ul id="prime_nav" class="menu"><li id="menu-item-132" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-132"><a href="http://leifnode.com/"><span>Home</span></a></li>
+<li id="menu-item-399" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-399"><a href="https://leifnode.com/about/"><span>About</span></a></li>
+</ul></div>			</nav><!-- #access -->		
+		</div><!-- #masthead -->
+	</header><!-- #header -->
+</div><!-- #header-full -->
+
+<div style="clear:both;height:0;"> </div>
+
+<div id="main">
+			<div id="forbottom">
+		
+		<div style="clear:both;"> </div>
+
+		
+		<section id="container" class="two-columns-right">
+			<div id="content" role="main">
+			<div class="breadcrumbs"><a href="https://leifnode.com/"><i class="icon-homebread"></i></a><i class="icon-angle-right"></i> <a href="https://leifnode.com/category/programming/directx/">DirectX<i class="icon-angle-right"></i> </a>Tiled Deferred Shading</div>			
+
+				<div id="post-463" class="post-463 post type-post status-publish format-standard has-post-thumbnail hentry category-directx category-programming category-shading">
+					<h1 class="entry-title">Tiled Deferred Shading</h1>
+										<div class="entry-meta">
+						<span class="author vcard"><i class="icon-author icon-metas" title="Author "></i>  <a class="url fn n" href="https://leifnode.com/author/leif/" title="View all posts by Leif Erkenbrach">Leif Erkenbrach</a> <span class="bl_sep">•</span></span><span class="onDate date updated"><i class="icon-time icon-metas" title="Date"></i><a href="https://leifnode.com/2015/05/tiled-deferred-shading/" rel="bookmark">May 2, 2015</a></span><span class="bl_categ"><i class="icon-folder-open icon-metas" title="Categories"></i><a href="https://leifnode.com/category/programming/directx/" title="View all posts in DirectX" rel="tag">DirectX</a>, <a href="https://leifnode.com/category/programming/" title="View all posts in Programming" rel="tag">Programming</a>, <a href="https://leifnode.com/category/shading/" title="View all posts in Shading" rel="tag">Shading</a></span> 					</div><!-- .entry-meta -->
+
+					<div class="entry-content">
+						<h3><a href="http://leifnode.com/wp-content/uploads/2015/05/TiledDeferredLights.png"><img class="alignnone wp-image-477 size-large" src="./Tiled Deferred Shading – Leif Node_files/TiledDeferredLights-1024x576.png" alt="TiledDeferredLights" width="920" height="517"></a></h3>
+<p>I’ve been looking at a lot of resources on current rendering algorithms to get nice looking real-time graphics and thought that it’s time that I actually go and implement some of them. This is the first project that I worked on in a series of three that I used to improve my understanding of some graphics algorithms. I’m also using physically based shading in some of these screen shots.</p>
+<h3>Deferred Shading</h3>
+<p>Deferred shading is an alternative method of doing lighting calculations for a 3D scene. The traditional method of forward shading is to go render each object to the back buffer and do lighting calculations for that object at the same time. Forward shading has been the primary method that most rasterizer-based renderers use for a long time. Standard forward rendering has the drawback that it quickly becomes hard to manage when you want to have more than a few dynamic lights affecting an object. The most common solutions are to either pass an array of lights into each shader and let the shader evaluate the shading for all lights in the list on each object, or to render the same object multiple times with additive blending for each light that affects the object.</p>
+<p>Deferred shading goes and does as its name says. It defers the lighting calculations until all objects have been rendered, and then it goes and shades the whole scene in one pass. This is done by rendering information about each object to a set of render targets that contain data about the surface of the object this set of render targets is normally called the G-buffer.</p>
+<p>For instance the normals of each object encoded into the 0 to 1 range as one of the render targets:</p>
+<p><a href="http://leifnode.com/wp-content/uploads/2015/05/DeferredNormalRT.png"><img class="alignnone wp-image-464 size-large" src="./Tiled Deferred Shading – Leif Node_files/DeferredNormalRT-1024x576.png" alt="DeferredNormalRT" width="920" height="517"></a></p>
+<p>This is also done with diffuse albedo, specular color and power, depth, and emissive. Each get packed into their own textures.</p>
+<p>At the moment I’m using textures packed with the following formats:</p>
+<ul>
+<li>Diffuse: RGBA8 texture</li>
+<li>Specular Color &amp; Roughness: RGBA8 texture where the alpha is the roughness</li>
+<li>World Space Normal: RGBA16 texture where alpha is currently unused</li>
+<li>Emissive Color: RGBA16 texture</li>
+<li>Depth: R32 texture</li>
+</ul>
+<p>A while back I made a very basic implementation of deferred shading that would just render a scene to a G buffer and then draw a quad on the screen that evaluated lighting from hundreds of point lights at each fragment. This ended up running pretty poorly since it was just shading with brute force. I ended up just going with forward shading for a while and using a single directional light for many of my projects afterwards.</p>
+<p>I looked around some and found a number of culling techniques that could significantly improve deferred rendering performance. A few involved drawing proxy geometry that approximated the bounds of each type of light and evaluating lighting by sampling from the G buffer for each fragment that the geometry touched. This can be implemented with varying complexity of proxy geometry. Some implementations just used billboarded quads with enough width and height in world space to approximate the bounds of the area that the light influences. For instance a point light would just have a quad with a width and height the same as the lights radius of influence. Other implementations actually draw 3D proxy geometry like spheres for point lights and cones for spotlights.</p>
+<p>These implementations have the issue that they require many additional samples of the G buffer. Each light still needs to sample the G buffer for each texture that it has; in my case 5 textures. So each fragment of the G buffer gets sampled 5 * the number of lights affecting that fragment. Additionally these techniques incur a lot of overdraw since many of the proxy geometry objects will overlap and cannot be culled most of the time.</p>
+<h3>Tiled Deferred Shading</h3>
+<p>Tiled Deferred Shading allows you to avoid the overdraw and only needs to sample each G buffer texture once so it’s generally capable of performing much better than using proxy geometry. The main resource I found on tiled deferred shading was this <a href="https://software.intel.com/en-us/articles/deferred-rendering-for-current-and-future-rendering-pipelines">presentation and implementation</a>.</p>
+<p>Tiled deferred shading takes a different approach and does all of the culling of lights in the same pass as the shading calculations as opposed to using proxy geometry to do all the shading and executing multiple times per fragment.</p>
+<p>Tiled deferred shading splits the viewport frustum into many smaller frustums in a grid of tiles that are extended along z in view space and does the culling on each of those frustums.</p>
+<p>This is what a grid of tiles looks like when colored by the number of lights intersecting each frustum:</p>
+<p><a href="http://leifnode.com/wp-content/uploads/2015/05/TiledDeferredTiles.png"><img class="alignnone wp-image-473 size-large" src="./Tiled Deferred Shading – Leif Node_files/TiledDeferredTiles-1024x576.png" alt="TiledDeferredTiles" width="920" height="517"></a></p>
+<p>In my implementation I split the screen into 16×16 tiles using a compute shader with 16x16x1 sized thread groups. Each tile contains a list of indices into a global array of lights. The tiled deferred shader starts by constructing frustums for each tile that are capped by the minimum and maximum depth stored in the 16×16 tile on the depth texture. This is why in the previous picture edges are highlighted; it’s because the frustum on those tiles has much larger variation in the minimum and maximum so the frustum has the potential to intersect more point lights.</p>
+<p>Once the frustums are constructed, each tile checks if a light overlaps the frustum. If a light overlaps the frustum, then the light’s index in the global light list is appended to the tile’s index list which is stored in group shared memory.</p>
+<p>Finally once the index list for the tile is constructed each thread loops through the index list and accumulates the lighting from all lights in the list.</p>
+<p>Here’s what the Sponza scene looks like with 512 lights (I’m also using a physically based BRDF but I won’t talk about that in this post):</p>
+<p><a href="http://leifnode.com/wp-content/uploads/2015/05/TiledDeferred512Lights.png"><img class="alignnone size-large wp-image-480" src="./Tiled Deferred Shading – Leif Node_files/TiledDeferred512Lights-1024x576.png" alt="TiledDeferred512Lights" width="920" height="517"></a></p>
+<h3>Performance</h3>
+<p>Performance really depends on several factors so it’s difficult to gauge the performance for all scenarios. My computer has a GTX 980 so all measurement is made using that. With my current settings I can render the Sponza scene at 1080p with 512 lights at 16 ms a frame. 256 lights generally takes 4.5 ms and 1028 takes 30 ms.</p>
+<p>In larger scenes the performance would be much better since there will generally be many less lights intersecting any given tile.</p>
+<h3>Drawbacks</h3>
+<p>Tiled deferred shading is not a magic bullet, and has some major problems associated with it.</p>
+<p>The first is that it can take a lot of memory, especially with higher resolution outputs. With my current buffer layout I’m being pretty greedy since I want extra precision on normals and a large range on emissive without encoding an intensity. At 1080p my G buffer takes up 55 MB on the GPU. This is less of a problem on newer GPUs and consoles with 2, 4, and 8GB of GPU memory. However, it still grows with resolution and can eat away at the texture budget. If you’re rendering at 4K then the G buffer will suddenly be 236MB.</p>
+<p>The second and largest issue is that there’s no way to do transparency unless you store a deep G buffer with data for multiple fragments per pixel which makes the memory situation far worse. Most engines just do a forward pass after the deferred pass to render all of the transparent geometry, but it’s harder to shade the transparent geometry efficiently.</p>
+<p>Another issue is that it’s difficult to change the shading model on geometry, so if you want to shade most of the level using a standard microfacet BRDF, then render some characters with a subsurface scattering effect on their skin, then render their eyes, then render some cars with clearcoat surfaces it’s not going to work using just basic deferred shading. With these situations I’ve seen engines do one of two things; some go and build the shading model into the tiled differed shader and dynamic branch between the models depending on a value from the G buffer, other go and do a forward rendering pass with the alternate shading model.</p>
+<p>The final significant issue is that it’s difficult to do good quality anti-aliasing with decent performance. Most engines that use deferred shading pipelines use FXAA or some other screen space anti-aliasing solution. The problem with FXAA is that it can tend to blur details that shouldn’t be blurred. It is possible to do MSAA with deferred shading by rendering to a buffer with storage for multiple samples, and then finding the edges of objects in the G buffer and executing shading for all samples on the edges. However, this has a more significant performance hit with deferred shading than it does with forward shading because of the additional texture sampling.</p>
+<h3>Improvements to Tiled Deferred Shading</h3>
+<p>It’s possible to improve the culling of lights in various ways so that you avoid as many erroneous positive overlap checks on lights as possible. I have yet to try any of these in my implementation.</p>
+<p>The first way is change the way that intersections tests are preformed. The standard algorithm uses simple sphere-frustum intersection tests, but it’s possible and can be more effective to use alternative intersection tests. Constructing a bounding box around the frustum and additionally checking against that can remove overlaps that are wrongly detected with the frustum-sphere test. The bounding box test also does better on its own. In regards to false-positives with the frustum tests Iñigo Quilez has a good article <a href="http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm">here</a>.</p>
+<p>The second way is to partition the frustum more effectively. There are several ways that people have done this. One way is the split the frustum into two frustums at the center along the depth of the frustum between the minimum and maximum depth of the frustum. Then find the minimum and maximum depths of the two smaller frustums and make two separate frustums to check against. This is what Unreal Engine 4 does and it works decently to resolve depth discontinuities. It’s also possible to take a simpler approach and just split the frustum into two lists, one for the first half, and one for the second. The correct list then gets chosen in the shading stage depending on the depth of the fragment being shaded.</p>
+<p>Determining the minimum and maximum depth values for each tile can also be improved fairly simply. Most implementations of tiled deferred shading just brute force determining the minimum and maximum depth values by using InterlockedMin and InterlockedMax. It is possible to get small performance boost by doing parallel reduction on each tile, though it would require a separate shader.</p>
+<h3>Similar Algorithms</h3>
+<p>Tiled deferred shading can actually be fairly easily extended to resolve many of the issues with the original implementation; in exchange it requires a pre-pass over the scene to render depth. This technique is normally referred to as Forward+.</p>
+<p>Forward+ rendering renders the scene from the viewport’s perspective to a depth buffer, then runs the same tiled culling algorithm that tiled deferred shading uses on the depth texture and builds a set of index lists in a global buffer. Then all geometry in the scene is rendered a second time and shaded. During the forward shading of the geometry, the shader determines what index list to loop through based on the screen space position of the fragment.</p>
+<p>This algorithm generally performs better than tiled deferred shading for less than 2048 lights, but sees performance gains across the board when comparing MSAA performance between the two algorithms. It also solves the problems with transparent geometry and varying shading models.</p>
+<p>Another more recent extension to tiled deferred shading is an algorithm called Clustered Deferred Shading. Clustered deferred shading does frustum culling in 3 dimensions instead of two by splitting the frustums along the Z axis with exponential spacing. It can also be extended similarly to work for forward shading.</p>
+<p>Instead of doing a brute force check of every light against every cell of the frustums, it does hierarchical culling by building an octree out of the cells. It then merges cells with identical index lists and stores them in a page table. This allows for much faster and effective culling. In the <a href="http://www.cse.chalmers.se/~uffe/clustered_shading_preprint.pdf">paper’s</a> implementation they are able to cull 1 million lights in under 6 ms.</p>
+<h3>Where to Go From Here</h3>
+<p>I want to go and improve the culling at some point to be more tight on what it can cull. It will probably use a combination of frustum culling and bounding box culling. Next would be implementing Forward+, but I like the abstraction that deferred shading provides so I need to figure out a good way to author shaders for Forward+ that’s not crazy complicated.</p>
+<p>I want to also try at implementing clustered forward shading since it seems to allow crazy large numbers of lights in <a href="https://youtu.be/6DyTk7917ZI">real</a> <a href="https://youtu.be/q3V-vHltuAY">time</a>. However, the original implementation uses CUDA for the culling, and I’m not completely sure if that means that it’s impossible or just inefficient to implement in DirectX compute shaders. Some other implementations have done the culling on the CPU. I need to look more at the implementation to see if it’s plausible to do in compute shaders, otherwise I’ll probably just do the CUDA implementation and interop with DirectX since I’ve looked at CUDA before and it does not seem that complex.</p>
+<h3>Useful Resources</h3>
+<p><em>Andrew Lauritzen </em>- <a href="https://software.intel.com/en-us/articles/deferred-rendering-for-current-and-future-rendering-pipelines">Deferred Rendering for Current and Future Rendering Pipelines</a></p>
+<p><em>Gareth Thomas -&nbsp;</em><a href="http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/Advancements-In-Tiled-Rendering.ppsx">Advancements In Tiled Rendering</a></p>
+<p><em>Ola Olsson, Markus Billeter, and Ulf Assarsson -&nbsp;<a href="http://www.cse.chalmers.se/~uffe/clustered_shading_preprint.pdf">Clustered Deferred and Forward Shading</a></em></p>
+											</div><!-- .entry-content -->
+
+
+					<footer class="entry-meta">
+						<span class="bl_bookmark"><i class="icon-bookmark icon-metas" title=" Bookmark the permalink"></i> <a href="https://leifnode.com/2015/05/tiled-deferred-shading/" title="Permalink to Tiled Deferred Shading" rel="bookmark"> Bookmark</a>.</span>											</footer><!-- .entry-meta -->
+				</div><!-- #post-## -->
+
+				<div id="nav-below" class="navigation">
+					<div class="nav-previous"><a href="https://leifnode.com/2015/04/video-reel/" rel="prev"><i class="meta-nav-prev"></i> Video Reel</a></div>
+					<div class="nav-next"><a href="https://leifnode.com/2015/05/voxel-cone-traced-global-illumination/" rel="next">Voxel Cone Traced Global Illumination <i class="meta-nav-next"></i></a></div>
+				</div><!-- #nav-below -->
+
+				 <div id="comments" class=""> 								<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="https://leifnode.com/2015/05/tiled-deferred-shading/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="https://leifnode.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																			<p class="comment-notes">Your email address will not be published.</p>							<p class="comment-form-author"><label for="author">Name</label> <input id="author" placeholder="Name" name="author" type="text" value="" size="30"></p>
+<p class="comment-form-email"><label for="email">Email</label> <input id="email" placeholder="Email" name="email" type="text" value="" size="30"></p>
+<p class="comment-form-url"><label for="url">Website</label><input id="url" placeholder="Website" name="url" type="text" value="" size="30"></p>
+												<p class="comment-form-comment"><label for="comment">Comment</label><textarea placeholder="Comment" id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>						<p class="form-allowed-tags">You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:  <code>&lt;a href="" title=""&gt; &lt;abbr title=""&gt; &lt;acronym title=""&gt; &lt;b&gt; &lt;blockquote cite=""&gt; &lt;cite&gt; &lt;code&gt; &lt;del datetime=""&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=""&gt; &lt;strike&gt; &lt;strong&gt; </code></p>						<p class="form-submit">
+							<input name="submit" type="submit" id="submit" value="Post Comment">
+							<input type="hidden" name="comment_post_ID" value="463" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="30d56b3fa1"></p><p style="display: none;"></p>					<input type="hidden" id="ak_js" name="ak_js" value="1592944100872"></form>
+							</div><!-- #respond -->
+			</div><!-- #comments -->
+
+
+						</div><!-- #content -->
+			<div id="secondary" class="widget-area sidey" role="complementary">
+		
+			<ul class="xoxo">
+								<li id="search-2" class="widget-container widget_search"> 
+<form method="get" id="searchform" action="https://leifnode.com//">
+<input type="text" value="Search" name="s" id="s" onblur="if (this.value == &#39;&#39;)
+{this.value = &#39;Search&#39;;}" onfocus="if (this.value == &#39;Search&#39;)
+{this.value = &#39;&#39;;}">
+<input type="submit" id="searchsubmit" value="">
+</form></li>		<li id="recent-posts-2" class="widget-container widget_recent_entries">		<h3 class="widget-title">Recent Posts</h3>		<ul>
+					<li>
+				<a href="https://leifnode.com/2015/05/voxel-cone-traced-global-illumination/">Voxel Cone Traced Global Illumination</a>
+						</li>
+					<li>
+				<a href="https://leifnode.com/2015/05/tiled-deferred-shading/">Tiled Deferred Shading</a>
+						</li>
+					<li>
+				<a href="https://leifnode.com/2015/04/video-reel/">Video Reel</a>
+						</li>
+					<li>
+				<a href="https://leifnode.com/2014/10/leap-motion-oculus-rift-particle-interactions/">LEAP Motion + Oculus Rift Particle Interactions</a>
+						</li>
+					<li>
+				<a href="https://leifnode.com/2014/08/game-engine-development/">Game Engine Development</a>
+						</li>
+				</ul>
+		</li><li id="categories-2" class="widget-container widget_categories"><h3 class="widget-title">Categories</h3><select name="cat" id="cat" class="postform">
+	<option value="-1">Select Category</option>
+	<option class="level-0" value="3">Programming&nbsp;&nbsp;(14)</option>
+	<option class="level-1" value="9">&nbsp;&nbsp;&nbsp;AI&nbsp;&nbsp;(2)</option>
+	<option class="level-1" value="4">&nbsp;&nbsp;&nbsp;DirectX&nbsp;&nbsp;(7)</option>
+	<option class="level-1" value="8">&nbsp;&nbsp;&nbsp;Networking&nbsp;&nbsp;(2)</option>
+	<option class="level-1" value="24">&nbsp;&nbsp;&nbsp;OpenGL&nbsp;&nbsp;(4)</option>
+	<option class="level-1" value="29">&nbsp;&nbsp;&nbsp;VR&nbsp;&nbsp;(2)</option>
+	<option class="level-1" value="27">&nbsp;&nbsp;&nbsp;XNA&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="31">Shading&nbsp;&nbsp;(2)</option>
+</select>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+	var dropdown = document.getElementById("cat");
+	function onCatChange() {
+		if ( dropdown.options[dropdown.selectedIndex].value > 0 ) {
+			location.href = "https://leifnode.com/?cat="+dropdown.options[dropdown.selectedIndex].value;
+		}
+	}
+	dropdown.onchange = onCatChange;
+/* ]]> */
+</script>
+
+</li><li id="meta-2" class="widget-container widget_meta"><h3 class="widget-title">Meta</h3>			<ul>
+						<li><a href="https://leifnode.com/wp-login.php">Log in</a></li>
+			<li><a href="https://leifnode.com/feed/" title="Syndicate this site using RSS 2.0">Entries <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+			<li><a href="https://leifnode.com/comments/feed/" title="The latest comments to all posts in RSS">Comments <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+<li><a href="https://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress.org</a></li>			</ul>
+</li>			</ul>
+
+			
+		</div>
+		</section><!-- #container -->
+
+	<div style="clear:both;"></div>
+	</div> <!-- #forbottom -->
+
+
+	<footer id="footer" role="contentinfo">
+		<div id="colophon">
+		
+			
+			
+		</div><!-- #colophon -->
+
+		<div id="footer2">
+		
+			<div id="site-copyright">Copyright © 2015 Leif Erkenbrach</div><div class="socials" id="sfooter">
+			<a target="_blank" rel="nofollow" href="http://www.linkedin.com/profile/view?id=189013571" class="socialicons social-LinkedIn" title="LinkedIn">
+				<img alt="LinkedIn" src="./Tiled Deferred Shading – Leif Node_files/LinkedIn.png">
+			<div class="socials-hover"></div></a>
+			<a target="_blank" rel="nofollow" href="https://twitter.com/erkenbrach" class="socialicons social-Twitter" title="Twitter">
+				<img alt="Twitter" src="./Tiled Deferred Shading – Leif Node_files/Twitter.png">
+			<div class="socials-hover"></div></a>
+			<a target="_blank" rel="nofollow" href="http://www.youtube.com/channel/UCsDN09vCwiotRnxeelaMsyQ" class="socialicons social-YouTube" title="YouTube">
+				<img alt="YouTube" src="./Tiled Deferred Shading – Leif Node_files/YouTube.png">
+			<div class="socials-hover"></div></a>
+			<a target="_blank" rel="nofollow" href="http://plus.google.com/116631475725004809719" class="socialicons social-GooglePlus" title="GooglePlus">
+				<img alt="GooglePlus" src="./Tiled Deferred Shading – Leif Node_files/GooglePlus.png">
+			<div class="socials-hover"></div></a>
+			<a target="_blank" rel="nofollow" href="https://www.facebook.com/lerkenbrach" class="socialicons social-Facebook" title="Facebook">
+				<img alt="Facebook" src="./Tiled Deferred Shading – Leif Node_files/Facebook.png">
+			<div class="socials-hover"></div></a></div>	<span style="display:block;float:right;text-align:right;padding:5px 20px 5px;text-transform:uppercase;font-size:11px;">
+	Powered by <a target="_blank" href="http://www.cryoutcreations.eu/" title="Tempera Theme by Cryout Creations">Tempera</a> &amp; <a target="_blank" href="http://wordpress.org/" title="Semantic Personal Publishing Platform">  WordPress.		</a>
+	</span><!-- #site-info -->
+				
+		</div><!-- #footer2 -->
+
+	</footer><!-- #footer -->
+
+	</div><!-- #main -->
+</div><!-- #wrapper -->
+
+
+<script type="text/javascript" src="./Tiled Deferred Shading – Leif Node_files/form.js.download"></script>
+<script type="text/javascript" src="./Tiled Deferred Shading – Leif Node_files/comment-reply.min.js.download"></script>
+
+
+
+<div class="nsc-panel nsc-panel-compact nsc-hide">
+    <div class="nsc-panel-move"></div>
+    <div class="nsc-panel-tooltip">
+        <div class="nsc-panel-tooltip-layout" layout="row" layout-align="start center">CTRL+V to toggle the panel</div>
+    </div>
+
+    <div class="nsc-panel-layout" flex="" layout="row" layout-align="start center">
+        <div class="nsc-panel-groups" flex="" layout="row" layout-align="start start">
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <div class="nsc-panel-button separated active">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+                            <span class="nsc-icon nsc-icon-cursor-normal" data-i18n="videoPanelSimpleCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorRing">&nbsp;</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown to-top">
+                        <ul flex="" layout="row" layout-align="start center">
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-shade" data-i18n="videoPanelFocusMouse" data-event="nimbus-editor-active-tools" data-event-param="cursorShadow">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-circle" data-i18n="videoPanelAnimatedCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorRing">&nbsp;</span>
+                            </li>
+                            <!--<li class="nsc-panel-dropdown-icon " flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-tail"></span>-->
+                            <!--</li>-->
+                            <!--<li class="nsc-panel-dropdown-icon " flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-long"></span>-->
+                            <!--</li>-->
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-cursor-normal" data-i18n="videoPanelSimpleCursor" data-event="nimbus-editor-active-tools" data-event-param="cursorDefault">&nbsp;</span>
+                            </li>
+                            <!--<li class="nsc-panel-dropdown-icon" flex layout="row" layout-align="start center">-->
+                            <!--<span class="nsc-icon nsc-icon-cursor-none" data-event="nimbus-editor-active-tools" data-event-param="cursorNone"></span>-->
+                            <!--</li>-->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- /group -->
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-pen" data-i18n="videoPanelPen" data-event="nimbus-editor-active-tools" data-event-param="pen">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-arrow-line" data-i18n="videoPanelArrow" data-event="nimbus-editor-active-tools" data-event-param="arrow">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-square" data-i18n="videoPanelSquare" data-event="nimbus-editor-active-tools" data-event-param="square">&nbsp;</span>
+                </button>
+                <div class="nsc-panel-button separated">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+                            <span class="nsc-icon nsc-icon-attention" data-i18n="videoPanelMark" data-event="nimbus-editor-active-tools" data-event-param="notifRed">&nbsp;</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown to-top">
+                        <ul flex="" layout="row" layout-align="start center">
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-attention" data-i18n="videoPanelMark" data-event="nimbus-editor-active-tools" data-event-param="notifRed">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-question" data-i18n="videoPanelQuestion" data-event="nimbus-editor-active-tools" data-event-param="notifBlue">&nbsp;</span>
+                            </li>
+                            <li class="nsc-panel-dropdown-icon" flex="" layout="row" layout-align="start center">
+                                <span class="nsc-icon nsc-icon-done" data-i18n="videoPanelCheckmark" data-event="nimbus-editor-active-tools" data-event-param="notifGreen">&nbsp;</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="nsc-panel-button assembled">
+                    <div class="nsc-panel-select" flex="" layout="row">
+                        <div class="nsc-panel-text nsc-noselect" flex="" layout="row" layout-align="center center">
+							<span class="nsc-icon nsc-icon-fill-none nsc-panel-icon-fill">
+								<span class="nsc-panel-icon-fill-inner" id="nsc_panel_button_colors" style="background:#00FF00;" data-event="nimbus-editor-active-color" data-event-param="#00FF00">&nbsp;</span>
+							</span>
+                        </div>
+                        <div class="nsc-panel-trigger">
+                            <span class="nsc-icon nsc-icon-arrow">&nbsp;</span>
+                        </div>
+                    </div>
+                    <div class="nsc-panel-dropdown">
+                        <div class="nsc-panel-drop-area">
+                            <div class="nsc-panel-colors">
+
+                                <!-- picked -->
+                                <div class="nsc-colors-picked">
+                                    <div class="nsc-colors-picked-layout" flex="" layout="row" layout-align="start start" layout-wrap="">
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#000000">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #000000;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#0000FF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #0000FF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FF00FF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FF00FF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#00FFFF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #00FFFF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#00FF00">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #00FF00;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FFFF00">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FFFF00;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FF0000">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FF0000;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <div class="nsc-colors-picked-item">
+                                            <button class="nsc-colors-picked-button" type="button" data-event="nimbus-editor-active-color" data-event-param="#FFFFFF">
+                                                <span class="nsc-colors-picked-button-inner" style="background: #FFFFFF;">&nbsp;</span>
+                                            </button>
+                                        </div>
+                                        <!--<div class="nsc-colors-picked-item">-->
+                                        <!--<button class="nsc-colors-picked-button custom" type="button"> -->
+                                        <!--<i class="nsc-icon ic-color-custom"></i> -->
+                                        <!--</button>-->
+                                        <!--</div>-->
+                                    </div>
+                                </div>
+                                <!-- /picked -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /group -->
+
+            <!-- group -->
+            <div class="nsc-panel-group" flex="none" layout="row" layout-align="start start">
+                <button class="nsc-panel-button nsc-hide" type="button">
+                    <span class="nsc-icon nsc-icon-eraser" data-i18n="videoPanelClear" data-event="nimbus-editor-active-tools" data-event-param="clear">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-eraser-all" data-i18n="videoPanelClearAll" data-event="nimbus-editor-active-tools" data-event-param="clearAll">&nbsp;</span>
+                </button>
+                <button class="nsc-panel-button" type="button">
+                    <span class="nsc-icon nsc-icon-webcam" data-i18n="videoPanelCamera" id="nimbus_web_camera_toggle">&nbsp;</span>
+                </button>
+            </div>
+            <!-- /group -->
+        </div>
+
+        <div class="nsc-panel-actions" flex="none" layout="row" layout-align="start center">
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_play" style="display: none;">
+                <span class="nsc-icon nsc-icon-play">&nbsp;</span>
+            </button>
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_pause">
+                <span class="nsc-icon nsc-icon-pause">&nbsp;</span>
+            </button>
+            <button class="nsc-panel-button big" type="button" id="nsc_panel_button_stop">
+                <span class="nsc-icon nsc-icon-stop">&nbsp;</span>
+            </button>
+        </div>
+
+        <!-- panel togglers -->
+        <div class="nsc-panel-togglers" layout="row" layout-align="start center" flex="none">
+            <button class="nsc-panel-toggle-button" type="button">
+                <span class="nsc-icon nsc-icon-panel-close" data-i18n="videoPanelHideShowPanel">&nbsp;</span>
+            </button>
+        </div>
+        <!-- /panel togglers -->
+
+    </div>
+</div>
+<div class="nsc-video-editor nsc-hide events" style="width: 1263px; height: 7314px;"><canvas width="1263" height="7314" style="width: 1263px; height: 7314px; position: absolute; top: 0px; left: 0px; z-index: 0;"></canvas><canvas width="1263" height="7314" style="width: 1263px; height: 7314px; position: absolute; top: 0px; left: 0px; z-index: 1;"></canvas><canvas width="1263" height="7314" style="width: 1263px; height: 7314px; position: absolute; top: 0px; left: 0px; z-index: 2;"></canvas></div><div class="nsc-content-camera nsc-hide">
+    <div class="nsc-content-camera-buttons" flex="none" layout="row" layout-align="start start">
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_collapse" style="display: none">
+            <span class="nsc-icon nsc-icon-panel-collapse"></span>
+        </button>
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_expand">
+            <span class="nsc-icon nsc-icon-panel-expand"></span>
+        </button>
+        <button class="nsc-content-camera-button" type="button" id="nsc_video_camera_close">
+            <span class="nsc-icon nsc-icon-panel-close"></span>
+        </button>
+    </div>
+    <div class="nsc-content-camera-container">
+        <div class="nsc-content-camera-shadow"></div>
+    </div>
+</div>
+</body></html>

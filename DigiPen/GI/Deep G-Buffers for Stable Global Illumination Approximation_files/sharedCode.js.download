@@ -1,0 +1,33 @@
+/** return a string of the list with proper syntax (e.g. [X, Y, Z] -> "X, Y, and Z" or [B, A] -> "B and A")*/
+function formatList(list) {
+
+    var s = "";
+    if (!list) return s;
+
+    var length = list.length;
+    for (var j = 0; j < length; ++j) {
+        if (list[j].url && list[j].name) {
+            //the element should be linked to a url.
+            s += '<a href="' + list[j].url + '">' + list[j].name + '</a>';
+        } else {
+            s += list[j];
+        }
+        if ((j === 0) && (length == 2)) {
+            s += " and ";
+            continue;
+        } 
+        if (j < length - 2) {
+            s += ", ";
+            continue;
+        }
+        if (j === length - 2) {
+            s += ", and ";
+        }
+    }
+
+    return s;
+}
+
+function stripHTML(string) {
+    return (string || '').replace(/<[^>]*>/ig, '');
+}

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)https://c0.pubmine.com/sf/0.0.3/html/safeframe.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noodp">
+        <title></title>
+        <script>
+            window.onerror = function() { return true; };
+        </script>
+        <style>
+            #sf_body {
+                margin: 0;
+                padding: 0;
+            }
+            #sf_align {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+        </style>
+    <!--<base target="_blank">--><base href="." target="_blank"></head>
+    <body id="sf_body" marginwidth="0" marginheight="0" style="background: transparent; margin: 0;"><iframe id="iframe_1594277932342750" name="iframe_1594277932342750" width="0" height="0" src="./t2tv7.html" style="display: none;"></iframe>
+        <div id="sf_align" class="sf_el">
+          <script class="sf_lib">
+              !function(e){var t={};function n(r){if(t[r])return t[r].exports;var s=t[r]={i:r,l:!1,exports:{}};return e[r].call(s.exports,s,s.exports,n),s.l=!0,s.exports}n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var s in e)n.d(r,s,function(t){return e[t]}.bind(null,s));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=1)}([function(e,t,n){"use strict";e.exports=function(e){return"string"==typeof e&&e.length>0}},function(e,t,n){"use strict";var r=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(t,"__esModule",{value:!0});var s=r(n(2));t.default=new s.default(window)},function(e,t,n){"use strict";var r=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(t,"__esModule",{value:!0});var s=r(n(3)),i=r(n(4)),a=r(n(5)),o=r(n(6)),u=r(n(0)),c=n(8),d=function(){function e(e){var t=this;this.win=e,this.isWinFocused=!1,this.geometry={},this.callbackFn=i.default,this.callbackRegistered=!1,this.register=function(e,n,r){t.callbackRegistered?t.sendError("$sf.ext.register callback already initialized"):a.default(r)&&(t.callbackFn=r,t.callbackRegistered=!0)},this.supports=function(){return t.supportedFeatures},this.geom=function(){return t.geometry},this.meta=function(e,n){var r,s=t.metaData;if(s){var i=s.shared,a=s.nonShared;u.default(e)&&(u.default(n)?o.default(a)&&(r=a[n][e]):r=i[e])}return r},this.cookie=function(e,n){if(!t.pendingCommand){var r=o.default(n),s=r?c.ESafeFrameEvents.WRITE_COOKIE:c.ESafeFrameEvents.READ_COOKIE,i={cookie:e};r&&(i.value=n.info),t.pendingCommand=s,t.sendMessage(s,{cmd:s,info:i})}},this.inViewPercentage=function(){var e=t.geometry.self,n=e&&e.iv||0;return n>0&&(n=Math.floor(100*n)),n},this.winHasFocus=function(){return t.isWinFocused||t.document.hasFocus()},this.handleMessage=function(e){var n=JSON.parse(e.data);if(t.isValidMessageEvent(e.source,n)){e.stopImmediatePropagation();var r=n.cmd,s=n.params;t.pendingCommand===s.cmd&&(t.pendingCommand=void 0),t.processMessage(r,s)}},this.sendMessage=function(e,n){top.postMessage(JSON.stringify({cmd:e,guid:t.guid,id:t.positionId,params:n}),"*")},this.sendError=function(e){var n=c.ESafeFrameEvents.ERROR;t.sendMessage(n,{cmd:n,info:e})},this.isValidMessageEvent=function(e,n){return e===top&&o.default(n)&&n.guid===t.guid},this.processMessage=function(e,n){void 0===n&&(n={});var r=n.cmd,s=n.info,i=n.reason;switch(r){case c.ESafeFrameEvents.GEOMETRY_UPDATE:t.geometry=n.info;break;case c.ESafeFrameEvents.FOCUS_CHANGE:t.isWinFocused=!!n.info}t.callbackFn(e,{cmd:r,info:s,reason:i})},this.parent=e.parent,this.document=e.document,this.init()}return e.prototype.expand=function(){},e.prototype.collapse=function(){},e.prototype.status=function(){return"collapsed"},e.prototype.init=function(){try{if(this.isValidFrame()&&(this.parseRenderParams(),this.isValidRenderParams())){var e=this.renderParams,t=e.geom,n=e.conf,r=e.has_focus,s=e.meta,i=e.guid;this.guid=i,this.geometry=t,this.metaData=s,this.isWinFocused=r;var a=n.supports,o=n.id;this.positionId=o,this.supportedFeatures={"exp-ovr":!!a["exp-ovr"],"exp-push":!!a["exp-push"],"read-cookie":!!a["read-cookie"],"write-cookie":!!a["write-cookie"]},this.insertStyles(),this.addNavigationHandler(),this.setupListeners(),this.win.$sf=this.getNamespace(),this.render()}}catch(e){this.sendError("Safeframe initialization error: "+e.message)}},e.prototype.isValidRenderParams=function(){var e=this.renderParams,t=e.guid,n=e.html,r=e.conf;return u.default(t)&&u.default(n)&&o.default(r)},e.prototype.insertStyles=function(){var e=this.renderParams.conf,t=e.bg,n=e.css;s.default("\n            #sf_body {\n                background-color: "+t+";\n            }\n        "),s.default(unescape(n))},e.prototype.isValidFrame=function(){return top===this.parent},e.prototype.parseRenderParams=function(){try{var e=this.win.name;this.win.name="",this.renderParams=JSON.parse(e)}catch(e){this.sendError("Safeframe parsing render parameters error: "+e.message)}},e.prototype.addNavigationHandler=function(){var e=this.renderParams.conf.tgt;e!==c.EBaseTargets.SELF&&e!==c.EBaseTargets.PARENT||(e=c.EBaseTargets.TOP);var t=this.document,n=t.createElement("base");n.setAttribute("target",e),t.head.appendChild(n)},e.prototype.setupListeners=function(){this.win.addEventListener("message",this.handleMessage)},e.prototype.render=function(){try{var e=this.renderParams.html;this.document.write(e)}catch(e){this.sendError("Safeframe render error: "+e.message)}},e.prototype.getNamespace=function(){return{ext:{collapse:this.collapse,cookie:this.cookie,expand:this.expand,geom:this.geom,inViewPercentage:this.inViewPercentage,meta:this.meta,register:this.register,status:this.status,supports:this.supports,winHasFocus:this.winHasFocus}}},e}();t.default=d},function(e,t,n){"use strict";var r=n(0);e.exports=function(e,t){if(void 0===t&&(t=window),r(e)){var n=t.document,s=n.createElement("style");return n.body.appendChild(s),s.styleSheet?s.styleSheet.cssText=e:s.appendChild(n.createTextNode(e)),s}}},function(e,t,n){"use strict";e.exports=function(){}},function(e,t,n){"use strict";e.exports=function(e){return"function"==typeof e}},function(e,t,n){"use strict";var r=n(7);e.exports=function(e){return!r(e)&&"object"==typeof e&&Object.keys(e).length>0}},function(e,t,n){"use strict";e.exports=function(e){return null===e}},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.TOP="_top",e.SELF="_self",e.BLANK="_blank",e.PARENT="_parent"}(t.EBaseTargets||(t.EBaseTargets={})),function(e){e.BEFORE_HOOK="onBeforePosMsg",e.RENDER_END="onEndPosRender",e.FAILURE="onFailure",e.MESSAGE="onPosMsg",e.RENDER_START="onStartPosRender",e.SUCCESS="onSuccess"}(t.EHostEvents||(t.EHostEvents={})),function(e){e.GEOMETRY_UPDATE="geom-update",e.FOCUS_CHANGE="focus-change",e.READ_COOKIE="read-cookie",e.WRITE_COOKIE="write-cookie",e.FAILURE="failed",e.ERROR="error"}(t.ESafeFrameEvents||(t.ESafeFrameEvents={}))}]);
+          </script><script type="text/javascript" src="./win(1)"></script><script language="JavaScript" src="./js"></script>
+
+  
+  
+    <iframe id="mm_outer" name="outerFrame" width="300" height="250" src="./banner_300x250.html" style="border: 0px; overflow: hidden;"></iframe><script id="outer_script" type="text/javascript">
+      var macrosObj = {
+        bidderMacros: {
+          'RANDOM_NUMBER': '4719932003284780309',
+          'UNENCODED_CLICK_REDIRECT': 'http://pixel.mathtag.com/click/img?mt_aid=4719932003284780309&mt_id=8212833&mt_adid=225582&mt_sid=5819260&mt_exid=21&mt_inapp=0&mt_uuid=372c5efc-112d-4601-a6d5-6921409c4c3a&mt_lp=https%3A//www.nutrisystem.com/&redirect=',
+          'ENCODED_CLICK_REDIRECT': 'http://pixel.mathtag.com/click/img%3Fmt_aid%3D4719932003284780309%26mt_id%3D8212833%26mt_adid%3D225582%26mt_sid%3D5819260%26mt_exid%3D21%26mt_inapp%3D0%26mt_uuid%3D372c5efc-112d-4601-a6d5-6921409c4c3a%26mt_lp%3Dhttps%253A//www.nutrisystem.com/%26redirect%3D',
+          'DBL_ENCODED_CLICK_REDIRECT': 'http://pixel.mathtag.com/click/img%253Fmt_aid%253D4719932003284780309%2526mt_id%253D8212833%2526mt_adid%253D225582%2526mt_sid%253D5819260%2526mt_exid%253D21%2526mt_inapp%253D0%2526mt_uuid%253D372c5efc-112d-4601-a6d5-6921409c4c3a%2526mt_lp%253Dhttps%25253A//www.nutrisystem.com/%2526redirect%253D',
+          'MM_UUID': '372c5efc-112d-4601-a6d5-6921409c4c3a',
+          'MM_UUID_B64': 'MzcyYzVlZmMtMTEyZC00NjAxLWE2ZDUtNjkyMTQwOWM0YzNh',
+          'MM_UUID_B64WS': 'MzcyYzVlZmMtMTEyZC00NjAxLWE2ZDUtNjkyMTQwOWM0YzNh',
+          'MOBILE_DEVICE_ID': '',
+          'HASHED_MOBILE_DEVICE_ID': '',
+          'EXTERNAL_IDENTIFIER': 'mm15840.6390430279',
+          'OPTOUT': '0',
+          'SEGMENTS.SELF': '[SEGMENTS.SELF]',
+          'FREQ.count': '1',
+          'FREQ.duration': '3600',
+          'AD_ATTR.strategy': '5819260',
+          'AD_ATTR.campaign': '739191',
+          'AD_ATTR.advertiser': '225582',
+          'AD_ATTR.creative': '8212833',
+          'AD_ATTR.width': '300',
+          'AD_ATTR.height': '250',
+          'AD_ATTR.organization': '102062',
+          'BID_ATTR.ip': '24.18.54.83',
+          'BID_ATTR.bid_id': '4719932003284780309',
+          'BID_ATTR.req_id': '4719932003284780309',
+          'BID_ATTR.site_id': '12089',
+          'BID_ATTR.pub_id': '12089',
+          'BID_ATTR.pmp_mm_deal_id': '',
+          'BID_ATTR.pmp_supply_deal_id': '',
+          'BID_ATTR.ad_id': '0',
+          'BID_ATTR.page_url': 'https%3A//kosmonautblog.wordpress.com/2017/03/25/shadow-filtering-for-pointlights/',
+          'BID_ATTR.referrer': '',
+          'BID_ATTR.site': 'kosmonautblog.wordpress.com',
+          'BID_ATTR.3pas_click': '',
+          'BID_ATTR.mm_uuid': 'cb925e79-7aea-4c00-a92c-aaf39e0589c0',
+          'BID_ATTR.app_id': '',
+          'BID_ATTR.app_name': '',
+          'BID_ATTR.app_store_url': '',
+          'BID_ATTR.lmt': '0'
+        },
+        adamaMacros: {
+          'CLICK_URL': 'https://ad.doubleclick.net/ddm/trackclk/N4319.3583747MEDIAMATH_GW/B23519981.275411431;dc_trk_aid=469657262;dc_trk_cid=133549772;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=',
+          'CLICK_URL | uri_preserve_square_brackets': 'https%3A%2F%2Fad.doubleclick.net%2Fddm%2Ftrackclk%2FN4319.3583747MEDIAMATH_GW%2FB23519981.275411431%3Bdc_trk_aid%3D469657262%3Bdc_trk_cid%3D133549772%3Bdc_lat%3D%3Bdc_rdid%3D%3Btag_for_child_directed_treatment%3D%3Btfua%3D',
+          'WIDTH': '300',
+          'HEIGHT': '250',
+          'ENCODED_CLICK_URL': 'https%3A%2F%2Fad.doubleclick.net%2Fddm%2Ftrackclk%2FN4319.3583747MEDIAMATH_GW%2FB23519981.275411431%3Bdc_trk_aid%3D469657262%3Bdc_trk_cid%3D133549772%3Bdc_lat%3D%3Bdc_rdid%3D%3Btag_for_child_directed_treatment%3D%3Btfua%3D',
+          'CREATIVE_HOST': 'creative.mathads.com',
+          'THIRD_PARTY_TAGS': '',
+          'PROTOCOL': 'https://'
+        }
+      };
+
+      function trackEvent(macros, eType, msg) {
+        var pixelImg = new Image();
+        var pixelImgSrc = window.atob('aHR0cHM6Ly9waXhlbC5tYXRodGFnLmNvbS9ldmVudC9pbWc/bXRfaWQ9MTM3MDQ0OCZtdF9hZGlkPTIxNjc2NCZtdF9uc3luYz0xJg==');
+        var sumoImg = new Image();
+        var sumoImgSrc = window.atob('aHR0cHM6Ly9lbmRwb2ludDEuY29sbGVjdGlvbi51czIuc3Vtb2xvZ2ljLmNvbS9yZWNlaXZlci92MS9odHRwL1phVm5DNGRoYVYySjh5YW05cTBvZW9VRVFrbngya3QtUWk1MXJuam5jalFkdnJrY0FxWHJWMldVcjRHRGJCRTZoaTN1clF2WW8wOEo4Nkw1Vm9HQ2Z1YWdYeEpGNEMtXzFYUEJtYlhjdTRxeDF1bF9hNnVmSmc9PT8=');
+        var encodedMsg = encodeURIComponent(eType + (msg ? ': ' + msg || '' : ''));
+        var imgPath = 'https://creative.mathads.com/0001/89/fc/e8/f8/2054133f9ddc6a8358b8db2c1c873140.jpg';
+        var imgSize = '300' + 'x' + '250';
+        var client = window.navigator;
+        var vStr = 's1=4719932003284780309&v1=21&v2=12089&v3=kosmonautblog.wordpress.com&v4=739191&v5=5819260&v6=8212833&v7=' + imgPath + '&v8=' + imgSize + '&v9=null&v10=null&v11=&v12=' + client.vendor + '&v13=' + client.appVersion + '&v14=' + client.language + '&v15=' + client.platform + '&v16=html5_1.6&v17=' + encodedMsg;
+
+        pixelImg.src = pixelImgSrc + vStr;
+        sumoImg.src = sumoImgSrc + vStr;
+      };
+
+      function checkMacroExpansion(macros) {
+        var keyList = ['UNENCODED_CLICK_REDIRECT', 'ENCODED_CLICK_REDIRECT', 'DBL_ENCODED_CLICK_REDIRECT', 'CLICK_URL', 'CLICK_URL | uri_preserve_square_brackets'];
+        var result;
+
+        function checkMacros(macros) {
+          var unexpandedMacros = [];
+          var isKeyInList = false;
+
+          for (var key in macros) {
+            isKeyInList = keyList.indexOf(key) > -1;
+            if ((isKeyInList && macros[key] === '') || (isKeyInList && macros[key] === '[' + key + ']') || (isKeyInList && macros[key] === ' + key + ')) {
+              unexpandedMacros.push(key);
+            }
+          }
+
+          return unexpandedMacros;
+        }
+
+        result = macros && checkMacros(macros.bidderMacros).concat(checkMacros(macros.adamaMacros));
+
+        if (result && result.length) {
+          trackEvent(macros, 'MACRO_EXPANSION_FAILED', 'Unexpanded macros: ' + result.join(', '));
+        } else {
+          trackEvent(macrosObj, 'CREATIVE_ADFRAME_LOAD_SUCCESSFUL');
+        }
+
+        return result;
+      };
+
+      function loadOuterFrame() {
+        try {
+          var outerScript = document.getElementById('outer_script');
+          var outerFrame = document.createElement('iframe');
+
+          outerFrame.id = 'mm_outer';
+          outerFrame.name = 'outerFrame';
+          outerFrame.width = '300';
+          outerFrame.height = '250';
+          outerFrame.style.border = '0';
+          outerFrame.style.overflow = 'hidden';
+          outerFrame.src = 'https://creative.mathads.com/0001/56/91/56/ed/3e299f17a6e23c52632d01f689da7352/banner_300x250.html' + '?cb=4719932003284780309';
+          outerFrame.onload = outerFrame.onreadystatechange = function () {
+            outerFrame.contentWindow.postMessage(JSON.stringify(macrosObj), '*');
+          };
+
+          if (outerScript.insertAdjacentElement) {
+            outerScript.insertAdjacentElement('beforebegin', outerFrame);
+          } else {
+            outerScript.parentNode.insertBefore(outerFrame, outerScript);
+          }
+
+          checkMacroExpansion(macrosObj);
+        } catch (error) {
+          trackEvent(macrosObj, 'Error', error.message);
+        }
+      };
+
+      if (document.readyState !== 'loading') {
+        loadOuterFrame();
+      } else {
+        document.addEventListener('DOMContentLoaded', loadOuterFrame);
+      }
+    </script>
+    
+    <noscript>
+      <a href="http://pixel.mathtag.com/click/img?mt_aid=4719932003284780309&mt_id=8212833&mt_adid=225582&mt_sid=5819260&mt_exid=21&mt_inapp=0&mt_uuid=372c5efc-112d-4601-a6d5-6921409c4c3a&mt_lp=https%3A//www.nutrisystem.com/&redirect=https%3A%2F%2Fad.doubleclick.net%2Fddm%2Ftrackclk%2FN4319.3583747MEDIAMATH_GW%2FB23519981.275411431%3Bdc_trk_aid%3D469657262%3Bdc_trk_cid%3D133549772%3Bdc_lat%3D%3Bdc_rdid%3D%3Btag_for_child_directed_treatment%3D%3Btfua%3D" target="_blank" rel="noopener">
+        <img src="https://creative.mathads.com/0001/89/fc/e8/f8/2054133f9ddc6a8358b8db2c1c873140.jpg" width="300" height="250" style="border:0;" />
+      </a>
+    </noscript>
+  
+<script type="text/javascript" src="./durly.js.download"></script><iframe id="iframe_969428847299" name="iframe_969428847299" data-dv-frm="969428847299" width="0" height="0" src="./saved_resource(26).html" style="display: none;"></iframe><script src="./dvtp_src.js.download" type="text/javascript"></script><script src="./analytics.js.download" async="true"></script><div width="1" height="1" style="display:none; overflow:hidden"><img style="left:-10px;top:-10px; position:absolute" src="./img" width="1" height="1"><img style="left:-9px;top:-9px; position:absolute" src="./img(1)" width="1" height="1"></div><div width="1" height="1" style="display:none; overflow:hidden"><img style="left:-10px;top:-10px; position:absolute" src="./sync(1)" height="1" width="1"></div><div width="1" height="1" style="display:none; overflow:hidden"><img style="left:-10px;top:-10px; position:absolute" src="./sync(2)" height="1" width="1"></div><img src="./imp_pixel(1)" alt=" " style="display:none"><img src="./wl_pixel(1)" alt=" " style="display:none">
+        </div><style>
+            #sf_body {
+                background-color: transparent;
+            }
+        </style><img src="./4.gif" id="bap-pixel-54716" style=""><script id="ba.js" src="./ba.js.download"></script>
+    
+
+<script src="./3689.js.download"></script><script src="./main.js.download"></script><link id="bass-COMMON" rel="stylesheet" type="text/css" href="./COMMON.css"><div id="BAP-holder"><div id="trigger-container-54716" style="position: static !important;"><span id="trigger-box-54716" class="bap-trigger" style="position: absolute; opacity: 0.7; width: 19px; height: 15px; top: 13px; left: 281px;"><img id="trigger-box-image-54716" src="./box_19_top-right.png"></span><span id="trigger-54716" style="position: absolute; top: 13px; left: 281px;" class="bap-trigger" onclick="BAP.action(&#39;54716&#39;, &#39;S&#39;); BAP.createL2(&#39;54716&#39;);" onmouseover="BAP.expandIcon(54716)"><img src="./ci.png"></span></div><div id="bap-notice-54716" class="bap1 bap-notice" style="width:auto !important;max-width:299px;min-width:276px;;display:none;"><div class="bap-div"><div class="bap-close" onclick="BAP.toggle(54716);return false;">[ X ]</div><div class="bap-img-container"><a class="bap-blue" target="_blank" href="http://www.mediamath.com/privacy-policy/" onclick="BAP.action(&#39;54716&#39;, &#39;A&#39;);"><img id="bap-logo-54716" border="0"></a></div><p>This ad may have been matched to your interests based on your browsing activity.<br><br>MediaMath helped MediaMath select this ad for you.</p><div class="bap-link-div"><a class="bap-blue" href="about:blank" id="bap-link-1-54716" target="_blank" onclick="BAP.action(&#39;54716&#39;, &#39;M&#39;);" onmouseover="BAP.moreInfoLink(&#39;54716&#39;)">More information &amp; opt-out options »</a></div><div class="bap-link-div"><a class="bap-blue" href="about:blank" id="bap-link-2-54716" target="_blank" onclick="BAP.action(&#39;54716&#39;, &#39;B&#39;);" onmouseover="BAP.iabLink(&#39;54716&#39;)">What is interest based advertising »</a></div><div class="bap-link-div"><a class="bap-blue" target="_blank" href="http://www.mediamath.com/privacy-policy/" onclick="BAP.action(&#39;54716&#39;, &#39;A&#39;);">MediaMath Privacy Policy »</a></div><div class="bap-link-div"><span class="bap-gray">Privacy Controls by Evidon, Inc.</span></div></div></div></div><img width="0" height="0" src="./pixel.gif" style="display: none;"><link id="bass-1" rel="stylesheet" type="text/css" href="./1.css"></body><iframe aria-hidden="true" src="javascript:(fzn0hat6wzkk=function(t,r,e,o,n,p,c,a,f,y){for(;2&gt;o;)for(a=e[p=typeof t[o++]]={},c=window[p.replace(/./,p.charAt().toUpperCase())],f=r?r(c).concat(r(c.prototype)):[],p=0;n=f[p++];)try{&#39;_&#39;!=n.charAt()&amp;&amp;(a[n]=(y=c[n]).apply.bind(y))}catch(i){}return function(t,r,o){return e[typeof t][r](t,o)}}([{},[].slice],Object.getOwnPropertyNames,{},0))" style="top: -1000px; position: absolute; height: 5px; width: 5px;" src="./saved_resource(27).html"></iframe></html>
