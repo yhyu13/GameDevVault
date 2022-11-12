@@ -1,0 +1,6 @@
+[submodule "Rendering/Book/Ray-Tracing-gem-1/ray-tracing-gems"]
+	path = Rendering/Book/Ray-Tracing-gem-1/ray-tracing-gems
+	url = https://github.com/Apress/ray-tracing-gems.git
+[submodule "Rendering/Book/Ray-Tracing-gem-2/ray-tracing-gems-2"]
+	path = Rendering/Book/Ray-Tracing-gem-2/ray-tracing-gems-2
+	url = https://github.com/Apress/Ray-Tracing-Gems-II.git
