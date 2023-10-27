@@ -4,3 +4,12 @@
 [submodule "Rendering/Book/Ray-Tracing-gem-2/ray-tracing-gems-2"]
 	path = Rendering/Book/Ray-Tracing-gem-2/ray-tracing-gems-2
 	url = https://github.com/Apress/Ray-Tracing-Gems-II.git
+[submodule "Rendering/Repo/DirectX-Graphics-Samples"]
+	path = Rendering/Repo/DirectX-Graphics-Samples
+	url = https://github.com/microsoft/DirectX-Graphics-Samples.git
+[submodule "Rendering/Repo/hybrid-rendering"]
+	path = Rendering/Repo/hybrid-rendering
+	url = https://github.com/diharaw/hybrid-rendering.git
+[submodule "Rendering/Repo/ZetaRay"]
+	path = Rendering/Repo/ZetaRay
+	url = https://github.com/alipbcs/ZetaRay.git
