@@ -14,5 +14,8 @@
 	path = Rendering/Repo/ZetaRay
 	url = https://github.com/alipbcs/ZetaRay.git
 [submodule "Rendering/Repo/vk_raytrace"]
-	path = Rendering/Repo/vk_raytrace
+	path = Rendering/Repo/nvsamples/vk_raytrace
 	url = https://github.com/nvpro-samples/vk_raytrace.git
+[submodule "Rendering/Repo/nvsamples/nvpro_core"]
+	path = Rendering/Repo/nvsamples/nvpro_core
+	url = https://github.com/nvpro-samples/nvpro_core.git
