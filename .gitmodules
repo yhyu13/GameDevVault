@@ -19,3 +19,6 @@
 [submodule "Rendering/Repo/nvsamples/nvpro_core"]
 	path = Rendering/Repo/nvsamples/nvpro_core
 	url = https://github.com/nvpro-samples/nvpro_core.git
+[submodule "Unreal/LearningUnrealEngine"]
+	path = Unreal/LearningUnrealEngine
+	url = https://github.com/yhyu13/LearningUnrealEngine.git
