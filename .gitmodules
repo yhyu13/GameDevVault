@@ -22,7 +22,4 @@
 [submodule "Unreal/LearningUnrealEngine"]
 	path = Unreal/LearningUnrealEngine
 	url = https://github.com/yhyu13/LearningUnrealEngine.git
-[submodule "Rendering/Repo/RealEngine"]
-	path = Rendering/Repo/RealEngine
-	url = https://github.com/yhyu13/RealEngine.git
-	branch = fix_win
+
