@@ -1,0 +1,1830 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://jason.today/rc
+Subject: Radiance Cascades: Building Real-Time Global Illumination
+Date: Sat, 31 Jan 2026 17:41:21 +0800
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--5aG3VhyDHdImdkhWXJgzhOokSv3rztKiyTuLzGQ08V----"
+
+
+------MultipartBoundary--5aG3VhyDHdImdkhWXJgzhOokSv3rztKiyTuLzGQ08V----
+Content-Type: text/html
+Content-ID: <frame-67E1868B45ED882E5E77FC1A91BDBBA1@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://jason.today/rc
+
+<!DOCTYPE html><html lang=3D"en"><head><meta http-equiv=3D"Content-Type" co=
+ntent=3D"text/html; charset=3DUTF-8"><link rel=3D"stylesheet" type=3D"text/=
+css" href=3D"cid:css-7c08e8ca-cf70-4c57-be55-423f241bec71@mhtml.blink" /><l=
+ink rel=3D"stylesheet" type=3D"text/css" href=3D"cid:css-a1164062-841f-4cbd=
+-9359-d58bbf3708d7@mhtml.blink" />
+ =20
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1.0">
+  <link rel=3D"icon" href=3D"https://jason.today/favicon.ico">
+  <title>Radiance Cascades: Building Real-Time Global Illumination</title>
+ =20
+ =20
+  <link rel=3D"stylesheet" href=3D"https://jason.today/css/mdxish.css"> <li=
+nk rel=3D"stylesheet" href=3D"https://jason.today/css/prism.css">  <meta na=
+me=3D"description" content=3D"An interactive walkthrough of implementing ra=
+diance cascades, a technique for real-time noiseless global illumination.">=
+ <meta name=3D"og:description" content=3D"An interactive walkthrough of imp=
+lementing radiance cascades, a technique for real-time noiseless global ill=
+umination."> <meta name=3D"twitter:card" content=3D"summary_large_image"> <=
+meta property=3D"og:title" content=3D"Building Real-Time Global Illuminatio=
+n: Radiance Cascades"> <meta property=3D"og:type" content=3D"website"> <met=
+a property=3D"og:url" content=3D"https://jason.today/rc"> <meta property=3D=
+"og:image" content=3D"https://jason.today/img/rc-preview-social.png">  =20
+</head>
+
+<body>
+
+<div id=3D"content" style=3D"max-width: 800px;"><p><a href=3D"https://jason=
+.today/">jason.today</a></p>
+  <h3 id=3D"building-realtime-global-illumination">Building Real-Time Globa=
+l Illumination</h3>
+  <h1 id=3D"radiance-cascades">Radiance Cascades</h1>
+  <p>An Interactive Walkthrough</p>
+  <p><em>This is the second post in a series. Checkout the <a href=3D"https=
+://jason.today/gi">first post</a>, which walks through raymarching, the jum=
+p flood algorithm, distance fields, and a noise-based global illumination m=
+ethod. We use them all again here!</em></p>
+  <p>This is what we will build in this post. It's noiseless, real-time glo=
+bal illumination. The real deal.</p>
+  <p>Drag around inside!</p>
+  <p>Colors on the right - try toggling the sun!</p>
+
+  <span id=3D"radiance-cascades-enabled"></span>
+  <span id=3D"falling-sand-enabled" deep=3D"1">
+
+<div id=3D"bigger-canvas"></div>
+
+<details style=3D"cursor: pointer">
+  <summary>Additional Controls</summary>
+
+<div style=3D"display: flex; align-items: center; gap: 4px">
+  <input type=3D"checkbox" id=3D"enable-srgb">
+  <label for=3D"enable-srgb">Correct sRGB</label>
+</div>
+
+<div style=3D"display: flex; align-items: center; gap: 4px">
+  <input type=3D"checkbox" id=3D"add-noise">
+  <label for=3D"add-noise">Naive GI Noise</label>
+</div>
+
+<div style=3D"display: none; align-items: center; gap: 4px" data-filtered=
+=3D"filtered">
+  <input type=3D"checkbox" id=3D"ringing-fix" data-filtered=3D"filtered">
+  <label for=3D"ringing-fix" data-filtered=3D"filtered">Ringing Fix</label>
+</div>
+
+<div id=3D"radius-slider-container">
+<div style=3D"display: flex; align-items: center; gap: 8px;">Pixels Between=
+ Base Probes<input id=3D"radius-slider-container-pixels-between base probes=
+-slider" class=3D"slider" type=3D"range" min=3D"0" max=3D"4" value=3D"0" st=
+ep=3D"1"><span>1</span></div><div style=3D"display: flex; align-items: cent=
+er; gap: 8px;">Interval Length<input id=3D"radius-slider-container-interval=
+-length-slider" class=3D"slider" type=3D"range" min=3D"1" max=3D"512" step=
+=3D"0.1" value=3D"2"><span>2</span></div><div style=3D"display: flex; align=
+-items: center; gap: 8px;">Base Ray Count<input id=3D"radius-slider-contain=
+er-base-ray count-slider" class=3D"slider" type=3D"range" min=3D"1" max=3D"=
+3" step=3D"1" value=3D"1"><span>4</span></div><div style=3D"display: flex; =
+align-items: center; gap: 8px;">Interval Overlap %<input id=3D"radius-slide=
+r-container-interval-overlap %-slider" class=3D"slider" type=3D"range" min=
+=3D"0" max=3D"2" step=3D"0.01" value=3D"0.04"><span>0.04</span></div><div s=
+tyle=3D"display: flex; align-items: center; gap: 8px;">(RC) Layer to Render=
+<input id=3D"radius-slider-container-(rc)-layer to render-slider" class=3D"=
+slider" type=3D"range" min=3D"0" max=3D"5" value=3D"0" step=3D"1"><span>0</=
+span></div><div style=3D"display: flex; align-items: center; gap: 8px;">(RC=
+) Layer Count<input id=3D"radius-slider-container-(rc)-layer count-slider" =
+class=3D"slider" type=3D"range" min=3D"1" max=3D"6" value=3D"6" step=3D"1">=
+<span>6</span></div><div style=3D"display: flex; align-items: center; gap: =
+8px;">Stage To Render<input id=3D"radius-slider-container-stage-to render-s=
+lider" class=3D"slider" type=3D"range" min=3D"0" max=3D"3" value=3D"3" step=
+=3D"1"><span>3</span></div><div style=3D"display: flex; align-items: center=
+; gap: 8px;">Brush Radius<input id=3D"radius-slider-container-brush-radius-=
+slider" class=3D"slider" type=3D"range" min=3D"1" max=3D"100" step=3D"0.1" =
+value=3D"8"><span>8</span></div></div>
+
+<div style=3D"display: " flex";=3D"" align-items:=3D"" center;=3D"" gap:=3D=
+"" 8px"=3D"">
+Sun Angle
+<input id=3D"rc-sun-angle-slider" class=3D"slider" type=3D"range" min=3D"0"=
+ max=3D"6.2" step=3D"0.1" value=3D"4.2" disabled=3D"">
+</div>
+
+<div style=3D"display: flex; align-items: center; gap: 4px">
+  <input type=3D"checkbox" id=3D"reduce-demand">
+  <label for=3D"reduce-demand">Reduce Demand (Calculate over 2 frames)</lab=
+el>
+</div>
+
+</details>
+
+<br data-filtered=3D"filtered">
+
+<div id=3D"radiance-cascades-canvas">
+  <div style=3D"display: flex; gap: 20px;">
+    <div id=3D"radiance-cascades-canvas-canvas-container"><canvas width=3D"=
+1024" height=3D"1024" style=3D"display: block; width: 512px; height: 512px;=
+"></canvas></div>
+
+    <div style=3D"display: flex; flex-direction: column; justify-content: s=
+pace-between;">
+        <div id=3D"radiance-cascades-canvas-color-picker" style=3D"display:=
+ flex; flex-direction: column;  border: solid 1px white; margin: 1px;">
+          <input type=3D"color" id=3D"radiance-cascades-canvas-color-input"=
+ value=3D"#eb6b6f" style=3D"display: none; width: 0px" data-filtered=3D"fil=
+tered">
+      <button class=3D"color" style=3D"background-color: rgb(255, 246, 211)=
+;"><span class=3D"arrow">=E2=96=B6</span></button><button class=3D"color" s=
+tyle=3D"background-color: rgb(249, 168, 117);"><span class=3D"arrow hidden"=
+>=E2=96=B6</span></button><button class=3D"color" style=3D"background-color=
+: rgb(235, 107, 111);"><span class=3D"arrow hidden">=E2=96=B6</span></butto=
+n><button class=3D"color" style=3D"background-color: rgb(124, 63, 88);"><sp=
+an class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"color" =
+style=3D"background-color: rgb(3, 196, 161);"><span class=3D"arrow hidden">=
+=E2=96=B6</span></button><button class=3D"color" style=3D"background-color:=
+ rgb(61, 158, 252);"><span class=3D"arrow hidden">=E2=96=B6</span></button>=
+<button class=3D"color" style=3D"background-color: rgb(0, 0, 0);"><span cla=
+ss=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"color" style=
+=3D"background-color: var(--pre-background);"><span class=3D"arrow hidden">=
+=E2=96=B6</span><span class=3D"erase"><svg xmlns=3D"http://www.w3.org/2000/=
+svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24" fill=3D"none" stroke=
+=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D"round" stroke-linejo=
+in=3D"round"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fill=3D"none"></path=
+><path d=3D"M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41=
+ 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3"></path><path d=3D"M18 13.3l-6.3 -6.3"></p=
+ath></svg></span></button></div>
+      <div style=3D"display: flex; flex-direction: column; gap: 2px">
+      <button id=3D"radiance-cascades-canvas-sun" class=3D"iconButton"><svg=
+ xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D=
+"0 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke=
+-linecap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 =
+0h24v24H0z" fill=3D"none"></path><path d=3D"M9.173 14.83a4 4 0 1 1 5.657 -5=
+.657"></path><path d=3D"M11.294 12.707l.174 .247a7.5 7.5 0 0 0 8.845 2.492a=
+9 9 0 0 1 -14.671 2.914"></path><path d=3D"M3 12h1"></path><path d=3D"M12 3=
+v1"></path><path d=3D"M5.6 5.6l.7 .7"></path><path d=3D"M3 21l18 -18"></pat=
+h></svg></button>
+      <button id=3D"radiance-cascades-canvas-clear" class=3D"iconButton"><s=
+vg xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=
+=3D"0 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" str=
+oke-linecap=3D"round" stroke-linejoin=3D"round" class=3D"icon icon-tabler i=
+cons-tabler-outline icon-tabler-trash"><path stroke=3D"none" d=3D"M0 0h24v2=
+4H0z" fill=3D"none"></path><path d=3D"M4 7l16 0"></path><path d=3D"M10 11l0=
+ 6"></path><path d=3D"M14 11l0 6"></path><path d=3D"M5 7l1 12a2 2 0 0 0 2 2=
+h8a2 2 0 0 0 2 -2l1 -12"></path><path d=3D"M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0=
+ 1 1 1v3"></path></svg></button>
+      <button id=3D"radiance-cascades-canvas-reset" class=3D"iconButton"><s=
+vg xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=
+=3D"0 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" str=
+oke-linecap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"=
+M0 0h24v24H0z" fill=3D"none"></path><path d=3D"M20 11a8.1 8.1 0 0 0 -15.5 -=
+2m-.5 -4v4h4"></path><path d=3D"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></pa=
+th></svg></button>
+      </div>
+    </div>
+</div></div>
+<div id=3D"falling-sand-rc-canvas"></div>
+
+<div id=3D"falling-sand-buttons" style=3D"display: none; align-items: cente=
+r; gap: 4px; margin-top: 17px" data-filtered=3D"filtered">
+  <button id=3D"sand-mode-button" data-filtered=3D"filtered">Sand Mode</but=
+ton>
+  <button id=3D"solid-mode-button" data-filtered=3D"filtered">Solid Mode</b=
+utton>
+  <button id=3D"solid-to-sand-button" data-filtered=3D"filtered">Solid to S=
+and</button>
+  <br data-filtered=3D"filtered">
+</div>
+<p><button id=3D"swap-to-falling-sand">Swap to Falling Sand</button></p>
+<br data-filtered=3D"filtered">
+
+
+
+
+
+<details style=3D"cursor: pointer">
+  <summary><em>Want a bigger canvas?</em></summary>
+  <p>You can set the width and height as query parameters. For example, her=
+e's <a href=3D"https://jason.today/rc?width=3D1024&amp;height=3D1024">1024 =
+x 1024</a> - note it may require a modern GPU to run smoothly!</p>
+</details>
+
+<br data-filtered=3D"filtered">
+
+<details style=3D"cursor: pointer">
+  <summary><em>Performance Issues?</em></summary>
+
+  <p>
+    There are three approaches available to improve performance (or quality=
+!).
+  </p>
+
+  <ol>
+    <li>
+      You can increase the probe spacing by setting "Pixels Between Base Pr=
+obes" in "Additional Controls" to be 2 instead of 1.
+    </li>
+    <li>
+      You can reduce the radiance texture scale by setting the <code>rcScal=
+e</code> query parameter to be more than 1 (2 by default which renders at 0=
+.5 resolution and scales it up 2x).
+    </li>
+    <li>
+      You can reduce the pixel ratio by setting the <code>pixelRatio</code>=
+ query parameter (2 by default which renders the drawing and final texture =
+at 2x the canvas size). For example, <a href=3D"https://jason.today/rc?pixe=
+lRatio=3D1">1x pixel scaling</a>.
+    </li>
+</ol></details>
+
+<br data-filtered=3D"filtered">
+
+<h2>Why is the previous post's approach naive?</h2>
+
+<p>So last time we left off with a method that sent N rays in equidistant d=
+irections about a unit circle, with a bit of noise added whenever we pick a=
+ direction to cast a ray. Each ray marches until it hits something, leverag=
+ing sphere marching via a distance field to jump as far as possible with hi=
+gh certainty that nothing would be missed or jumped over. The stopping cond=
+ition is hand-wavy, just some epsilon value - which we'll improve on.</p>
+<p>In that post we used 32 rays - that's pretty low accuracy, which shows. =
+We try to cover up with style and temporal accumulation. It should be noted=
+ that it could look much smoother using the same method. If we were to cast=
+ many more rays per pixel, say, 512 or 1024, use a more appropriate type of=
+ noise, and some additional smoothing... but it would no longer run in real=
+-time in common cases - especially at large resolutions.</p>
+<p>Take a look at the impact and look that noise has, and how smooth our GI=
+ can get at high ray counts.</p>
+<div style=3D"display: flex; align-items: center; gap: 4px">
+  <input type=3D"checkbox" id=3D"one-raymarch-add-noise">
+  <label for=3D"one-raymarch-add-noise">Naive GI Noise</label>
+</div>
+<div id=3D"ray-count-container"><div style=3D"display: flex; align-items: c=
+enter; gap: 8px;">Ray Count<input id=3D"ray-count-container-ray-count-slide=
+r" class=3D"slider" type=3D"range" min=3D"2" max=3D"10" step=3D"1" value=3D=
+"5"><span>32</span></div></div>
+<br data-filtered=3D"filtered">
+
+<div id=3D"one-pass-raymarch">
+  <div style=3D"display: flex; gap: 20px;">
+    <div id=3D"one-pass-raymarch-canvas-container"><canvas width=3D"300" he=
+ight=3D"400" style=3D"display: block; width: 300px; height: 400px;"></canva=
+s></div>
+
+    <div style=3D"display: flex; flex-direction: column; justify-content: s=
+pace-between;">
+        <div id=3D"one-pass-raymarch-color-picker" style=3D"display: flex; =
+flex-direction: column;  border: solid 1px white; margin: 1px;">
+          <input type=3D"color" id=3D"one-pass-raymarch-color-input" value=
+=3D"#eb6b6f" style=3D"display: none; width: 0px" data-filtered=3D"filtered"=
+>
+      <button class=3D"color" style=3D"background-color: rgb(255, 246, 211)=
+;"><span class=3D"arrow">=E2=96=B6</span></button><button class=3D"color" s=
+tyle=3D"background-color: rgb(249, 168, 117);"><span class=3D"arrow hidden"=
+>=E2=96=B6</span></button><button class=3D"color" style=3D"background-color=
+: rgb(235, 107, 111);"><span class=3D"arrow hidden">=E2=96=B6</span></butto=
+n><button class=3D"color" style=3D"background-color: rgb(124, 63, 88);"><sp=
+an class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"color" =
+style=3D"background-color: rgb(3, 196, 161);"><span class=3D"arrow hidden">=
+=E2=96=B6</span></button><button class=3D"color" style=3D"background-color:=
+ rgb(61, 158, 252);"><span class=3D"arrow hidden">=E2=96=B6</span></button>=
+<button class=3D"color" style=3D"background-color: rgb(0, 0, 0);"><span cla=
+ss=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"color" style=
+=3D"background-color: var(--pre-background);"><span class=3D"arrow hidden">=
+=E2=96=B6</span><span class=3D"erase"><svg xmlns=3D"http://www.w3.org/2000/=
+svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24" fill=3D"none" stroke=
+=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D"round" stroke-linejo=
+in=3D"round"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fill=3D"none"></path=
+><path d=3D"M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41=
+ 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3"></path><path d=3D"M18 13.3l-6.3 -6.3"></p=
+ath></svg></span></button></div>
+      <div style=3D"display: flex; flex-direction: column; gap: 2px">
+      <button id=3D"one-pass-raymarch-sun" class=3D"iconButton"><svg xmlns=
+=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 2=
+4 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-linec=
+ap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v2=
+4H0z" fill=3D"none"></path><path d=3D"M9.173 14.83a4 4 0 1 1 5.657 -5.657">=
+</path><path d=3D"M11.294 12.707l.174 .247a7.5 7.5 0 0 0 8.845 2.492a9 9 0 =
+0 1 -14.671 2.914"></path><path d=3D"M3 12h1"></path><path d=3D"M12 3v1"></=
+path><path d=3D"M5.6 5.6l.7 .7"></path><path d=3D"M3 21l18 -18"></path></sv=
+g></button>
+      <button id=3D"one-pass-raymarch-clear" class=3D"iconButton"><svg xmln=
+s=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 =
+24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-line=
+cap=3D"round" stroke-linejoin=3D"round" class=3D"icon icon-tabler icons-tab=
+ler-outline icon-tabler-trash"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fi=
+ll=3D"none"></path><path d=3D"M4 7l16 0"></path><path d=3D"M10 11l0 6"></pa=
+th><path d=3D"M14 11l0 6"></path><path d=3D"M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0=
+ 0 0 2 -2l1 -12"></path><path d=3D"M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3=
+"></path></svg></button>
+      <button id=3D"one-pass-raymarch-reset" class=3D"iconButton"><svg xmln=
+s=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 =
+24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-line=
+cap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v=
+24H0z" fill=3D"none"></path><path d=3D"M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4=
+v4h4"></path><path d=3D"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></svg=
+></button>
+      </div>
+    </div>
+</div></div>
+
+
+<br data-filtered=3D"filtered">
+
+<p>An important question to ask is certainly, "do we care about noise?" If =
+you like the aesthetic of noise or otherwise don't mind it, you can make th=
+e decision to use noise based methods. It inherently comes with inaccuracy =
+alongside the visual artifacts. But, put the slider at 16 rays. This is rou=
+ghly the cost of radiance cascades, yet the end result has no noise. Pretty=
+ crazy.</p>
+<p>Let's take a moment to talk about how many rays we're casting to get a s=
+ense of the computation we're performing every frame. Let's say we have a 1=
+024 x 1024 canvas - that's roughly 1M pixels. If we're casting 512 (on the =
+low side of nice and smooth) that's ~500M rays cast every frame. Because we=
+ added some great performance savings by creating distance fields, we only =
+need to take (on the order of) 10 steps per ray - and really the most compu=
+tationally expensive operation is a texture lookup which we do once to figu=
+re out if we need to perform a raymarch and once if we hit something - so l=
+et's call that roughly 2 texture lookups per cast ray totaling around 1B te=
+xture lookups. Even if we can perform a texture lookup in a nanosecond (lik=
+ely slower), we're looking at a full second per frame. To run at just 60fps=
+, we need to get that down to ~16ms. So roughly 100x faster.</p>
+<p>How can we simplify the amount of work we need to do without sacrificing=
+ quality?</p>
+<br data-filtered=3D"filtered">
+
+<h2 id=3D"penumbra-hypothesis">Penumbra hypothesis</h2>
+<p>It turns out, there's an idea called the "penumbra hypothesis" which pro=
+vides critical insight that we'll leverage to dramatically reduce the amoun=
+t of computational effort required.</p>
+<p>The idea has two parts.</p>
+<p>When a shadow is cast:</p>
+<ol>
+  <li>The necessary linear (spatial in pixel space) resolution to accuratel=
+y capture some area of it is inversely proportional to that area's distance=
+ from the origin.</li>
+  <li>The necessary angular resolution to accurately capture some area of i=
+t is proportional to that area's distance from the origin.</li>
+</ol>
+<p>Below is a scene that illustrates a penumbra.</p>
+<br data-filtered=3D"filtered">
+
+<div id=3D"penumbra-hypothesis-canvas">
+  <div style=3D"display: flex; gap: 20px;">
+    <div id=3D"penumbra-hypothesis-canvas-canvas-container"><canvas width=
+=3D"300" height=3D"400" style=3D"display: block; width: 300px; height: 400p=
+x;"></canvas></div>
+
+    <div style=3D"display: flex; flex-direction: column; justify-content: s=
+pace-between;">
+        <div id=3D"penumbra-hypothesis-canvas-color-picker" style=3D"displa=
+y: flex; flex-direction: column;  border: solid 1px white; margin: 1px;">
+          <input type=3D"color" id=3D"penumbra-hypothesis-canvas-color-inpu=
+t" value=3D"#eb6b6f" style=3D"display: none; width: 0px" data-filtered=3D"f=
+iltered">
+      <button class=3D"color" style=3D"background-color: rgb(255, 246, 211)=
+;"><span class=3D"arrow">=E2=96=B6</span></button><button class=3D"color" s=
+tyle=3D"background-color: rgb(0, 0, 0);"><span class=3D"arrow hidden">=E2=
+=96=B6</span></button><button class=3D"color" style=3D"background-color: va=
+r(--pre-background);"><span class=3D"arrow hidden">=E2=96=B6</span><span cl=
+ass=3D"erase"><svg xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=
+=3D"16" viewBox=3D"0 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-=
+width=3D"1" stroke-linecap=3D"round" stroke-linejoin=3D"round"><path stroke=
+=3D"none" d=3D"M0 0h24v24H0z" fill=3D"none"></path><path d=3D"M19 20h-10.5l=
+-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41 0l5 5a1 1 0 0 1 0 1.41l-=
+9.2 9.3"></path><path d=3D"M18 13.3l-6.3 -6.3"></path></svg></span></button=
+></div>
+      <div style=3D"display: flex; flex-direction: column; gap: 2px">
+     =20
+      <button id=3D"penumbra-hypothesis-canvas-clear" class=3D"iconButton">=
+<svg xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBo=
+x=3D"0 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" st=
+roke-linecap=3D"round" stroke-linejoin=3D"round" class=3D"icon icon-tabler =
+icons-tabler-outline icon-tabler-trash"><path stroke=3D"none" d=3D"M0 0h24v=
+24H0z" fill=3D"none"></path><path d=3D"M4 7l16 0"></path><path d=3D"M10 11l=
+0 6"></path><path d=3D"M14 11l0 6"></path><path d=3D"M5 7l1 12a2 2 0 0 0 2 =
+2h8a2 2 0 0 0 2 -2l1 -12"></path><path d=3D"M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 =
+0 1 1 1v3"></path></svg></button>
+      <button id=3D"penumbra-hypothesis-canvas-reset" class=3D"iconButton">=
+<svg xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBo=
+x=3D"0 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" st=
+roke-linecap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D=
+"M0 0h24v24H0z" fill=3D"none"></path><path d=3D"M20 11a8.1 8.1 0 0 0 -15.5 =
+-2m-.5 -4v4h4"></path><path d=3D"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></p=
+ath></svg></button>
+      </div>
+    </div>
+</div></div>
+
+<br data-filtered=3D"filtered">
+
+<p>Observe the shape and color of the shadow as it extends away from the le=
+ft edge of the drawn black opaque line. There's kind of two parts - the dar=
+k area on the right, and the area on the left that gets softer the further =
+left you look. That softening center area is shaped like a cone (or triangl=
+e) and called the penumbra. (wikipedia has some <a href=3D"https://en.wikip=
+edia.org/wiki/Umbra,_penumbra_and_antumbra">nice labeled diagrams</a> too).=
+</p>
+<p><em>Like all other canvases, if you want to get the original back, just =
+hit the little refresh button in the bottom right.</em></p>
+<p>So to put the penumbra hypothesis above into more familiar terms, given =
+some pixel, to accurately represent its radiance (its rgba value) we need t=
+o collect light from all light sources in our scene. The further away a lig=
+ht source is, the more angular resolution and less linear (spatial pixel) r=
+esolution is required. In other words, the more rays we need to cast and th=
+e fewer individual pixels we need to look at.</p>
+<p>If we observe that shadow in our illustration of the penumbra above, we =
+can kind of see why that's the case in regard to the linear resolution. The=
+ shadow's left edge is quite sharp near the left edge of the black line and=
+ it's pretty hard to tell where exactly it becomes the same color as the ba=
+ckground (or if it does).</p>
+<p>As far as angular resolution, we can easily see the sense behind this co=
+ndition by changing our ray count down to 4 in our <a href=3D"https://jason=
+.today/rc#one-raymarch-add-noise">previous canvas</a> and placing a black d=
+ot in a dark area that <em>should</em> be illuminated, then increasing the =
+ray count step by step. We can see how the dot can easily be lost or misrep=
+resented if far enough away and the ray count isn't high enough.</p>
+<p>So. More rays at lower resolution the further away a light source is...<=
+/p>
+<p>Currently, our previous method casts the same number of rays from every =
+pixel, and operates only according to the scene resolution.</p>
+<p>So, how do we dynamically increase the number of rays cast mid raymarch?=
+ Sounds like some sort of branching operation which doesn't sound particula=
+rly gpu friendly.</p>
+<p>Also, reducing linear resolution sounds like taking bigger steps as we g=
+et further from our origin during our raymarch, but we swapped to using a d=
+istance field, not stepping pixel by pixel like we did in our very first im=
+plementation. So how would we reduce our linear resolution as we get furthe=
+r away? Isn't it optimized already?</p>
+<br data-filtered=3D"filtered">
+
+<h2 id=3D"codifying-the-penumbra-hypothesis">Codifying the penumbra hypothe=
+sis</h2>
+<p>So instead of dynamically increasing rays mid cast / branching, let's br=
+eak down our global illumination process into multiple passes. We'll do a h=
+igh resolution pass with fewer rays, and a lower resolution pass with more =
+rays. According to the penumbra hypothesis, that should more accurately mod=
+el how lights / shadows behave.</p>
+<p>So to start - we need our distance field texture and our scene texture (=
+same as before). But this time we'll also need to keep around a <code>lastT=
+exture</code> that we'll use to keep around the previous pass.</p>
+<pre class=3D"language-javascript" tabindex=3D"0"><code class=3D"language-j=
+avascript"><span class=3D"token function">rcPass</span><span class=3D"token=
+ punctuation">(</span><span class=3D"token parameter">distanceFieldTexture<=
+span class=3D"token punctuation">,</span> drawPassTexture</span><span class=
+=3D"token punctuation">)</span> <span class=3D"token punctuation">{</span>
+  uniforms<span class=3D"token punctuation">.</span>distanceTexture<span cl=
+ass=3D"token punctuation">.</span>value <span class=3D"token operator">=3D<=
+/span> distanceFieldTexture<span class=3D"token punctuation">;</span>
+  uniforms<span class=3D"token punctuation">.</span>sceneTexture<span class=
+=3D"token punctuation">.</span>value <span class=3D"token operator">=3D</sp=
+an> drawPassTexture<span class=3D"token punctuation">;</span>
+  uniforms<span class=3D"token punctuation">.</span>lastTexture<span class=
+=3D"token punctuation">.</span>value <span class=3D"token operator">=3D</sp=
+an> <span class=3D"token keyword">null</span><span class=3D"token punctuati=
+on">;</span>
+
+  <span class=3D"token comment">// ping-pong rendering</span>
+<span class=3D"token punctuation">}</span>
+</code></pre>
+<p>We need to be able to pass the previous raymarch pass into the next, so =
+we'll setup a <code>for</code> loop using a ping-pong strategy and two rend=
+er targets just like when we made our multi-pass JFA.</p>
+<p>We'll start with the highest ray count, lowest resolution layer, (256 ra=
+ys and 1/16th resolution). Then we'll do our low ray count, high resolution=
+ render.</p>
+<pre class=3D"language-javascript" tabindex=3D"0"><code class=3D"language-j=
+avascript"><span class=3D"token comment">// ping-pong rendering</span>
+<span class=3D"token keyword">for</span> <span class=3D"token punctuation">=
+(</span><span class=3D"token keyword">let</span> i <span class=3D"token ope=
+rator">=3D</span> <span class=3D"token number">2</span><span class=3D"token=
+ punctuation">;</span> i <span class=3D"token operator">&gt;=3D</span> <spa=
+n class=3D"token number">1</span><span class=3D"token punctuation">;</span>=
+ i<span class=3D"token operator">--</span><span class=3D"token punctuation"=
+>)</span> <span class=3D"token punctuation">{</span>
+  uniforms<span class=3D"token punctuation">.</span>rayCount<span class=3D"=
+token punctuation">.</span>value <span class=3D"token operator">=3D</span> =
+Math<span class=3D"token punctuation">.</span><span class=3D"token function=
+">pow</span><span class=3D"token punctuation">(</span>uniforms<span class=
+=3D"token punctuation">.</span>baseRayCount<span class=3D"token punctuation=
+">.</span>value<span class=3D"token punctuation">,</span> i<span class=3D"t=
+oken punctuation">)</span><span class=3D"token punctuation">;</span>
+
+  <span class=3D"token keyword">if</span> <span class=3D"token punctuation"=
+>(</span>i <span class=3D"token operator">&gt;</span> <span class=3D"token =
+number">1</span><span class=3D"token punctuation">)</span> <span class=3D"t=
+oken punctuation">{</span>
+    renderer<span class=3D"token punctuation">.</span><span class=3D"token =
+function">setRenderTarget</span><span class=3D"token punctuation">(</span>r=
+cRenderTargets<span class=3D"token punctuation">[</span>prev<span class=3D"=
+token punctuation">]</span><span class=3D"token punctuation">)</span><span =
+class=3D"token punctuation">;</span>
+    <span class=3D"token function">rcRender</span><span class=3D"token punc=
+tuation">(</span><span class=3D"token punctuation">)</span><span class=3D"t=
+oken punctuation">;</span>
+    uniforms<span class=3D"token punctuation">.</span>lastTexture<span clas=
+s=3D"token punctuation">.</span>value <span class=3D"token operator">=3D</s=
+pan> rcRenderTargets<span class=3D"token punctuation">[</span>prev<span cla=
+ss=3D"token punctuation">]</span><span class=3D"token punctuation">.</span>=
+texture<span class=3D"token punctuation">;</span>
+    prev <span class=3D"token operator">=3D</span> <span class=3D"token num=
+ber">1</span> <span class=3D"token operator">-</span> prev<span class=3D"to=
+ken punctuation">;</span>
+  <span class=3D"token punctuation">}</span> <span class=3D"token keyword">=
+else</span> <span class=3D"token punctuation">{</span>
+    uniforms<span class=3D"token punctuation">.</span>rayCount<span class=
+=3D"token punctuation">.</span>value <span class=3D"token operator">=3D</sp=
+an> uniforms<span class=3D"token punctuation">.</span>baseRayCount<span cla=
+ss=3D"token punctuation">.</span>value<span class=3D"token punctuation">;</=
+span>
+    renderer<span class=3D"token punctuation">.</span><span class=3D"token =
+function">setRenderTarget</span><span class=3D"token punctuation">(</span><=
+span class=3D"token keyword">null</span><span class=3D"token punctuation">)=
+</span><span class=3D"token punctuation">;</span>
+    <span class=3D"token function">rcRender</span><span class=3D"token punc=
+tuation">(</span><span class=3D"token punctuation">)</span><span class=3D"t=
+oken punctuation">;</span>
+  <span class=3D"token punctuation">}</span>
+<span class=3D"token punctuation">}</span>
+</code></pre>
+<p>In the shader, we're going to make 3 modifications to our original naive=
+ gi shader.</p>
+<ol>
+  <li>Add the ability to render at a lower resolution</li>
+  <li>Add the ability to merge with a previous pass</li>
+  <li>Add the ability to start and stop at a specified distance from the or=
+igin of the raymarch.</li>
+</ol>
+<p>That last modifications models the behavior in the penumbra hypothesis t=
+hat describes how the required resolution drops and required ray count incr=
+eases as you move further away. To model that behavior, we need to be able =
+to tell our shader to march between a specified interval.</p>
+<p>So starting with rendering at a lower resolution - let's just try someth=
+ing out.</p>
+<p>Let's cut our resolution in half (floor each pixel to half).</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"> =
+ <span class=3D"token keyword">vec2</span> coord <span class=3D"token opera=
+tor">=3D</span> uv <span class=3D"token operator">*</span> resolution<span =
+class=3D"token punctuation">;</span>
+
+  <span class=3D"token keyword">bool</span> isLastLayer <span class=3D"toke=
+n operator">=3D</span> rayCount <span class=3D"token operator">=3D=3D</span=
+> baseRayCount<span class=3D"token punctuation">;</span>
+  <span class=3D"token keyword">vec2</span> effectiveUv <span class=3D"toke=
+n operator">=3D</span> isLastLayer <span class=3D"token operator">?</span> =
+uv <span class=3D"token operator">:</span> <span class=3D"token function">f=
+loor</span><span class=3D"token punctuation">(</span>coord <span class=3D"t=
+oken operator">/</span> <span class=3D"token number">2.0</span><span class=
+=3D"token punctuation">)</span> <span class=3D"token operator">*</span> <sp=
+an class=3D"token number">2.0</span> <span class=3D"token operator">/</span=
+> resolution<span class=3D"token punctuation">;</span>
+</code></pre>
+<p>Let's decide where to cast our ray from and how far it should travel. We=
+'ll arbitrarily decide on 1/8th of the UV space (screen) and the end will b=
+e the longest possible <code>sqrt(2.0)</code>. If it's our low-res pass, st=
+art at <code>partial</code> otherwise only go <em>until</em> <code>partial<=
+/code>.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token keyword">float</span> partial <span class=3D"token oper=
+ator">=3D</span> <span class=3D"token number">0.125</span><span class=3D"to=
+ken punctuation">;</span>
+<span class=3D"token keyword">float</span> intervalStart <span class=3D"tok=
+en operator">=3D</span> rayCount <span class=3D"token operator">=3D=3D</spa=
+n> baseRayCount <span class=3D"token operator">?</span> <span class=3D"toke=
+n number">0.0</span> <span class=3D"token operator">:</span> partial<span c=
+lass=3D"token punctuation">;</span>
+<span class=3D"token keyword">float</span> intervalEnd <span class=3D"token=
+ operator">=3D</span> rayCount <span class=3D"token operator">=3D=3D</span>=
+ baseRayCount <span class=3D"token operator">?</span> partial <span class=
+=3D"token operator">:</span> <span class=3D"token function">sqrt</span><spa=
+n class=3D"token punctuation">(</span><span class=3D"token number">2.0</spa=
+n><span class=3D"token punctuation">)</span><span class=3D"token punctuatio=
+n">;</span>
+</code></pre>
+<p>And now our core raymarch loop (mostly reiterating) but no noise this ti=
+me!</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token comment">// Shoot rays in "rayCount" directions, equall=
+y spaced, NO ADDED RANDOMNESS.</span>
+<span class=3D"token keyword">for</span> <span class=3D"token punctuation">=
+(</span><span class=3D"token keyword">int</span> i <span class=3D"token ope=
+rator">=3D</span> <span class=3D"token number">0</span><span class=3D"token=
+ punctuation">;</span> i <span class=3D"token operator">&lt;</span> rayCoun=
+t<span class=3D"token punctuation">;</span> i<span class=3D"token operator"=
+>++</span><span class=3D"token punctuation">)</span> <span class=3D"token p=
+unctuation">{</span>
+    <span class=3D"token keyword">float</span> index <span class=3D"token o=
+perator">=3D</span> <span class=3D"token keyword">float</span><span class=
+=3D"token punctuation">(</span>i<span class=3D"token punctuation">)</span><=
+span class=3D"token punctuation">;</span>
+    <span class=3D"token comment">// Add 0.5 radians to avoid vertical angl=
+es</span>
+    <span class=3D"token keyword">float</span> angleStep <span class=3D"tok=
+en operator">=3D</span> <span class=3D"token punctuation">(</span>index <sp=
+an class=3D"token operator">+</span> <span class=3D"token number">0.5</span=
+><span class=3D"token punctuation">)</span><span class=3D"token punctuation=
+">;</span>
+    <span class=3D"token keyword">float</span> angle <span class=3D"token o=
+perator">=3D</span> angleStepSize <span class=3D"token operator">*</span> a=
+ngleStep<span class=3D"token punctuation">;</span>
+    <span class=3D"token keyword">vec2</span> rayDirection <span class=3D"t=
+oken operator">=3D</span> <span class=3D"token keyword">vec2</span><span cl=
+ass=3D"token punctuation">(</span><span class=3D"token function">cos</span>=
+<span class=3D"token punctuation">(</span>angle<span class=3D"token punctua=
+tion">)</span><span class=3D"token punctuation">,</span> <span class=3D"tok=
+en operator">-</span><span class=3D"token function">sin</span><span class=
+=3D"token punctuation">(</span>angle<span class=3D"token punctuation">)</sp=
+an><span class=3D"token punctuation">)</span><span class=3D"token punctuati=
+on">;</span>
+
+    <span class=3D"token comment">// Start in our decided starting location=
+</span>
+    <span class=3D"token keyword">vec2</span> sampleUv <span class=3D"token=
+ operator">=3D</span> effectiveUv <span class=3D"token operator">+</span> r=
+ayDirection <span class=3D"token operator">*</span> intervalStart <span cla=
+ss=3D"token operator">*</span> scale<span class=3D"token punctuation">;</sp=
+an>
+    <span class=3D"token comment">// Keep track of how far we've gone</span=
+>
+    <span class=3D"token keyword">float</span> traveled <span class=3D"toke=
+n operator">=3D</span> intervalStart<span class=3D"token punctuation">;</sp=
+an>
+    <span class=3D"token keyword">vec4</span> radDelta <span class=3D"token=
+ operator">=3D</span> <span class=3D"token keyword">vec4</span><span class=
+=3D"token punctuation">(</span><span class=3D"token number">0.0</span><span=
+ class=3D"token punctuation">)</span><span class=3D"token punctuation">;</s=
+pan>
+</code></pre>
+<p>And when we actually take our steps along the ray...</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"> =
+   <span class=3D"token comment">// (Existing loop, but to reiterate, we're=
+ raymarching)</span>
+    <span class=3D"token keyword">for</span> <span class=3D"token punctuati=
+on">(</span><span class=3D"token keyword">int</span> step <span class=3D"to=
+ken operator">=3D</span> <span class=3D"token number">1</span><span class=
+=3D"token punctuation">;</span> step <span class=3D"token operator">&lt;</s=
+pan> maxSteps<span class=3D"token punctuation">;</span> step<span class=3D"=
+token operator">++</span><span class=3D"token punctuation">)</span> <span c=
+lass=3D"token punctuation">{</span>
+      <span class=3D"token comment">// How far away is the nearest object?<=
+/span>
+      <span class=3D"token keyword">float</span> dist <span class=3D"token =
+operator">=3D</span> <span class=3D"token function">texture</span><span cla=
+ss=3D"token punctuation">(</span>distanceTexture<span class=3D"token punctu=
+ation">,</span> effectiveUv<span class=3D"token punctuation">)</span><span =
+class=3D"token punctuation">.</span>r<span class=3D"token punctuation">;</s=
+pan>
+
+      <span class=3D"token comment">// Go the direction we're traveling</sp=
+an>
+      sampleUv <span class=3D"token operator">+=3D</span> rayDirection <spa=
+n class=3D"token operator">*</span> dist <span class=3D"token operator">*</=
+span> scale<span class=3D"token punctuation">;</span>
+
+      <span class=3D"token keyword">if</span> <span class=3D"token punctuat=
+ion">(</span><span class=3D"token function">outOfBounds</span><span class=
+=3D"token punctuation">(</span>sampleUv<span class=3D"token punctuation">)<=
+/span><span class=3D"token punctuation">)</span> <span class=3D"token keywo=
+rd">break</span><span class=3D"token punctuation">;</span>
+
+      <span class=3D"token comment">// Read if our distance field tells us =
+to!</span>
+      <span class=3D"token keyword">if</span> <span class=3D"token punctuat=
+ion">(</span>dist <span class=3D"token operator">&lt;</span> minStepSize<sp=
+an class=3D"token punctuation">)</span> <span class=3D"token punctuation">{=
+</span>
+          <span class=3D"token comment">// Accumulate radiance or shadow!</=
+span>
+          <span class=3D"token keyword">vec4</span> colorSample <span class=
+=3D"token operator">=3D</span> <span class=3D"token function">texture</span=
+><span class=3D"token punctuation">(</span>sceneTexture<span class=3D"token=
+ punctuation">,</span> sampleUv<span class=3D"token punctuation">)</span><s=
+pan class=3D"token punctuation">;</span>
+          radDelta <span class=3D"token operator">+=3D</span> <span class=
+=3D"token keyword">vec4</span><span class=3D"token punctuation">(</span><sp=
+an class=3D"token function">pow</span><span class=3D"token punctuation">(</=
+span>colorSample<span class=3D"token punctuation">.</span>rgb<span class=3D=
+"token punctuation">,</span> <span class=3D"token keyword">vec3</span><span=
+ class=3D"token punctuation">(</span>srgb<span class=3D"token punctuation">=
+)</span><span class=3D"token punctuation">)</span><span class=3D"token punc=
+tuation">,</span> <span class=3D"token number">1.0</span><span class=3D"tok=
+en punctuation">)</span><span class=3D"token punctuation">;</span>
+          <span class=3D"token keyword">break</span><span class=3D"token pu=
+nctuation">;</span>
+      <span class=3D"token punctuation">}</span>
+
+      <span class=3D"token comment">// Stop if we've gone our interval leng=
+th!</span>
+      traveled <span class=3D"token operator">+=3D</span> dist<span class=
+=3D"token punctuation">;</span>
+      <span class=3D"token keyword">if</span> <span class=3D"token punctuat=
+ion">(</span>traveled <span class=3D"token operator">&gt;=3D</span> interva=
+lEnd<span class=3D"token punctuation">)</span> <span class=3D"token keyword=
+">break</span><span class=3D"token punctuation">;</span>
+    <span class=3D"token punctuation">}</span>
+
+    <span class=3D"token comment">// Accumulate total radiance</span>
+    radiance <span class=3D"token operator">+=3D</span> radDelta<span class=
+=3D"token punctuation">;</span>
+<span class=3D"token punctuation">}</span>
+</code></pre>
+<p>And then same as before, we set the pixel to the final radiance... We al=
+so corrected sRGB here as well to make it easier to see all the rays (more =
+on that in a bit)</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token keyword">vec3</span> final <span class=3D"token operato=
+r">=3D</span> radiance<span class=3D"token punctuation">.</span>rgb <span c=
+lass=3D"token operator">*</span> oneOverRayCount<span class=3D"token punctu=
+ation">;</span>
+<span class=3D"token keyword">vec3</span> correctSRGB <span class=3D"token =
+operator">=3D</span> <span class=3D"token function">pow</span><span class=
+=3D"token punctuation">(</span>final<span class=3D"token punctuation">,</sp=
+an> <span class=3D"token keyword">vec3</span><span class=3D"token punctuati=
+on">(</span><span class=3D"token number">1.0</span> <span class=3D"token op=
+erator">/</span> <span class=3D"token number">2.2</span><span class=3D"toke=
+n punctuation">)</span><span class=3D"token punctuation">)</span><span clas=
+s=3D"token punctuation">;</span>
+
+FragColor <span class=3D"token operator">=3D</span> <span class=3D"token ke=
+yword">vec4</span><span class=3D"token punctuation">(</span>correctSRGB<spa=
+n class=3D"token punctuation">,</span> <span class=3D"token number">1.0</sp=
+an><span class=3D"token punctuation">)</span><span class=3D"token punctuati=
+on">;</span>
+</code></pre>
+<p>Here's what that looks like:</p>
+<br data-filtered=3D"filtered">
+
+<div id=3D"base-ray-count-container"><div style=3D"display: flex; align-ite=
+ms: center; gap: 8px;">Base Ray Count<input id=3D"base-ray-count-container-=
+base-ray count-slider" class=3D"slider" type=3D"range" min=3D"1" max=3D"2" =
+step=3D"1" value=3D"2"><span>16</span></div></div>
+<br data-filtered=3D"filtered">
+
+<div id=3D"two-pass-raymarch">
+  <div style=3D"display: flex; gap: 20px;">
+    <div id=3D"two-pass-raymarch-canvas-container"><canvas width=3D"300" he=
+ight=3D"400" style=3D"display: block; width: 300px; height: 400px;"></canva=
+s></div>
+
+    <div style=3D"display: flex; flex-direction: column; justify-content: s=
+pace-between;">
+        <div id=3D"two-pass-raymarch-color-picker" style=3D"display: flex; =
+flex-direction: column;  border: solid 1px white; margin: 1px;">
+          <input type=3D"color" id=3D"two-pass-raymarch-color-input" value=
+=3D"#eb6b6f" style=3D"display: none; width: 0px" data-filtered=3D"filtered"=
+>
+      <button class=3D"color" style=3D"background-color: rgb(255, 246, 211)=
+;"><span class=3D"arrow">=E2=96=B6</span></button><button class=3D"color" s=
+tyle=3D"background-color: rgb(249, 168, 117);"><span class=3D"arrow hidden"=
+>=E2=96=B6</span></button><button class=3D"color" style=3D"background-color=
+: rgb(235, 107, 111);"><span class=3D"arrow hidden">=E2=96=B6</span></butto=
+n><button class=3D"color" style=3D"background-color: rgb(124, 63, 88);"><sp=
+an class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"color" =
+style=3D"background-color: rgb(3, 196, 161);"><span class=3D"arrow hidden">=
+=E2=96=B6</span></button><button class=3D"color" style=3D"background-color:=
+ rgb(61, 158, 252);"><span class=3D"arrow hidden">=E2=96=B6</span></button>=
+<button class=3D"color" style=3D"background-color: rgb(0, 0, 0);"><span cla=
+ss=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"color" style=
+=3D"background-color: var(--pre-background);"><span class=3D"arrow hidden">=
+=E2=96=B6</span><span class=3D"erase"><svg xmlns=3D"http://www.w3.org/2000/=
+svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24" fill=3D"none" stroke=
+=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D"round" stroke-linejo=
+in=3D"round"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fill=3D"none"></path=
+><path d=3D"M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41=
+ 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3"></path><path d=3D"M18 13.3l-6.3 -6.3"></p=
+ath></svg></span></button></div>
+      <div style=3D"display: flex; flex-direction: column; gap: 2px">
+      <button id=3D"two-pass-raymarch-sun" class=3D"iconButton"><svg xmlns=
+=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 2=
+4 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-linec=
+ap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v2=
+4H0z" fill=3D"none"></path><path d=3D"M9.173 14.83a4 4 0 1 1 5.657 -5.657">=
+</path><path d=3D"M11.294 12.707l.174 .247a7.5 7.5 0 0 0 8.845 2.492a9 9 0 =
+0 1 -14.671 2.914"></path><path d=3D"M3 12h1"></path><path d=3D"M12 3v1"></=
+path><path d=3D"M5.6 5.6l.7 .7"></path><path d=3D"M3 21l18 -18"></path></sv=
+g></button>
+      <button id=3D"two-pass-raymarch-clear" class=3D"iconButton"><svg xmln=
+s=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 =
+24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-line=
+cap=3D"round" stroke-linejoin=3D"round" class=3D"icon icon-tabler icons-tab=
+ler-outline icon-tabler-trash"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fi=
+ll=3D"none"></path><path d=3D"M4 7l16 0"></path><path d=3D"M10 11l0 6"></pa=
+th><path d=3D"M14 11l0 6"></path><path d=3D"M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0=
+ 0 0 2 -2l1 -12"></path><path d=3D"M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3=
+"></path></svg></button>
+      <button id=3D"two-pass-raymarch-reset" class=3D"iconButton"><svg xmln=
+s=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 =
+24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-line=
+cap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v=
+24H0z" fill=3D"none"></path><path d=3D"M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4=
+v4h4"></path><path d=3D"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></svg=
+></button>
+      </div>
+    </div>
+</div></div>
+
+<br data-filtered=3D"filtered">
+
+<h2 id=3D"packing-direction-in-pixels">Packing Direction in Pixels</h2>
+<p>We can first notice the two (radiance) cascades (or layers) we now have.=
+ One in the background and one in the foreground. The one in the background=
+ has some crazy designs and a hole in the middle. The one in the foreground=
+ has clearly visible rays extending from the light source just over the cir=
+cular hole in background.</p>
+<p><em>We should be careful with language - as we know rays don't extend fr=
+om the light source, but actually start from what could be perceived as the=
+ "end" of the ray "coming out" of the light source and are cast in differen=
+t directions, one of which hit the light source and thus was illuminated.</=
+em></p>
+<p>Let's swap the base ray count between 4 and 16 and paint around a bit.</=
+p>
+<p>Note that our ray counts are 4 rays up close and 16 further away or 16 u=
+p close and 256 further away.</p>
+<p>When we drag around light, that upper / background layer looks very reas=
+onable- a bit pixelated, but better than the white noise from earlier.</p>
+<p>When we draw shadows, they look offset proportional to the offset of the=
+ upper interval. But let's not worry about that for a moment...</p>
+<p>So that's 256 rays at half resolution. And our core loop through ray ang=
+les did 256 rays for every pixel - but because we cut our resolution in hal=
+f, 3 out of every 4 rays we marched were redundant. Woah!</p>
+<p>And that's a key insight in radiance cascades. Specifically for our case=
+ - what if we split up the rays we need to cast? Instead of doing half reso=
+lution, let's do 1/4th resolution (which is every 16 total pixels) and inst=
+ead of casting 256 rays per pixel, cast 16 rays for every pixel, offsetting=
+ by <code>TAU / 16</code> incrementally per pixel.</p>
+<p>This group of pixels is called a "probe" in radiance cascades.</p>
+<p>Let's make the changes.</p>
+<p>Our <code>baseRayCount</code> is either <code>4</code> or <code>16</code=
+> in our running example.</p>
+<p>So let's define all our variables.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token comment">// A handy term we use in other calculations</=
+span>
+<span class=3D"token keyword">float</span> sqrtBase <span class=3D"token op=
+erator">=3D</span> <span class=3D"token function">sqrt</span><span class=3D=
+"token punctuation">(</span><span class=3D"token keyword">float</span><span=
+ class=3D"token punctuation">(</span>baseRayCount<span class=3D"token punct=
+uation">)</span><span class=3D"token punctuation">)</span><span class=3D"to=
+ken punctuation">;</span>
+<span class=3D"token comment">// The width / space between probes</span>
+<span class=3D"token comment">// If our `baseRayCount` is 16, this is 4 on =
+the upper cascade or 1 on the lower.</span>
+<span class=3D"token keyword">float</span> spacing <span class=3D"token ope=
+rator">=3D</span> rayCount <span class=3D"token operator">=3D=3D</span> bas=
+eRayCount <span class=3D"token operator">?</span> <span class=3D"token numb=
+er">1.0</span> <span class=3D"token operator">:</span> sqrtBase<span class=
+=3D"token punctuation">;</span>
+<span class=3D"token comment">// Calculate the number of probes per x/y dim=
+ension</span>
+<span class=3D"token keyword">vec2</span> size <span class=3D"token operato=
+r">=3D</span> <span class=3D"token function">floor</span><span class=3D"tok=
+en punctuation">(</span>resolution <span class=3D"token operator">/</span> =
+spacing<span class=3D"token punctuation">)</span><span class=3D"token punct=
+uation">;</span>
+<span class=3D"token comment">// Calculate which probe we're processing thi=
+s pass</span>
+<span class=3D"token keyword">vec2</span> probeRelativePosition <span class=
+=3D"token operator">=3D</span> <span class=3D"token function">mod</span><sp=
+an class=3D"token punctuation">(</span>coord<span class=3D"token punctuatio=
+n">,</span> size<span class=3D"token punctuation">)</span><span class=3D"to=
+ken punctuation">;</span>
+<span class=3D"token comment">// Calculate which group of rays we're proces=
+sing this pass</span>
+<span class=3D"token keyword">vec2</span> rayPos <span class=3D"token opera=
+tor">=3D</span> <span class=3D"token function">floor</span><span class=3D"t=
+oken punctuation">(</span>coord <span class=3D"token operator">/</span> siz=
+e<span class=3D"token punctuation">)</span><span class=3D"token punctuation=
+">;</span>
+<span class=3D"token comment">// Calculate the index of the set of rays we'=
+re processing</span>
+<span class=3D"token keyword">float</span> baseIndex <span class=3D"token o=
+perator">=3D</span> <span class=3D"token keyword">float</span><span class=
+=3D"token punctuation">(</span>baseRayCount<span class=3D"token punctuation=
+">)</span> <span class=3D"token operator">*</span> <span class=3D"token pun=
+ctuation">(</span>rayPos<span class=3D"token punctuation">.</span>x <span c=
+lass=3D"token operator">+</span> <span class=3D"token punctuation">(</span>=
+spacing <span class=3D"token operator">*</span> rayPos<span class=3D"token =
+punctuation">.</span>y<span class=3D"token punctuation">)</span><span class=
+=3D"token punctuation">)</span><span class=3D"token punctuation">;</span>
+<span class=3D"token comment">// Calculate the size of our angle step</span=
+>
+<span class=3D"token keyword">float</span> angleStepSize <span class=3D"tok=
+en operator">=3D</span> TAU <span class=3D"token operator">/</span> <span c=
+lass=3D"token keyword">float</span><span class=3D"token punctuation">(</spa=
+n>rayCount<span class=3D"token punctuation">)</span><span class=3D"token pu=
+nctuation">;</span>
+<span class=3D"token comment">// Find the center of the probe we're process=
+ing</span>
+<span class=3D"token keyword">vec2</span> probeCenter <span class=3D"token =
+operator">=3D</span> <span class=3D"token punctuation">(</span>probeRelativ=
+ePosition <span class=3D"token operator">+</span> <span class=3D"token numb=
+er">0.5</span><span class=3D"token punctuation">)</span> <span class=3D"tok=
+en operator">*</span> spacing<span class=3D"token punctuation">;</span>
+</code></pre>
+<p>It's a fair amount of new complexity, but we're just encoding our base r=
+ay count (4 or 16) rays into each pixel for a downsampled version of our te=
+xture.</p>
+<p>Then when we actually do our raymarching step, we only need to cast rays=
+ <code>baseRayCount</code> times per pixel.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token comment">// Shoot rays in "rayCount" directions, equall=
+y spaced</span>
+<span class=3D"token keyword">for</span> <span class=3D"token punctuation">=
+(</span><span class=3D"token keyword">int</span> i <span class=3D"token ope=
+rator">=3D</span> <span class=3D"token number">0</span><span class=3D"token=
+ punctuation">;</span> i <span class=3D"token operator">&lt;</span> baseRay=
+Count<span class=3D"token punctuation">;</span> i<span class=3D"token opera=
+tor">++</span><span class=3D"token punctuation">)</span> <span class=3D"tok=
+en punctuation">{</span>
+  <span class=3D"token keyword">float</span> index <span class=3D"token ope=
+rator">=3D</span> baseIndex <span class=3D"token operator">+</span> <span c=
+lass=3D"token keyword">float</span><span class=3D"token punctuation">(</spa=
+n>i<span class=3D"token punctuation">)</span><span class=3D"token punctuati=
+on">;</span>
+  <span class=3D"token keyword">float</span> angleStep <span class=3D"token=
+ operator">=3D</span> index <span class=3D"token operator">+</span> <span c=
+lass=3D"token number">0.5</span><span class=3D"token punctuation">;</span>
+  <span class=3D"token comment">// Same as before from here out</span>
+<span class=3D"token punctuation">}</span>
+</code></pre>
+<p>In our first pass (upper cascade / background layer), we'll end up casti=
+ng 256 rays total from each group of 16 pixels (probe), all from the same p=
+oint - specifically the center of the probe.</p>
+<p>In our second pass (lower cascade / foreground layer), we'll cast 16 ray=
+s total from each pixel (probe again), all from the same point - again, fro=
+m the center.</p>
+<p>That is a total cost of 2 x 16 ray raymarches - the same cost as our 32 =
+ray raymarch, and the penumbra hypothesis says it will be more accurate (an=
+d hopefully look better - we're using an angular resolution of 256 rays ins=
+tead of 32).</p>
+<p>But at what point do we swap from the low ray, high spatial resolution t=
+o high ray low spatial resolution? We'll make "Interval Split" a slider and=
+ play with it.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token comment">// Calculate our intervals based on an input `=
+intervalSplit`</span>
+<span class=3D"token keyword">float</span> intervalStart <span class=3D"tok=
+en operator">=3D</span> rayCount <span class=3D"token operator">=3D=3D</spa=
+n> baseRayCount <span class=3D"token operator">?</span> <span class=3D"toke=
+n number">0.0</span> <span class=3D"token operator">:</span> intervalSplit<=
+span class=3D"token punctuation">;</span>
+<span class=3D"token comment">// End at the split or the max possible (in u=
+v) sqrt(2.0)</span>
+<span class=3D"token keyword">float</span> intervalEnd <span class=3D"token=
+ operator">=3D</span> rayCount <span class=3D"token operator">=3D=3D</span>=
+ baseRayCount <span class=3D"token operator">?</span> intervalSplit <span c=
+lass=3D"token operator">:</span> <span class=3D"token function">sqrt</span>=
+<span class=3D"token punctuation">(</span><span class=3D"token number">2.0<=
+/span><span class=3D"token punctuation">)</span><span class=3D"token punctu=
+ation">;</span>
+</code></pre>
+<p>No changes needed to how we leveraged them. But we do need to "merge" th=
+em, as in, when we get to the lower cascade, we need to read from the upper=
+ cascade, which is stored differently than a normal texture.</p>
+<p>So first things first - we only want to read the upper cascade from the =
+lower layer (there's no layer above the upper cascade) and we only want to =
+do it if we're in an empty area. If we already have light, there's no reaso=
+n to read from the upper cascade. We already hit something (which we know w=
+ill be closer).</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token keyword">bool</span> nonOpaque <span class=3D"token ope=
+rator">=3D</span> radDelta<span class=3D"token punctuation">.</span>a <span=
+ class=3D"token operator">=3D=3D</span> <span class=3D"token number">0.0</s=
+pan><span class=3D"token punctuation">;</span>
+
+<span class=3D"token comment">// Only merge on non-opaque areas</span>
+<span class=3D"token keyword">if</span> <span class=3D"token punctuation">(=
+</span>firstLevel <span class=3D"token operator">&amp;&amp;</span> nonOpaqu=
+e<span class=3D"token punctuation">)</span> <span class=3D"token punctuatio=
+n">{</span>
+</code></pre>
+<p>Once we know we need to merge, we need to decode our encoded texture.</p=
+>
+<p>So we store 16 different directions (assuming a base of 16) in 16 differ=
+ent quadrants of our texture. That's a 4 x 4 grid. Once we calculate that w=
+e can find our current position by modding and dividing (and flooring) the =
+index with <code>sqrtBase</code> (4) to find our x and y terms. Then multip=
+ly them by the size of a quadrant that we just calculated.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token comment">// The spacing between probes</span>
+<span class=3D"token keyword">vec2</span> upperSpacing <span class=3D"token=
+ operator">=3D</span> sqrtBase<span class=3D"token punctuation">;</span>
+<span class=3D"token comment">// Grid of probes</span>
+<span class=3D"token keyword">vec2</span> upperSize <span class=3D"token op=
+erator">=3D</span> <span class=3D"token function">floor</span><span class=
+=3D"token punctuation">(</span>resolution <span class=3D"token operator">/<=
+/span> upperSpacing<span class=3D"token punctuation">)</span><span class=3D=
+"token punctuation">;</span>
+<span class=3D"token comment">// Position of _this_ probe</span>
+<span class=3D"token keyword">vec2</span> upperPosition <span class=3D"toke=
+n operator">=3D</span> <span class=3D"token keyword">vec2</span><span class=
+=3D"token punctuation">(</span>
+  <span class=3D"token function">mod</span><span class=3D"token punctuation=
+">(</span>index<span class=3D"token punctuation">,</span> sqrtBase<span cla=
+ss=3D"token punctuation">)</span><span class=3D"token punctuation">,</span>=
+ <span class=3D"token function">floor</span><span class=3D"token punctuatio=
+n">(</span>index <span class=3D"token operator">/</span> upperSpacing<span =
+class=3D"token punctuation">)</span>
+<span class=3D"token punctuation">)</span> <span class=3D"token operator">*=
+</span> upperSize<span class=3D"token punctuation">;</span>
+</code></pre>
+<p>Next we offset where we sample from by the center of the current layers =
+probe relative to the upper probe.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token keyword">vec2</span> offset <span class=3D"token operat=
+or">=3D</span> <span class=3D"token punctuation">(</span>probeRelativePosit=
+ion <span class=3D"token operator">+</span> <span class=3D"token number">0.=
+5</span><span class=3D"token punctuation">)</span> <span class=3D"token ope=
+rator">/</span> sqrtBase<span class=3D"token punctuation">;</span>
+<span class=3D"token keyword">vec2</span> upperUv <span class=3D"token oper=
+ator">=3D</span> <span class=3D"token punctuation">(</span>upperPosition <s=
+pan class=3D"token operator">+</span> offset<span class=3D"token punctuatio=
+n">)</span> <span class=3D"token operator">/</span> resolution
+</code></pre>
+<p>And finally we accumulate radiance from our previous texture at the calc=
+ulated <code>upperUv</code>.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl">r=
+adDelta <span class=3D"token operator">+=3D</span> <span class=3D"token fun=
+ction">texture</span><span class=3D"token punctuation">(</span>lastTexture<=
+span class=3D"token punctuation">,</span> upperUv<span class=3D"token punct=
+uation">)</span><span class=3D"token punctuation">;</span>
+</code></pre>
+<p>And here it is.</p>
+<br data-filtered=3D"filtered">
+
+<div id=3D"rc-sliders-container-2">
+  <div style=3D"display: flex; align-items: center; gap: 4px">
+    <input type=3D"checkbox" id=3D"use-linear-filter">
+    <label for=3D"use-linear-filter">Use Linear Filter</label>
+  </div>
+<div style=3D"display: flex; align-items: center; gap: 8px;">Base Ray Count=
+<input id=3D"rc-sliders-container-2-base-ray count-slider" class=3D"slider"=
+ type=3D"range" min=3D"1" max=3D"2" step=3D"1" value=3D"2"><span>16</span><=
+/div><div style=3D"display: flex; align-items: center; gap: 8px;">Cascade I=
+ndex<input id=3D"rc-sliders-container-2-cascade-index-slider" class=3D"slid=
+er" type=3D"range" min=3D"0" max=3D"1" step=3D"1" value=3D"0"><span>0</span=
+></div><div style=3D"display: flex; align-items: center; gap: 8px;">Interva=
+l Split<input id=3D"rc-sliders-container-2-interval-split-slider" class=3D"=
+slider" type=3D"range" min=3D"0" max=3D"1" step=3D"0.001" value=3D"0.125"><=
+span>0.125</span></div></div>
+
+<br data-filtered=3D"filtered">
+
+<div id=3D"two-pass-raymarch-v2">
+  <div style=3D"display: flex; gap: 20px;">
+    <div id=3D"two-pass-raymarch-v2-canvas-container"><canvas width=3D"300"=
+ height=3D"400" style=3D"display: block; width: 300px; height: 400px;"></ca=
+nvas></div>
+
+    <div style=3D"display: flex; flex-direction: column; justify-content: s=
+pace-between;">
+        <div id=3D"two-pass-raymarch-v2-color-picker" style=3D"display: fle=
+x; flex-direction: column;  border: solid 1px white; margin: 1px;">
+          <input type=3D"color" id=3D"two-pass-raymarch-v2-color-input" val=
+ue=3D"#eb6b6f" style=3D"display: none; width: 0px" data-filtered=3D"filtere=
+d">
+      <button class=3D"color" style=3D"background-color: rgb(255, 246, 211)=
+;"><span class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"c=
+olor" style=3D"background-color: rgb(249, 168, 117);"><span class=3D"arrow =
+hidden">=E2=96=B6</span></button><button class=3D"color" style=3D"backgroun=
+d-color: rgb(235, 107, 111);"><span class=3D"arrow hidden">=E2=96=B6</span>=
+</button><button class=3D"color" style=3D"background-color: rgb(124, 63, 88=
+);"><span class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"=
+color" style=3D"background-color: rgb(3, 196, 161);"><span class=3D"arrow h=
+idden">=E2=96=B6</span></button><button class=3D"color" style=3D"background=
+-color: rgb(61, 158, 252);"><span class=3D"arrow hidden">=E2=96=B6</span></=
+button><button class=3D"color" style=3D"background-color: rgb(0, 0, 0);"><s=
+pan class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"color"=
+ style=3D"background-color: var(--pre-background);"><span class=3D"arrow hi=
+dden">=E2=96=B6</span><span class=3D"erase"><svg xmlns=3D"http://www.w3.org=
+/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24" fill=3D"none" s=
+troke=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D"round" stroke-l=
+inejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fill=3D"none"><=
+/path><path d=3D"M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1=
+ 1.41 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3"></path><path d=3D"M18 13.3l-6.3 -6.3=
+"></path></svg></span></button></div>
+      <div style=3D"display: flex; flex-direction: column; gap: 2px">
+      <button id=3D"two-pass-raymarch-v2-sun" class=3D"iconButton"><svg xml=
+ns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0=
+ 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-lin=
+ecap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24=
+v24H0z" fill=3D"none"></path><path d=3D"M9.173 14.83a4 4 0 1 1 5.657 -5.657=
+"></path><path d=3D"M11.294 12.707l.174 .247a7.5 7.5 0 0 0 8.845 2.492a9 9 =
+0 0 1 -14.671 2.914"></path><path d=3D"M3 12h1"></path><path d=3D"M12 3v1">=
+</path><path d=3D"M5.6 5.6l.7 .7"></path><path d=3D"M3 21l18 -18"></path></=
+svg></button>
+      <button id=3D"two-pass-raymarch-v2-clear" class=3D"iconButton"><svg x=
+mlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0=
+ 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-l=
+inecap=3D"round" stroke-linejoin=3D"round" class=3D"icon icon-tabler icons-=
+tabler-outline icon-tabler-trash"><path stroke=3D"none" d=3D"M0 0h24v24H0z"=
+ fill=3D"none"></path><path d=3D"M4 7l16 0"></path><path d=3D"M10 11l0 6"><=
+/path><path d=3D"M14 11l0 6"></path><path d=3D"M5 7l1 12a2 2 0 0 0 2 2h8a2 =
+2 0 0 0 2 -2l1 -12"></path><path d=3D"M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 =
+1v3"></path></svg></button>
+      <button id=3D"two-pass-raymarch-v2-reset" class=3D"iconButton"><svg x=
+mlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0=
+ 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-l=
+inecap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h=
+24v24H0z" fill=3D"none"></path><path d=3D"M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5=
+ -4v4h4"></path><path d=3D"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></=
+svg></button>
+      </div>
+    </div>
+</div></div>
+
+
+<br data-filtered=3D"filtered">
+
+<h2 id=3D"nailing-the-details">Nailing the Details</h2>
+<p>Take a moment and swap between "Cascade Index" 0 and 1. When we set it t=
+o 1, we render the upper cascade texture directly. That is how it is stored=
+. (starts from bottom left, then goes to the right and then up a row, then =
+to the right etc.) Notice the clockwise rotation.</p>
+<p>In general, our new canvas looks relatively similar to the previous canv=
+as, but the upper cascade is clearly lower resolution. If we paint around t=
+hough, it looks just as good. And if we lower the "Interval Split" a bunch,=
+ it looks even better. (shadows look reasonable now too)</p>
+<p>There's a pretty clear issue though. Because we're sampling from the upp=
+er layer, we're getting a rather large pixelated grid pattern. And this mak=
+es sense as we're sampling from a single point for a group of pixels. We ca=
+n smooth this out without extra work by setting the render target to use a =
+linear filter. This means the gpu will upscale the upper cascade using <a h=
+ref=3D"https://en.wikipedia.org/wiki/Bilinear_interpolation">bilinear inter=
+polation</a> giving us nearly free smoothing. There's a checkbox to compare=
+ with and without using a linear filter on the upper cascade. Once we enabl=
+e it, things are really starting to look good.</p>
+<p>Playing a bit with the Interval Split, the ideal split seems to be prett=
+y close to zero, but clearly not 0 (after drawing some light and shadow lin=
+es). ~0.02 (or like 8 pixels) looks a bit too long, but reasonable. Which i=
+s about half (or the radius) of 16 pixels. And the probe width is 16 pixels=
+ - and we're casting it from the center. So we'll need to keep experimentin=
+g but let's say that were our "rule" to determine interval length for a mom=
+ent... So far we've been talking about this all as just a split.</p>
+<p>Let's say we used our rule (which is probably <em>too long</em>), 16 x 8=
+ pixels is 128 pixels. Our upper cascade is 256 rays, so it should use an i=
+nterval that ends at 128 pixels. We'd need another layer - which would have=
+ pixel groups of 256 x 256 pixels - so (according to our rule) 256 x 128 pi=
+xels max, which is 32K, and beyond any canvas we'd use.</p>
+<p>Let's codify that, and we'll also make sure it works for a base ray coun=
+t of 4 - which will require more layers (we could calculate that too).</p>
+<br data-filtered=3D"filtered">
+
+<h2 id=3D"generalizing-to-many-cascades">Generalizing to Many Cascades</h2>
+<p>We'll need new variables like <code>cascadeIndex</code> and <code>cascad=
+eCount</code> which will pass in from the CPU...</p>
+<p>But let's first figure out / codify our interval length, as this determi=
+nes how many cascades we'll need.</p>
+<p>Let's try basing everything off of our <code>baseRayCount</code> - we'll=
+ call it <code>base</code>.</p>
+<p>Our lowest cascade (index of 0) starts at the center of our probe - that=
+'s easy. And for the length - let's have it just go 1 pixel - so 1 divided =
+by shortest side of our resolution - and we'll scale steps by the ratio of =
+the shortest side over resolution.</p>
+<p>As we go up in cascade size, we need to scale by some amount. A mathemat=
+ically simple way to scale is just to start at <code>pow(base, cascadeIndex=
+ - 2.0)</code> where <code>cascadeIndex</code></p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token keyword">float</span> shortestSide <span class=3D"token=
+ operator">=3D</span> <span class=3D"token function">min</span><span class=
+=3D"token punctuation">(</span>resolution<span class=3D"token punctuation">=
+.</span>x<span class=3D"token punctuation">,</span> resolution<span class=
+=3D"token punctuation">.</span>y<span class=3D"token punctuation">)</span><=
+span class=3D"token punctuation">;</span>
+<span class=3D"token comment">// Multiply steps by this to ensure unit circ=
+le with non-square resolution</span>
+<span class=3D"token keyword">vec2</span> scale <span class=3D"token operat=
+or">=3D</span> shortestSide <span class=3D"token operator">/</span> resolut=
+ion<span class=3D"token punctuation">;</span>
+
+<span class=3D"token keyword">float</span> intervalStart <span class=3D"tok=
+en operator">=3D</span> cascadeIndex <span class=3D"token operator">=3D=3D<=
+/span> <span class=3D"token number">0.0</span> <span class=3D"token operato=
+r">?</span> <span class=3D"token number">0.0</span> <span class=3D"token op=
+erator">:</span> <span class=3D"token punctuation">(</span>
+  <span class=3D"token function">pow</span><span class=3D"token punctuation=
+">(</span>base<span class=3D"token punctuation">,</span> cascadeIndex <span=
+ class=3D"token operator">-</span> <span class=3D"token number">1.0</span><=
+span class=3D"token punctuation">)</span>
+<span class=3D"token punctuation">)</span> <span class=3D"token operator">/=
+</span> shortestSide<span class=3D"token punctuation">;</span>
+<span class=3D"token keyword">float</span> intervalLength <span class=3D"to=
+ken operator">=3D</span> <span class=3D"token function">pow</span><span cla=
+ss=3D"token punctuation">(</span>base<span class=3D"token punctuation">,</s=
+pan> cascadeIndex<span class=3D"token punctuation">)</span> <span class=3D"=
+token operator">/</span> shortestSide<span class=3D"token punctuation">;</s=
+pan>
+</code></pre>
+<p>We also need to generalize a couple of other variables to be based on <c=
+ode>cascadeIndex</code>.</p>
+<p>Ray count is just <code>base ^ (cascadeIndex + 1)</code> - as the lowest=
+ layer is just base, then the next is <code>base * base</code> and so on. S=
+imilarly, the spacing for the current layer starts with <code>1</code>, the=
+n is a total of <code>base</code> pixels which is <code>sqrtBase</code> on =
+each dimension. And then <code>sqrtBase * sqrtBase</code> and so on.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token keyword">float</span> rayCount <span class=3D"token ope=
+rator">=3D</span> <span class=3D"token function">pow</span><span class=3D"t=
+oken punctuation">(</span>base<span class=3D"token punctuation">,</span> ca=
+scadeIndex <span class=3D"token operator">+</span> <span class=3D"token num=
+ber">1.0</span><span class=3D"token punctuation">)</span><span class=3D"tok=
+en punctuation">;</span>
+<span class=3D"token keyword">float</span> spacing <span class=3D"token ope=
+rator">=3D</span> <span class=3D"token function">pow</span><span class=3D"t=
+oken punctuation">(</span>sqrtBase<span class=3D"token punctuation">,</span=
+> cascadeIndex<span class=3D"token punctuation">)</span><span class=3D"toke=
+n punctuation">;</span>
+</code></pre>
+<p>And finally we need to update our merging logic. It's actually really ea=
+sy due to the effort we put in on the previous canvas - we just need to gen=
+eralize when we perform it (as long as we aren't processing the upper-most =
+cascade) and then generalize <code>upperSpacing</code>.</p>
+<p>And, it's just the probe spacing of the upper cascade!</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token keyword">if</span> <span class=3D"token punctuation">(<=
+/span>cascadeIndex <span class=3D"token operator">&lt;</span> cascadeCount =
+<span class=3D"token operator">-</span> <span class=3D"token number">1.0</s=
+pan> <span class=3D"token operator">&amp;&amp;</span> nonOpaque<span class=
+=3D"token punctuation">)</span> <span class=3D"token punctuation">{</span>
+  <span class=3D"token keyword">float</span> upperSpacing <span class=3D"to=
+ken operator">=3D</span> <span class=3D"token function">pow</span><span cla=
+ss=3D"token punctuation">(</span>sqrtBase<span class=3D"token punctuation">=
+,</span> cascadeIndex <span class=3D"token operator">+</span> <span class=
+=3D"token number">1.0</span><span class=3D"token punctuation">)</span><span=
+ class=3D"token punctuation">;</span>
+</code></pre>
+<p>Alright - back to <code>cascadeCount</code> and <code>cascadeIndex</code=
+> - we need to calculate and pass those is on the CPU side. Let's modify ou=
+r logic to figure out how many cascades we need.</p>
+<p>Well, say we have 300 x 400 - we know our longest possible ray length is=
+ 500 (it's a <a href=3D"https://en.wikipedia.org/wiki/Pythagorean_triple">p=
+ythagorean triple</a> after all - so the longest possible line is 500 pixel=
+s, which is our longest possible ray). Using a base of 4 - log base 4 of 50=
+0 is roughly 4.5, so we'll need a minimum of 5 cascades...</p>
+<p>But when we place a light point in the very top-left and limit to 5 casc=
+ades, we see that our longest interval doesn't reach the edge. So there's c=
+learly an issue. In the short term, we're going to solve it in the most nai=
+ve way possible. Add an extra cascade.</p>
+<pre class=3D"language-javascript" tabindex=3D"0"><code class=3D"language-j=
+avascript"><span class=3D"token function">rcPass</span><span class=3D"token=
+ punctuation">(</span><span class=3D"token parameter">distanceFieldTexture<=
+span class=3D"token punctuation">,</span> drawPassTexture</span><span class=
+=3D"token punctuation">)</span> <span class=3D"token punctuation">{</span>
+  <span class=3D"token comment">// initialize variables from before</span>
+
+  <span class=3D"token keyword">const</span> diagonal <span class=3D"token =
+operator">=3D</span> Math<span class=3D"token punctuation">.</span><span cl=
+ass=3D"token function">sqrt</span><span class=3D"token punctuation">(</span=
+>
+    width <span class=3D"token operator">*</span> width <span class=3D"toke=
+n operator">+</span> height <span class=3D"token operator">*</span> height
+  <span class=3D"token punctuation">)</span><span class=3D"token punctuatio=
+n">;</span>
+
+  <span class=3D"token comment">// Our calculation for number of cascades</=
+span>
+  cascadeCount <span class=3D"token operator">=3D</span> Math<span class=3D=
+"token punctuation">.</span><span class=3D"token function">ceil</span><span=
+ class=3D"token punctuation">(</span>
+    Math<span class=3D"token punctuation">.</span><span class=3D"token func=
+tion">log</span><span class=3D"token punctuation">(</span>diagonal<span cla=
+ss=3D"token punctuation">)</span> <span class=3D"token operator">/</span> M=
+ath<span class=3D"token punctuation">.</span><span class=3D"token function"=
+>log</span><span class=3D"token punctuation">(</span>uniforms<span class=3D=
+"token punctuation">.</span>base<span class=3D"token punctuation">.</span>v=
+alue<span class=3D"token punctuation">)</span>
+  <span class=3D"token punctuation">)</span> <span class=3D"token operator"=
+>+</span> <span class=3D"token number">1</span><span class=3D"token punctua=
+tion">;</span>
+
+  uniforms<span class=3D"token punctuation">.</span>cascadeCount<span class=
+=3D"token punctuation">.</span>value <span class=3D"token operator">=3D</sp=
+an> cascadeCount<span class=3D"token punctuation">;</span>
+
+  <span class=3D"token keyword">for</span> <span class=3D"token punctuation=
+">(</span><span class=3D"token keyword">let</span> i <span class=3D"token o=
+perator">=3D</span> cascadeCount <span class=3D"token operator">-</span> <s=
+pan class=3D"token number">1</span><span class=3D"token punctuation">;</spa=
+n> i <span class=3D"token operator">&gt;=3D</span> <span class=3D"token num=
+ber">0</span><span class=3D"token punctuation">;</span> i<span class=3D"tok=
+en operator">--</span><span class=3D"token punctuation">)</span> <span clas=
+s=3D"token punctuation">{</span>
+    uniforms<span class=3D"token punctuation">.</span>cascadeIndex<span cla=
+ss=3D"token punctuation">.</span>value <span class=3D"token operator">=3D</=
+span> i<span class=3D"token punctuation">;</span>
+
+    <span class=3D"token comment">// Same as before</span>
+  <span class=3D"token punctuation">}</span>
+<span class=3D"token punctuation">}</span>
+</code></pre>
+<p>A fix we'll also discuss here, which we used in the last demo is - whene=
+ver we read a texture from the drawn scene, we take it from <a href=3D"http=
+s://en.wikipedia.org/wiki/SRGB">sRGB</a> space and turn it into linear spac=
+e, then apply our lighting, and then turn it back into sRGB. This produces =
+a much brighter (accurate) result. It also illuminates a clear ringing arti=
+fact of vanilla radiance cascades. We'll do this with the approximate versi=
+on of <code>vec3(2.2)</code> when reading and <code>vec3(1.0 / 2.2)</code> =
+when writing. Ths reason behind this is WebGL uses sRGB and we want to work=
+ with colors in linear space. Here's a great <a href=3D"https://www.shadert=
+oy.com/view/McSyWm">shadertoy</a> which demonstrates a simple example of wh=
+y we should work with color in linear space instead of sRGB space.</p>
+<p>In our raymarching:</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token keyword">vec4</span> colorSample <span class=3D"token o=
+perator">=3D</span> <span class=3D"token function">texture</span><span clas=
+s=3D"token punctuation">(</span>sceneTexture<span class=3D"token punctuatio=
+n">,</span> sampleUv<span class=3D"token punctuation">)</span><span class=
+=3D"token punctuation">;</span>
+radDelta <span class=3D"token operator">+=3D</span> <span class=3D"token ke=
+yword">vec4</span><span class=3D"token punctuation">(</span>
+  <span class=3D"token function">pow</span><span class=3D"token punctuation=
+">(</span>colorSample<span class=3D"token punctuation">.</span>rgb<span cla=
+ss=3D"token punctuation">,</span> <span class=3D"token keyword">vec3</span>=
+<span class=3D"token punctuation">(</span>srgb<span class=3D"token punctuat=
+ion">)</span><span class=3D"token punctuation">)</span><span class=3D"token=
+ punctuation">,</span>
+  colorSample<span class=3D"token punctuation">.</span>a
+<span class=3D"token punctuation">)</span><span class=3D"token punctuation"=
+>;</span>
+</code></pre>
+<p>And our final output:</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl">F=
+ragColor <span class=3D"token operator">=3D</span> <span class=3D"token key=
+word">vec4</span><span class=3D"token punctuation">(</span>
+  <span class=3D"token operator">!</span><span class=3D"token punctuation">=
+(</span>cascadeIndex <span class=3D"token operator">&gt;</span> firstCascad=
+eIndex<span class=3D"token punctuation">)</span>
+    <span class=3D"token operator">?</span> totalRadiance<span class=3D"tok=
+en punctuation">.</span>rgb
+    <span class=3D"token operator">:</span> <span class=3D"token function">=
+pow</span><span class=3D"token punctuation">(</span>totalRadiance<span clas=
+s=3D"token punctuation">.</span>rgb<span class=3D"token punctuation">,</spa=
+n> <span class=3D"token keyword">vec3</span><span class=3D"token punctuatio=
+n">(</span><span class=3D"token number">1.0</span> <span class=3D"token ope=
+rator">/</span> srgb<span class=3D"token punctuation">)</span><span class=
+=3D"token punctuation">)</span><span class=3D"token punctuation">,</span>
+  <span class=3D"token number">1.0</span>
+<span class=3D"token punctuation">)</span><span class=3D"token punctuation"=
+>;</span>
+</code></pre>
+<p>Another small fix - it's possible to leak light from one side to the oth=
+er during the merge step, so let's clamp appropriately to not allow this. Y=
+ou can see this by turning the interval split to zero and drawing along an =
+edge in the <a href=3D"https://jason.today/rc#rc-sliders-container-2">previ=
+ous canvas</a>.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token comment">// (From before)</span>
+<span class=3D"token keyword">vec2</span> offset <span class=3D"token opera=
+tor">=3D</span> <span class=3D"token punctuation">(</span>probeRelativePosi=
+tion <span class=3D"token operator">+</span> <span class=3D"token number">0=
+.5</span><span class=3D"token punctuation">)</span> <span class=3D"token op=
+erator">/</span> sqrtBase<span class=3D"token punctuation">;</span>
+<span class=3D"token comment">// Clamp to ensure we don't go outside of any=
+ edge</span>
+<span class=3D"token keyword">vec2</span> clamped <span class=3D"token oper=
+ator">=3D</span> <span class=3D"token function">clamp</span><span class=3D"=
+token punctuation">(</span>offset<span class=3D"token punctuation">,</span>=
+ <span class=3D"token keyword">vec2</span><span class=3D"token punctuation"=
+>(</span><span class=3D"token number">0.5</span><span class=3D"token punctu=
+ation">)</span><span class=3D"token punctuation">,</span> upperSize <span c=
+lass=3D"token operator">-</span> <span class=3D"token number">0.5</span><sp=
+an class=3D"token punctuation">)</span><span class=3D"token punctuation">;<=
+/span>
+<span class=3D"token comment">// And add the clamped offset</span>
+<span class=3D"token keyword">vec2</span> upperUv <span class=3D"token oper=
+ator">=3D</span> <span class=3D"token punctuation">(</span>upperPosition <s=
+pan class=3D"token operator">+</span> clamped<span class=3D"token punctuati=
+on">)</span> <span class=3D"token operator">/</span> resolution
+</code></pre>
+<p>Let's check it out!</p>
+<br data-filtered=3D"filtered">
+
+<div id=3D"rc-sliders-container-3">
+  <div style=3D"display: flex; align-items: center; gap: 4px">
+    <input type=3D"checkbox" id=3D"multipass-enable-srgb" checked=3D"">
+    <label for=3D"multipass-enable-srgb">Correct SRGB</label>
+  </div>
+<div style=3D"display: flex; align-items: center; gap: 8px;">Base Ray Count=
+<input id=3D"rc-sliders-container-3-base-ray count-slider" class=3D"slider"=
+ type=3D"range" min=3D"1" max=3D"2" step=3D"1" value=3D"1"><span>4</span></=
+div><div style=3D"display: flex; align-items: center; gap: 8px;">Cascade In=
+dex<input id=3D"rc-sliders-container-3-cascade-index-slider" class=3D"slide=
+r" type=3D"range" min=3D"0" max=3D"5" step=3D"1" value=3D"0"><span>0</span>=
+</div></div>
+
+<br data-filtered=3D"filtered">
+
+<div id=3D"multi-pass-raymarch">
+  <div style=3D"display: flex; gap: 20px;">
+    <div id=3D"multi-pass-raymarch-canvas-container"><canvas width=3D"300" =
+height=3D"400" style=3D"display: block; width: 300px; height: 400px;"></can=
+vas></div>
+
+    <div style=3D"display: flex; flex-direction: column; justify-content: s=
+pace-between;">
+        <div id=3D"multi-pass-raymarch-color-picker" style=3D"display: flex=
+; flex-direction: column;  border: solid 1px white; margin: 1px;">
+          <input type=3D"color" id=3D"multi-pass-raymarch-color-input" valu=
+e=3D"#eb6b6f" style=3D"display: none; width: 0px" data-filtered=3D"filtered=
+">
+      <button class=3D"color" style=3D"background-color: rgb(255, 246, 211)=
+;"><span class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"c=
+olor" style=3D"background-color: rgb(249, 168, 117);"><span class=3D"arrow =
+hidden">=E2=96=B6</span></button><button class=3D"color" style=3D"backgroun=
+d-color: rgb(235, 107, 111);"><span class=3D"arrow hidden">=E2=96=B6</span>=
+</button><button class=3D"color" style=3D"background-color: rgb(124, 63, 88=
+);"><span class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"=
+color" style=3D"background-color: rgb(3, 196, 161);"><span class=3D"arrow h=
+idden">=E2=96=B6</span></button><button class=3D"color" style=3D"background=
+-color: rgb(61, 158, 252);"><span class=3D"arrow hidden">=E2=96=B6</span></=
+button><button class=3D"color" style=3D"background-color: rgb(0, 0, 0);"><s=
+pan class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"color"=
+ style=3D"background-color: var(--pre-background);"><span class=3D"arrow hi=
+dden">=E2=96=B6</span><span class=3D"erase"><svg xmlns=3D"http://www.w3.org=
+/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24" fill=3D"none" s=
+troke=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D"round" stroke-l=
+inejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fill=3D"none"><=
+/path><path d=3D"M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1=
+ 1.41 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3"></path><path d=3D"M18 13.3l-6.3 -6.3=
+"></path></svg></span></button></div>
+      <div style=3D"display: flex; flex-direction: column; gap: 2px">
+      <button id=3D"multi-pass-raymarch-sun" class=3D"iconButton"><svg xmln=
+s=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 =
+24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-line=
+cap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v=
+24H0z" fill=3D"none"></path><path d=3D"M9.173 14.83a4 4 0 1 1 5.657 -5.657"=
+></path><path d=3D"M11.294 12.707l.174 .247a7.5 7.5 0 0 0 8.845 2.492a9 9 0=
+ 0 1 -14.671 2.914"></path><path d=3D"M3 12h1"></path><path d=3D"M12 3v1"><=
+/path><path d=3D"M5.6 5.6l.7 .7"></path><path d=3D"M3 21l18 -18"></path></s=
+vg></button>
+      <button id=3D"multi-pass-raymarch-clear" class=3D"iconButton"><svg xm=
+lns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 =
+0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-li=
+necap=3D"round" stroke-linejoin=3D"round" class=3D"icon icon-tabler icons-t=
+abler-outline icon-tabler-trash"><path stroke=3D"none" d=3D"M0 0h24v24H0z" =
+fill=3D"none"></path><path d=3D"M4 7l16 0"></path><path d=3D"M10 11l0 6"></=
+path><path d=3D"M14 11l0 6"></path><path d=3D"M5 7l1 12a2 2 0 0 0 2 2h8a2 2=
+ 0 0 0 2 -2l1 -12"></path><path d=3D"M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1=
+v3"></path></svg></button>
+      <button id=3D"multi-pass-raymarch-reset" class=3D"iconButton"><svg xm=
+lns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 =
+0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-li=
+necap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h2=
+4v24H0z" fill=3D"none"></path><path d=3D"M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 =
+-4v4h4"></path><path d=3D"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></s=
+vg></button>
+      </div>
+    </div>
+</div></div>
+
+<br data-filtered=3D"filtered">
+
+<p>And at this point, this looks genuinely reasonable - if you paint around=
+. But if you make a single dot, like it's setup by default, <em>especially<=
+/em> with "Correct SRGB" checked, there are some serious ringing artifacts!=
+</p>
+<p>And this is still an active area of research. There are a number of appr=
+oaches to fixing this ringing, but many of them incur a fair amount of over=
+head (as in doubling the frame time) or cause other artifacts, etc.</p>
+<p>And this isn't the only area of active research - pretty much the entire=
+ approach is still being actively worked on over in <a href=3D"https://disc=
+ord.gg/WSW7d2wrps">the discord</a>. People are also working on various appr=
+oaches to Radiance Cascades in 3D. Pretty exciting stuff!</p>
+<p>Now that you get it, go checkout <a href=3D"https://jason.today/rc#radia=
+nce-cascades">the final canvas at the top</a> and see what all the differen=
+t levers and knobs do in "Additional Controls".</p>
+<h3 id=3D"acknowledgements--resources">Acknowledgements / Resources</h3>
+<p>In general, the folks in the Graphics Programming Discord, Radiance Casc=
+ades thread were incredibly helpful while I was learning. The creator of Ra=
+diance Cascades, Alexander Sannikov, gave great feedback on the issues my i=
+mplementations had, along with Yaazarai, fad, tmpvar, Mytino, Goobley, Sam =
+and many others, either directly or indirectly. I <em>really</em> liked how=
+ Yaazarai approached building Radiance Cascades and his work had the bigges=
+t direct influence on this work and post.</p>
+<ul>
+  <li><a href=3D"https://github.com/Raikiri/RadianceCascadesPaper">Radiance=
+ Cascades Paper</a></li>
+  <li><a href=3D"https://mini.gmshaders.com/p/radiance-cascades">Yaazarai's=
+ Blog Post</a></li>
+  <li><a href=3D"https://discord.gg/WSW7d2wrps">The official discord</a></l=
+i>
+</ul>
+<h3 id=3D"appendix-penumbra-with-radiance-cascades">Appendix: Penumbra with=
+ Radiance Cascades</h3>
+<p>Let's examine what our penumbra looks like with our new method.</p>
+<p>It has subtly ringing artifacts in the shadow we saw above, but otherwis=
+e looks quite clean and is incredibly cheap to compute in comparison.</p>
+<br data-filtered=3D"filtered">
+
+<div id=3D"penumbra-hypothesis-canvas-rc">
+  <div style=3D"display: flex; gap: 20px;">
+    <div id=3D"penumbra-hypothesis-canvas-rc-canvas-container"><canvas widt=
+h=3D"300" height=3D"400" style=3D"display: block; width: 300px; height: 400=
+px;"></canvas></div>
+
+    <div style=3D"display: flex; flex-direction: column; justify-content: s=
+pace-between;">
+        <div id=3D"penumbra-hypothesis-canvas-rc-color-picker" style=3D"dis=
+play: flex; flex-direction: column;  border: solid 1px white; margin: 1px;"=
+>
+          <input type=3D"color" id=3D"penumbra-hypothesis-canvas-rc-color-i=
+nput" value=3D"#eb6b6f" style=3D"display: none; width: 0px" data-filtered=
+=3D"filtered">
+      <button class=3D"color" style=3D"background-color: rgb(255, 246, 211)=
+;"><span class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D"c=
+olor" style=3D"background-color: rgb(0, 0, 0);"><span class=3D"arrow hidden=
+">=E2=96=B6</span></button><button class=3D"color" style=3D"background-colo=
+r: var(--pre-background);"><span class=3D"arrow hidden">=E2=96=B6</span><sp=
+an class=3D"erase"><svg xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" h=
+eight=3D"16" viewBox=3D"0 0 24 24" fill=3D"none" stroke=3D"currentColor" st=
+roke-width=3D"1" stroke-linecap=3D"round" stroke-linejoin=3D"round"><path s=
+troke=3D"none" d=3D"M0 0h24v24H0z" fill=3D"none"></path><path d=3D"M19 20h-=
+10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41 0l5 5a1 1 0 0 1 0 1=
+.41l-9.2 9.3"></path><path d=3D"M18 13.3l-6.3 -6.3"></path></svg></span></b=
+utton></div>
+      <div style=3D"display: flex; flex-direction: column; gap: 2px">
+     =20
+      <button id=3D"penumbra-hypothesis-canvas-rc-clear" class=3D"iconButto=
+n"><svg xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" vie=
+wBox=3D"0 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1"=
+ stroke-linecap=3D"round" stroke-linejoin=3D"round" class=3D"icon icon-tabl=
+er icons-tabler-outline icon-tabler-trash"><path stroke=3D"none" d=3D"M0 0h=
+24v24H0z" fill=3D"none"></path><path d=3D"M4 7l16 0"></path><path d=3D"M10 =
+11l0 6"></path><path d=3D"M14 11l0 6"></path><path d=3D"M5 7l1 12a2 2 0 0 0=
+ 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d=3D"M9 7v-3a1 1 0 0 1 1 -1h4a1 1=
+ 0 0 1 1 1v3"></path></svg></button>
+      <button id=3D"penumbra-hypothesis-canvas-rc-reset" class=3D"iconButto=
+n"><svg xmlns=3D"http://www.w3.org/2000/svg" width=3D"16" height=3D"16" vie=
+wBox=3D"0 0 24 24" fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1"=
+ stroke-linecap=3D"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=
+=3D"M0 0h24v24H0z" fill=3D"none"></path><path d=3D"M20 11a8.1 8.1 0 0 0 -15=
+.5 -2m-.5 -4v4h4"></path><path d=3D"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4">=
+</path></svg></button>
+      </div>
+    </div>
+</div></div>
+
+<br data-filtered=3D"filtered">
+
+<h3 id=3D"appendix-additional-hacks">Appendix: Additional Hacks</h3>
+<p>I actually snuck in one more hack. I either have a bug somewhere or am m=
+issing something regarding bases other than 4. As you can see the artifacts=
+ are <em>much</em> worse at 16. So I added this hack which helped a lot. Th=
+is further enforces that some of the hand-waving we did earlier can be impr=
+oved. We just multiply the interval and interval lengths by a small amount =
+for larger bases.</p>
+<pre class=3D"language-glsl" tabindex=3D"0"><code class=3D"language-glsl"><=
+span class=3D"token comment">// Hand-wavy rule that improved smoothing of o=
+ther base ray counts</span>
+<span class=3D"token keyword">float</span> modifierHack <span class=3D"toke=
+n operator">=3D</span> base <span class=3D"token operator">&lt;</span> <spa=
+n class=3D"token number">16.0</span> <span class=3D"token operator">?</span=
+> <span class=3D"token number">1.0</span> <span class=3D"token operator">:<=
+/span> sqrtBase<span class=3D"token punctuation">;</span>
+</code></pre>
+<br data-filtered=3D"filtered">
+
+<hr>
+<br data-filtered=3D"filtered">
+
+<p><em>If you'd like to see the full source for the demo at the top of the =
+page, the source code is immediately after the canvas. Just inspect it ther=
+e. You can also <a href=3D"https://gist.github.com/jasonjmcghee/0c72d185830=
+685f67d3b8d9c7f330c3a">read the whole post as markdown</a> - all canvases s=
+wapped out for their underlying code.</em></p>
+<h3 id=3D"license">License</h3>
+<p>All code contained in this page is under MIT license.</p>
+</span></div>
+<div class=3D"footer">
+  <p>
+    <a href=3D"https://www.linkedin.com/in/jasonjmcghee/">LinkedIn</a>
+    |
+    <a href=3D"https://twitter.com/_jason_today">Twitter</a>
+    |
+    <a href=3D"https://buymeacoffee.com/jason_today">Support Me</a>
+  </p>
+</div>
+
+
+</body></html>
+------MultipartBoundary--5aG3VhyDHdImdkhWXJgzhOokSv3rztKiyTuLzGQ08V----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: cid:css-7c08e8ca-cf70-4c57-be55-423f241bec71@mhtml.blink
+
+@charset "utf-8";
+=0A
+------MultipartBoundary--5aG3VhyDHdImdkhWXJgzhOokSv3rztKiyTuLzGQ08V----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: cid:css-a1164062-841f-4cbd-9359-d58bbf3708d7@mhtml.blink
+
+@charset "utf-8";
+
+button { border: none; cursor: pointer; }
+
+.color { max-width: 20px; width: 20px; height: 20px; position: relative; }
+
+canvas { image-rendering: auto; }
+
+.iconButton { margin-left: -1px; padding: 4px 0px 0px; width: 24px; height:=
+ 24px; }
+
+.erase { position: absolute; top: 2px; left: 1px; }
+
+.arrow { border: none; position: absolute; top: 0px; left: -17px; cursor: a=
+uto; color: var(--article-text-color); }
+
+.hidden { display: none; }
+------MultipartBoundary--5aG3VhyDHdImdkhWXJgzhOokSv3rztKiyTuLzGQ08V----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://jason.today/css/mdxish.css
+
+@charset "utf-8";
+
+html { --article-text-color: #0b0b0b; --background-color: #fff; --text-link=
+: #0a69da; --pre-background: #d3d3d3; --border-color: #e7e7e7; --title-colo=
+r: rgba(0, 0, 0, 0.8); --controls-color: #0275ff; color: var(--article-text=
+-color); background-color: var(--background-color); font-family: -apple-sys=
+tem, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-se=
+rif, "Apple Color Emoji", "Segoe UI Emoji"; font-size: 1em; line-height: 1.=
+4; height: 100%; }
+
+h1, h2, h3 { font-weight: 500; line-height: 1.15; margin: 1rem 0px; }
+
+h1 { font-size: 400%; margin-top: 0px; }
+
+h2 { font-size: 250%; }
+
+h3 { font-size: 200%; }
+
+@media (max-width: 800px) {
+  h1 { font-size: 200%; }
+  h2 { font-size: 175%; }
+  h3 { font-size: 150%; }
+}
+
+p { line-height: 1.5; margin: 12px 0px; }
+
+ul { padding-left: 24px; }
+
+li { line-height: 2; }
+
+a { color: var(--text-link); text-decoration: none; background-color: trans=
+parent; }
+
+a::selection { background: var(--text-link); }
+
+code, pre { font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", mo=
+nospace; font-size: 0.95em; }
+
+code[class*=3D"language-"], pre[class*=3D"language-"] { font-size: 0.95em !=
+important; }
+
+:not(pre) > code, pre { background: rgb(246, 246, 246); border: 1px solid r=
+gb(231, 231, 231); border-radius: 4px; overflow: auto; }
+
+:not(pre) > code { padding: 2px; }
+
+pre { padding: 16px; line-height: 1.5; margin: 8px 0px; }
+
+body { display: flex; flex-direction: column; justify-content: space-betwee=
+n; height: 100%; margin: 0px; }
+
+#content { display: flex; flex-direction: column; padding: 10px; margin: 0p=
+x auto; min-width: 300px; max-width: 800px; width: calc(100% - 20px); }
+
+.header { display: flex; justify-content: space-between; }
+
+.step { padding-top: 10px; position: relative; }
+
+.footer p { text-align: center; }
+
+::selection { background: var(--article-text-color); color: var(--backgroun=
+d-color); }
+
+img, video { max-width: 100%; }
+
+canvas { image-rendering: pixelated; border: solid 2px var(--border-color);=
+ border-radius: 4px; user-select: none; }
+
+button { color: var(--article-text-color); background-color: var(--pre-back=
+ground); }
+
+button[selected=3D"true"] { color: var(--pre-background); background-color:=
+ var(--article-text-color); }
+
+label { user-select: none; cursor: pointer; }
+
+input[type=3D"range"]::-webkit-slider-runnable-track { appearance: none; ba=
+ckground: var(--article-text-color); height: 8px; border-radius: 4px; }
+
+input[type=3D"range"]::-webkit-slider-thumb { margin: -4px; background: var=
+(--controls-color); }
+
+@media (pointer: coarse) {
+}
+
+@media (max-width: 400px) {
+  pre, code { font-size: 0.9em !important; }
+}
+
+textarea { color: var(--article-text-color); background-color: var(--backgr=
+ound-color); border: solid 2px var(--border-color); border-radius: 4px; }
+
+input[type=3D"number"], input[type=3D"text"] { color: var(--article-text-co=
+lor); background-color: var(--background-color); border-style: solid; }
+
+@media (prefers-color-scheme: dark) {
+  html { --article-text-color: #d8d8d8; --background-color: #010409; --text=
+-link: #03C4A1; --pre-background: #444444; --border-color: #3b3b3b; --title=
+-color: rgba(255, 255, 255, 0.8); }
+  :not(pre) > code, pre { background: rgb(13, 16, 20) !important; border-co=
+lor: rgb(59, 59, 59) !important; }
+}
+------MultipartBoundary--5aG3VhyDHdImdkhWXJgzhOokSv3rztKiyTuLzGQ08V----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://jason.today/css/prism.css
+
+@charset "utf-8";
+
+@media (prefers-color-scheme: light) {
+  code[class*=3D"language-"], pre[class*=3D"language-"] { color: rgb(0, 0, =
+0); background: 0px 0px; text-shadow: rgb(255, 255, 255) 0px 1px; font-fami=
+ly: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace; font-size: 1=
+em; text-align: left; white-space: pre; word-spacing: normal; word-break: n=
+ormal; overflow-wrap: normal; line-height: 1.5; tab-size: 4; hyphens: none;=
+ }
+  code[class*=3D"language-"] ::selection, code[class*=3D"language-"]::selec=
+tion, pre[class*=3D"language-"] ::selection, pre[class*=3D"language-"]::sel=
+ection { text-shadow: none; background: rgb(179, 212, 252); }
+  @media print {
+  code[class*=3D"language-"], pre[class*=3D"language-"] { text-shadow: none=
+; }
+}
+  pre[class*=3D"language-"] { padding: 1em; margin: 0.5em 0px; overflow: au=
+to; }
+  :not(pre) > code[class*=3D"language-"], pre[class*=3D"language-"] { backg=
+round: rgb(245, 242, 240); }
+  :not(pre) > code[class*=3D"language-"] { padding: 0.1em; border-radius: 0=
+.3em; white-space: normal; }
+  .token.cdata, .token.comment, .token.doctype, .token.prolog { color: rgb(=
+112, 128, 144); }
+  .token.punctuation { color: rgb(153, 153, 153); }
+  .token.namespace { opacity: 0.7; }
+  .token.boolean, .token.constant, .token.deleted, .token.number, .token.pr=
+operty, .token.symbol, .token.tag { color: rgb(153, 0, 85); }
+  .token.attr-name, .token.builtin, .token.char, .token.inserted, .token.se=
+lector, .token.string { color: rgb(102, 153, 0); }
+  .language-css .token.string, .style .token.string, .token.entity, .token.=
+operator, .token.url { color: rgb(154, 110, 58); background: rgba(255, 255,=
+ 255, 0.5); }
+  .token.atrule, .token.attr-value, .token.keyword { color: rgb(0, 119, 170=
+); }
+  .token.class-name, .token.function { color: rgb(221, 74, 104); }
+  .token.important, .token.regex, .token.variable { color: rgb(238, 153, 0)=
+; }
+  .token.bold, .token.important { font-weight: 700; }
+  .token.italic { font-style: italic; }
+  .token.entity { cursor: help; }
+}
+
+@media (prefers-color-scheme: dark) {
+  code[class*=3D"language-"], pre[class*=3D"language-"] { color: rgb(204, 2=
+04, 204); background: 0px 0px; font-family: Consolas, Monaco, "Andale Mono"=
+, "Ubuntu Mono", monospace; font-size: 1em; text-align: left; white-space: =
+pre; word-spacing: normal; word-break: normal; overflow-wrap: normal; line-=
+height: 1.5; tab-size: 4; hyphens: none; }
+  pre[class*=3D"language-"] { padding: 1em; margin: 0.5em 0px; overflow: au=
+to; }
+  :not(pre) > code[class*=3D"language-"], pre[class*=3D"language-"] { backg=
+round: rgb(45, 45, 45); }
+  :not(pre) > code[class*=3D"language-"] { padding: 0.1em; border-radius: 0=
+.3em; white-space: normal; }
+  .token.block-comment, .token.cdata, .token.comment, .token.doctype, .toke=
+n.prolog { color: rgb(153, 153, 153); }
+  .token.punctuation { color: rgb(204, 204, 204); }
+  .token.attr-name, .token.deleted, .token.namespace, .token.tag { color: r=
+gb(226, 119, 122); }
+  .token.function-name { color: rgb(97, 150, 204); }
+  .token.boolean, .token.function, .token.number { color: rgb(240, 141, 73)=
+; }
+  .token.class-name, .token.constant, .token.property, .token.symbol { colo=
+r: rgb(248, 197, 85); }
+  .token.atrule, .token.builtin, .token.important, .token.keyword, .token.s=
+elector { color: rgb(204, 153, 205); }
+  .token.attr-value, .token.char, .token.regex, .token.string, .token.varia=
+ble { color: rgb(126, 198, 153); }
+  .token.entity, .token.operator, .token.url { color: rgb(103, 205, 204); }
+  .token.bold, .token.important { font-weight: 700; }
+  .token.italic { font-style: italic; }
+  .token.entity { cursor: help; }
+  .token.inserted { color: green; }
+}
+------MultipartBoundary--5aG3VhyDHdImdkhWXJgzhOokSv3rztKiyTuLzGQ08V------
