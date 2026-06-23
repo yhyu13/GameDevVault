@@ -239,6 +239,8 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "ClusterCulling 基于视锥和 HZB 裁剪 Cluster（几何单元），InstanceCulling 基于 GPUScene 裁剪实例（Instance）。两者都是 GPU 执行的 Compute Shader。",
+
+        detailLink: "../../UE5_Detail.md#interview-gpu-driven",
     optionExplanations: [
       "❌ 错误：两者都是 GPU 执行的 Compute Shader。Nanite 的裁剪全部是 GPU-Driven。",
       "✅ 正确：ClusterCulling 裁剪的是几何单元（Cluster），决定哪些三角形簇可见；InstanceCulling 裁剪的是实例（Instance），决定哪些 Mesh 实例需要渲染。两者粒度不同，但都运行在 GPU。",
@@ -260,6 +262,8 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "`CardCapturesPerFrame` 控制每帧最大更新的 Lumen Card 数量。`MaxNumAdaptiveProbes` 是 Screen Probe 的参数。",
+
+        detailLink: "../../UE5_Detail.md#lumen-surface-cache",
     optionExplanations: [
       "❌ 错误：MaxNumAdaptiveProbes 是 Screen Probe Gather 中自适应探针的最大数量，与 Surface Cache 更新无关。",
       "✅ 正确：CardCapturesPerFrame 是 Surface Cache 增量更新的核心参数，限制每帧更新的 Card 数量，平衡更新速度和工作量。",
@@ -281,6 +285,8 @@ const singleQuestions = [
     ],
     correct: 3,
     explanation: "VSM 的缓存状态只有 CACHED / UNCACHED / UNREFERENCED 三种，没有 DIRTY 状态。UNCACHED 对应的是动态物体移动导致失效，不是 CPU 修改。",
+
+        detailLink: "../../UE5_Detail.md#vsm-on-demand",
     optionExplanations: [
       "❌ 不是答案：CACHED 是存在的，表示当前帧仍需要且未 dirty，直接复用上一帧渲染结果。",
       "❌ 不是答案：UNCACHED 是存在的，表示动态物体移动导致该页失效，需要重新渲染。",
@@ -302,6 +308,8 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "RDG 的核心是显式依赖声明：每个 Pass 声明输入和输出资源，RDG 自动推导资源生命周期、内存 aliasing（重用）和屏障（Barrier）插入。",
+
+        detailLink: "../../UE5_Detail.md#interview-gpu-driven",
     optionExplanations: [
       "❌ 错误：RDG 的依赖分析开销极小（CPU 侧），但带来的优化（自动 aliasing、精确屏障）通常使整体性能更好。",
       "✅ 正确：RDG 的显式依赖声明让渲染管线更清晰：每个 Pass 的输入输出是显式的，RDG 自动推导资源生命周期、内存 aliasing（同一物理内存被不同纹理分时复用）和精确的 Barrier 插入。",
@@ -323,6 +331,8 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "三者共享 GPUScene 的图元级数据（实例变换/包围盒），但视图级裁剪独立。VSM 的 Page 标记由 Camera 像素驱动，Lumen 的 Surface Cache 需要 Nanite 的 Mesh Card 数据来构建。",
+
+        detailLink: "../../UE5_Detail.md#vsm-nanite-sharing",
     optionExplanations: [
       "❌ 错误：Nanite 的视图级裁剪结果不能复用（主相机和 Light Camera 视锥不同）。共享的是图元级数据。",
       "✅ 正确：三者共享 GPUScene（图元级数据，不随视角变化），但各自独立执行视图级裁剪（不同 Frustum/HZB）。VSM 的 Page 标记由 Camera 像素驱动（GeneratePageFlagsFromPixels），Lumen 的 Surface Cache 需要 Nanite 的 Mesh Card 数据（FMeshCardRepresentation）来构建 Lumen Card。",
@@ -349,6 +359,8 @@ const multiQuestions = [
     ],
     correct: [0, 1, 2, 4],
     explanation: "CPU 仍参与离线构建（Cook），半透明材质不支持。优势是：减少 Draw Call、无级 LOD、无需美术 LOD、海量几何。",
+
+        detailLink: "../../UE5_Detail.md#interview-gpu-driven",
     optionExplanations: [
       "✅ 正确：GPU 直接生成绘制指令，无需 CPU 逐个提交 Draw Call，大幅降低 CPU 负载。",
       "✅ 正确：GPU 根据像素覆盖度实时选择 Cluster 精度，LOD 连续变化，无 discrete 切换导致的 popping。",
@@ -370,6 +382,8 @@ const multiQuestions = [
     ],
     correct: [0, 1, 2, 4],
     explanation: "远距离使用低分辨率 Mip（不是高分辨率），Screen Probe 发射的是 Cone 不是 Ray。",
+
+        detailLink: "../../UE5_Detail.md#lumen-screen-probe-gather",
     optionExplanations: [
       "✅ 正确：Uniform Placement 默认每 16×16 像素放置一个探针，确保基础覆盖。",
       "✅ 正确：Adaptive Placement 在边缘、阴影边界等光照梯度大的区域增加探针密度，避免低频 artifact。",
@@ -391,6 +405,8 @@ const multiQuestions = [
     ],
     correct: [0, 1, 2, 4, 5],
     explanation: "D 是 CSM 的做法，不是 VSM。VSM 的优化是按需分配 + 缓存复用 + LRU + Clipmap + PageTable。",
+
+        detailLink: "../../UE5_Detail.md#vsm-on-demand",
     optionExplanations: [
       "✅ 正确：Camera 像素反推标记 REQUESTED 虚拟页，只有被采样的区域才分配物理页，避免 Light 视角的浪费。",
       "✅ 正确：UpdatePhysicalPages 阶段查询上一帧状态，CACHED 的页直接复用，无需重新渲染。",
@@ -412,6 +428,8 @@ const multiQuestions = [
     ],
     correct: [0, 1, 4, 5],
     explanation: "Sphere Tracing 可能穿过薄表面（低分辨率 SDF 的通病），对低分辨率 SDF 不鲁棒。优势是：大步跳过、接近时细化、适合实时。",
+
+        detailLink: "../../UE5_Detail.md#lumen-mesh-sdf",
     optionExplanations: [
       "✅ 正确：Sphere Tracing 的核心：步进距离 = SDF 值（到最近表面的距离），可以安全地大步前进，不会穿过表面。",
       "✅ 正确：空区域（SDF 值大）大步跳过，只在接近表面（SDF 值小）时细化，大幅减少步进次数。",
@@ -427,29 +445,34 @@ const trueFalseQuestions = [
   {
     statement: "UE5 的 Render Graph (RDG) 可以自动推导 Pass 之间的资源依赖，并插入精确的内存屏障（Barrier）。",
     correct: true,
-    explanation: "✅ 正确。RDG 的核心价值：每个 Pass 显式声明输入输出资源，RDG 自动推导资源生命周期、内存 aliasing 和精确的 Barrier 插入。开发者无需手动管理资源状态和同步。"
-  },
-  {
+    explanation: "✅ 正确。RDG 的核心价值：每个 Pass 显式声明输入输出资源，RDG 自动推导资源生命周期、内存 aliasing 和精确的 Barrier 插入。开发者无需手动管理资源状态和同步。",
+
+        detailLink: "../../UE5_Detail.md#interview-gpu-driven",
+},  {
     statement: "Lumen 的 Radiosity 迭代每次都需要从 Camera 发射新射线到场景中做求交。",
     correct: false,
-    explanation: "❌ 错误。Radiosity 迭代不需要发射新射线，而是在已缓存的 Surface Cache（Card 的 Radiance Atlas）之间做纹理采样和能量传递。Gather 阶段收集周围 Card 的辐射度，Scatter 阶段写回当前 Card，成本是 O(纹理采样) 而非 O(射线求交)。"
-  },
-  {
+    explanation: "❌ 错误。Radiosity 迭代不需要发射新射线，而是在已缓存的 Surface Cache（Card 的 Radiance Atlas）之间做纹理采样和能量传递。Gather 阶段收集周围 Card 的辐射度，Scatter 阶段写回当前 Card，成本是 O(纹理采样) 而非 O(射线求交)。",
+
+        detailLink: "../../UE5_Detail.md#lumen-radiosity",
+},  {
     statement: "Nanite 的 `Nanite::FResources` 和 UE4 的 `FStaticMeshRenderData` 在功能上是等价的。",
     correct: false,
-    explanation: "❌ 错误。`FStaticMeshRenderData` 存储传统 LOD 数据（多档模型），而 `Nanite::FResources` 存储虚拟微多边形数据（Cluster/Page/DAG/Imposter）。两者数据结构完全不同，渲染流程也完全不同。"
-  },
-  {
+    explanation: "❌ 错误。`FStaticMeshRenderData` 存储传统 LOD 数据（多档模型），而 `Nanite::FResources` 存储虚拟微多边形数据（Cluster/Page/DAG/Imposter）。两者数据结构完全不同，渲染流程也完全不同。",
+
+        detailLink: "../../UE5_Detail.md#nanite-virtualized-geometry",
+},  {
     statement: "VSM 的 `GeneratePageFlagsFromPixels` 是从 Light Camera 视角标记需要渲染的 page。",
     correct: false,
-    explanation: "❌ 错误。GeneratePageFlagsFromPixels 是从 Camera（主相机）视角标记：遍历屏幕像素，反推光源空间，标记哪些虚拟页会被采样。如果用 Light 视角，会标记所有被光照射的区域，浪费内存。"
-  },
-  {
+    explanation: "❌ 错误。GeneratePageFlagsFromPixels 是从 Camera（主相机）视角标记：遍历屏幕像素，反推光源空间，标记哪些虚拟页会被采样。如果用 Light 视角，会标记所有被光照射的区域，浪费内存。",
+
+        detailLink: "../../UE5_Detail.md#vsm-on-demand",
+},  {
     statement: "在 UE5 中，GPUScene 的实例化数据（InstanceDataBuffer）被 Nanite、Lumen 和 VSM 共享。",
     correct: true,
-    explanation: "✅ 正确。GPUScene 存储每个 Primitive 的实例变换矩阵和包围盒，这些是图元级数据，不随视角变化。Nanite、Lumen（Mesh Card 构建）、VSM（Shadow 渲染）都复用同一套 GPUScene 数据。"
-  }
-];
+    explanation: "✅ 正确。GPUScene 存储每个 Primitive 的实例变换矩阵和包围盒，这些是图元级数据，不随视角变化。Nanite、Lumen（Mesh Card 构建）、VSM（Shadow 渲染）都复用同一套 GPUScene 数据。",
+
+        detailLink: "../../UE5_Detail.md#vsm-nanite-sharing",
+}];
 
 const allQuestions = [];
 singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
@@ -641,7 +664,8 @@ $('single-check-btn').addEventListener('click', () => {
   }
   const fb = $('single-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${followupHTML}`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${followupHTML}${detailLinkHTML}`;
 });
 
 $('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
@@ -692,7 +716,8 @@ $('multi-check-btn').addEventListener('click', () => {
   }
   const fb = $('multi-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${followupHTML}`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${followupHTML}${detailLinkHTML}`;
 });
 
 $('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
@@ -718,7 +743,8 @@ function checkTrueFalse(userAnswer) {
   document.getElementById('tf-false-btn').disabled = true;
   const fb = $('tf-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
   const wasCorrect = answeredCorrect.tf[tfIndex];
   if (isCorrect && !wasCorrect) scores.tf++;
   answered.tf[tfIndex] = true;

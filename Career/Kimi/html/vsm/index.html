@@ -267,6 +267,8 @@ const dragQuestions = [
     answers: ["Camera", "Available Page List", "PageTable"],
     pool: ["Camera", "Light", "Available Page List", "GPUScene", "PageTable", "MipMap", "Clipmap"],
     explanation: "VSM 按需分配的核心：Camera 驱动（不是 Light 驱动），从 Available Page List 分配，建立 PageTable 虚拟页→物理页映射。",
+
+        detailLink: "../../UE5_Detail.md#vsm-on-demand",
     blankExplanations: [
       "VSM 是 Camera 视角驱动：只有 Camera 需要采样的区域才分配 page。如果用 Light 视角，光源看到的所有区域都会分配 page，浪费内存。",
       "Available Page List 是空闲物理页队列，新页从这里弹出。GPUScene 是实例化数据，不是页分配器。",
@@ -278,6 +280,8 @@ const dragQuestions = [
     answers: ["Clipmap", "Cube"],
     pool: ["Clipmap", "Cube", "MipMap", "PageTable", "CSM", "Texture2D", "Atlas"],
     explanation: "Clipmap 是方向光的专用级联结构（多层等大分辨率），点光源/聚光灯使用 Cube 纹理。",
+
+        detailLink: "../../UE5_Detail.md#vsm-vs-csm",
     blankExplanations: [
       "Clipmap 是 VSM 方向光的专用结构：多层等大分辨率纹理，每层覆盖不同距离范围。CSM 是 UE4 的旧级联阴影，不是 VSM 的术语。",
       "点光源和聚光灯使用 Cube 纹理（6 个面），不是 Texture2D 或 Atlas。"
@@ -288,6 +292,8 @@ const dragQuestions = [
     answers: ["GPUScene", "视图裁剪"],
     pool: ["GPUScene", "InstanceCulling", "视图裁剪", "Draw Call", "Cluster", "PageTable", "LOD"],
     explanation: "共享的是图元级数据（GPUScene 的变换矩阵/包围盒），不随视角变化；但视图级裁剪（Frustum/HZB）因视角不同而独立执行。",
+
+        detailLink: "../../UE5_Detail.md#vsm-nanite-sharing",
     blankExplanations: [
       "GPUScene 存储实例变换矩阵和包围盒，这些是图元本身的属性，不随视角变化。InstanceCulling 是裁剪框架代码，共享的是框架而非结果。",
       "视图裁剪（Frustum Culling + HZB）是独立执行的：主相机和 Light Camera 的视锥不同，可见集合完全不同。Draw Call 是 GPU 生成，不是裁剪。"
@@ -298,6 +304,8 @@ const dragQuestions = [
     answers: ["GeneratePageFlagsFromPixels", "REQUESTED"],
     pool: ["GeneratePageFlagsFromPixels", "BuildPageAllocations", "REQUESTED", "CACHED", "UNCACHED", "UNREFERENCED", "SphereTracing"],
     explanation: "GeneratePageFlagsFromPixels 是核心 CS：从 Camera 像素反推光源空间，标记 REQUESTED 虚拟页。",
+
+        detailLink: "../../UE5_Detail.md#vsm-on-demand",
     blankExplanations: [
       "GeneratePageFlagsFromPixels 是 GPU Compute Shader，遍历屏幕 tile 计算像素投影。BuildPageAllocations 是后续的页分配函数，不是标记阶段。",
       "REQUESTED 表示当前帧需要渲染的虚拟页。CACHED/UNCACHED/UNREFERENCED 是后续 UpdatePhysicalPages 的状态，不是初始标记。"
@@ -316,6 +324,8 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "CSM 预分配固定级联纹理，内存浪费；VSM 按需分配，只有 Camera 需要采样的区域才分配 page，配合缓存复用和 LRU 大幅节省内存。",
+
+        detailLink: "../../UE5_Detail.md#vsm-vs-csm",
     optionExplanations: [
       "❌ 错误：这是 CSM 的做法，不是 VSM。VSM 是按需分配。",
       "✅ 正确：VSM 的核心创新是 Camera 像素反推驱动需求标记 + 按需分配物理页 + 缓存复用 + LRU。CSM 预分配固定级联，无论是否需要都占用内存。",
@@ -333,6 +343,8 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "Nanite 和 VSM 共享 GPUScene 的实例化数据（变换/包围盒），但视图裁剪是独立的（不同视角）。VSM 复用 Nanite 的 GPU-Driven 数据通道，无需 CPU 重建 Primitive 列表。",
+
+        detailLink: "../../UE5_Detail.md#vsm-nanite-sharing",
     optionExplanations: [
       "❌ 错误：视图级裁剪结果不能复用（主相机和 Light Camera 视锥不同）。共享的是图元级数据。",
       "✅ 正确：共享 GPUScene 图元数据（不随视角变化），但视图裁剪独立执行（不同 Frustum/HZB）。VSM 的 Shadow 渲染直接复用 Nanite 已加载到 GPU 的 Cluster 数据。",
@@ -355,6 +367,8 @@ const multiQuestions = [
     ],
     correct: [0, 1, 2, 3],
     explanation: "E 是 CSM 的做法，F 也是 CSM 的做法。VSM 的按需分配是 Camera 驱动 + 缓存复用 + LRU + 页表映射。",
+
+        detailLink: "../../UE5_Detail.md#vsm-on-demand",
     optionExplanations: [
       "✅ 正确：GeneratePageFlagsFromPixels 从 Camera 像素反推光源空间，标记 REQUESTED。",
       "✅ 正确：UpdatePhysicalPages 查询上一帧状态：CACHED（复用）、UNCACHED（重新渲染）、UNREFERENCED（LRU 延迟释放）。",
@@ -367,12 +381,17 @@ const multiQuestions = [
 ];
 
 const trueFalseQuestions = [
-  { statement: "VSM 是 Light 视角驱动按需分配物理页。", correct: false, explanation: "❌ 错误。VSM 是 Camera 视角驱动，不是 Light 视角。只有 Camera 需要采样的区域才分配 page。Light 视角会分配所有被光照射的区域，浪费内存。" },
-  { statement: "VSM 的方向光使用 Clipmap 管理多层等大分辨率。", correct: true, explanation: "✅ 正确。Clipmap 是 VSM 方向光的专用级联结构，每层覆盖不同距离范围，近处高分辨率、远处低分辨率。" },
-  { statement: "Nanite 和 VSM 共享 GPUScene 的实例化数据。", correct: true, explanation: "✅ 正确。两者共享 GPUScene 的实例变换矩阵和包围盒（图元级数据，不随视角变化）。但视图级裁剪是独立执行的。" },
-  { statement: "VSM 的 PageTable 存储虚拟页 ID 到物理页地址的映射。", correct: true, explanation: "✅ 正确。PageTable 是 uint 数组，每个元素编码为 FShadowPhysicalPage（物理页地址 + 有效位），Shader 中通过 ShadowDecodePageTable 解码。" },
-  { statement: "VSM 的内存占用通常比 CSM 更大。", correct: false, explanation: "❌ 错误。VSM 按需分配，只给实际需要的区域分配物理页；CSM 预分配固定级联纹理，无论是否需要都占用内存。VSM 通常更省内存。" }
-];
+  { statement: "VSM 是 Light 视角驱动按需分配物理页。", correct: false, explanation: "❌ 错误。VSM 是 Camera 视角驱动，不是 Light 视角。只有 Camera 需要采样的区域才分配 page。Light 视角会分配所有被光照射的区域，浪费内存。",
+     detailLink: "../../UE5_Detail.md#vsm-vs-csm",
+},  { statement: "VSM 的方向光使用 Clipmap 管理多层等大分辨率。", correct: true, explanation: "✅ 正确。Clipmap 是 VSM 方向光的专用级联结构，每层覆盖不同距离范围，近处高分辨率、远处低分辨率。",
+     detailLink: "../../UE5_Detail.md#vsm-on-demand",
+},  { statement: "Nanite 和 VSM 共享 GPUScene 的实例化数据。", correct: true, explanation: "✅ 正确。两者共享 GPUScene 的实例变换矩阵和包围盒（图元级数据，不随视角变化）。但视图级裁剪是独立执行的。",
+     detailLink: "../../UE5_Detail.md#vsm-vs-csm",
+},  { statement: "VSM 的 PageTable 存储虚拟页 ID 到物理页地址的映射。", correct: true, explanation: "✅ 正确。PageTable 是 uint 数组，每个元素编码为 FShadowPhysicalPage（物理页地址 + 有效位），Shader 中通过 ShadowDecodePageTable 解码。",
+     detailLink: "../../UE5_Detail.md#vsm-nanite-sharing",
+},  { statement: "VSM 的内存占用通常比 CSM 更大。", correct: false, explanation: "❌ 错误。VSM 按需分配，只给实际需要的区域分配物理页；CSM 预分配固定级联纹理，无论是否需要都占用内存。VSM 通常更省内存。",
+     detailLink: "../../UE5_Detail.md#vsm-vs-csm",
+}];
 
 const allQuestions = [];
 dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
@@ -595,7 +614,8 @@ $('drag-check-btn').addEventListener('click', () => {
   });
   const fb = $('drag-feedback');
   fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 有错误'}</div><div>${q.explanation}</div>${detailHTML}`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 有错误'}</div><div>${q.explanation}</div>${detailHTML}${detailLinkHTML}`;
   const wasCorrect = answeredCorrect.drag[dragIndex];
   if (allCorrect && !wasCorrect) scores.drag++;
   answered.drag[dragIndex] = true;
@@ -653,7 +673,8 @@ $('single-check-btn').addEventListener('click', () => {
   updateTotalScore();
   const fb = $('single-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
 });
 
 $('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
@@ -700,7 +721,8 @@ $('multi-check-btn').addEventListener('click', () => {
   updateTotalScore();
   const fb = $('multi-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
 });
 
 $('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
@@ -745,7 +767,8 @@ function checkTrueFalse(userAnswer) {
   document.getElementById('tf-false-btn').disabled = true;
   const fb = $('tf-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
   const wasCorrect = answeredCorrect.tf[tfIndex];
   if (isCorrect && !wasCorrect) scores.tf++;
   answered.tf[tfIndex] = true;

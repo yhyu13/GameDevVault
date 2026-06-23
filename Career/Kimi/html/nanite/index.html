@@ -311,6 +311,7 @@ const dragQuestions = [
     answers: ["Page", "GPU"],
     pool: ["Page", "GPU", "CPU", "Cluster", "Texture", "ClusterGroup", "Mesh"],
     explanation: "Nanite 的 Page 是数据加载的最小单位，LOD 决策完全由 GPU 在运行时根据像素覆盖度动态完成。",
+    detailLink: "../../UE5_Detail.md#nanite-virtualized-geometry",
     blankExplanations: [
       "Page 是 Nanite 数据加载的最小单位（类似虚拟内存页），只有可见的 Page 才会加载到 GPU。不可用 Cluster 是因为 Cluster 是几何单元而非数据加载单元；不可用 Mesh 是因为 Mesh 是整体概念。",
       "GPU 负责运行时动态决策：根据像素覆盖度选择 Cluster 精度。CPU 只做离线构建（Cook 阶段生成 Cluster/DAG/Page），运行时不再参与 LOD 决策。"
@@ -321,6 +322,7 @@ const dragQuestions = [
     answers: ["Cluster", "ClusterGroup", "DAG"],
     pool: ["Cluster", "ClusterGroup", "DAG", "Page", "LOD", "Mesh", "BVH"],
     explanation: "Cluster 是基本几何单元（约128个三角形），ClusterGroup 是 LOD 层级管理单元，DAG 描述 ClusterGroup 的父子依赖关系。",
+    detailLink: "../../UE5_Detail.md#nanite-cluster-page",
     blankExplanations: [
       "Cluster 是 Nanite 的基本几何单元（约128个三角形一组）。Page 是数据加载单元，不是几何单元；Mesh 是整体模型，不是聚合单元。",
       "ClusterGroup 是 LOD 层级管理单元，多个 Cluster 组成一个 ClusterGroup。DAG 是图结构，不是组织单元。",
@@ -332,6 +334,7 @@ const dragQuestions = [
     answers: ["GPU-Driven", "混合", "硬件光栅化", "软件光栅化"],
     pool: ["GPU-Driven", "混合", "硬件光栅化", "软件光栅化", "CPU-Driven", "纯硬件", "延迟渲染"],
     explanation: "硬件光栅化在三角形小于一个像素时效率崩溃（Quad Overdraw + Early-Z 失效），软件光栅化（CS）精确计算亚像素覆盖，两者互补。",
+    detailLink: "../../UE5_Detail.md#nanite-rasterization",
     blankExplanations: [
       "GPU-Driven 意味着裁剪和绘制指令生成都在 GPU 上完成。CPU-Driven 是 UE4 的做法，不符合 Nanite 设计。",
       "混合光栅化 = 硬件 + 软件互补。纯硬件无法处理微多边形，延迟渲染是渲染管线类型，不是光栅化方式。",
@@ -344,6 +347,7 @@ const dragQuestions = [
     answers: ["CPU", "GPU", "每个Mesh", "GPU-Driven"],
     pool: ["CPU", "GPU", "每个Mesh", "GPU-Driven", "每帧", "预烘焙", "Instance"],
     explanation: "UE4 传统 LOD 需要美术预制作多档模型，CPU 根据距离切换；Nanite 是 GPU 实时无级连续 LOD，无需手动制作 LOD 链。",
+    detailLink: "../../UE5_Detail.md#nanite-vs-lod",
     blankExplanations: [
       "UE4 的 LOD 是 CPU 预计算：美术制作多档模型，CPU 运行时根据距离切换，会产生 popping。",
       "Nanite 的 LOD 是 GPU 运行时动态：根据像素覆盖度选择 Cluster 精度，无 popping、无级连续。",
@@ -356,6 +360,7 @@ const dragQuestions = [
     answers: ["Translucent", "Morph Targets", "Cloth", "自定义"],
     pool: ["Translucent", "Morph Targets", "Cloth", "自定义", "Masked", "骨骼动画", "Landscape"],
     explanation: "Masked/Two-Sided 在 5.4+ 通过 Programmable Rasterizer 已支持；Skeletal Mesh 在 5.5+ 已支持；但 Translucent、Morph、Cloth 仍不支持。",
+    detailLink: "../../UE5_Detail.md#nanite-fallback",
     blankExplanations: [
       "Translucent 材质完全不支持 Nanite。Masked 在 5.4+ 已支持（Programmable Rasterizer），所以不是答案。",
       "Morph Targets（Blendshape）在 5.5+ 仍不支持。Skeletal Mesh（骨骼动画）在 5.5+ 已支持，不要混淆。",
@@ -376,6 +381,7 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "硬件光栅化在三角形小于一个像素时产生 Quad Overdraw（一个 2×2 像素块覆盖 4 个像素但小三角只覆盖 1 个），且 Early-Z 失效。软件光栅化（CS）逐像素精确计算覆盖，专门处理亚像素微多边形。",
+    detailLink: "../../UE5_Detail.md#nanite-rasterization",
     optionExplanations: [
       "❌ 错误：大三角形用硬件光栅化效率更高，软件光栅化反而慢。",
       "✅ 正确：硬件光栅化在亚像素级三角形时 Quad Overdraw 严重（一个 2×2 像素块只覆盖1个像素却计算4个），且 Early-Z 失效。CS 精确计算每个像素的覆盖，专门处理亚像素微多边形。",
@@ -393,6 +399,7 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "Skeletal Mesh（骨骼动画）在 UE5.5+ 已正式支持 Nanite（Editor 勾选 Enable Nanite Support）。Translucent、Morph Targets、Cloth 仍不支持。",
+    detailLink: "../../UE5_Detail.md#nanite-fallback",
     optionExplanations: [
       "❌ 不是答案：Translucent 材质确实不支持 Nanite，需要 fallback。",
       "✅ 正确答案：Skeletal Mesh（骨骼动画）在 UE5.5+ 已正式支持 Nanite。Editor 中勾选 'Enable Nanite Support' 即可。",
@@ -410,6 +417,7 @@ const singleQuestions = [
     ],
     correct: 2,
     explanation: "Nanite 的 DAG 描述连续 LOD 层级，GPU 运行时根据像素覆盖度选择 Cluster 精度，无 popping、无 Draw Call 瓶颈、无需美术手动制作 LOD 链。",
+    detailLink: "../../UE5_Detail.md#nanite-vs-lod",
     optionExplanations: [
       "❌ 错误：Nanite 使用更少 Draw Call（GPU-Driven 批量绘制），不是更多。",
       "❌ 错误：UE4 传统 LOD 需要美术预制作多档模型，Nanite 不需要。",
@@ -432,6 +440,7 @@ const multiQuestions = [
     ],
     correct: [0, 1, 2, 3, 5],
     explanation: "Masked 材质在 5.4+ 通过 Programmable Rasterizer 已支持，所以不是 fallback 条件。移动端是平台限制，严格来说不是 fallback，但作为限制条件入选。",
+    detailLink: "../../UE5_Detail.md#nanite-fallback",
     optionExplanations: [
       "✅ 正确：Translucent 材质完全不支持 Nanite，需要 fallback。",
       "✅ 正确：Morph Targets（Blendshape）在 5.5+ 仍不支持。",
@@ -453,6 +462,7 @@ const multiQuestions = [
     ],
     correct: [0, 1, 2],
     explanation: "5.5+ 支持：Skeletal Mesh、Foliage（含 Nanite Foliage 系统）、Landscape/Spline。Translucent、Cloth、Morph Targets 仍不支持。",
+    detailLink: "../../UE5_Detail.md#nanite-limitations",
     optionExplanations: [
       "✅ 正确：5.5+ Skeletal Mesh 已支持，Editor 勾选 'Enable Nanite Support'。",
       "✅ 正确：5.4+ Masked/Two-Sided 通过 Programmable Rasterizer 支持；5.5+ Nanite Foliage 系统（Assemblies + Voxels + Skinning）。",
@@ -466,10 +476,15 @@ const multiQuestions = [
 
 const trueFalseQuestions = [
   { statement: "Nanite 的 Cluster 是数据加载的最小单位。", correct: false, explanation: "❌ 错误。Page 才是数据加载的最小单位。Cluster 是基本几何单元（约128个三角形），属于几何组织层级。" },
+    detailLink: "../../UE5_Detail.md#nanite-cluster-page",
   { statement: "Nanite 在 UE5.5 已支持 Morph Targets（Blendshape）。", correct: false, explanation: "❌ 错误。Morph Targets 在 UE5.5+ 仍不支持。Skeletal Mesh（骨骼动画）在 5.5+ 已支持，但 Morph/Blendshape 仍需要 fallback。" },
+    detailLink: "../../UE5_Detail.md#nanite-fallback",
   { statement: "硬件光栅化在处理亚像素级三角形时效率高于软件光栅化。", correct: false, explanation: "❌ 错误。硬件光栅化在亚像素级三角形时 Quad Overdraw 严重（2×2像素块只覆盖1个像素却计算4个），且 Early-Z 失效。软件光栅化（CS）专门处理亚像素微多边形。" },
+    detailLink: "../../UE5_Detail.md#nanite-rasterization",
   { statement: "Nanite 和 VSM 共享主相机的视锥裁剪结果。", correct: false, explanation: "❌ 错误。共享的是图元级数据（GPUScene 实例变换/包围盒），但视图级裁剪（Frustum/HZB）是独立执行的——主相机和 Light Camera 的视锥完全不同。" },
-  { statement: "GPU-Driven 意味着 CPU 完全不参与 Nanite 的渲染流程。", correct: false, explanation: "❌ 错误。CPU 仍负责离线构建（Cook 阶段生成 Cluster/DAG/Page），只是运行时渲染的裁剪和绘制指令生成在 GPU 上完成。" }
+    detailLink: "../../UE5_Detail.md#vsm-nanite-sharing",
+  { statement: "GPU-Driven 意味着 CPU 完全不参与 Nanite 的渲染流程。", correct: false, explanation: "❌ 错误。CPU 仍负责离线构建（Cook 阶段生成 Cluster/DAG/Page），只是运行时渲染的裁剪和绘制指令生成在 GPU 上完成。",
+    detailLink: "../../UE5_Detail.md#interview-gpu-driven" },
 ];
 
 const allQuestions = [];
@@ -712,7 +727,8 @@ $('drag-check-btn').addEventListener('click', () => {
   
   const fb = $('drag-feedback');
   fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 有错误'}</div><div>${q.explanation}</div>${detailHTML}`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 有错误'}</div><div>${q.explanation}</div>${detailHTML}${detailLinkHTML}`;
   
   const wasCorrect = answeredCorrect.drag[dragIndex];
   if (allCorrect && !wasCorrect) scores.drag++;
@@ -774,7 +790,8 @@ $('single-check-btn').addEventListener('click', () => {
   
   const fb = $('single-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
 });
 
 $('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
@@ -827,7 +844,8 @@ $('multi-check-btn').addEventListener('click', () => {
   
   const fb = $('multi-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
 });
 
 $('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
@@ -872,7 +890,8 @@ function checkTrueFalse(userAnswer) {
   document.getElementById('tf-false-btn').disabled = true;
   const fb = $('tf-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
   const wasCorrect = answeredCorrect.tf[tfIndex];
   if (isCorrect && !wasCorrect) scores.tf++;
   answered.tf[tfIndex] = true;

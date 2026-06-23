@@ -267,6 +267,8 @@ const dragQuestions = [
     answers: ["Radiance", "Normal", "Depth"],
     pool: ["Radiance", "Normal", "Depth", "Color", "Albedo", "Position", "Opacity"],
     explanation: "Surface Cache 的核心降维思想：将 3D 场景的几何信息缓存到 2D 纹理上，光照查询从射线-三角形求交变为 UV 随机访问。",
+
+        detailLink: "../../UE5_Detail.md#lumen-surface-cache",
     blankExplanations: [
       "Radiance（辐射率）是 Surface Cache 最核心的存储内容，代表表面的颜色+光照信息。Color 不够精确，因为 Radiance 包含光照计算结果。",
       "Normal（法线）用于光照计算时的表面方向。Position 不需要存，因为可以通过 UV 和 Card 参数反推。",
@@ -278,6 +280,8 @@ const dragQuestions = [
     answers: ["Screen Trace", "Mesh SDF", "Hardware Ray Trace"],
     pool: ["Screen Trace", "Mesh SDF", "Hardware Ray Trace", "Cone Tracing", "Radiosity", "Ray Marching", "Path Tracing"],
     explanation: "三级 Trace 是 Lumen 效率的核心：Screen Trace 处理近处（零开销），Mesh SDF 处理中距（体积查询），Hardware RT 处理远处（精确）。",
+
+        detailLink: "../../UE5_Detail.md#lumen-trace-fallback",
     blankExplanations: [
       "Screen Trace 利用上一帧的屏幕空间数据（Scene Color + Depth），对近处物体零额外几何开销。Cone Tracing 是 Screen Probe Gather 的技术，不是 Trace 层级。",
       "Mesh SDF 使用有向距离场在 3D 空间做 Sphere Tracing，处理屏幕外但距离中等的物体。Radiosity 是光照传播方法，不是射线追踪。",
@@ -289,6 +293,8 @@ const dragQuestions = [
     answers: ["Cone", "Surface Cache", "MipMap"],
     pool: ["Cone", "Surface Cache", "MipMap", "Ray", "GBuffer", "Texture Array", "LODs"],
     explanation: "Cone Tracing 覆盖立体角，一次采样获取平均辐射度；MipMap 让远距离自动使用低分辨率，采样数从 100 降到 10。",
+
+        detailLink: "../../UE5_Detail.md#lumen-screen-probe-gather",
     blankExplanations: [
       "Cone（锥体）覆盖一个立体角，一次采样获取该方向的平均辐射度，天然适合模糊反射。Ray（射线）太细，只能采样一个点，不适合粗糙表面。",
       "Surface Cache（Lumen Card 的 Radiance Atlas）是 Cone Tracing 的查询目标。GBuffer 只存当前帧可见像素，不存全局光照信息。",
@@ -300,6 +306,8 @@ const dragQuestions = [
     answers: ["Radiosity", "Gather", "Scatter"],
     pool: ["Radiosity", "Gather", "Scatter", "Ray Tracing", "Path Tracing", "Reflection", "Refraction"],
     explanation: "Radiosity 迭代 = Gather（收集）→ Scatter（散射），每次迭代等效于一次光线反弹，但计算成本是 O(纹理采样) 而非 O(射线求交)。",
+
+        detailLink: "../../UE5_Detail.md#lumen-radiosity",
     blankExplanations: [
       "Radiosity（辐射度）迭代是表面到表面的能量传递方法。Ray Tracing 是逐点发射射线，不是缓存传播。Path Tracing 是离线渲染技术。",
       "Gather 阶段：每个 Card 向周围发射 Cone 查询其他 Card 的 Radiance。Reflection 是反射现象，不是迭代阶段。",
@@ -311,6 +319,8 @@ const dragQuestions = [
     answers: ["距离", "Sphere Tracing", "Surface Cache"],
     pool: ["距离", "Sphere Tracing", "Surface Cache", "颜色", "法线", "Ray Marching", "Radiance Atlas"],
     explanation: "Mesh SDF 只负责几何求交（哪里命中），光照信息来自 Surface Cache。Sphere Tracing 大步跳过空区域，只在接近表面时细化。",
+
+        detailLink: "../../UE5_Detail.md#lumen-mesh-sdf",
     blankExplanations: [
       "Mesh SDF 只存储到最近表面的有向距离（标量），不存颜色、法线、材质。颜色法线不是 SDF 的内容。",
       "Sphere Tracing 每次步进距离 = 当前 SDF 值（安全距离），大步跳过空区域。Ray Marching 是固定步长，不如 Sphere Tracing 高效。",
@@ -330,6 +340,8 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "Lightmap 是离线烘焙所有光路到静态纹理，运行时只采样，不能响应动态变化。Lumen 的 Surface Cache 每帧增量更新 dirty Card，Screen Probe 实时追踪，完全动态。",
+
+        detailLink: "../../UE5_Detail.md#lumen-surface-cache",
     optionExplanations: [
       "❌ 错误：Lightmap 精度可以很高，但这不是 Lumen 不需要它的原因。",
       "✅ 正确：Surface Cache 增量更新（只更新 dirty Card）+ Screen Probe 实时追踪，可以响应动态光源、移动物体和材质变化。",
@@ -347,6 +359,8 @@ const singleQuestions = [
     ],
     correct: 1,
     explanation: "Mesh SDF 只存距离（纯几何），不存任何光照信息。命中后通过命中点世界坐标关联到 Lumen Card，从 Surface Cache 的纹理图集采样。",
+
+        detailLink: "../../UE5_Detail.md#lumen-mesh-sdf",
     optionExplanations: [
       "❌ 错误：Mesh SDF 只存储有向距离（标量），完全不存颜色、法线、材质信息。",
       "✅ 正确：命中点世界坐标 → 查找 FLumenMeshCards → 选择最佳 Card → UV 投影 → 从 Radiance Atlas / Normal Atlas 采样。",
@@ -364,6 +378,8 @@ const singleQuestions = [
     ],
     correct: 2,
     explanation: "RTGI 是每帧全屏重新发射射线，反弹次数线性增长，无法处理屏幕外。Lumen 将光照缓存到 Surface Cache，通过 Radiosity 迭代在缓存之间传播，实现无限反弹。",
+
+        detailLink: "../../UE5_Detail.md#lumen-trace-fallback",
     optionExplanations: [
       "❌ 错误：虽然 Lumen 确实需要更多显存，但这不是本质区别。",
       "❌ 错误：RTGI 只支持 1-2 次反弹（反弹次数线性增长导致开销爆炸），Lumen 通过 Radiosity 迭代实现无限反弹。",
@@ -386,6 +402,8 @@ const multiQuestions = [
     ],
     correct: [0, 1, 2, 3, 4],
     explanation: "自发光材质虽然支持，但有辐射区域大小和亮度限制（防止过曝）。其他都是 Lumen 的已知局限性。",
+
+        detailLink: "../../UE5_Detail.md#lumen-comparison",
     optionExplanations: [
       "✅ 正确：半透明物体完全不参与 Lumen 的间接光照计算。",
       "✅ 正确：Hair 和 Foliage 的高频细节在 Surface Cache 的低分辨率捕获中表现不佳。",
@@ -407,6 +425,8 @@ const multiQuestions = [
     ],
     correct: [0, 1, 2, 4],
     explanation: "Lumen 需要预计算 Lightmap ×，显存占用更高 ×。优势在于无限反弹、屏幕外支持、一体化反射、固定 Pass 结构。",
+
+        detailLink: "../../UE5_Detail.md#lumen-screen-probe-gather",
     optionExplanations: [
       "✅ 正确：Radiosity 迭代在缓存之间传播能量，理论上支持无限反弹（实际 2-3 次迭代收敛）。",
       "✅ 正确：Mesh SDF 和 Hardware RT 可以处理屏幕外物体，RTGI 完全无法处理。",
@@ -419,12 +439,17 @@ const multiQuestions = [
 ];
 
 const trueFalseQuestions = [
-  { statement: "Lumen 的 Surface Cache 存储 Radiance、Normal 和 Depth。", correct: true, explanation: "✅ 正确。Surface Cache 的核心存储：Radiance Atlas（颜色+光照）、Normal Atlas（法线）、Depth Atlas（深度验证）。" },
-  { statement: "Mesh SDF 存储了颜色、法线和材质信息。", correct: false, explanation: "❌ 错误。Mesh SDF 只存储有向距离（标量），完全不存颜色、法线、材质。命中后的光照信息来自 Surface Cache（Lumen Card）。" },
-  { statement: "Lumen 的 Screen Probe 发射的是射线（Ray）而非 Cone。", correct: false, explanation: "❌ 错误。Screen Probe 发射的是 Cone（锥体），覆盖一个立体角，一次采样获取平均辐射度。射线（Ray）太细，只能采样一个点，不适合粗糙表面。" },
-  { statement: "Lumen 的 Radiosity 迭代每次都需要发射新射线。", correct: false, explanation: "❌ 错误。Radiosity 迭代在已缓存的 Surface Cache 纹理之间做纹理采样和混合，不需要发射新射线。每次迭代成本是 O(纹理采样) 而非 O(射线求交)。" },
-  { statement: "Lumen 在移动端完全支持。", correct: false, explanation: "❌ 错误。Lumen 需要支持 RTX 或 Mesh Shader 的硬件，移动端目前不支持。Surface Cache 的内存占用也限制了移动端可用性。" }
-];
+  { statement: "Lumen 的 Surface Cache 存储 Radiance、Normal 和 Depth。", correct: true, explanation: "✅ 正确。Surface Cache 的核心存储：Radiance Atlas（颜色+光照）、Normal Atlas（法线）、Depth Atlas（深度验证）。",
+     detailLink: "../../UE5_Detail.md#lumen-trace-fallback",
+},  { statement: "Mesh SDF 存储了颜色、法线和材质信息。", correct: false, explanation: "❌ 错误。Mesh SDF 只存储有向距离（标量），完全不存颜色、法线、材质。命中后的光照信息来自 Surface Cache（Lumen Card）。",
+     detailLink: "../../UE5_Detail.md#lumen-surface-cache",
+},  { statement: "Lumen 的 Screen Probe 发射的是射线（Ray）而非 Cone。", correct: false, explanation: "❌ 错误。Screen Probe 发射的是 Cone（锥体），覆盖一个立体角，一次采样获取平均辐射度。射线（Ray）太细，只能采样一个点，不适合粗糙表面。",
+     detailLink: "../../UE5_Detail.md#lumen-radiosity",
+},  { statement: "Lumen 的 Radiosity 迭代每次都需要发射新射线。", correct: false, explanation: "❌ 错误。Radiosity 迭代在已缓存的 Surface Cache 纹理之间做纹理采样和混合，不需要发射新射线。每次迭代成本是 O(纹理采样) 而非 O(射线求交)。",
+     detailLink: "../../UE5_Detail.md#lumen-mesh-sdf",
+},  { statement: "Lumen 在移动端完全支持。", correct: false, explanation: "❌ 错误。Lumen 需要支持 RTX 或 Mesh Shader 的硬件，移动端目前不支持。Surface Cache 的内存占用也限制了移动端可用性。",
+     detailLink: "../../UE5_Detail.md#lumen-comparison",
+}];
 
 const allQuestions = [];
 dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
@@ -647,7 +672,8 @@ $('drag-check-btn').addEventListener('click', () => {
   });
   const fb = $('drag-feedback');
   fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 有错误'}</div><div>${q.explanation}</div>${detailHTML}`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 有错误'}</div><div>${q.explanation}</div>${detailHTML}${detailLinkHTML}`;
   const wasCorrect = answeredCorrect.drag[dragIndex];
   if (allCorrect && !wasCorrect) scores.drag++;
   answered.drag[dragIndex] = true;
@@ -705,7 +731,8 @@ $('single-check-btn').addEventListener('click', () => {
   updateTotalScore();
   const fb = $('single-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
 });
 
 $('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
@@ -752,7 +779,8 @@ $('multi-check-btn').addEventListener('click', () => {
   updateTotalScore();
   const fb = $('multi-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
 });
 
 $('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
@@ -797,7 +825,8 @@ function checkTrueFalse(userAnswer) {
   document.getElementById('tf-false-btn').disabled = true;
   const fb = $('tf-feedback');
   fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
   const wasCorrect = answeredCorrect.tf[tfIndex];
   if (isCorrect && !wasCorrect) scores.tf++;
   answered.tf[tfIndex] = true;
