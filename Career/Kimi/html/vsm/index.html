@@ -216,7 +216,8 @@ header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
       <div class="result-label">得分</div>
       <div class="result-detail" id="result-detail"></div>
       <div class="btn-group" style="margin-top:2rem">
-        <button class="btn btn-primary" onclick="resetAll()">重新开始</button>
+        <button class="btn btn-secondary" onclick="goBack()">🔙 返回题目</button>
+        <button class="btn btn-primary" onclick="resetAll()">🔄 重新开始</button>
       </div>
     </div>
   </div>
@@ -381,6 +382,8 @@ trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:
 
 // ==================== 状态 ====================
 let currentMode = 'drag';
+let lastMode = 'drag';
+let lastIndex = 0;
 let dragIndex = 0, singleIndex = 0, multiIndex = 0;
 let scores = { drag: 0, single: 0, multi: 0, tf: 0 };
 let answered = { drag: [], single: [], multi: [], tf: [] };
@@ -480,7 +483,11 @@ function switchMode(mode, idx) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.nav-tab[data-mode="${mode}"]`).classList.add('active');
   currentMode = mode;
-  ['drag-section','single-section','multi-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
   if (mode === 'drag') { $('drag-section').classList.remove('hidden'); dragIndex = idx; renderDrag(); }
   else if (mode === 'single') { $('single-section').classList.remove('hidden'); singleIndex = idx; renderSingle(); }
   else if (mode === 'multi') { $('multi-section').classList.remove('hidden'); multiIndex = idx; renderMulti(); }
@@ -488,15 +495,19 @@ function switchMode(mode, idx) {
 }
 
 function resetAll() {
-  scores = { drag: 0, single: 0, multi: 0 };
-  answered = { drag: [], single: [], multi: [] };
-  answeredCorrect = { drag: [], single: [], multi: [] };
+  scores = { drag: 0, single: 0, multi: 0, tf: 0 };
+  answered = { drag: [], single: [], multi: [], tf: [] };
+  answeredCorrect = { drag: [], single: [], multi: [], tf: [] };
   initState();
   dragIndex = 0; singleIndex = 0; multiIndex = 0; tfIndex = 0;
   currentMode = 'drag';
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.nav-tab[data-mode="drag"]').classList.add('active');
-  ['drag-section','single-section','multi-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
   document.querySelector('.nav-tabs').classList.remove('hidden');
   document.querySelector('.score-bar').classList.remove('hidden');
   document.querySelector('.progress-text').classList.remove('hidden');
@@ -594,7 +605,7 @@ $('drag-check-btn').addEventListener('click', () => {
 
 $('drag-reset-btn').addEventListener('click', renderDrag);
 $('drag-prev').addEventListener('click', () => { if (dragIndex > 0) { dragIndex--; renderDrag(); } });
-$('drag-next').addEventListener('click', () => { if (dragIndex < dragQuestions.length - 1) { dragIndex++; renderDrag(); } else { showResult(); } });
+$('drag-next').addEventListener('click', () => { if (dragIndex < dragQuestions.length - 1) { dragIndex++; renderDrag(); } else { lastMode = 'drag'; lastIndex = dragIndex; showResult(); } });
 
 // ==================== 单选题 ====================
 function renderSingle() {
@@ -646,7 +657,7 @@ $('single-check-btn').addEventListener('click', () => {
 });
 
 $('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
-$('single-next').addEventListener('click', () => { if (singleIndex < singleQuestions.length - 1) { singleIndex++; renderSingle(); } else { showResult(); } });
+$('single-next').addEventListener('click', () => { if (singleIndex < singleQuestions.length - 1) { singleIndex++; renderSingle(); } else { lastMode = 'single'; lastIndex = singleIndex; showResult(); } });
 
 // ==================== 多选题 ====================
 function renderMulti() {
@@ -693,7 +704,7 @@ $('multi-check-btn').addEventListener('click', () => {
 });
 
 $('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
-$('multi-next').addEventListener('click', () => { if (multiIndex < multiQuestions.length - 1) { multiIndex++; renderMulti(); } else { showResult(); } });
+$('multi-next').addEventListener('click', () => { if (multiIndex < multiQuestions.length - 1) { multiIndex++; renderMulti(); } else { lastMode = 'multi'; lastIndex = multiIndex; showResult(); } });
 
 // ==================== 导航切换 ====================
 document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -701,7 +712,11 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     currentMode = tab.dataset.mode;
-    ['drag-section','single-section','multi-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+    ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
     if (currentMode === 'drag') { $('drag-section').classList.remove('hidden'); renderDrag(); }
     else if (currentMode === 'single') { $('single-section').classList.remove('hidden'); renderSingle(); }
     else if (currentMode === 'multi') { $('multi-section').classList.remove('hidden'); renderMulti(); }
@@ -741,18 +756,20 @@ function checkTrueFalse(userAnswer) {
 $('tf-true-btn').addEventListener('click', () => checkTrueFalse(true));
 $('tf-false-btn').addEventListener('click', () => checkTrueFalse(false));
 $('tf-prev').addEventListener('click', () => { if (tfIndex > 0) { tfIndex--; renderTrueFalse(); } });
-$('tf-next').addEventListener('click', () => { if (tfIndex < trueFalseQuestions.length - 1) { tfIndex++; renderTrueFalse(); } else { showResult(); } });
+$('tf-next').addEventListener('click', () => { if (tfIndex < trueFalseQuestions.length - 1) { tfIndex++; renderTrueFalse(); } else { lastMode = 'tf'; lastIndex = tfIndex; showResult(); } });
+
+// ==================== 返回上一题 ====================
+function goBack() {
+  $('result-section').classList.add('hidden');
+  switchMode(lastMode, lastIndex);
+}
 
 // ==================== 结果 ====================
 function showResult() {
   ['drag-section','single-section','multi-section','tf-section'].forEach(id => $(id).classList.add('hidden'));
   $('result-section').classList.remove('hidden');
-  document.querySelector('.nav-tabs').classList.add('hidden');
-  document.querySelector('.score-bar').classList.add('hidden');
-  document.querySelector('.progress-text').classList.add('hidden');
-  document.querySelector('.progress-bar').classList.add('hidden');
-  const total = dragQuestions.length + singleQuestions.length + multiQuestions.length;
-  const totalScore = scores.drag + scores.single + scores.multi;
+  const total = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.drag + scores.single + scores.multi + scores.tf;
   const pct = Math.round(totalScore / total * 100);
   $('final-score').textContent = pct + '%';
   const detail = $('result-detail');

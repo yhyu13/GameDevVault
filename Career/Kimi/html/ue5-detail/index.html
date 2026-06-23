@@ -184,7 +184,7 @@ header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
       <div class="result-label">得分</div>
       <div class="result-detail" id="result-detail"></div>
       <div class="btn-group" style="margin-top:2rem">
-        <button class="btn btn-secondary" onclick="openDashboard()">🔙 返回查看</button>
+        <button class="btn btn-secondary" onclick="goBack()">🔙 返回题目</button>
         <button class="btn btn-primary" onclick="resetAll()">🔄 重新开始</button>
       </div>
     </div>
@@ -458,6 +458,8 @@ trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:
 
 // ==================== 状态 ====================
 let currentMode = 'single';
+let lastMode = 'single';
+let lastIndex = 0;
 let singleIndex = 0, multiIndex = 0, tfIndex = 0;
 let scores = { single: 0, multi: 0, tf: 0 };
 let answered = { single: [], multi: [], tf: [] };
@@ -556,6 +558,10 @@ function switchMode(mode, idx) {
   document.querySelector(`.nav-tab[data-mode="${mode}"]`).classList.add('active');
   currentMode = mode;
   ['single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
   if (mode === 'single') { $('single-section').classList.remove('hidden'); singleIndex = idx; renderSingle(); }
   else if (mode === 'multi') { $('multi-section').classList.remove('hidden'); multiIndex = idx; renderMulti(); }
   else if (mode === 'tf') { $('tf-section').classList.remove('hidden'); tfIndex = idx; renderTrueFalse(); }
@@ -571,6 +577,10 @@ function resetAll() {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.nav-tab[data-mode="single"]').classList.add('active');
   ['single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
   document.querySelector('.nav-tabs').classList.remove('hidden');
   document.querySelector('.score-bar').classList.remove('hidden');
   document.querySelector('.progress-text').classList.remove('hidden');
@@ -635,7 +645,7 @@ $('single-check-btn').addEventListener('click', () => {
 });
 
 $('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
-$('single-next').addEventListener('click', () => { if (singleIndex < singleQuestions.length - 1) { singleIndex++; renderSingle(); } else { showResult(); } });
+$('single-next').addEventListener('click', () => { if (singleIndex < singleQuestions.length - 1) { singleIndex++; renderSingle(); } else { lastMode = 'single'; lastIndex = singleIndex; showResult(); } });
 
 // ==================== 多选题 ====================
 function renderMulti() {
@@ -686,7 +696,7 @@ $('multi-check-btn').addEventListener('click', () => {
 });
 
 $('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
-$('multi-next').addEventListener('click', () => { if (multiIndex < multiQuestions.length - 1) { multiIndex++; renderMulti(); } else { showResult(); } });
+$('multi-next').addEventListener('click', () => { if (multiIndex < multiQuestions.length - 1) { multiIndex++; renderMulti(); } else { lastMode = 'multi'; lastIndex = multiIndex; showResult(); } });
 
 // ==================== 判断题 ====================
 function renderTrueFalse() {
@@ -719,7 +729,7 @@ function checkTrueFalse(userAnswer) {
 $('tf-true-btn').addEventListener('click', () => checkTrueFalse(true));
 $('tf-false-btn').addEventListener('click', () => checkTrueFalse(false));
 $('tf-prev').addEventListener('click', () => { if (tfIndex > 0) { tfIndex--; renderTrueFalse(); } });
-$('tf-next').addEventListener('click', () => { if (tfIndex < trueFalseQuestions.length - 1) { tfIndex++; renderTrueFalse(); } else { showResult(); } });
+$('tf-next').addEventListener('click', () => { if (tfIndex < trueFalseQuestions.length - 1) { tfIndex++; renderTrueFalse(); } else { lastMode = 'tf'; lastIndex = tfIndex; showResult(); } });
 
 // ==================== 导航切换 ====================
 document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -728,20 +738,26 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.classList.add('active');
     currentMode = tab.dataset.mode;
     ['single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
     if (currentMode === 'single') { $('single-section').classList.remove('hidden'); renderSingle(); }
     else if (currentMode === 'multi') { $('multi-section').classList.remove('hidden'); renderMulti(); }
     else if (currentMode === 'tf') { $('tf-section').classList.remove('hidden'); renderTrueFalse(); }
   });
 });
 
+// ==================== 返回上一题 ====================
+function goBack() {
+  $('result-section').classList.add('hidden');
+  switchMode(lastMode, lastIndex);
+}
+
 // ==================== 结果 ====================
 function showResult() {
   ['single-section','multi-section','tf-section'].forEach(id => $(id).classList.add('hidden'));
   $('result-section').classList.remove('hidden');
-  document.querySelector('.nav-tabs').classList.add('hidden');
-  document.querySelector('.score-bar').classList.add('hidden');
-  document.querySelector('.progress-text').classList.add('hidden');
-  document.querySelector('.progress-bar').classList.add('hidden');
   const total = singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
   const totalScore = scores.single + scores.multi + scores.tf;
   const pct = Math.round(totalScore / total * 100);
