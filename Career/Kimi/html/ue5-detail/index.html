@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5 综合深度面试卡牌</title>
+<style>
+:root{--bg:#f5f5f0;--card-bg:#fff;--primary:#3a5a7c;--accent:#6b9e75;--accent-wrong:#c45c5c;--text:#2c3e50;--text-light:#5d6d7e;--border:#d0d5dd;--shadow:rgba(0,0,0,0.08);--status-correct:#e8f5e9;--status-wrong:#fce8e8;--status-unanswered:#f8f9fa}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:1.4rem;font-weight:500}
+header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
+.header-left{flex:1}
+.header-btn{padding:0.5rem 1.2rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.2s;font-size:0.95rem}
+.header-btn:hover{background:rgba(255,255,255,0.25)}
+.container{max-width:800px;margin:0 auto;padding:1.5rem}
+.nav-tabs{display:flex;gap:0.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.nav-tab{flex:1;min-width:120px;padding:0.7rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.95rem;transition:all 0.2s;color:var(--text-light)}
+.nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+.nav-tab:hover:not(.active){background:var(--drop-zone)}
+.score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.8rem}
+.score-mini{font-size:0.9rem;color:var(--text-light);white-space:nowrap}
+.score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.1rem}
+.progress-text{text-align:right;font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem}
+.progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.5rem}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+.card{background:var(--card-bg);border-radius:12px;padding:1.8rem 2rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.5rem}
+.card-number{display:inline-block;width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:0.85rem;font-weight:600;margin-right:0.6rem}
+.card h3{margin:0 0 1.2rem;font-size:1.1rem;font-weight:500}
+.drag-sentence{font-size:1.05rem;line-height:2.2;margin-bottom:1.5rem}
+.options{display:flex;flex-direction:column;gap:0.7rem}
+.option{padding:0.9rem 1.2rem;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:0.7rem}
+.option:hover{background:#eef2f7;border-color:var(--primary)}
+.option.selected{border-color:var(--primary);background:#e8f0f8}
+.option.correct{border-color:var(--accent);background:#e8f5e9}
+.option.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+.option.disabled{pointer-events:none}
+.option-marker{width:22px;height:22px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700}
+.option.selected .option-marker{border-color:var(--primary);background:var(--primary);color:#fff}
+.option.correct .option-marker{border-color:var(--accent);background:var(--accent);color:#fff}
+.option.wrong .option-marker{border-color:var(--accent-wrong);background:var(--accent-wrong);color:#fff}
+.multi .option-marker{border-radius:4px}
+.option-content{flex:1}
+.option-explain{display:none;margin-top:0.5rem;font-size:0.85rem;color:#555;padding:0.4rem 0.6rem;border-radius:4px;background:rgba(0,0,0,0.03)}
+.option-explain.show{display:block}
+.btn-group{display:flex;gap:0.8rem;margin-top:1.5rem;justify-content:center;flex-wrap:wrap}
+.btn{padding:0.7rem 1.8rem;border:none;border-radius:8px;font-size:1rem;cursor:pointer;transition:all 0.2s;font-weight:500}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:#2a4a6c}
+.btn-secondary{background:var(--border);color:var(--text)}
+.btn-secondary:hover{background:#c0c5cc}
+.btn-danger{background:var(--accent-wrong);color:#fff}
+.btn-danger:hover{background:#a04545}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.feedback{margin-top:1rem;padding:1rem 1.2rem;border-radius:8px;display:none;font-size:0.95rem;line-height:1.6}
+.feedback.show{display:block}
+.feedback.correct{background:#e8f5e9;border-left:4px solid var(--accent)}
+.feedback.wrong{background:#fce8e8;border-left:4px solid var(--accent-wrong)}
+.feedback-title{font-weight:600;margin-bottom:0.4rem}
+.followup{margin-top:1rem;padding:0.8rem 1rem;border-radius:8px;background:#f0f4f8;border-left:3px solid var(--primary)}
+.followup-title{font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;color:var(--primary)}
+.followup-item{margin:0.4rem 0;font-size:0.88rem;line-height:1.5}
+.nav-buttons{display:flex;justify-content:space-between;margin-top:1rem}
+.nav-btn{padding:0.5rem 1.2rem;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);cursor:pointer;transition:all 0.2s}
+.nav-btn:hover{background:#eef2f7}
+.nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+.dashboard-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
+.dashboard-overlay.show{display:flex}
+.dashboard-panel{background:var(--card-bg);border-radius:16px;width:100%;max-width:720px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.dashboard-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.dashboard-header h2{margin:0;font-size:1.2rem;font-weight:500}
+.dashboard-close{font-size:1.5rem;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background 0.2s}
+.dashboard-close:hover{background:var(--bg)}
+.dashboard-body{padding:1.5rem;overflow-y:auto;flex:1}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat-card{text-align:center;padding:1rem;border-radius:10px;background:var(--bg)}
+.stat-num{font-size:2rem;font-weight:700;color:var(--primary)}
+.stat-label{font-size:0.85rem;color:var(--text-light);margin-top:0.2rem}
+.stat-card.correct-card .stat-num{color:var(--accent)}
+.stat-card.wrong-card .stat-num{color:var(--accent-wrong)}
+.filter-tabs{display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.filter-tab{padding:0.4rem 1rem;border:1px solid var(--border);border-radius:20px;background:var(--card-bg);cursor:pointer;font-size:0.85rem;transition:all 0.2s}
+.filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filter-tab:hover:not(.active){background:var(--drop-zone)}
+.question-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.8rem}
+.question-thumb{padding:1rem;border-radius:10px;border:2px solid var(--border);cursor:pointer;transition:all 0.2s;background:var(--card-bg);position:relative}
+.question-thumb:hover{transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow);border-color:var(--primary)}
+.question-thumb.correct{border-color:var(--accent);background:var(--status-correct)}
+.question-thumb.wrong{border-color:var(--accent-wrong);background:var(--status-wrong)}
+.question-thumb.unanswered{border-color:var(--border);background:var(--status-unanswered)}
+.thumb-num{font-size:0.75rem;color:var(--text-light);margin-bottom:0.3rem}
+.thumb-type{display:inline-block;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;background:var(--primary);color:#fff;margin-bottom:0.4rem}
+.thumb-type.single{background:#5b8a72}
+.thumb-type.multi{background:#8a5b5b}
+.thumb-type.tf{background:#6b5b95}
+.thumb-text{font-size:0.85rem;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.thumb-status{position:absolute;top:0.5rem;right:0.5rem;font-size:1rem}
+.thumb-status.correct-icon{color:var(--accent)}
+.thumb-status.wrong-icon{color:var(--accent-wrong)}
+.result-card{text-align:center;padding:3rem 2rem}
+.result-score{font-size:4rem;font-weight:700;color:var(--primary);margin:1rem 0}
+.result-label{font-size:1.1rem;color:var(--text-light)}
+.result-detail{margin-top:1.5rem;text-align:left}
+.result-item{display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)}
+.hidden{display:none!important}
+@media(max-width:600px){.container{padding:1rem}.card{padding:1.2rem}.drag-sentence{font-size:0.95rem}.stats-grid{grid-template-columns:repeat(3,1fr)}.question-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>🎓 UE5 综合深度面试卡牌</h1>
+    <p>源码级 · 跨模块 · 追问链 — 深度面试模拟</p>
+  </div>
+  <button class="header-btn" id="dashboard-btn">📊 题目总览</button>
+</header>
+
+<div class="container">
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-mode="single">单选题</div>
+    <div class="nav-tab" data-mode="multi">多选题</div>
+    <div class="nav-tab" data-mode="tf">判断题</div>
+  </div>
+  <div class="score-bar">
+    <div class="score-mini">总得分：<span class="score-num" id="total-score">0</span> / <span id="total-max">14</span></div>
+  </div>
+  <div class="progress-text">当前：<span id="current-index">1</span> / <span id="total-count">5</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:20%"></div></div>
+
+  <div id="single-section">
+    <div class="card" id="single-card">
+      <h3><span class="card-number">1</span>单选题</h3>
+      <div class="drag-sentence" id="single-question"></div>
+      <div class="options" id="single-options"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="single-check-btn">检查答案</button>
+      </div>
+      <div class="feedback" id="single-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="single-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="single-next">下一题 →</button>
+    </div>
+  </div>
+
+  <div id="multi-section" class="hidden">
+    <div class="card" id="multi-card">
+      <h3><span class="card-number">1</span>多选题</h3>
+      <div class="drag-sentence" id="multi-question"></div>
+      <div class="options multi" id="multi-options"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="multi-check-btn">检查答案</button>
+      </div>
+      <div class="feedback" id="multi-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="multi-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="multi-next">下一题 →</button>
+    </div>
+  </div>
+
+  <div id="tf-section" class="hidden">
+    <div class="card" id="tf-card">
+      <h3><span class="card-number">1</span>判断题</h3>
+      <div class="drag-sentence" id="tf-statement" style="font-size:1.1rem;margin-bottom:1.5rem"></div>
+      <div class="btn-group" style="justify-content:center">
+        <button class="btn btn-primary" id="tf-true-btn" style="background:var(--accent)">✅ 正确</button>
+        <button class="btn btn-danger" id="tf-false-btn">❌ 错误</button>
+      </div>
+      <div class="feedback" id="tf-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="tf-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="tf-next">下一题 →</button>
+    </div>
+  </div>
+
+  <div id="result-section" class="hidden">
+    <div class="card result-card">
+      <div class="result-label">测试完成</div>
+      <div class="result-score" id="final-score">0%</div>
+      <div class="result-label">得分</div>
+      <div class="result-detail" id="result-detail"></div>
+      <div class="btn-group" style="margin-top:2rem">
+        <button class="btn btn-secondary" onclick="openDashboard()">🔙 返回查看</button>
+        <button class="btn btn-primary" onclick="resetAll()">🔄 重新开始</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-overlay" id="dashboard-overlay">
+  <div class="dashboard-panel">
+    <div class="dashboard-header">
+      <h2>📊 题目总览</h2>
+      <div class="dashboard-close" id="dashboard-close">✕</div>
+    </div>
+    <div class="dashboard-body">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="dash-total">0%</div>
+          <div class="stat-label">总正确率</div>
+        </div>
+        <div class="stat-card correct-card">
+          <div class="stat-num" id="dash-correct">0</div>
+          <div class="stat-label">已做对</div>
+        </div>
+        <div class="stat-card wrong-card">
+          <div class="stat-num" id="dash-wrong">0</div>
+          <div class="stat-label">做错/未答</div>
+        </div>
+      </div>
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">全部</div>
+        <div class="filter-tab" data-filter="correct">✅ 正确</div>
+        <div class="filter-tab" data-filter="wrong">❌ 错误</div>
+        <div class="filter-tab" data-filter="unanswered">⬜ 未答</div>
+      </div>
+      <div class="question-grid" id="question-grid"></div>
+      <div style="margin-top:1.5rem;text-align:center">
+        <button class="btn btn-danger" id="reset-all-btn">🔄 重置所有分数</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== 题目数据 ====================
+const singleQuestions = [
+  {
+    question: "在 Nanite 的渲染流程中，`ClusterCulling` 和 `InstanceCulling` 的本质区别是什么？",
+    options: [
+      "A. ClusterCulling 在 CPU 执行，InstanceCulling 在 GPU 执行",
+      "B. ClusterCulling 裁剪几何单元（Cluster），InstanceCulling 裁剪实例（Instance）",
+      "C. ClusterCulling 只处理静态几何，InstanceCulling 只处理动态几何",
+      "D. 两者是同一个 Pass 的不同名称"
+    ],
+    correct: 1,
+    explanation: "ClusterCulling 基于视锥和 HZB 裁剪 Cluster（几何单元），InstanceCulling 基于 GPUScene 裁剪实例（Instance）。两者都是 GPU 执行的 Compute Shader。",
+    optionExplanations: [
+      "❌ 错误：两者都是 GPU 执行的 Compute Shader。Nanite 的裁剪全部是 GPU-Driven。",
+      "✅ 正确：ClusterCulling 裁剪的是几何单元（Cluster），决定哪些三角形簇可见；InstanceCulling 裁剪的是实例（Instance），决定哪些 Mesh 实例需要渲染。两者粒度不同，但都运行在 GPU。",
+      "❌ 错误：两者都处理静态和动态几何，不区分几何类型。",
+      "❌ 错误：两者是不同的 Pass，有明确的执行顺序：InstanceCulling → ClusterCulling。"
+    ],
+    followup: [
+      "面试官追问：'如果 InstanceCulling 把某个实例裁掉了，ClusterCulling 还会处理它的 Cluster 吗？' → 答：不会。InstanceCulling 的输出决定哪些实例进入后续流程，被裁剪的实例的 Cluster 不会参与 ClusterCulling。",
+      "面试官追问：'HZB 在 Culling 中的作用是什么？' → 答：HZB（Hierarchical Z-Buffer）用于快速剔除被遮挡的 Cluster/Instance， coarse 层级快速剔除，fine 层级精确验证。"
+    ]
+  },
+  {
+    question: "Lumen 的 `Surface Cache` 增量更新策略中，每帧最多更新多少张 Card 是由哪个参数控制的？",
+    options: [
+      "A. `MaxNumAdaptiveProbes`",
+      "B. `CardCapturesPerFrame`",
+      "C. `ScreenProbeDownsampleFactor`",
+      "D. `LumenSceneLightingUpdateRate`"
+    ],
+    correct: 1,
+    explanation: "`CardCapturesPerFrame` 控制每帧最大更新的 Lumen Card 数量。`MaxNumAdaptiveProbes` 是 Screen Probe 的参数。",
+    optionExplanations: [
+      "❌ 错误：MaxNumAdaptiveProbes 是 Screen Probe Gather 中自适应探针的最大数量，与 Surface Cache 更新无关。",
+      "✅ 正确：CardCapturesPerFrame 是 Surface Cache 增量更新的核心参数，限制每帧更新的 Card 数量，平衡更新速度和工作量。",
+      "❌ 错误：ScreenProbeDownsampleFactor 控制屏幕探针的密度（相对于屏幕分辨率的下采样因子），与 Surface Cache 无关。",
+      "❌ 错误：LumenSceneLightingUpdateRate 不是标准参数名称，可能混淆自 Radiosity 的更新频率。"
+    ],
+    followup: [
+      "面试官追问：'如果 CardCapturesPerFrame 设置太大，会有什么副作用？' → 答：每帧更新太多 Card 会导致 GPU 负载突增，帧率波动。设置太小则 Surface Cache 更新延迟增加，动态变化响应慢。",
+      "面试官追问：' dirty Card 的优先级是怎么排序的？' → 答：按距离摄像机的远近 + 变化重要性（如法线变化剧烈程度）排序。近的、变化大的优先更新。"
+    ]
+  },
+  {
+    question: "VSM 的 `BuildPageAllocations` 中，`UpdatePhysicalPages` 阶段的缓存状态不包括以下哪种？",
+    options: [
+      "A. CACHED（未 dirty，直接复用）",
+      "B. UNCACHED（动态物体移动，需要重新渲染）",
+      "C. UNREFERENCED（不再需要，放入 LRU）",
+      "D. DIRTY（被 CPU 修改，需要 GPU 同步）"
+    ],
+    correct: 3,
+    explanation: "VSM 的缓存状态只有 CACHED / UNCACHED / UNREFERENCED 三种，没有 DIRTY 状态。UNCACHED 对应的是动态物体移动导致失效，不是 CPU 修改。",
+    optionExplanations: [
+      "❌ 不是答案：CACHED 是存在的，表示当前帧仍需要且未 dirty，直接复用上一帧渲染结果。",
+      "❌ 不是答案：UNCACHED 是存在的，表示动态物体移动导致该页失效，需要重新渲染。",
+      "❌ 不是答案：UNREFERENCED 是存在的，表示当前帧不再需要，放入 LRU 列表延迟释放。",
+      "✅ 正确答案：VSM 的缓存状态没有 DIRTY。VSM 的更新由 GPU 驱动，不存在 CPU 修改导致 GPU 同步的概念。"
+    ],
+    followup: [
+      "面试官追问：'UNREFERENCED 的页为什么不立即释放？' → 答：延迟释放（LRU）避免频繁分配和释放物理页的开销。如果该页在后续帧又需要了，可以直接复用，无需重新分配。",
+      "面试官追问：'如果物理页不够了，怎么回收？' → 答：优先回收 UNREFERENCED 的页（最久未使用）。如果还不够，可能需要降低远处的阴影分辨率（coarse page）。"
+    ]
+  },
+  {
+    question: "UE5 的 `Render Graph (RDG)` 与 UE4 的 `Immediate RHI` 的本质区别是什么？",
+    options: [
+      "A. RDG 更慢，因为需要额外的依赖分析",
+      "B. RDG 显式声明 Pass 之间的资源依赖，自动管理资源屏障和内存 aliasing",
+      "C. RDG 只支持延迟渲染，不支持前向渲染",
+      "D. RDG 是 CPU 端的渲染逻辑，不涉及 GPU"
+    ],
+    correct: 1,
+    explanation: "RDG 的核心是显式依赖声明：每个 Pass 声明输入和输出资源，RDG 自动推导资源生命周期、内存 aliasing（重用）和屏障（Barrier）插入。",
+    optionExplanations: [
+      "❌ 错误：RDG 的依赖分析开销极小（CPU 侧），但带来的优化（自动 aliasing、精确屏障）通常使整体性能更好。",
+      "✅ 正确：RDG 的显式依赖声明让渲染管线更清晰：每个 Pass 的输入输出是显式的，RDG 自动推导资源生命周期、内存 aliasing（同一物理内存被不同纹理分时复用）和精确的 Barrier 插入。",
+      "❌ 错误：RDG 是渲染架构层，与延迟/前向渲染无关。UE5 的 Lumen + Nanite 是延迟渲染，但 RDG 也支持前向渲染路径。",
+      "❌ 错误：RDG 是 CPU 端的渲染命令构建框架，但最终生成的是 GPU 命令缓冲（Command Buffer）。"
+    ],
+    followup: [
+      "面试官追问：'RDG 的内存 aliasing 怎么工作的？' → 答：RDG 分析资源生命周期，如果两个纹理的生命周期不重叠，可以将它们映射到同一物理内存。这对显存紧张的场景（如 4K 分辨率）非常重要。",
+      "面试官追问：'UE5 中 Nanite 和 Lumen 的 Pass 是怎么用 RDG 组织的？' → 答：Nanite 的 Culling → Rasterization → BasePass 是 RDG 的 Pass 链；Lumen 的 Surface Cache Update → Screen Probe Gather → Radiosity 也是 RDG Pass 链。RDG 自动管理它们之间的资源依赖和屏障。"
+    ]
+  },
+  {
+    question: "在 UE5 的渲染管线中，Nanite、Lumen 和 VSM 三者的数据协同关系，以下哪项描述最准确？",
+    options: [
+      "A. Nanite 的裁剪结果直接驱动 Lumen 的 Screen Probe 放置和 VSM 的 Page 标记",
+      "B. 三者共享 GPUScene 的实例化数据，但各自独立执行视图级裁剪；VSM 的 Page 标记依赖 Camera 像素，Lumen 的 Surface Cache 依赖 Nanite 的 Mesh Card 数据",
+      "C. Lumen 的 Surface Cache 直接采样 VSM 的阴影深度来计算间接光照",
+      "D. VSM 的 Page 分配由 Lumen 的 Screen Probe 驱动"
+    ],
+    correct: 1,
+    explanation: "三者共享 GPUScene 的图元级数据（实例变换/包围盒），但视图级裁剪独立。VSM 的 Page 标记由 Camera 像素驱动，Lumen 的 Surface Cache 需要 Nanite 的 Mesh Card 数据来构建。",
+    optionExplanations: [
+      "❌ 错误：Nanite 的视图级裁剪结果不能复用（主相机和 Light Camera 视锥不同）。共享的是图元级数据。",
+      "✅ 正确：三者共享 GPUScene（图元级数据，不随视角变化），但各自独立执行视图级裁剪（不同 Frustum/HZB）。VSM 的 Page 标记由 Camera 像素驱动（GeneratePageFlagsFromPixels），Lumen 的 Surface Cache 需要 Nanite 的 Mesh Card 数据（FMeshCardRepresentation）来构建 Lumen Card。",
+      "❌ 错误：Lumen 的 Surface Cache 存储的是光照信息（Radiance），与 VSM 的阴影深度无关。两者是独立的系统。",
+      "❌ 错误：VSM 的 Page 分配由 Camera 像素驱动，与 Lumen 的 Screen Probe 无关。"
+    ],
+    followup: [
+      "面试官追问：'如果 Nanite 的 Mesh 没有 Card Representation，Lumen 怎么处理？' → 答：Nanite 的 Mesh 默认生成 Card Representation（6 方向），如果缺失，Lumen 无法为该 Mesh 构建 Surface Cache，该 Mesh 的间接光照会缺失或回退到简单近似。",
+      "面试官追问：'三者的渲染顺序是怎样的？' → 答：大致顺序：1. GPUScene 更新（共享）；2. Nanite Culling + Rasterization（主相机）；3. VSM 渲染（Light Camera）；4. Lumen Surface Cache 更新（基于 Nanite 结果）；5. BasePass + Lumen 合成。"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    question: "Nanite 的 `GPU-Driven Pipeline` 相比 UE4 的 `CPU-Driven` 的优势包括哪些？（多选）",
+    options: [
+      "A. 减少 CPU 负载，Draw Call 由 GPU 直接生成",
+      "B. LOD 决策无级连续，无 popping",
+      "C. 无需美术手动制作 LOD 链",
+      "D. 所有渲染逻辑都在 GPU 完成，CPU 完全不参与",
+      "E. 支持海量几何（数十亿三角形）",
+      "F. 自动处理半透明材质"
+    ],
+    correct: [0, 1, 2, 4],
+    explanation: "CPU 仍参与离线构建（Cook），半透明材质不支持。优势是：减少 Draw Call、无级 LOD、无需美术 LOD、海量几何。",
+    optionExplanations: [
+      "✅ 正确：GPU 直接生成绘制指令，无需 CPU 逐个提交 Draw Call，大幅降低 CPU 负载。",
+      "✅ 正确：GPU 根据像素覆盖度实时选择 Cluster 精度，LOD 连续变化，无 discrete 切换导致的 popping。",
+      "✅ 正确：DAG 描述连续 LOD 层级，无需美术预制作多档模型。",
+      "❌ 错误：CPU 仍参与离线构建（Cook 阶段生成 Cluster/DAG/Page），运行时渲染是 GPU-Driven。",
+      "✅ 正确：GPU-Driven Culling + 软件光栅化支持亚像素三角形，理论上支持数十亿三角形。",
+      "❌ 错误：Nanite 完全不支持半透明材质，需要 fallback。"
+    ]
+  },
+  {
+    question: "Lumen 的 `Screen Probe Gather` 阶段中，以下哪些说法是正确的？（多选）",
+    options: [
+      "A. Screen Probe 在屏幕空间均匀放置，每 16×16 像素一个",
+      "B. Adaptive Placement 在光照变化剧烈区域增加探针密度",
+      "C. Cone Tracing 的开口角随距离增大，对应更高 Mip 层级",
+      "D. 远距离采样使用高分辨率 Mip，保留细节",
+      "E. 沿 Cone 路径的多个采样点按透明度累积，形成遮挡关系",
+      "F. Screen Probe 发射的是射线（Ray）而非 Cone"
+    ],
+    correct: [0, 1, 2, 4],
+    explanation: "远距离使用低分辨率 Mip（不是高分辨率），Screen Probe 发射的是 Cone 不是 Ray。",
+    optionExplanations: [
+      "✅ 正确：Uniform Placement 默认每 16×16 像素放置一个探针，确保基础覆盖。",
+      "✅ 正确：Adaptive Placement 在边缘、阴影边界等光照梯度大的区域增加探针密度，避免低频 artifact。",
+      "✅ 正确：Cone 的开口角随距离自然增大（物理直觉：远距离物体在视角上更小），对应到更高 Mip 层级（更模糊的 Radiance）。",
+      "❌ 错误：远距离使用低分辨率 Mip（如 1/8），减少采样数量。高分辨率 Mip 用于近距。",
+      "✅ 正确：沿 Cone 路径 Front-to-Back 累积，前面表面的透明度决定后面表面是否被遮挡（类似体渲染）。",
+      "❌ 错误：Screen Probe 发射的是 Cone（锥体），不是 Ray。Cone 覆盖立体角，一次采样获取平均辐射度。"
+    ]
+  },
+  {
+    question: "VSM 相比 UE4 CSM 的内存优化策略包括哪些？（多选）",
+    options: [
+      "A. 按需分配物理页，只有被 Camera 采样的区域才分配",
+      "B. 缓存复用：上一帧的物理页如果仍需要且未 dirty，直接复用",
+      "C. LRU 延迟释放：不再需要的页放入 LRU 列表，不立即释放",
+      "D. 固定分辨率级联纹理，预分配所有内存",
+      "E. Clipmap 方向光：多层等大分辨率，近距高分辨率、远距低分辨率",
+      "F. PageTable 映射：虚拟页→物理页，按需解码"
+    ],
+    correct: [0, 1, 2, 4, 5],
+    explanation: "D 是 CSM 的做法，不是 VSM。VSM 的优化是按需分配 + 缓存复用 + LRU + Clipmap + PageTable。",
+    optionExplanations: [
+      "✅ 正确：Camera 像素反推标记 REQUESTED 虚拟页，只有被采样的区域才分配物理页，避免 Light 视角的浪费。",
+      "✅ 正确：UpdatePhysicalPages 阶段查询上一帧状态，CACHED 的页直接复用，无需重新渲染。",
+      "✅ 正确：UNREFERENCED 的页放入 LRU 列表延迟释放，避免频繁分配释放开销，后续帧可能需要复用。",
+      "❌ 错误：固定分辨率级联预分配是 CSM 的做法，VSM 是按需动态分配。",
+      "✅ 正确：Clipmap 是方向光的专用级联结构，每层覆盖不同距离，自适应分辨率分配。",
+      "✅ 正确：PageTable 存储虚拟页到物理页地址的映射，Shader 中解码采样，实现虚拟化内存管理。"
+    ]
+  },
+  {
+    question: "Mesh SDF 的 `Sphere Tracing` 算法相比固定步长 `Ray Marching` 的优势包括哪些？（多选）",
+    options: [
+      "A. 步进距离等于当前 SDF 值（安全距离），大步跳过空区域",
+      "B. 只在接近表面时细化，减少不必要的步进",
+      "C. 永远不会穿过薄表面（如纸张、树叶）",
+      "D. 对低分辨率 SDF 更鲁棒",
+      "E. 当 SDF 值极小（接近表面）时，步进距离趋于零，需要设置最小阈值",
+      "F. 比 Ray Marching 更适合实时渲染"
+    ],
+    correct: [0, 1, 4, 5],
+    explanation: "Sphere Tracing 可能穿过薄表面（低分辨率 SDF 的通病），对低分辨率 SDF 不鲁棒。优势是：大步跳过、接近时细化、适合实时。",
+    optionExplanations: [
+      "✅ 正确：Sphere Tracing 的核心：步进距离 = SDF 值（到最近表面的距离），可以安全地大步前进，不会穿过表面。",
+      "✅ 正确：空区域（SDF 值大）大步跳过，只在接近表面（SDF 值小）时细化，大幅减少步进次数。",
+      "❌ 错误：低分辨率 SDF 可能无法精确表示薄表面，Sphere Tracing 可能穿过（漏光）。这是 SDF 的通病，不是 Sphere Tracing 的缺陷。",
+      "❌ 错误：Sphere Tracing 对低分辨率 SDF 不鲁棒，薄表面可能漏光。需要提高 SDF 分辨率或使用 Analytic SDF。",
+      "✅ 正确：当 SDF 值极小（接近表面）时，步进距离趋于零，可能导致无限循环。需要设置最小步长阈值或切换到固定步长。",
+      "✅ 正确：Sphere Tracing 的步进次数远少于固定步长 Ray Marching（通常从 100 步降到 10-20 步），非常适合实时渲染。"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    statement: "UE5 的 Render Graph (RDG) 可以自动推导 Pass 之间的资源依赖，并插入精确的内存屏障（Barrier）。",
+    correct: true,
+    explanation: "✅ 正确。RDG 的核心价值：每个 Pass 显式声明输入输出资源，RDG 自动推导资源生命周期、内存 aliasing 和精确的 Barrier 插入。开发者无需手动管理资源状态和同步。"
+  },
+  {
+    statement: "Lumen 的 Radiosity 迭代每次都需要从 Camera 发射新射线到场景中做求交。",
+    correct: false,
+    explanation: "❌ 错误。Radiosity 迭代不需要发射新射线，而是在已缓存的 Surface Cache（Card 的 Radiance Atlas）之间做纹理采样和能量传递。Gather 阶段收集周围 Card 的辐射度，Scatter 阶段写回当前 Card，成本是 O(纹理采样) 而非 O(射线求交)。"
+  },
+  {
+    statement: "Nanite 的 `Nanite::FResources` 和 UE4 的 `FStaticMeshRenderData` 在功能上是等价的。",
+    correct: false,
+    explanation: "❌ 错误。`FStaticMeshRenderData` 存储传统 LOD 数据（多档模型），而 `Nanite::FResources` 存储虚拟微多边形数据（Cluster/Page/DAG/Imposter）。两者数据结构完全不同，渲染流程也完全不同。"
+  },
+  {
+    statement: "VSM 的 `GeneratePageFlagsFromPixels` 是从 Light Camera 视角标记需要渲染的 page。",
+    correct: false,
+    explanation: "❌ 错误。GeneratePageFlagsFromPixels 是从 Camera（主相机）视角标记：遍历屏幕像素，反推光源空间，标记哪些虚拟页会被采样。如果用 Light 视角，会标记所有被光照射的区域，浪费内存。"
+  },
+  {
+    statement: "在 UE5 中，GPUScene 的实例化数据（InstanceDataBuffer）被 Nanite、Lumen 和 VSM 共享。",
+    correct: true,
+    explanation: "✅ 正确。GPUScene 存储每个 Primitive 的实例变换矩阵和包围盒，这些是图元级数据，不随视角变化。Nanite、Lumen（Mesh Card 构建）、VSM（Shadow 渲染）都复用同一套 GPUScene 数据。"
+  }
+];
+
+const allQuestions = [];
+singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
+multiQuestions.forEach((q,i)=>allQuestions.push({mode:'multi',index:i,question:q.question.substring(0,40)+'...',type:'multi'}));
+trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:q.statement.substring(0,40)+'...',type:'tf'}));
+
+// ==================== 状态 ====================
+let currentMode = 'single';
+let singleIndex = 0, multiIndex = 0, tfIndex = 0;
+let scores = { single: 0, multi: 0, tf: 0 };
+let answered = { single: [], multi: [], tf: [] };
+let answeredCorrect = { single: [], multi: [], tf: [] };
+
+function initState() {
+  singleQuestions.forEach(() => { answered.single.push(false); answeredCorrect.single.push(false); });
+  multiQuestions.forEach(() => { answered.multi.push(false); answeredCorrect.multi.push(false); });
+  trueFalseQuestions.forEach(() => { answered.tf.push(false); answeredCorrect.tf.push(false); });
+}
+initState();
+
+// ==================== 工具函数 ====================
+function $(id) { return document.getElementById(id); }
+function updateProgress(mode) {
+  const idx = mode === 'single' ? singleIndex : mode === 'multi' ? multiIndex : tfIndex;
+  const total = mode === 'single' ? singleQuestions.length : mode === 'multi' ? multiQuestions.length : trueFalseQuestions.length;
+  $('current-index').textContent = idx + 1;
+  $('total-count').textContent = total;
+  $('progress-fill').style.width = ((idx + 1) / total * 100) + '%';
+}
+function setNavBtn(prevId, nextId, idx, total) {
+  $(prevId).disabled = idx === 0;
+  $(nextId).disabled = false;
+  $(nextId).textContent = idx === total - 1 ? "查看结果 →" : "下一题 →";
+}
+function updateTotalScore() {
+  const totalMax = singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.single + scores.multi + scores.tf;
+  $('total-score').textContent = totalScore;
+  $('total-max').textContent = totalMax;
+}
+function getQuestionStatus(mode, idx) {
+  if (!answered[mode][idx]) return 'unanswered';
+  return answeredCorrect[mode][idx] ? 'correct' : 'wrong';
+}
+
+// ==================== 总览面板 ====================
+$('dashboard-btn').addEventListener('click', openDashboard);
+$('dashboard-close').addEventListener('click', closeDashboard);
+$('dashboard-overlay').addEventListener('click', (e) => { if (e.target === $('dashboard-overlay')) closeDashboard(); });
+$('reset-all-btn').addEventListener('click', resetAll);
+
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderDashboardGrid(tab.dataset.filter);
+  });
+});
+
+function openDashboard() {
+  updateDashboardStats();
+  renderDashboardGrid('all');
+  $('dashboard-overlay').classList.add('show');
+}
+function closeDashboard() { $('dashboard-overlay').classList.remove('show'); }
+
+function updateDashboardStats() {
+  const totalMax = singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  let totalCorrect = 0, totalWrong = 0, totalUnanswered = 0;
+  ['single','multi','tf'].forEach(mode => {
+    answered[mode].forEach((a, i) => {
+      if (!a) totalUnanswered++;
+      else if (answeredCorrect[mode][i]) totalCorrect++;
+      else totalWrong++;
+    });
+  });
+  const pct = totalMax > 0 ? Math.round(totalCorrect / totalMax * 100) : 0;
+  $('dash-total').textContent = pct + '%';
+  $('dash-correct').textContent = totalCorrect;
+  $('dash-wrong').textContent = totalWrong + totalUnanswered;
+}
+
+function renderDashboardGrid(filter) {
+  const grid = $('question-grid');
+  grid.innerHTML = '';
+  allQuestions.forEach((q, globalIdx) => {
+    const status = getQuestionStatus(q.mode, q.index);
+    if (filter !== 'all' && status !== filter) return;
+    const thumb = document.createElement('div');
+    thumb.className = `question-thumb ${status}`;
+    thumb.innerHTML = `
+      <div class="thumb-num">#${globalIdx + 1}</div>
+      <div class="thumb-type ${q.type}">${q.type === 'single' ? '单选' : q.type === 'multi' ? '多选' : '判断'}</div>
+      <div class="thumb-text">${q.question}</div>
+      <div class="thumb-status ${status === 'correct' ? 'correct-icon' : status === 'wrong' ? 'wrong-icon' : ''}">${status === 'correct' ? '✅' : status === 'wrong' ? '❌' : ''}</div>
+    `;
+    thumb.addEventListener('click', () => { closeDashboard(); switchMode(q.mode, q.index); });
+    grid.appendChild(thumb);
+  });
+}
+
+function switchMode(mode, idx) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.nav-tab[data-mode="${mode}"]`).classList.add('active');
+  currentMode = mode;
+  ['single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  if (mode === 'single') { $('single-section').classList.remove('hidden'); singleIndex = idx; renderSingle(); }
+  else if (mode === 'multi') { $('multi-section').classList.remove('hidden'); multiIndex = idx; renderMulti(); }
+  else if (mode === 'tf') { $('tf-section').classList.remove('hidden'); tfIndex = idx; renderTrueFalse(); }
+}
+
+function resetAll() {
+  scores = { single: 0, multi: 0, tf: 0 };
+  answered = { single: [], multi: [], tf: [] };
+  answeredCorrect = { single: [], multi: [], tf: [] };
+  initState();
+  singleIndex = 0; multiIndex = 0; tfIndex = 0;
+  currentMode = 'single';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.nav-tab[data-mode="single"]').classList.add('active');
+  ['single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+  $('single-section').classList.remove('hidden');
+  renderSingle();
+  updateTotalScore();
+  closeDashboard();
+}
+
+// ==================== 单选题 ====================
+function renderSingle() {
+  const q = singleQuestions[singleIndex];
+  $('single-question').textContent = q.question;
+  const optsEl = $('single-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = `<div class="option-marker">${String.fromCharCode(65+i)}</div><div class="option-content"><div class="option-text">${opt.substring(2)}</div><div class="option-explain" data-explain="${i}"></div></div>`;
+    div.addEventListener('click', () => {
+      document.querySelectorAll('#single-options .option').forEach(o => o.classList.remove('selected'));
+      div.classList.add('selected');
+      div.dataset.sel = i;
+    });
+    optsEl.appendChild(div);
+  });
+  $('single-feedback').className = 'feedback';
+  $('single-feedback').innerHTML = '';
+  setNavBtn('single-prev', 'single-next', singleIndex, singleQuestions.length);
+  updateProgress('single');
+  updateTotalScore();
+}
+
+$('single-check-btn').addEventListener('click', () => {
+  const sel = document.querySelector('#single-options .option.selected');
+  if (!sel) { alert('请先选择一个选项'); return; }
+  const idx = parseInt(sel.dataset.sel);
+  const q = singleQuestions[singleIndex];
+  const isCorrect = idx === q.correct;
+  document.querySelectorAll('#single-options .option').forEach((o, i) => {
+    o.classList.remove('selected', 'correct', 'wrong', 'disabled');
+    o.classList.add('disabled');
+    if (i === q.correct) o.classList.add('correct');
+    else if (i === idx) o.classList.add('wrong');
+    const explain = o.querySelector('.option-explain');
+    explain.textContent = q.optionExplanations[i];
+    explain.classList.add('show');
+  });
+  const wasCorrect = answeredCorrect.single[singleIndex];
+  if (isCorrect && !wasCorrect) scores.single++;
+  answered.single[singleIndex] = true;
+  answeredCorrect.single[singleIndex] = isCorrect;
+  updateTotalScore();
+  let followupHTML = '';
+  if (q.followup && q.followup.length > 0) {
+    followupHTML = '<div class="followup"><div class="followup-title">🔥 面试官追问：</div>' + q.followup.map(f => `<div class="followup-item">• ${f}</div>`).join('') + '</div>';
+  }
+  const fb = $('single-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${followupHTML}`;
+});
+
+$('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
+$('single-next').addEventListener('click', () => { if (singleIndex < singleQuestions.length - 1) { singleIndex++; renderSingle(); } else { showResult(); } });
+
+// ==================== 多选题 ====================
+function renderMulti() {
+  const q = multiQuestions[multiIndex];
+  $('multi-question').textContent = q.question;
+  const optsEl = $('multi-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option multi';
+    div.innerHTML = `<div class="option-marker">${String.fromCharCode(65+i)}</div><div class="option-content"><div class="option-text">${opt.substring(2)}</div><div class="option-explain" data-explain="${i}"></div></div>`;
+    div.addEventListener('click', () => { div.classList.toggle('selected'); });
+    optsEl.appendChild(div);
+  });
+  $('multi-feedback').className = 'feedback';
+  $('multi-feedback').innerHTML = '';
+  setNavBtn('multi-prev', 'multi-next', multiIndex, multiQuestions.length);
+  updateProgress('multi');
+  updateTotalScore();
+}
+
+$('multi-check-btn').addEventListener('click', () => {
+  const selected = Array.from(document.querySelectorAll('#multi-options .option.selected')).map(el => Array.from(el.parentNode.children).indexOf(el));
+  if (selected.length === 0) { alert('请至少选择一个选项'); return; }
+  const q = multiQuestions[multiIndex];
+  const isCorrect = selected.length === q.correct.length && selected.every(i => q.correct.includes(i));
+  document.querySelectorAll('#multi-options .option').forEach((o, i) => {
+    o.classList.remove('selected', 'correct', 'wrong', 'disabled');
+    o.classList.add('disabled');
+    if (q.correct.includes(i)) o.classList.add('correct');
+    else if (selected.includes(i)) o.classList.add('wrong');
+    const explain = o.querySelector('.option-explain');
+    explain.textContent = q.optionExplanations[i];
+    explain.classList.add('show');
+  });
+  const wasCorrect = answeredCorrect.multi[multiIndex];
+  if (isCorrect && !wasCorrect) scores.multi++;
+  answered.multi[multiIndex] = true;
+  answeredCorrect.multi[multiIndex] = isCorrect;
+  updateTotalScore();
+  let followupHTML = '';
+  if (q.followup && q.followup.length > 0) {
+    followupHTML = '<div class="followup"><div class="followup-title">🔥 面试官追问：</div>' + q.followup.map(f => `<div class="followup-item">• ${f}</div>`).join('') + '</div>';
+  }
+  const fb = $('multi-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${followupHTML}`;
+});
+
+$('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
+$('multi-next').addEventListener('click', () => { if (multiIndex < multiQuestions.length - 1) { multiIndex++; renderMulti(); } else { showResult(); } });
+
+// ==================== 判断题 ====================
+function renderTrueFalse() {
+  const q = trueFalseQuestions[tfIndex];
+  $('tf-statement').textContent = q.statement;
+  $('tf-feedback').className = 'feedback';
+  $('tf-feedback').innerHTML = '';
+  document.getElementById('tf-true-btn').disabled = false;
+  document.getElementById('tf-false-btn').disabled = false;
+  setNavBtn('tf-prev', 'tf-next', tfIndex, trueFalseQuestions.length);
+  updateProgress('tf');
+  updateTotalScore();
+}
+
+function checkTrueFalse(userAnswer) {
+  const q = trueFalseQuestions[tfIndex];
+  const isCorrect = userAnswer === q.correct;
+  document.getElementById('tf-true-btn').disabled = true;
+  document.getElementById('tf-false-btn').disabled = true;
+  const fb = $('tf-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  const wasCorrect = answeredCorrect.tf[tfIndex];
+  if (isCorrect && !wasCorrect) scores.tf++;
+  answered.tf[tfIndex] = true;
+  answeredCorrect.tf[tfIndex] = isCorrect;
+  updateTotalScore();
+}
+
+$('tf-true-btn').addEventListener('click', () => checkTrueFalse(true));
+$('tf-false-btn').addEventListener('click', () => checkTrueFalse(false));
+$('tf-prev').addEventListener('click', () => { if (tfIndex > 0) { tfIndex--; renderTrueFalse(); } });
+$('tf-next').addEventListener('click', () => { if (tfIndex < trueFalseQuestions.length - 1) { tfIndex++; renderTrueFalse(); } else { showResult(); } });
+
+// ==================== 导航切换 ====================
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMode = tab.dataset.mode;
+    ['single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+    if (currentMode === 'single') { $('single-section').classList.remove('hidden'); renderSingle(); }
+    else if (currentMode === 'multi') { $('multi-section').classList.remove('hidden'); renderMulti(); }
+    else if (currentMode === 'tf') { $('tf-section').classList.remove('hidden'); renderTrueFalse(); }
+  });
+});
+
+// ==================== 结果 ====================
+function showResult() {
+  ['single-section','multi-section','tf-section'].forEach(id => $(id).classList.add('hidden'));
+  $('result-section').classList.remove('hidden');
+  document.querySelector('.nav-tabs').classList.add('hidden');
+  document.querySelector('.score-bar').classList.add('hidden');
+  document.querySelector('.progress-text').classList.add('hidden');
+  document.querySelector('.progress-bar').classList.add('hidden');
+  const total = singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.single + scores.multi + scores.tf;
+  const pct = Math.round(totalScore / total * 100);
+  $('final-score').textContent = pct + '%';
+  const detail = $('result-detail');
+  detail.innerHTML = `
+    <div class="result-item"><span>单选题</span><span>${scores.single} / ${singleQuestions.length}</span></div>
+    <div class="result-item"><span>多选题</span><span>${scores.multi} / ${multiQuestions.length}</span></div>
+    <div class="result-item"><span>判断题</span><span>${scores.tf} / ${trueFalseQuestions.length}</span></div>
+  `;
+}
+
+// ==================== 初始化 ====================
+renderSingle();
+updateTotalScore();
+</script>
+
+</body>
+</html>
