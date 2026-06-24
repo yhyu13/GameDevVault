@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen 技术知识测验 — 游戏引擎程序员进阶</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #7c3aed;
+    --accent-light: #ede9fe;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 32px; }
+  header h1 { font-size: 1.6rem; margin-bottom: 6px; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.95rem; margin: 0; }
+  
+  .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 24px; }
+  .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s ease; border-radius: 4px; }
+  .stats { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
+  
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: opacity 0.3s;
+  }
+  .question-card.answered { opacity: 0.6; }
+  .question-card.current { border-left: 4px solid var(--accent); }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+  
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.9; }
+  .option-key { font-weight: 700; color: var(--accent); min-width: 24px; }
+  
+  .fb-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+  }
+  .fb-input:focus { outline: none; border-color: var(--accent); }
+  .fb-input.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .fb-input.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  
+  .btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-secondary:hover { background: #cbd5e1; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  .explanation {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { background: var(--correct-bg); border-left: 4px solid var(--correct); }
+  .explanation.wrong-ex { background: var(--wrong-bg); border-left: 4px solid var(--wrong); }
+  .explanation strong { color: var(--text); }
+  
+  .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+  .nav-hint { font-size: 0.8rem; color: var(--muted); }
+  
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    border: 6px solid var(--accent);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 0 auto 24px; position: relative;
+  }
+  .score-value { font-size: 2.4rem; font-weight: 700; color: var(--accent); }
+  .score-label { font-size: 0.8rem; color: var(--muted); }
+  .results-title { font-size: 1.4rem; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  
+  .review-section { text-align: left; margin-top: 32px; }
+  .review-item { background: var(--wrong-bg); border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .review-item h4 { margin: 0 0 8px; font-size: 0.95rem; }
+  .review-item p { margin: 0; font-size: 0.85rem; color: var(--muted); }
+  .review-item .correct-ans { color: var(--correct); font-weight: 600; }
+  .review-item .your-ans { color: var(--wrong); font-weight: 600; }
+  
+  .confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+  .confetti-piece { position: absolute; width: 8px; height: 8px; background: var(--accent); animation: fall 3s linear forwards; }
+  @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+  
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+  
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .question-card { padding: 16px; }
+    header h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎮 Lumen 实时全局光照 — 知识测验</h1>
+    <p>游戏引擎程序员进阶计划 · 基于 SIGGRAPH 2021 论文</p>
+  </header>
+  
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="stats">
+    <span id="progressText">题目 1 / 5</span>
+    <span id="scoreText">得分: 0</span>
+  </div>
+  
+  <div id="quizContainer"></div>
+  
+  <div class="nav-bar">
+    <span class="nav-hint">← → 方向键切换 · 1/2/3/4 选择选项</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+    </div>
+  </div>
+  
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<canvas class="confetti" id="confettiCanvas"></canvas>
+
+<script>
+const quizData = [
+  {
+    type: "TF",
+    question: "Lumen 使用硬件光线追踪（RTX）来完成所有全局光照计算。",
+    answer: "False",
+    explanation: "Lumen 的核心创新是 **软件光线追踪**（Software Ray Tracing），使用 Signed Distance Fields (SDF) 和 Mesh Cards。硬件 RTX 仅用于特定的高质量反射，不是全局光照的主路径。"
+  },
+  {
+    type: "SC",
+    question: "在 Lumen 的分层架构中，哪一层负责处理远距离的低频光照近似？",
+    options: [
+      "A. Surface Cache — 高分辨率近场表面光照缓存",
+      "B. Radiance Cache — 远距离低频辐射度缓存",
+      "C. Screen Space Probes — 屏幕空间动态探针",
+      "D. Lightmap — 预烘焙光照贴图"
+    ],
+    answer: "B",
+    explanation: "Radiance Cache 是 Lumen 的中间层，专门处理远距离的低频光照。它使用较低分辨率的球谐函数表示，与 Surface Cache（高分辨率近场）形成互补。Lightmap 是静态烘焙方案，Lumen 不使用它。"
+  },
+  {
+    type: "MC",
+    question: "以下哪些属于 Lumen 三层结构中的组成部分？（多选）",
+    options: [
+      "A. Signed Distance Fields (SDF) — 用于软件光线追踪",
+      "B. Surface Cache — 高分辨率近场表面光照",
+      "C. Radiance Cache — 远距离低频光照近似",
+      "D. Lightmaps — 传统预烘焙光照",
+      "E. Voxel Cone Tracing — 体素锥追踪"
+    ],
+    answer: ["A", "B", "C"],
+    explanation: "Lumen 的三层结构是：(1) SDF 用于软件光线追踪，(2) Surface Cache 用于高分辨率近场表面，(3) Radiance Cache 用于远距离低频近似。Lightmaps 是预烘焙方案，Lumen 完全动态所以不用。Voxel Cone Tracing 是另一种 GI 方案，不是 Lumen 的组成部分。"
+  },
+  {
+    type: "FB",
+    question: "Lumen 的 Software Ray Tracing 通过 ______ 来表示网格距离信息，从而实现无需 ______ 硬件的光追。",
+    answer: ["Signed Distance Fields", "RTX"],
+    explanation: "Lumen 使用 Signed Distance Fields (SDF) 来表示场景几何的距离信息。光线追踪时，沿着光线方向逐步前进（Sphere Tracing），使用 SDF 查询距离。这让 Lumen 可以在没有 RTX 硬件的 GPU 上运行。"
+  },
+  {
+    type: "SC",
+    question: "Lumen 中 Surface Cache 的主要作用是？",
+    options: [
+      "A. 存储远距离的低频光照信息",
+      "B. 缓存高分辨率近场表面的直接光照，供光线命中时采样",
+      "C. 代替传统的 Shadow Map 生成阴影",
+      "D. 作为全局光照的最终输出缓冲区"
+    ],
+    answer: "B",
+    explanation: "Surface Cache 缓存了每个表面的直接光照（包括阴影和材质响应）。当软件光线追踪命中一个表面时，直接从 Surface Cache 采样光照值，而不是重新计算。这避免了大量的重复计算。"
+  }
+];
+
+let current = 0;
+let score = 0;
+let answers = new Array(quizData.length).fill(null);
+let visited = new Array(quizData.length).fill(false);
+
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  
+  let html = `<div class="question-card ${answered ? 'answered' : ''} current" id="qCard">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} · ${typeLabel(q.type)}</div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+  
+  if (q.type === 'TF') {
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${getTFClass(idx, 'True')}" onclick="answerTF('True')" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${getTFClass(idx, 'False')}" onclick="answerTF('False')" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+  } else if (q.type === 'SC') {
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const key = opt.charAt(0);
+      html += `<div class="option ${getOptionClass(idx, key)}" onclick="answerSC('${key}')">`;
+      html += `<span class="option-key">${key}</span><span>${opt.substring(3)}</span></div>`;
+    });
+    html += `</div>`;
+  } else if (q.type === 'MC') {
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const key = opt.charAt(0);
+      html += `<div class="option ${getOptionClass(idx, key)}" onclick="toggleMC('${key}')">`;
+      html += `<span class="option-key">${key}</span><span>${opt.substring(3)}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'FB') {
+    html += `<input type="text" class="fb-input ${getFBClass(idx)}" id="fbInput" placeholder="输入答案，用逗号分隔多个空..." value="${answers[idx] || ''}" ${answered?'disabled':''} onkeydown="if(event.key==='Enter')answerFB()">`;
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="answerFB()" ${answered?'disabled':''}>提交</button>`;
+  }
+  
+  html += `<div class="explanation ${getExClass(idx)} ${answered?'show':''}" id="explanation">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}</div>`;
+  html += `</div>`;
+  
+  container.innerHTML = html;
+  updateNav();
+  updateProgress();
+}
+
+function typeLabel(t) {
+  const map = {TF:'判断题', SC:'单选题', MC:'多选题', FB:'填空题'};
+  return map[t] || t;
+}
+
+function getTFClass(idx, val) {
+  if (answers[idx] === null) return '';
+  const correct = quizData[idx].answer;
+  if (val === correct) return 'correct disabled';
+  if (answers[idx] === val) return 'wrong disabled';
+  return 'disabled';
+}
+function getOptionClass(idx, key) {
+  if (answers[idx] === null) return '';
+  const ans = quizData[idx].answer;
+  const isCorrect = Array.isArray(ans) ? ans.includes(key) : ans === key;
+  const selected = Array.isArray(answers[idx]) ? answers[idx].includes(key) : answers[idx] === key;
+  if (isCorrect) return 'correct disabled';
+  if (selected) return 'wrong disabled';
+  return 'disabled';
+}
+function getFBClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct' : 'wrong';
+}
+function getExClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const ans = answers[idx];
+  if (ans === null) return false;
+  const correct = quizData[idx].answer;
+  if (Array.isArray(correct)) {
+    const a = Array.isArray(ans) ? ans : ans.split(',').map(s=>s.trim());
+    return a.length === correct.length && a.every(v => correct.includes(v));
+  }
+  if (typeof correct === 'string' && correct.includes(',')) {
+    const correctParts = correct.split(',').map(s=>s.trim().toLowerCase());
+    const ansParts = ans.split(',').map(s=>s.trim().toLowerCase());
+    return correctParts.every((c, i) => ansParts[i] && ansParts[i].includes(c));
+  }
+  return String(ans).toLowerCase().trim() === String(correct).toLowerCase().trim();
+}
+
+function answerTF(val) {
+  if (answers[current] !== null) return;
+  answers[current] = val;
+  if (isCorrect(current)) score += 20;
+  renderQuestion(current);
+  showExplanation();
+}
+
+function answerSC(val) {
+  if (answers[current] !== null) return;
+  answers[current] = val;
+  if (isCorrect(current)) score += 20;
+  renderQuestion(current);
+  showExplanation();
+}
+
+let mcSelection = [];
+function toggleMC(key) {
+  if (answers[current] !== null) return;
+  const idx = mcSelection.indexOf(key);
+  if (idx >= 0) mcSelection.splice(idx, 1);
+  else mcSelection.push(key);
+  // Re-render options to show selection
+  renderQuestion(current);
+  // Restore selection visuals
+  mcSelection.forEach(k => {
+    const opts = document.querySelectorAll('.option');
+    opts.forEach(opt => { if(opt.textContent.trim().startsWith(k)) opt.classList.add('selected'); });
+  });
+}
+function submitMC() {
+  if (answers[current] !== null || mcSelection.length === 0) return;
+  answers[current] = mcSelection;
+  if (isCorrect(current)) score += 20;
+  mcSelection = [];
+  renderQuestion(current);
+  showExplanation();
+}
+
+function answerFB() {
+  if (answers[current] !== null) return;
+  const val = document.getElementById('fbInput').value.trim();
+  if (!val) return;
+  answers[current] = val;
+  if (isCorrect(current)) score += 20;
+  renderQuestion(current);
+  showExplanation();
+}
+
+function showExplanation() {
+  const ex = document.getElementById('explanation');
+  if (ex) ex.classList.add('show');
+  document.getElementById('scoreText').textContent = `得分: ${score}`;
+}
+
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  const allAnswered = answers.every(a => a !== null);
+  document.getElementById('nextBtn').textContent = allAnswered && current === quizData.length - 1 ? '查看结果' : '下一题';
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `题目 ${current + 1} / ${quizData.length}`;
+}
+
+function goNext() {
+  if (current < quizData.length - 1) {
+    current++;
+    renderQuestion(current);
+  } else if (answers.every(a => a !== null)) {
+    showResults();
+  }
+}
+function goPrev() {
+  if (current > 0) { current--; renderQuestion(current); }
+}
+
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.querySelector('.nav-bar').style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+  document.querySelector('.stats').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  
+  const titles = {
+    100: { title: '🎉 完美通关!', msg: '你对 Lumen 的理解非常深入，可以准备面试谈资了。' },
+    80: { title: '💪 表现优秀!', msg: '核心概念掌握得不错，再深入看看源码实现吧。' },
+    60: { title: '👍 基本掌握', msg: '概念框架有了，建议重读论文的方法章节。' },
+    40: { title: '⚠️ 需要加强', msg: '有些概念还不太清楚，建议回到论文精读笔记复习。' },
+    0: { title: '📚 重头再来', msg: '别灰心，这次测验暴露的知识盲点正是你下一步的学习目标。' }
+  };
+  const bracket = Object.keys(titles).reverse().find(k => score >= parseInt(k));
+  const r = titles[bracket] || titles[0];
+  document.getElementById('resultsTitle').textContent = r.title;
+  document.getElementById('resultsMsg').textContent = r.msg;
+  
+  if (score === 100) launchConfetti();
+  
+  // Build review section
+  const wrong = quizData.map((q, i) => ({q, i})).filter(({i}) => !isCorrect(i));
+  if (wrong.length > 0) {
+    let revHtml = '<h3>📝 错题回顾</h3>';
+    wrong.forEach(({q, i}) => {
+      revHtml += `<div class="review-item">`;
+      revHtml += `<h4>Q${i+1}: ${q.question}</h4>`;
+      revHtml += `<p>你的答案: <span class="your-ans">${Array.isArray(answers[i])?answers[i].join(', '):answers[i]}</span></p>`;
+      revHtml += `<p>正确答案: <span class="correct-ans">${Array.isArray(q.answer)?q.answer.join(', '):q.answer}</span></p>`;
+      revHtml += `<p style="margin-top:8px">${q.explanation}</p>`;
+      revHtml += `</div>`;
+    });
+    document.getElementById('reviewSection').innerHTML = revHtml;
+  } else {
+    document.getElementById('reviewSection').innerHTML = '<h3>🌟 全对! 没有错题回顾。</h3>';
+  }
+}
+
+function restartQuiz() {
+  current = 0; score = 0;
+  answers = new Array(quizData.length).fill(null);
+  visited = new Array(quizData.length).fill(false);
+  mcSelection = [];
+  document.getElementById('quizContainer').style.display = 'block';
+  document.querySelector('.nav-bar').style.display = 'flex';
+  document.querySelector('.progress-bar').style.display = 'block';
+  document.querySelector('.stats').style.display = 'flex';
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('scoreText').textContent = '得分: 0';
+  renderQuestion(0);
+}
+
+function retryWrong() {
+  const wrongIndices = quizData.map((_, i) => i).filter(i => !isCorrect(i));
+  if (wrongIndices.length === 0) { restartQuiz(); return; }
+  // Filter quizData to only wrong questions
+  const newData = wrongIndices.map(i => quizData[i]);
+  // Reset
+  quizData.splice(0, quizData.length, ...newData);
+  current = 0; score = 0;
+  answers = new Array(quizData.length).fill(null);
+  visited = new Array(quizData.length).fill(false);
+  mcSelection = [];
+  document.getElementById('quizContainer').style.display = 'block';
+  document.querySelector('.nav-bar').style.display = 'flex';
+  document.querySelector('.progress-bar').style.display = 'block';
+  document.querySelector('.stats').style.display = 'flex';
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('scoreText').textContent = '得分: 0';
+  renderQuestion(0);
+}
+
+// Keyboard support
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('resultsScreen').classList.contains('show')) return;
+  if (e.key === 'ArrowRight') goNext();
+  if (e.key === 'ArrowLeft') goPrev();
+  const q = quizData[current];
+  if (answers[current] !== null) return;
+  if (q.type === 'SC' || q.type === 'MC') {
+    const keys = ['1','2','3','4','5'];
+    const keyMap = {'1':'A','2':'B','3':'C','4':'D','5':'E'};
+    if (keys.includes(e.key)) {
+      if (q.type === 'SC') answerSC(keyMap[e.key]);
+      else toggleMC(keyMap[e.key]);
+    }
+  }
+});
+
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#7c3aed', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
+  const pieces = [];
+  for (let i = 0; i < 150; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 8 + 4, h: Math.random() * 8 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speed: Math.random() * 3 + 2, rotation: Math.random() * 360, rotSpeed: Math.random() * 10 - 5
+    });
+  }
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let active = false;
+    pieces.forEach(p => {
+      p.y += p.speed; p.rotation += p.rotSpeed;
+      if (p.y < canvas.height) {
+        active = true;
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.rotate(p.rotation * Math.PI / 180);
+        ctx.fillStyle = p.color; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.restore();
+      }
+    });
+    if (active) requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// Init
+renderQuestion(0);
+</script>
+</body>
+</html>

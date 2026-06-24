@@ -1,0 +1,7 @@
+.obsidian/
+.trash/
+99-Assets/
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
