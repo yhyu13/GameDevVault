@@ -6,7 +6,11 @@
 
 ---
 
+<a name="nanite"></a>
+
 ## §1 Nanite 详情
+
+<a name="nanite-virtualized-geometry"></a>
 
 ### §1.1 为什么叫 "Virtualized Geometry"？
 
@@ -50,6 +54,8 @@ LOD 决策 GPU 推，美术不用再累垂，
 ```
 
 ---
+
+<a name="nanite-cluster-page"></a>
 
 ### §1.2 Cluster / Page / ClusterGroup 关系
 
@@ -98,6 +104,8 @@ Page 是页加载闸，流式按需不拖垮，
 
 ---
 
+<a name="nanite-rasterization"></a>
+
 ### §1.3 为什么需要硬件 + 软件光栅化？
 
 ```cpp
@@ -143,6 +151,8 @@ enum class ERasterScheduling : uint8
 
 ---
 
+<a name="nanite-vs-lod"></a>
+
 ### §1.4 Nanite vs UE4 传统 LOD 本质区别
 
 ```cpp
@@ -183,6 +193,8 @@ Page 流式按需到，Draw Call 瓶颈全消掉，
 
 ---
 
+<a name="nanite-fallback"></a>
+
 ### §1.5 Fallback 条件
 
 ```cpp
@@ -219,6 +231,8 @@ bool FMeshNaniteSettings::IsSupported() const
 
 ---
 
+<a name="nanite-limitations"></a>
+
 ### §1.6 限制与未来
 
 ```cpp
@@ -250,7 +264,11 @@ AI 生成 Neural 变，微多边形通用天。
 
 ---
 
+<a name="lumen"></a>
+
 ## §2 Lumen 详情
+
+<a name="lumen-surface-cache"></a>
 
 ### §2.1 Surface Cache 降维
 
@@ -296,6 +314,8 @@ O(数十亿) 变 O(百万)少，缓存替代实时跑。
 ```
 
 ---
+
+<a name="lumen-trace-fallback"></a>
 
 ### §2.2 三级 Trace 回退
 
@@ -352,6 +372,8 @@ Screen Trace 近处妙，上一帧数据零开销，
 
 ---
 
+<a name="lumen-incremental-update"></a>
+
 ### §2.3 增量更新机制
 
 ```cpp
@@ -383,6 +405,8 @@ Lumen 实时增量妙，dirty Card 每帧扫。
 ```
 
 ---
+
+<a name="lumen-screen-probe-gather"></a>
 
 ### §2.4 Screen Probe Gather
 
@@ -421,6 +445,8 @@ Radiance 累积前后套，间接光照精确到。
 
 ---
 
+<a name="lumen-card"></a>
+
 ### §2.5 Lumen Card
 
 ```cpp
@@ -450,6 +476,8 @@ Card 是更新最小量，每帧限制不超限，
 ```
 
 ---
+
+<a name="lumen-comparison"></a>
 
 ### §2.6 算法/性能/局限性对比
 
@@ -486,6 +514,8 @@ RTGI 近视眼不好，Lumen 内存大户饱，
 ```
 
 ---
+
+<a name="lumen-radiosity"></a>
 
 ### §2.7 Radiosity 迭代详解
 
@@ -530,6 +560,8 @@ BRDF 散射再写回，一次迭代一次跳，
 
 ---
 
+<a name="lumen-mesh-sdf"></a>
+
 ### §2.8 Mesh SDF 生成与命中查询
 
 ```cpp
@@ -573,7 +605,11 @@ SDF 求交 Card 填色，两级分工各自照。
 
 ---
 
+<a name="vsm"></a>
+
 ## §3 VSM 详情
+
+<a name="vsm-on-demand"></a>
 
 ### §3.1 按需分配机制
 
@@ -634,6 +670,8 @@ Light 视角全要到，Camera 驱动精确套。
 
 ---
 
+<a name="vsm-vs-csm"></a>
+
 ### §3.2 VSM vs CSM
 
 | 维度 | UE4 CSM | UE5 VSM |
@@ -653,6 +691,8 @@ GPUScene 数据共享，Nanite 几何紧密捆。
 ```
 
 ---
+
+<a name="vsm-nanite-sharing"></a>
 
 ### §3.3 Nanite + VSM 数据共享
 
@@ -699,7 +739,11 @@ CPU 无需重建 Primitive，Draw Call 开销全消掉。
 
 ---
 
+<a name="interview-extensions"></a>
+
 ## §4 面试扩展
+
+<a name="interview-torchlight"></a>
 
 ### §4.1 火炬之光 UE4→UE5 升级挑战
 
@@ -737,6 +781,8 @@ Nanite Lumen 新特性，火炬是否能用要琢磨。
 
 ---
 
+<a name="interview-gpu-driven"></a>
+
 ### §4.2 GPU-Driven Pipeline 细节
 
 ```cpp
@@ -772,6 +818,8 @@ Cluster Culling 先裁掉，Instance Culling 实例套。
 ```
 
 ---
+
+<a name="interview-surface-cache-src"></a>
 
 ### §4.3 Surface Cache 更新源码
 
@@ -811,6 +859,8 @@ Surface Cache 更新妙，脏检测先找变化到，
 ```
 
 ---
+
+<a name="source-quick-reference"></a>
 
 ## 源码文件速查表
 

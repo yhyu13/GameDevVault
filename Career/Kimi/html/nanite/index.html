@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5 Nanite 互动式问答卡牌</title>
+<style>
+  :root {
+    --bg:#f5f5f0; --card-bg:#fff; --primary:#3a5a7c; --accent:#6b9e75; --accent-wrong:#c45c5c;
+    --text:#2c3e50; --text-light:#5d6d7e; --border:#d0d5dd; --shadow:rgba(0,0,0,0.08);
+    --drop-zone:#eef2f7; --draggable:#f0f4f8;
+    --status-correct:#e8f5e9; --status-wrong:#fce8e8; --status-unanswered:#f8f9fa;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+  header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center}
+  header h1{margin:0;font-size:1.4rem;font-weight:500}
+  header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
+  .header-left{flex:1}
+  .header-btn{padding:0.5rem 1.2rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.2s;font-size:0.95rem}
+  .header-btn:hover{background:rgba(255,255,255,0.25)}
+  .container{max-width:800px;margin:0 auto;padding:1.5rem}
+  
+  /* 导航标签 */
+  .nav-tabs{display:flex;gap:0.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+  .nav-tab{flex:1;min-width:120px;padding:0.7rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.95rem;transition:all 0.2s;color:var(--text-light)}
+  .nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+  .nav-tab:hover:not(.active){background:var(--drop-zone)}
+  
+  /* 进度 + 分数条 */
+  .score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.8rem}
+  .score-mini{font-size:0.9rem;color:var(--text-light);white-space:nowrap}
+  .score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.1rem}
+  .progress-text{text-align:right;font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem}
+  .progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.5rem}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+  
+  /* 卡片 */
+  .card{background:var(--card-bg);border-radius:12px;padding:1.8rem 2rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.5rem}
+  .card-number{display:inline-block;width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:0.85rem;font-weight:600;margin-right:0.6rem}
+  .card h3{margin:0 0 1.2rem;font-size:1.1rem;font-weight:500}
+  
+  /* 拖拽填空 */
+  .drag-sentence{font-size:1.05rem;line-height:2.2;margin-bottom:1.5rem}
+  .drop-zone{display:inline-block;min-width:100px;height:36px;line-height:34px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 4px;transition:all 0.2s;padding:0 8px}
+  .drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+  .drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8}
+  .drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+  .drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+  .draggables-container{display:flex;flex-wrap:wrap;gap:0.6rem;padding:1rem;background:var(--bg);border-radius:10px;margin-bottom:1rem}
+  .draggable{display:inline-block;padding:0.5rem 1rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;font-size:0.95rem;transition:all 0.15s;user-select:none}
+  .draggable:hover{background:#e1e8f0;transform:translateY(-2px);box-shadow:0 2px 6px var(--shadow)}
+  .draggable:active{cursor:grabbing}
+  .draggable.dragging{opacity:0.5}
+  .draggable.used{opacity:0.3;pointer-events:none}
+  
+  /* 选择项 */
+  .options{display:flex;flex-direction:column;gap:0.7rem}
+  .option{padding:0.9rem 1.2rem;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:0.7rem}
+  .option:hover{background:var(--drop-zone);border-color:var(--primary)}
+  .option.selected{border-color:var(--primary);background:#e8f0f8}
+  .option.correct{border-color:var(--accent);background:#e8f5e9}
+  .option.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .option.disabled{pointer-events:none}
+  .option-marker{width:22px;height:22px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700}
+  .option.selected .option-marker{border-color:var(--primary);background:var(--primary);color:#fff}
+  .option.correct .option-marker{border-color:var(--accent);background:var(--accent);color:#fff}
+  .option.wrong .option-marker{border-color:var(--accent-wrong);background:var(--accent-wrong);color:#fff}
+  .multi .option-marker{border-radius:4px}
+  .option-content{flex:1}
+  .option-explain{display:none;margin-top:0.5rem;font-size:0.85rem;color:#555;padding:0.4rem 0.6rem;border-radius:4px;background:rgba(0,0,0,0.03)}
+  .option-explain.show{display:block}
+  
+  /* 按钮 */
+  .btn-group{display:flex;gap:0.8rem;margin-top:1.5rem;justify-content:center;flex-wrap:wrap}
+  .btn{padding:0.7rem 1.8rem;border:none;border-radius:8px;font-size:1rem;cursor:pointer;transition:all 0.2s;font-weight:500}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:#2a4a6c}
+  .btn-secondary{background:var(--border);color:var(--text)}
+  .btn-secondary:hover{background:#c0c5cc}
+  .btn-danger{background:var(--accent-wrong);color:#fff}
+  .btn-danger:hover{background:#a04545}
+  .btn:disabled{opacity:0.5;cursor:not-allowed}
+  
+  /* 反馈 */
+  .feedback{margin-top:1rem;padding:1rem 1.2rem;border-radius:8px;display:none;font-size:0.95rem;line-height:1.6}
+  .feedback.show{display:block}
+  .feedback.correct{background:#e8f5e9;border-left:4px solid var(--accent)}
+  .feedback.wrong{background:#fce8e8;border-left:4px solid var(--accent-wrong)}
+  .feedback-title{font-weight:600;margin-bottom:0.4rem}
+  .blank-detail{margin:0.6rem 0;padding:0.6rem 0.8rem;border-radius:6px;background:#f8f9fa;border-left:3px solid var(--primary)}
+  .blank-detail.correct-blank{border-left-color:var(--accent);background:#f0f8f0}
+  .blank-detail.wrong-blank{border-left-color:var(--accent-wrong);background:#fdf0f0}
+  .blank-detail-title{font-weight:600;font-size:0.9rem;margin-bottom:0.2rem}
+  .blank-detail-body{font-size:0.88rem;color:#555}
+  
+  /* 导航按钮 */
+  .nav-buttons{display:flex;justify-content:space-between;margin-top:1rem}
+  .nav-btn{padding:0.5rem 1.2rem;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);cursor:pointer;transition:all 0.2s}
+  .nav-btn:hover{background:var(--drop-zone)}
+  .nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+  .nav-btn.active-question{background:var(--primary);color:#fff;border-color:var(--primary)}
+  
+  /* 总览面板（Dashboard） */
+  .dashboard-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
+  .dashboard-overlay.show{display:flex}
+  .dashboard-panel{background:var(--card-bg);border-radius:16px;width:100%;max-width:720px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+  .dashboard-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .dashboard-header h2{margin:0;font-size:1.2rem;font-weight:500}
+  .dashboard-close{font-size:1.5rem;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background 0.2s}
+  .dashboard-close:hover{background:var(--bg)}
+  .dashboard-body{padding:1.5rem;overflow-y:auto;flex:1}
+  
+  /* 统计 */
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+  .stat-card{text-align:center;padding:1rem;border-radius:10px;background:var(--bg)}
+  .stat-num{font-size:2rem;font-weight:700;color:var(--primary)}
+  .stat-label{font-size:0.85rem;color:var(--text-light);margin-top:0.2rem}
+  .stat-card.correct-card .stat-num{color:var(--accent)}
+  .stat-card.wrong-card .stat-num{color:var(--accent-wrong)}
+  
+  /* 筛选 */
+  .filter-tabs{display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap}
+  .filter-tab{padding:0.4rem 1rem;border:1px solid var(--border);border-radius:20px;background:var(--card-bg);cursor:pointer;font-size:0.85rem;transition:all 0.2s}
+  .filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .filter-tab:hover:not(.active){background:var(--drop-zone)}
+  
+  /* 题目网格 */
+  .question-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.8rem}
+  .question-thumb{padding:1rem;border-radius:10px;border:2px solid var(--border);cursor:pointer;transition:all 0.2s;background:var(--card-bg);position:relative}
+  .question-thumb:hover{transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow);border-color:var(--primary)}
+  .question-thumb.correct{border-color:var(--accent);background:var(--status-correct)}
+  .question-thumb.wrong{border-color:var(--accent-wrong);background:var(--status-wrong)}
+  .question-thumb.unanswered{border-color:var(--border);background:var(--status-unanswered)}
+  .thumb-num{font-size:0.75rem;color:var(--text-light);margin-bottom:0.3rem}
+  .thumb-type{display:inline-block;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;background:var(--primary);color:#fff;margin-bottom:0.4rem}
+  .thumb-type.drag{background:#6b5b95}
+  .thumb-type.single{background:#5b8a72}
+  .thumb-type.multi{background:#8a5b5b}
+  .thumb-text{font-size:0.85rem;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .thumb-status{position:absolute;top:0.5rem;right:0.5rem;font-size:1rem}
+  .thumb-status.correct-icon{color:var(--accent)}
+  .thumb-status.wrong-icon{color:var(--accent-wrong)}
+  
+  /* 结果 */
+  .result-card{text-align:center;padding:3rem 2rem}
+  .result-score{font-size:4rem;font-weight:700;color:var(--primary);margin:1rem 0}
+  .result-label{font-size:1.1rem;color:var(--text-light)}
+  .result-detail{margin-top:1.5rem;text-align:left}
+  .result-item{display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)}
+  .hidden{display:none!important}
+  
+  @media(max-width:600px){.container{padding:1rem}.card{padding:1.2rem}.drag-sentence{font-size:0.95rem}.stats-grid{grid-template-columns:repeat(3,1fr)}.question-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>🎮 UE5 Nanite 互动式问答卡牌</h1>
+    <p>拖拽填空 · 单选 · 多选 — 面试前 10 分钟速测</p>
+  </div>
+  <button class="header-btn" id="dashboard-btn">📊 题目总览</button>
+</header>
+
+<div class="container">
+  
+  <!-- 导航标签 -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-mode="drag">拖拽填空</div>
+    <div class="nav-tab" data-mode="single">单选题</div>
+    <div class="nav-tab" data-mode="multi">多选题</div>
+    <div class="nav-tab" data-mode="tf">判断题</div>
+  </div>
+  
+  <!-- 分数 + 进度 -->
+  <div class="score-bar">
+    <div class="score-mini">总得分：<span class="score-num" id="total-score">0</span> / <span id="total-max">10</span></div>
+  </div>
+  <div class="progress-text">当前：<span id="current-index">1</span> / <span id="total-count">5</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:10%"></div></div>
+  
+  <!-- 拖拽填空区 -->
+  <div id="drag-section">
+    <div class="card" id="drag-card">
+      <h3><span class="card-number">1</span>拖拽填空</h3>
+      <div class="drag-sentence" id="drag-sentence"></div>
+      <div class="draggables-container" id="draggables"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="drag-check-btn">检查答案</button>
+        <button class="btn btn-secondary" id="drag-reset-btn">重置</button>
+      </div>
+      <div class="feedback" id="drag-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="drag-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="drag-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <!-- 单选区 -->
+  <div id="single-section" class="hidden">
+    <div class="card" id="single-card">
+      <h3><span class="card-number">1</span>单选题</h3>
+      <div class="drag-sentence" id="single-question"></div>
+      <div class="options" id="single-options"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="single-check-btn">检查答案</button>
+      </div>
+      <div class="feedback" id="single-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="single-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="single-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <!-- 多选区 -->
+  <div id="multi-section" class="hidden">
+    <div class="card" id="multi-card">
+      <h3><span class="card-number">1</span>多选题</h3>
+      <div class="drag-sentence" id="multi-question"></div>
+      <div class="options multi" id="multi-options"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="multi-check-btn">检查答案</button>
+      </div>
+      <div class="feedback" id="multi-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="multi-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="multi-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <!-- 结果 -->
+  <div id="tf-section" class="hidden">
+    <div class="card" id="tf-card">
+      <h3><span class="card-number">1</span>判断题</h3>
+      <div class="drag-sentence" id="tf-statement" style="font-size:1.1rem;margin-bottom:1.5rem"></div>
+      <div class="btn-group" style="justify-content:center">
+        <button class="btn btn-primary" id="tf-true-btn" style="background:var(--accent)">✅ 正确</button>
+        <button class="btn btn-danger" id="tf-false-btn">❌ 错误</button>
+      </div>
+      <div class="feedback" id="tf-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="tf-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="tf-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <div id="result-section" class="hidden">
+    <div class="card result-card">
+      <div class="result-label">测试完成</div>
+      <div class="result-score" id="final-score">0%</div>
+      <div class="result-label">得分</div>
+      <div class="result-detail" id="result-detail"></div>
+      <div class="btn-group" style="margin-top:2rem">
+        <button class="btn btn-secondary" onclick="goBack()">🔙 返回题目</button>
+        <button class="btn btn-primary" onclick="resetAll()">🔄 重新开始</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 总览面板 -->
+<div class="dashboard-overlay" id="dashboard-overlay">
+  <div class="dashboard-panel">
+    <div class="dashboard-header">
+      <h2>📊 题目总览</h2>
+      <div class="dashboard-close" id="dashboard-close">✕</div>
+    </div>
+    <div class="dashboard-body">
+      <!-- 统计 -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="dash-total">0%</div>
+          <div class="stat-label">总正确率</div>
+        </div>
+        <div class="stat-card correct-card">
+          <div class="stat-num" id="dash-correct">0</div>
+          <div class="stat-label">已做对</div>
+        </div>
+        <div class="stat-card wrong-card">
+          <div class="stat-num" id="dash-wrong">0</div>
+          <div class="stat-label">做错/未答</div>
+        </div>
+      </div>
+      <!-- 筛选 -->
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">全部</div>
+        <div class="filter-tab" data-filter="correct">✅ 正确</div>
+        <div class="filter-tab" data-filter="wrong">❌ 错误</div>
+        <div class="filter-tab" data-filter="unanswered">⬜ 未答</div>
+      </div>
+      <!-- 题目网格 -->
+      <div class="question-grid" id="question-grid"></div>
+      <div style="margin-top:1.5rem;text-align:center">
+        <button class="btn btn-danger" id="reset-all-btn">🔄 重置所有分数</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== 数据 ====================
+const dragQuestions = [
+  {
+    sentence: "Nanite 将几何体数据以 {0} 为单位管理，类似虚拟内存的页管理。LOD 决策在 {1} 上运行时动态完成，无需 CPU 预计算。",
+    answers: ["Page", "GPU"],
+    pool: ["Page", "GPU", "CPU", "Cluster", "Texture", "ClusterGroup", "Mesh"],
+    explanation: "Nanite 的 Page 是数据加载的最小单位，LOD 决策完全由 GPU 在运行时根据像素覆盖度动态完成。",
+    detailLink: "../../UE5_Detail.md#nanite-virtualized-geometry",
+    blankExplanations: [
+      "Page 是 Nanite 数据加载的最小单位（类似虚拟内存页），只有可见的 Page 才会加载到 GPU。不可用 Cluster 是因为 Cluster 是几何单元而非数据加载单元；不可用 Mesh 是因为 Mesh 是整体概念。",
+      "GPU 负责运行时动态决策：根据像素覆盖度选择 Cluster 精度。CPU 只做离线构建（Cook 阶段生成 Cluster/DAG/Page），运行时不再参与 LOD 决策。"
+    ]
+  },
+  {
+    sentence: "Nanite 的基本几何单元是 {0}，一组三角形聚合而成；多个 {0} 组成 {1}，用于 LOD 层级管理；{1} 的依赖关系由 {2} 描述。",
+    answers: ["Cluster", "ClusterGroup", "DAG"],
+    pool: ["Cluster", "ClusterGroup", "DAG", "Page", "LOD", "Mesh", "BVH"],
+    explanation: "Cluster 是基本几何单元（约128个三角形），ClusterGroup 是 LOD 层级管理单元，DAG 描述 ClusterGroup 的父子依赖关系。",
+    detailLink: "../../UE5_Detail.md#nanite-cluster-page",
+    blankExplanations: [
+      "Cluster 是 Nanite 的基本几何单元（约128个三角形一组）。Page 是数据加载单元，不是几何单元；Mesh 是整体模型，不是聚合单元。",
+      "ClusterGroup 是 LOD 层级管理单元，多个 Cluster 组成一个 ClusterGroup。DAG 是图结构，不是组织单元。",
+      "DAG（有向无环图）描述 ClusterGroup 的父子 LOD 依赖关系。BVH 是用于裁剪的包围体层次结构，不是用于 LOD 描述。"
+    ]
+  },
+  {
+    sentence: "Nanite 采用 {0} 裁剪和 {1} 光栅化。{2} 处理大三角形效率高，{3}（Compute Shader）处理亚像素微多边形，避免 overdraw 和精度崩溃。",
+    answers: ["GPU-Driven", "混合", "硬件光栅化", "软件光栅化"],
+    pool: ["GPU-Driven", "混合", "硬件光栅化", "软件光栅化", "CPU-Driven", "纯硬件", "延迟渲染"],
+    explanation: "硬件光栅化在三角形小于一个像素时效率崩溃（Quad Overdraw + Early-Z 失效），软件光栅化（CS）精确计算亚像素覆盖，两者互补。",
+    detailLink: "../../UE5_Detail.md#nanite-rasterization",
+    blankExplanations: [
+      "GPU-Driven 意味着裁剪和绘制指令生成都在 GPU 上完成。CPU-Driven 是 UE4 的做法，不符合 Nanite 设计。",
+      "混合光栅化 = 硬件 + 软件互补。纯硬件无法处理微多边形，延迟渲染是渲染管线类型，不是光栅化方式。",
+      "硬件光栅化（GPU 固定功能）处理大三角形效率极高，因为可以利用 Quad 并行和 Early-Z。",
+      "软件光栅化（Compute Shader）逐像素计算覆盖，避免硬件光栅化在亚像素级时的 Quad Overdraw（一个 2×2 像素块只覆盖1个像素却计算4个）和 Early-Z 失效。"
+    ]
+  },
+  {
+    sentence: "与 UE4 传统 LOD 相比，Nanite 的 LOD 决策从 {0} 预计算变为 {1} 运行时动态；Draw Call 从 {2} 独立变为 {3} 批量绘制。",
+    answers: ["CPU", "GPU", "每个Mesh", "GPU-Driven"],
+    pool: ["CPU", "GPU", "每个Mesh", "GPU-Driven", "每帧", "预烘焙", "Instance"],
+    explanation: "UE4 传统 LOD 需要美术预制作多档模型，CPU 根据距离切换；Nanite 是 GPU 实时无级连续 LOD，无需手动制作 LOD 链。",
+    detailLink: "../../UE5_Detail.md#nanite-vs-lod",
+    blankExplanations: [
+      "UE4 的 LOD 是 CPU 预计算：美术制作多档模型，CPU 运行时根据距离切换，会产生 popping。",
+      "Nanite 的 LOD 是 GPU 运行时动态：根据像素覆盖度选择 Cluster 精度，无 popping、无级连续。",
+      "UE4 每个 Mesh 产生独立的 Draw Call，CPU 端逐个提交。预烘焙是离线计算，不是 Draw Call 描述。",
+      "Nanite 的 GPU-Driven 批量绘制：GPU 直接生成绘制指令，无需 CPU 逐个提交 Draw Call。Instance 是实例化渲染，不是 Nanite 的绘制方式。"
+    ]
+  },
+  {
+    sentence: "截至 UE5.5，Nanite 仍不支持 {0} 材质、{1}（Blendshape）、{2} 模拟和 {3} Vertex Factory。",
+    answers: ["Translucent", "Morph Targets", "Cloth", "自定义"],
+    pool: ["Translucent", "Morph Targets", "Cloth", "自定义", "Masked", "骨骼动画", "Landscape"],
+    explanation: "Masked/Two-Sided 在 5.4+ 通过 Programmable Rasterizer 已支持；Skeletal Mesh 在 5.5+ 已支持；但 Translucent、Morph、Cloth 仍不支持。",
+    detailLink: "../../UE5_Detail.md#nanite-fallback",
+    blankExplanations: [
+      "Translucent 材质完全不支持 Nanite。Masked 在 5.4+ 已支持（Programmable Rasterizer），所以不是答案。",
+      "Morph Targets（Blendshape）在 5.5+ 仍不支持。Skeletal Mesh（骨骼动画）在 5.5+ 已支持，不要混淆。",
+      "Cloth 模拟与 Nanite 不兼容，因为布料需要动态变形，而 Nanite 几何是静态的。",
+      "自定义 Vertex Factory 需要 fallback，因为 Nanite 的 Vertex Factory 是固定的。Landscape 在 5.5+ 已支持。"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    question: "为什么 Nanite 需要软件光栅化（Compute Shader）？",
+    options: [
+      "A. 大三角形效率更高",
+      "B. 处理亚像素微多边形，避免硬件光栅化在小三角形时的 overdraw 和精度崩溃",
+      "C. 替代硬件光栅化",
+      "D. 处理透明材质"
+    ],
+    correct: 1,
+    explanation: "硬件光栅化在三角形小于一个像素时产生 Quad Overdraw（一个 2×2 像素块覆盖 4 个像素但小三角只覆盖 1 个），且 Early-Z 失效。软件光栅化（CS）逐像素精确计算覆盖，专门处理亚像素微多边形。",
+    detailLink: "../../UE5_Detail.md#nanite-rasterization",
+    optionExplanations: [
+      "❌ 错误：大三角形用硬件光栅化效率更高，软件光栅化反而慢。",
+      "✅ 正确：硬件光栅化在亚像素级三角形时 Quad Overdraw 严重（一个 2×2 像素块只覆盖1个像素却计算4个），且 Early-Z 失效。CS 精确计算每个像素的覆盖，专门处理亚像素微多边形。",
+      "❌ 错误：软件光栅化不是替代硬件，而是互补——硬件处理大三角，软件处理小三角。",
+      "❌ 错误：Nanite 完全不支持透明材质，与光栅化方式无关。"
+    ]
+  },
+  {
+    question: "Nanite 的 fallback 条件不包括以下哪项？",
+    options: [
+      "A. Translucent 材质",
+      "B. Skeletal Mesh（骨骼动画）",
+      "C. Morph Targets",
+      "D. Cloth"
+    ],
+    correct: 1,
+    explanation: "Skeletal Mesh（骨骼动画）在 UE5.5+ 已正式支持 Nanite（Editor 勾选 Enable Nanite Support）。Translucent、Morph Targets、Cloth 仍不支持。",
+    detailLink: "../../UE5_Detail.md#nanite-fallback",
+    optionExplanations: [
+      "❌ 不是答案：Translucent 材质确实不支持 Nanite，需要 fallback。",
+      "✅ 正确答案：Skeletal Mesh（骨骼动画）在 UE5.5+ 已正式支持 Nanite。Editor 中勾选 'Enable Nanite Support' 即可。",
+      "❌ 不是答案：Morph Targets（Blendshape）在 5.5+ 仍不支持，需要 fallback。",
+      "❌ 不是答案：Cloth 模拟与 Nanite 不兼容，需要 fallback。"
+    ]
+  },
+  {
+    question: "Nanite 与 UE4 传统 LOD 的本质区别是什么？",
+    options: [
+      "A. Nanite 使用更多 Draw Call",
+      "B. Nanite 需要美术预制作多档模型",
+      "C. Nanite 用 GPU 实时无级连续 LOD，无需美术手动制作",
+      "D. Nanite 只支持静态几何"
+    ],
+    correct: 2,
+    explanation: "Nanite 的 DAG 描述连续 LOD 层级，GPU 运行时根据像素覆盖度选择 Cluster 精度，无 popping、无 Draw Call 瓶颈、无需美术手动制作 LOD 链。",
+    detailLink: "../../UE5_Detail.md#nanite-vs-lod",
+    optionExplanations: [
+      "❌ 错误：Nanite 使用更少 Draw Call（GPU-Driven 批量绘制），不是更多。",
+      "❌ 错误：UE4 传统 LOD 需要美术预制作多档模型，Nanite 不需要。",
+      "✅ 正确：Nanite 的 DAG 描述连续 LOD 层级，GPU 运行时根据像素覆盖度选择 Cluster 精度，无 popping、无 Draw Call 瓶颈、无需美术手动制作 LOD 链。",
+      "❌ 错误：Nanite 在 5.5+ 已支持 Skeletal Mesh（动态骨骼），不局限于静态几何。"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    question: "Nanite 的 fallback 条件包括哪些？（多选）",
+    options: [
+      "A. Translucent 材质",
+      "B. Morph Targets",
+      "C. Cloth",
+      "D. 自定义 Vertex Factory",
+      "E. Masked 材质（5.4+ 已支持）",
+      "F. 移动端限制"
+    ],
+    correct: [0, 1, 2, 3, 5],
+    explanation: "Masked 材质在 5.4+ 通过 Programmable Rasterizer 已支持，所以不是 fallback 条件。移动端是平台限制，严格来说不是 fallback，但作为限制条件入选。",
+    detailLink: "../../UE5_Detail.md#nanite-fallback",
+    optionExplanations: [
+      "✅ 正确：Translucent 材质完全不支持 Nanite，需要 fallback。",
+      "✅ 正确：Morph Targets（Blendshape）在 5.5+ 仍不支持。",
+      "✅ 正确：Cloth 模拟与 Nanite 不兼容。",
+      "✅ 正确：自定义 Vertex Factory 需要 fallback。",
+      "❌ 错误：Masked 材质在 5.4+ 通过 Programmable Rasterizer 已支持，不再是 fallback 条件。",
+      "✅ 正确：移动端 GPU 计算和带宽有限，Nanite 的 GPU-Driven 裁剪和软件光栅化开销较大。"
+    ]
+  },
+  {
+    question: "截至 UE5.5+，Nanite 已支持的特性包括哪些？（多选）",
+    options: [
+      "A. Skeletal Mesh",
+      "B. Foliage（Mask/Two-Sided + Assemblies）",
+      "C. Landscape",
+      "D. Translucent",
+      "E. Cloth",
+      "F. Morph Targets"
+    ],
+    correct: [0, 1, 2],
+    explanation: "5.5+ 支持：Skeletal Mesh、Foliage（含 Nanite Foliage 系统）、Landscape/Spline。Translucent、Cloth、Morph Targets 仍不支持。",
+    detailLink: "../../UE5_Detail.md#nanite-limitations",
+    optionExplanations: [
+      "✅ 正确：5.5+ Skeletal Mesh 已支持，Editor 勾选 'Enable Nanite Support'。",
+      "✅ 正确：5.4+ Masked/Two-Sided 通过 Programmable Rasterizer 支持；5.5+ Nanite Foliage 系统（Assemblies + Voxels + Skinning）。",
+      "✅ 正确：Landscape 和 Spline Mesh 已支持。",
+      "❌ 错误：Translucent 仍不支持。",
+      "❌ 错误：Cloth 仍不支持。",
+      "❌ 错误：Morph Targets 仍不支持。"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  { statement: "Nanite 的 Cluster 是数据加载的最小单位。", correct: false, explanation: "❌ 错误。Page 才是数据加载的最小单位。Cluster 是基本几何单元（约128个三角形），属于几何组织层级。" },
+    detailLink: "../../UE5_Detail.md#nanite-cluster-page",
+  { statement: "Nanite 在 UE5.5 已支持 Morph Targets（Blendshape）。", correct: false, explanation: "❌ 错误。Morph Targets 在 UE5.5+ 仍不支持。Skeletal Mesh（骨骼动画）在 5.5+ 已支持，但 Morph/Blendshape 仍需要 fallback。" },
+    detailLink: "../../UE5_Detail.md#nanite-fallback",
+  { statement: "硬件光栅化在处理亚像素级三角形时效率高于软件光栅化。", correct: false, explanation: "❌ 错误。硬件光栅化在亚像素级三角形时 Quad Overdraw 严重（2×2像素块只覆盖1个像素却计算4个），且 Early-Z 失效。软件光栅化（CS）专门处理亚像素微多边形。" },
+    detailLink: "../../UE5_Detail.md#nanite-rasterization",
+  { statement: "Nanite 和 VSM 共享主相机的视锥裁剪结果。", correct: false, explanation: "❌ 错误。共享的是图元级数据（GPUScene 实例变换/包围盒），但视图级裁剪（Frustum/HZB）是独立执行的——主相机和 Light Camera 的视锥完全不同。" },
+    detailLink: "../../UE5_Detail.md#vsm-nanite-sharing",
+  { statement: "GPU-Driven 意味着 CPU 完全不参与 Nanite 的渲染流程。", correct: false, explanation: "❌ 错误。CPU 仍负责离线构建（Cook 阶段生成 Cluster/DAG/Page），只是运行时渲染的裁剪和绘制指令生成在 GPU 上完成。",
+    detailLink: "../../UE5_Detail.md#interview-gpu-driven" },
+];
+
+const allQuestions = [];
+dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
+singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
+multiQuestions.forEach((q,i)=>allQuestions.push({mode:'multi',index:i,question:q.question.substring(0,40)+'...',type:'multi'}));
+trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:q.statement.substring(0,40)+'...',type:'tf'}));
+
+// ==================== 状态 ====================
+let currentMode = 'drag';
+let lastMode = 'drag';
+let lastIndex = 0;
+let dragIndex = 0, singleIndex = 0, multiIndex = 0;
+let scores = { drag: 0, single: 0, multi: 0, tf: 0 };
+let answered = { drag: [], single: [], multi: [], tf: [] };
+let answeredCorrect = { drag: [], single: [], multi: [], tf: [] };
+let tfIndex = 0;
+
+function initState() {
+  dragQuestions.forEach(() => { answered.drag.push(false); answeredCorrect.drag.push(false); });
+  singleQuestions.forEach(() => { answered.single.push(false); answeredCorrect.single.push(false); });
+  multiQuestions.forEach(() => { answered.multi.push(false); answeredCorrect.multi.push(false); });
+  trueFalseQuestions.forEach(() => { answered.tf.push(false); answeredCorrect.tf.push(false); });
+}
+initState();
+
+// ==================== 工具函数 ====================
+function $(id) { return document.getElementById(id); }
+function updateProgress(mode) {
+  const idx = mode === 'drag' ? dragIndex : mode === 'single' ? singleIndex : mode === 'multi' ? multiIndex : tfIndex;
+  const total = mode === 'drag' ? dragQuestions.length : mode === 'single' ? singleQuestions.length : mode === 'multi' ? multiQuestions.length : trueFalseQuestions.length;
+  $('current-index').textContent = idx + 1;
+  $('total-count').textContent = total;
+  $('progress-fill').style.width = ((idx + 1) / total * 100) + '%';
+}
+function setNavBtn(prevId, nextId, idx, total) {
+  $(prevId).disabled = idx === 0;
+  $(nextId).disabled = false;
+  $(nextId).textContent = idx === total - 1 ? "查看结果 →" : "下一题 →";
+}
+function updateTotalScore() {
+  const totalMax = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.drag + scores.single + scores.multi + scores.tf;
+  $('total-score').textContent = totalScore;
+  $('total-max').textContent = totalMax;
+}
+function getQuestionStatus(mode, idx) {
+  if (!answered[mode][idx]) return 'unanswered';
+  return answeredCorrect[mode][idx] ? 'correct' : 'wrong';
+}
+
+// ==================== 总览面板 ====================
+$('dashboard-btn').addEventListener('click', openDashboard);
+$('dashboard-close').addEventListener('click', closeDashboard);
+$('dashboard-overlay').addEventListener('click', (e) => { if (e.target === $('dashboard-overlay')) closeDashboard(); });
+$('reset-all-btn').addEventListener('click', resetAll);
+
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderDashboardGrid(tab.dataset.filter);
+  });
+});
+
+function openDashboard() {
+  updateDashboardStats();
+  renderDashboardGrid('all');
+  $('dashboard-overlay').classList.add('show');
+}
+function closeDashboard() { $('dashboard-overlay').classList.remove('show'); }
+
+function updateDashboardStats() {
+  const totalMax = dragQuestions.length + singleQuestions.length + multiQuestions.length;
+  let totalCorrect = 0, totalWrong = 0, totalUnanswered = 0;
+  ['drag','single','multi'].forEach(mode => {
+    answered[mode].forEach((a, i) => {
+      if (!a) totalUnanswered++;
+      else if (answeredCorrect[mode][i]) totalCorrect++;
+      else totalWrong++;
+    });
+  });
+  const pct = totalMax > 0 ? Math.round(totalCorrect / totalMax * 100) : 0;
+  $('dash-total').textContent = pct + '%';
+  $('dash-correct').textContent = totalCorrect;
+  $('dash-wrong').textContent = totalWrong + totalUnanswered;
+}
+
+function renderDashboardGrid(filter) {
+  const grid = $('question-grid');
+  grid.innerHTML = '';
+  allQuestions.forEach((q, globalIdx) => {
+    const status = getQuestionStatus(q.mode, q.index);
+    if (filter !== 'all' && status !== filter) return;
+    
+    const thumb = document.createElement('div');
+    thumb.className = `question-thumb ${status}`;
+    thumb.innerHTML = `
+      <div class="thumb-num">#${globalIdx + 1}</div>
+      <div class="thumb-type ${q.type}">${q.type === 'drag' ? '拖拽' : q.type === 'single' ? '单选' : '多选'}</div>
+      <div class="thumb-text">${q.question}</div>
+      <div class="thumb-status ${status === 'correct' ? 'correct-icon' : status === 'wrong' ? 'wrong-icon' : ''}">${status === 'correct' ? '✅' : status === 'wrong' ? '❌' : ''}</div>
+    `;
+    thumb.addEventListener('click', () => {
+      closeDashboard();
+      switchMode(q.mode, q.index);
+    });
+    grid.appendChild(thumb);
+  });
+}
+
+function switchMode(mode, idx) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.nav-tab[data-mode="${mode}"]`).classList.add('active');
+  currentMode = mode;
+  ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+  if (mode === 'drag') { $('drag-section').classList.remove('hidden'); dragIndex = idx; renderDrag(); }
+  else if (mode === 'single') { $('single-section').classList.remove('hidden'); singleIndex = idx; renderSingle(); }
+  else if (mode === 'multi') { $('multi-section').classList.remove('hidden'); multiIndex = idx; renderMulti(); }
+  else if (mode === 'tf') { $('tf-section').classList.remove('hidden'); tfIndex = idx; renderTrueFalse(); }
+}
+
+function resetAll() {
+  scores = { drag: 0, single: 0, multi: 0, tf: 0 };
+  answered = { drag: [], single: [], multi: [], tf: [] };
+  answeredCorrect = { drag: [], single: [], multi: [], tf: [] };
+  initState();
+  dragIndex = 0; singleIndex = 0; multiIndex = 0; tfIndex = 0;
+  currentMode = 'drag';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.nav-tab[data-mode="drag"]').classList.add('active');
+  ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+  $('drag-section').classList.remove('hidden');
+  renderDrag();
+  updateTotalScore();
+  closeDashboard();
+}
+
+// ==================== 拖拽填空 ====================
+function renderDrag() {
+  const q = dragQuestions[dragIndex];
+  const sentenceEl = $('drag-sentence');
+  const draggablesEl = $('draggables');
+  
+  let parts = q.sentence.split(/\{(\d)\}/g);
+  let html = '';
+  let blankIdx = 0;
+  for (let i = 0; i < parts.length; i++) {
+    if (/^\d$/.test(parts[i])) {
+      html += `<span class="drop-zone" data-idx="${blankIdx}" data-ans="${q.answers[blankIdx]}"></span>`;
+      blankIdx++;
+    } else {
+      html += parts[i];
+    }
+  }
+  sentenceEl.innerHTML = html;
+  
+  draggablesEl.innerHTML = '';
+  q.pool.forEach((text) => {
+    const el = document.createElement('div');
+    el.className = 'draggable';
+    el.draggable = true;
+    el.textContent = text;
+    el.dataset.text = text;
+    el.addEventListener('dragstart', onDragStart);
+    el.addEventListener('dragend', onDragEnd);
+    draggablesEl.appendChild(el);
+  });
+  
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', onDragOver);
+    zone.addEventListener('dragenter', onDragEnter);
+    zone.addEventListener('dragleave', onDragLeave);
+    zone.addEventListener('drop', onDrop);
+  });
+  
+  $('drag-feedback').className = 'feedback';
+  $('drag-feedback').innerHTML = '';
+  setNavBtn('drag-prev', 'drag-next', dragIndex, dragQuestions.length);
+  updateProgress('drag');
+  updateTotalScore();
+}
+
+let draggedEl = null;
+function onDragStart(e) {
+  draggedEl = e.target;
+  e.target.classList.add('dragging');
+  e.dataTransfer.setData('text/plain', e.target.dataset.text);
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDragEnd(e) { e.target.classList.remove('dragging'); }
+function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function onDragEnter(e) { e.target.closest('.drop-zone')?.classList.add('drag-over'); }
+function onDragLeave(e) { e.target.closest('.drop-zone')?.classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault();
+  const zone = e.target.closest('.drop-zone');
+  if (!zone) return;
+  zone.classList.remove('drag-over');
+  const text = e.dataTransfer.getData('text/plain');
+  zone.innerHTML = `<span class="dropped-text">${text}</span>`;
+  zone.classList.add('filled');
+  zone.dataset.val = text;
+  document.querySelectorAll('.draggable').forEach(d => {
+    if (d.dataset.text === text) d.classList.add('used');
+  });
+}
+
+$('drag-check-btn').addEventListener('click', () => {
+  const q = dragQuestions[dragIndex];
+  const zones = document.querySelectorAll('.drop-zone');
+  let allCorrect = true;
+  let detailHTML = '<div style="margin-top:1rem"><strong>逐空解析：</strong></div>';
+  
+  zones.forEach((zone, i) => {
+    const val = zone.dataset.val || '';
+    const ans = zone.dataset.ans;
+    zone.classList.remove('correct', 'wrong');
+    if (val === ans) {
+      zone.classList.add('correct');
+      detailHTML += `<div class="blank-detail correct-blank"><div class="blank-detail-title">空格 ${i+1}：✅ 正确</div><div class="blank-detail-body">你的答案：${val}。<br/>${q.blankExplanations[i]}</div></div>`;
+    } else {
+      zone.classList.add('wrong');
+      allCorrect = false;
+      detailHTML += `<div class="blank-detail wrong-blank"><div class="blank-detail-title">空格 ${i+1}：❌ 错误</div><div class="blank-detail-body">你的答案：${val || '(未填写)'}。<br/>正确答案：${ans}。<br/>${q.blankExplanations[i]}</div></div>`;
+    }
+  });
+  
+  const fb = $('drag-feedback');
+  fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'wrong');
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 有错误'}</div><div>${q.explanation}</div>${detailHTML}${detailLinkHTML}`;
+  
+  const wasCorrect = answeredCorrect.drag[dragIndex];
+  if (allCorrect && !wasCorrect) scores.drag++;
+  answered.drag[dragIndex] = true;
+  answeredCorrect.drag[dragIndex] = allCorrect;
+  updateTotalScore();
+});
+
+$('drag-reset-btn').addEventListener('click', renderDrag);
+$('drag-prev').addEventListener('click', () => { if (dragIndex > 0) { dragIndex--; renderDrag(); } });
+$('drag-next').addEventListener('click', () => { if (dragIndex < dragQuestions.length - 1) { dragIndex++; renderDrag(); } else { lastMode = 'drag'; lastIndex = dragIndex; showResult(); } });
+
+// ==================== 单选题 ====================
+function renderSingle() {
+  const q = singleQuestions[singleIndex];
+  $('single-question').textContent = q.question;
+  const optsEl = $('single-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = `<div class="option-marker">${String.fromCharCode(65+i)}</div><div class="option-content"><div class="option-text">${opt.substring(2)}</div><div class="option-explain" data-explain="${i}"></div></div>`;
+    div.addEventListener('click', () => {
+      document.querySelectorAll('#single-options .option').forEach(o => o.classList.remove('selected'));
+      div.classList.add('selected');
+      div.dataset.sel = i;
+    });
+    optsEl.appendChild(div);
+  });
+  $('single-feedback').className = 'feedback';
+  $('single-feedback').innerHTML = '';
+  setNavBtn('single-prev', 'single-next', singleIndex, singleQuestions.length);
+  updateProgress('single');
+  updateTotalScore();
+}
+
+$('single-check-btn').addEventListener('click', () => {
+  const sel = document.querySelector('#single-options .option.selected');
+  if (!sel) { alert('请先选择一个选项'); return; }
+  const idx = parseInt(sel.dataset.sel);
+  const q = singleQuestions[singleIndex];
+  const isCorrect = idx === q.correct;
+  
+  document.querySelectorAll('#single-options .option').forEach((o, i) => {
+    o.classList.remove('selected', 'correct', 'wrong', 'disabled');
+    o.classList.add('disabled');
+    if (i === q.correct) o.classList.add('correct');
+    else if (i === idx) o.classList.add('wrong');
+    const explain = o.querySelector('.option-explain');
+    explain.textContent = q.optionExplanations[i];
+    explain.classList.add('show');
+  });
+  
+  const wasCorrect = answeredCorrect.single[singleIndex];
+  if (isCorrect && !wasCorrect) scores.single++;
+  answered.single[singleIndex] = true;
+  answeredCorrect.single[singleIndex] = isCorrect;
+  updateTotalScore();
+  
+  const fb = $('single-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
+});
+
+$('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
+$('single-next').addEventListener('click', () => { if (singleIndex < singleQuestions.length - 1) { singleIndex++; renderSingle(); } else { lastMode = 'single'; lastIndex = singleIndex; showResult(); } });
+
+// ==================== 多选题 ====================
+function renderMulti() {
+  const q = multiQuestions[multiIndex];
+  $('multi-question').textContent = q.question;
+  const optsEl = $('multi-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option multi';
+    div.innerHTML = `<div class="option-marker">${String.fromCharCode(65+i)}</div><div class="option-content"><div class="option-text">${opt.substring(2)}</div><div class="option-explain" data-explain="${i}"></div></div>`;
+    div.addEventListener('click', () => { div.classList.toggle('selected'); });
+    optsEl.appendChild(div);
+  });
+  $('multi-feedback').className = 'feedback';
+  $('multi-feedback').innerHTML = '';
+  setNavBtn('multi-prev', 'multi-next', multiIndex, multiQuestions.length);
+  updateProgress('multi');
+  updateTotalScore();
+}
+
+$('multi-check-btn').addEventListener('click', () => {
+  const selected = Array.from(document.querySelectorAll('#multi-options .option.selected')).map(el => {
+    return Array.from(el.parentNode.children).indexOf(el);
+  });
+  if (selected.length === 0) { alert('请至少选择一个选项'); return; }
+  
+  const q = multiQuestions[multiIndex];
+  const isCorrect = selected.length === q.correct.length && selected.every(i => q.correct.includes(i));
+  
+  document.querySelectorAll('#multi-options .option').forEach((o, i) => {
+    o.classList.remove('selected', 'correct', 'wrong', 'disabled');
+    o.classList.add('disabled');
+    if (q.correct.includes(i)) o.classList.add('correct');
+    else if (selected.includes(i)) o.classList.add('wrong');
+    const explain = o.querySelector('.option-explain');
+    explain.textContent = q.optionExplanations[i];
+    explain.classList.add('show');
+  });
+  
+  const wasCorrect = answeredCorrect.multi[multiIndex];
+  if (isCorrect && !wasCorrect) scores.multi++;
+  answered.multi[multiIndex] = true;
+  answeredCorrect.multi[multiIndex] = isCorrect;
+  updateTotalScore();
+  
+  const fb = $('multi-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
+});
+
+$('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
+$('multi-next').addEventListener('click', () => { if (multiIndex < multiQuestions.length - 1) { multiIndex++; renderMulti(); } else { lastMode = 'multi'; lastIndex = multiIndex; showResult(); } });
+
+// ==================== 导航切换 ====================
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMode = tab.dataset.mode;
+    ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+    if (currentMode === 'drag') { $('drag-section').classList.remove('hidden'); renderDrag(); }
+    else if (currentMode === 'single') { $('single-section').classList.remove('hidden'); renderSingle(); }
+    else if (currentMode === 'multi') { $('multi-section').classList.remove('hidden'); renderMulti(); }
+    else if (currentMode === 'tf') { $('tf-section').classList.remove('hidden'); renderTrueFalse(); }
+  });
+});
+
+
+// ==================== 判断题 ====================
+function renderTrueFalse() {
+  const q = trueFalseQuestions[tfIndex];
+  $('tf-statement').textContent = q.statement;
+  $('tf-feedback').className = 'feedback';
+  $('tf-feedback').innerHTML = '';
+  document.getElementById('tf-true-btn').disabled = false;
+  document.getElementById('tf-false-btn').disabled = false;
+  setNavBtn('tf-prev', 'tf-next', tfIndex, trueFalseQuestions.length);
+  updateProgress('tf');
+  updateTotalScore();
+}
+
+function checkTrueFalse(userAnswer) {
+  const q = trueFalseQuestions[tfIndex];
+  const isCorrect = userAnswer === q.correct;
+  document.getElementById('tf-true-btn').disabled = true;
+  document.getElementById('tf-false-btn').disabled = true;
+  const fb = $('tf-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5_Detail.md 相关章节</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
+  const wasCorrect = answeredCorrect.tf[tfIndex];
+  if (isCorrect && !wasCorrect) scores.tf++;
+  answered.tf[tfIndex] = true;
+  answeredCorrect.tf[tfIndex] = isCorrect;
+  updateTotalScore();
+}
+
+$('tf-true-btn').addEventListener('click', () => checkTrueFalse(true));
+$('tf-false-btn').addEventListener('click', () => checkTrueFalse(false));
+$('tf-prev').addEventListener('click', () => { if (tfIndex > 0) { tfIndex--; renderTrueFalse(); } });
+$('tf-next').addEventListener('click', () => { if (tfIndex < trueFalseQuestions.length - 1) { tfIndex++; renderTrueFalse(); } else { lastMode = 'tf'; lastIndex = tfIndex; showResult(); } });
+
+// ==================== 返回上一题 ====================
+function goBack() {
+  $('result-section').classList.add('hidden');
+  switchMode(lastMode, lastIndex);
+}
+
+// ==================== 结果 ====================
+function showResult() {
+  ['drag-section','single-section','multi-section','tf-section'].forEach(id => $(id).classList.add('hidden'));
+  $('result-section').classList.remove('hidden');
+  
+  const total = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.drag + scores.single + scores.multi + scores.tf;
+  const pct = Math.round(totalScore / total * 100);
+  $('final-score').textContent = pct + '%';
+  
+  const detail = $('result-detail');
+  detail.innerHTML = `
+    <div class="result-item"><span>拖拽填空</span><span>${scores.drag} / ${dragQuestions.length}</span></div>
+    <div class="result-item"><span>单选题</span><span>${scores.single} / ${singleQuestions.length}</span></div>
+    <div class="result-item"><span>多选题</span><span>${scores.multi} / ${multiQuestions.length}</span></div>
+    <div class="result-item"><span>判断题</span><span>${scores.tf} / ${trueFalseQuestions.length}</span></div>
+  `;
+}
+
+// ==================== 初始化 ====================
+renderDrag();
+updateTotalScore();
+</script>
+
+</body>
+</html>
