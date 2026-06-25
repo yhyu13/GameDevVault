@@ -1,6 +1,18 @@
+# Editor configs
 .obsidian/
+.claudian/
 .trash/
 99-Assets/
+GameEngine/
+
+# Dependencies & binaries
+**/node_modules/
+*.pptx
+*.ppt
+*.zip
+*.pdf
+
+# Temp files
 *.tmp
 *.temp
 .DS_Store
