@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen 源码调用链 · 互动式问答卡牌</title>
+<style>
+:root{--bg:#f5f5f0;--card-bg:#fff;--primary:#3a5a7c;--accent:#6b9e75;--accent-wrong:#c45c5c;--text:#2c3e50;--text-light:#5d6d7e;--border:#d0d5dd;--shadow:rgba(0,0,0,0.08);--drop-zone:#eef2f7;--draggable:#f0f4f8;--status-correct:#e8f5e9;--status-wrong:#fce8e8;--status-unanswered:#f8f9fa}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:1.4rem;font-weight:500}
+header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
+.header-left{flex:1}
+.header-btn{padding:0.5rem 1.2rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.2s;font-size:0.95rem}
+.header-btn:hover{background:rgba(255,255,255,0.25)}
+.container{max-width:800px;margin:0 auto;padding:1.5rem}
+.nav-tabs{display:flex;gap:0.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.nav-tab{flex:1;min-width:120px;padding:0.7rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.95rem;transition:all 0.2s;color:var(--text-light)}
+.nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+.nav-tab:hover:not(.active){background:var(--drop-zone)}
+.score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.8rem}
+.score-mini{font-size:0.9rem;color:var(--text-light);white-space:nowrap}
+.score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.1rem}
+.progress-text{text-align:right;font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem}
+.progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.5rem}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+.card{background:var(--card-bg);border-radius:12px;padding:1.8rem 2rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.5rem}
+.card-number{display:inline-block;width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:0.85rem;font-weight:600;margin-right:0.6rem}
+.card h3{margin:0 0 1.2rem;font-size:1.1rem;font-weight:500}
+.drag-sentence{font-size:1.05rem;line-height:2.2;margin-bottom:1.5rem}
+.drop-zone{display:inline-block;min-width:100px;height:36px;line-height:34px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 4px;transition:all 0.2s;padding:0 8px}
+.drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+.drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8}
+.drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+.drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+.drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+.draggables-container{display:flex;flex-wrap:wrap;gap:0.6rem;padding:1rem;background:var(--bg);border-radius:10px;margin-bottom:1rem}
+.draggable{display:inline-block;padding:0.5rem 1rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;font-size:0.95rem;transition:all 0.15s;user-select:none}
+.draggable:hover{background:#e1e8f0;transform:translateY(-2px);box-shadow:0 2px 6px var(--shadow)}
+.draggable:active{cursor:grabbing}
+.draggable.dragging{opacity:0.5}
+.draggable.used{opacity:0.3;pointer-events:none}
+.options{display:flex;flex-direction:column;gap:0.7rem}
+.option{padding:0.9rem 1.2rem;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:0.7rem}
+.option:hover{background:var(--drop-zone);border-color:var(--primary)}
+.option.selected{border-color:var(--primary);background:#e8f0f8}
+.option.correct{border-color:var(--accent);background:#e8f5e9}
+.option.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+.option.disabled{pointer-events:none}
+.option-marker{width:22px;height:22px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700}
+.option.selected .option-marker{border-color:var(--primary);background:var(--primary);color:#fff}
+.option.correct .option-marker{border-color:var(--accent);background:var(--accent);color:#fff}
+.option.wrong .option-marker{border-color:var(--accent-wrong);background:var(--accent-wrong);color:#fff}
+.multi .option-marker{border-radius:4px}
+.option-content{flex:1}
+.option-explain{display:none;margin-top:0.5rem;font-size:0.85rem;color:#555;padding:0.4rem 0.6rem;border-radius:4px;background:rgba(0,0,0,0.03)}
+.option-explain.show{display:block}
+.btn-group{display:flex;gap:0.8rem;margin-top:1.5rem;justify-content:center;flex-wrap:wrap}
+.btn{padding:0.7rem 1.8rem;border:none;border-radius:8px;font-size:1rem;cursor:pointer;transition:all 0.2s;font-weight:500}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:#2a4a6c}
+.btn-secondary{background:var(--border);color:var(--text)}
+.btn-secondary:hover{background:#c0c5cc}
+.btn-danger{background:var(--accent-wrong);color:#fff}
+.btn-danger:hover{background:#a04545}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.feedback{margin-top:1rem;padding:1rem 1.2rem;border-radius:8px;display:none;font-size:0.95rem;line-height:1.6}
+.feedback.show{display:block}
+.feedback.correct{background:#e8f5e9;border-left:4px solid var(--accent)}
+.feedback.wrong{background:#fce8e8;border-left:4px solid var(--accent-wrong)}
+.feedback-title{font-weight:600;margin-bottom:0.4rem}
+.blank-detail{margin:0.6rem 0;padding:0.6rem 0.8rem;border-radius:6px;background:#f8f9fa;border-left:3px solid var(--primary)}
+.blank-detail.correct-blank{border-left-color:var(--accent);background:#f0f8f0}
+.blank-detail.wrong-blank{border-left-color:var(--accent-wrong);background:#fdf0f0}
+.blank-detail-title{font-weight:600;font-size:0.9rem;margin-bottom:0.2rem}
+.blank-detail-body{font-size:0.88rem;color:#555}
+.nav-buttons{display:flex;justify-content:space-between;margin-top:1rem}
+.nav-btn{padding:0.5rem 1.2rem;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);cursor:pointer;transition:all 0.2s}
+.nav-btn:hover{background:var(--drop-zone)}
+.nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+.dashboard-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
+.dashboard-overlay.show{display:flex}
+.dashboard-panel{background:var(--card-bg);border-radius:16px;width:100%;max-width:720px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.dashboard-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.dashboard-header h2{margin:0;font-size:1.2rem;font-weight:500}
+.dashboard-close{font-size:1.5rem;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background 0.2s}
+.dashboard-close:hover{background:var(--bg)}
+.dashboard-body{padding:1.5rem;overflow-y:auto;flex:1}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat-card{text-align:center;padding:1rem;border-radius:10px;background:var(--bg)}
+.stat-num{font-size:2rem;font-weight:700;color:var(--primary)}
+.stat-label{font-size:0.85rem;color:var(--text-light);margin-top:0.2rem}
+.stat-card.correct-card .stat-num{color:var(--accent)}
+.stat-card.wrong-card .stat-num{color:var(--accent-wrong)}
+.filter-tabs{display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.filter-tab{padding:0.4rem 1rem;border:1px solid var(--border);border-radius:20px;background:var(--card-bg);cursor:pointer;font-size:0.85rem;transition:all 0.2s}
+.filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filter-tab:hover:not(.active){background:var(--drop-zone)}
+.question-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.8rem}
+.question-thumb{padding:1rem;border-radius:10px;border:2px solid var(--border);cursor:pointer;transition:all 0.2s;background:var(--card-bg);position:relative}
+.question-thumb:hover{transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow);border-color:var(--primary)}
+.question-thumb.correct{border-color:var(--accent);background:var(--status-correct)}
+.question-thumb.wrong{border-color:var(--accent-wrong);background:var(--status-wrong)}
+.question-thumb.unanswered{border-color:var(--border);background:var(--status-unanswered)}
+.thumb-num{font-size:0.75rem;color:var(--text-light);margin-bottom:0.3rem}
+.thumb-type{display:inline-block;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;background:var(--primary);color:#fff;margin-bottom:0.4rem}
+.thumb-type.drag{background:#6b5b95}
+.thumb-type.single{background:#5b8a72}
+.thumb-type.multi{background:#8a5b5b}
+.thumb-type.tf{background:#5b7a8a}
+.thumb-text{font-size:0.85rem;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.thumb-status{position:absolute;top:0.5rem;right:0.5rem;font-size:1rem}
+.thumb-status.correct-icon{color:var(--accent)}
+.thumb-status.wrong-icon{color:var(--accent-wrong)}
+.result-card{text-align:center;padding:3rem 2rem}
+.result-score{font-size:4rem;font-weight:700;color:var(--primary);margin:1rem 0}
+.result-label{font-size:1.1rem;color:var(--text-light)}
+.result-detail{margin-top:1.5rem;text-align:left}
+.result-item{display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)}
+.hidden{display:none!important}
+@media(max-width:600px){.container{padding:1rem}.card{padding:1.2rem}.drag-sentence{font-size:0.95rem}.stats-grid{grid-template-columns:repeat(3,1fr)}.question-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>🔗 Lumen 源码调用链 · 互动式问答卡牌</h1>
+    <p>4 个主 Pass 顺序 · 三级 Trace 回退 · 关键函数定位 — 面试前速测</p>
+    <p style="margin-top:0.4rem;font-size:0.85rem;"><a href="index.html" style="color:#ffd966;text-decoration:underline;">💡 配套：Lumen SIGGRAPH 论文笔记 · 概念卡牌（Software RT · Radiance Cache · Screen Probe） →</a></p>
+  </div>
+  <button class="header-btn" id="dashboard-btn">📊 题目总览</button>
+</header>
+
+<div class="container">
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-mode="drag">拖拽填空</div>
+    <div class="nav-tab" data-mode="single">单选题</div>
+    <div class="nav-tab" data-mode="multi">多选题</div>
+    <div class="nav-tab" data-mode="tf">判断题</div>
+  </div>
+  <div class="score-bar">
+    <div class="score-mini">总得分：<span class="score-num" id="total-score">0</span> / <span id="total-max">14</span></div>
+  </div>
+  <div class="progress-text">当前：<span id="current-index">1</span> / <span id="total-count">4</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:25%"></div></div>
+  
+  <div id="drag-section">
+    <div class="card" id="drag-card">
+      <h3><span class="card-number">1</span>拖拽填空</h3>
+      <div class="drag-sentence" id="drag-sentence"></div>
+      <div class="draggables-container" id="draggables"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="drag-check-btn">检查答案</button>
+        <button class="btn btn-secondary" id="drag-reset-btn">重置</button>
+      </div>
+      <div class="feedback" id="drag-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="drag-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="drag-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <div id="single-section" class="hidden">
+    <div class="card" id="single-card">
+      <h3><span class="card-number">1</span>单选题</h3>
+      <div class="drag-sentence" id="single-question"></div>
+      <div class="options" id="single-options"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="single-check-btn">检查答案</button>
+      </div>
+      <div class="feedback" id="single-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="single-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="single-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <div id="multi-section" class="hidden">
+    <div class="card" id="multi-card">
+      <h3><span class="card-number">1</span>多选题</h3>
+      <div class="drag-sentence" id="multi-question"></div>
+      <div class="options multi" id="multi-options"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="multi-check-btn">检查答案</button>
+      </div>
+      <div class="feedback" id="multi-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="multi-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="multi-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <div id="tf-section" class="hidden">
+    <div class="card" id="tf-card">
+      <h3><span class="card-number">1</span>判断题</h3>
+      <div class="drag-sentence" id="tf-statement" style="font-size:1.1rem;margin-bottom:1.5rem"></div>
+      <div class="btn-group" style="justify-content:center">
+        <button class="btn btn-primary" id="tf-true-btn" style="background:var(--accent)">✅ 正确</button>
+        <button class="btn btn-danger" id="tf-false-btn">❌ 错误</button>
+      </div>
+      <div class="feedback" id="tf-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="tf-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="tf-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <div id="result-section" class="hidden">
+    <div class="card result-card">
+      <div class="result-label">测试完成</div>
+      <div class="result-score" id="final-score">0%</div>
+      <div class="result-label">得分</div>
+      <div class="result-detail" id="result-detail"></div>
+      <div class="btn-group" style="margin-top:2rem">
+        <button class="btn btn-secondary" onclick="goBack()">🔙 返回题目</button>
+        <button class="btn btn-primary" onclick="resetAll()">🔄 重新开始</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-overlay" id="dashboard-overlay">
+  <div class="dashboard-panel">
+    <div class="dashboard-header">
+      <h2>📊 题目总览</h2>
+      <div class="dashboard-close" id="dashboard-close">✕</div>
+    </div>
+    <div class="dashboard-body">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="dash-total">0%</div>
+          <div class="stat-label">总正确率</div>
+        </div>
+        <div class="stat-card correct-card">
+          <div class="stat-num" id="dash-correct">0</div>
+          <div class="stat-label">已做对</div>
+        </div>
+        <div class="stat-card wrong-card">
+          <div class="stat-num" id="dash-wrong">0</div>
+          <div class="stat-label">做错/未答</div>
+        </div>
+      </div>
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">全部</div>
+        <div class="filter-tab" data-filter="correct">✅ 正确</div>
+        <div class="filter-tab" data-filter="wrong">❌ 错误</div>
+        <div class="filter-tab" data-filter="unanswered">⬜ 未答</div>
+      </div>
+      <div class="question-grid" id="question-grid"></div>
+      <div style="margin-top:1.5rem;text-align:center">
+        <button class="btn btn-danger" id="reset-all-btn">🔄 重置所有分数</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ==================== Lumen 调用链 题目数据 ====================
+// Source: ../../../Routine/02-引擎源码分析库/Unreal-Engine/UE5-Lumen-源码调用链.md
+const DETAIL_LINK = "../../../Routine/02-引擎源码分析库/Unreal-Engine/UE5-Lumen-源码调用链.md";
+
+const dragQuestions = [
+  {
+    sentence: "Lumen 4 个主 Pass 顺序：① {0} 处理场景内部光照（Card 捕获 + Radiosity），② {1} 处理屏幕空间 GI，③ {2} 处理反射，④ BasePass 合成。",
+    answers: ["RenderLumenSceneLighting", "RenderDiffuseIndirectAndAmbientOcclusion", "RenderLumenReflections"],
+    pool: ["RenderLumenSceneLighting", "RenderDiffuseIndirectAndAmbientOcclusion", "RenderLumenReflections", "UpdateLumenScene", "ComputeLumenSceneVoxelLighting", "RenderRadiosityForLumenScene", "CompositeLumenReflections"],
+    explanation: "一帧 Lumen 从 FDeferredShadingSceneRenderer::Render 出发，4 个主 Pass 顺序固定：先 Scene Lighting，再 Diffuse Indirect，再 Reflections，最后 BasePass 合成。UpdateLumenScene 是场景数据更新（不是渲染 Pass）。",
+    detailLink: DETAIL_LINK,
+    blankExplanations: [
+      "RenderLumenSceneLighting 是 Pass 1，负责 Card 捕获 + Radiosity 迭代 + 直接光注入。",
+      "RenderDiffuseIndirectAndAmbientOcclusion 是 Pass 2，内部走 ScreenProbeGather.usf 核心 Compute Shader。",
+      "RenderLumenReflections 是 Pass 3，输出到 Composite 与 BasePass 合成。"
+    ]
+  },
+  {
+    sentence: "三级 Trace 回退顺序：① {0}（屏幕空间，零额外几何开销）→ ② {1}（中距离，体积查询）→ ③ {2}（远距离，精确但昂贵）。",
+    answers: ["Screen Trace", "Mesh SDF Trace", "Hardware RT"],
+    pool: ["Screen Trace", "Mesh SDF Trace", "Hardware RT", "Lightmap", "Voxel Cone", "TAA", "BasePass"],
+    explanation: "CompositeTraces 在 ScreenProbeGather.usf 中按距离/命中条件顺序回退：先 Screen Trace（用 prev frame SceneColor + HierarchicalDepth），失败则 Mesh SDF（用 MeshCardRepresentation + DistanceFieldVolume），最后 Hardware RT（r.Lumen.HardwareRayTracing=1 才启用）。",
+    detailLink: DETAIL_LINK,
+    blankExplanations: [
+      "Screen Trace 是零额外几何开销的首级回退，利用 prev frame 屏幕空间数据。",
+      "Mesh SDF Trace 用 MeshCardRepresentation + DistanceFieldVolume 做体积查询，命中率高于 Screen Trace 但仍有失败。",
+      "Hardware RT 仅在 r.Lumen.HardwareRayTracing=1 时启用，开销最大但精确。"
+    ]
+  },
+  {
+    sentence: "Screen Probe Gather 6 步核心：① Uniform {0} → ② Adaptive {1} → ③ TraceRays → ④ CompositeTraces → ⑤ {2} → ⑥ ComputeIndirect。",
+    answers: ["Probe Placement", "Probe Placement", "FilterRadianceWithGather"],
+    pool: ["Probe Placement", "Probe Placement", "FilterRadianceWithGather", "Card Capture", "Radiosity", "Atlas Update", "Mesh SDF Build"],
+    explanation: "Screen Probe Gather 把 GPU 上的最终 GI 计算收敛到一个 Compute Shader（ScreenProbeGather.usf）的 6 个子步骤，Uniform 放置 + Adaptive 加密 + TraceRays + CompositeTraces + FilterRadianceWithGather + ComputeIndirect。",
+    detailLink: DETAIL_LINK,
+    blankExplanations: [
+      "Uniform Probe Placement 在屏幕空间均匀放置探针，先保证基础覆盖。",
+      "Adaptive Probe Placement 在光照变化剧烈区域（边缘、新暴露）自适应加密。",
+      "FilterRadianceWithGather 对探针辐射率多轮过滤去噪，是 Screen Probe 时间稳定性的关键。"
+    ]
+  },
+  {
+    sentence: "Lumen 关键控制台变量：① {0}=0/1/2 强制禁用/启用/强制软件 RT，② r.Lumen.TraceDistance 控制 {1} 截断，③ r.Lumen.ScreenProbeGather.RadianceCache=0/1 切 {2}。",
+    answers: ["r.Lumen.HardwareRayTracing", "远距离", "辐照缓存"],
+    pool: ["r.Lumen.HardwareRayTracing", "远距离", "辐照缓存", "r.Lumen.Quality", "近端", "Card 数量", "ScreenProbeGather.Radiance"],
+    explanation: "Lumen 调试三件套：r.Lumen.HardwareRayTracing 切 HWRT，r.Lumen.TraceDistance 切远距离截断，r.Lumen.ScreenProbeGather.RadianceCache 切辐照缓存。",
+    detailLink: DETAIL_LINK,
+    blankExplanations: [
+      "r.Lumen.HardwareRayTracing 是 HWRT 主开关：0=强制软件，1=启用 HWRT（按距离自动切），2=强制 HWRT。",
+      "r.Lumen.TraceDistance 控制远距离截断，超过此距离的射线直接走 Voxel/VoxelCache 兜底。",
+      "r.Lumen.ScreenProbeGather.RadianceCache 决定是否启用远距离低频辐照缓存，关掉则全部走高频采样（更慢但更准）。"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    question: "Lumen 的 RenderLumenScreenProbeGather 内部核心 Compute Shader 是哪个？",
+    options: [
+      "A. LumenDiffuseIndirectComposite.usf",
+      "B. ScreenProbeGather.usf",
+      "C. LumenHWRT.usf",
+      "D. LumenRadiosity.usf"
+    ],
+    correct: 1,
+    explanation: "ScreenProbeGather.usf 是 RenderLumenScreenProbeGather 的核心 Compute Shader，内部 6 个子步骤（Uniform/Adaptive/Trace/Composite/Filter/ComputeIndirect）全部由它负责。LumenDiffuseIndirectComposite.usf 是合成 Pass，LumenHWRT.usf 是 HWRT RayGen，LumenRadiosity.usf 是 Radiosity Pass。",
+    detailLink: DETAIL_LINK,
+    optionExplanations: [
+      "❌ 错误：LumenDiffuseIndirectComposite.usf 是合成 Pass，不在 ScreenProbeGather 内部。",
+      "✅ 正确：ScreenProbeGather.usf 是核心，6 步全在里面。",
+      "❌ 错误：LumenHWRT.usf 是 HWRT RayGen，仅在 r.Lumen.HardwareRayTracing=1 时启用。",
+      "❌ 错误：LumenRadiosity.usf 是 Radiosity 迭代 Pass，不在 ScreenProbeGather 里。"
+    ]
+  },
+  {
+    question: "Lumen 4 个主 Pass 的执行顺序是？",
+    options: [
+      "A. Scene Lighting → Reflections → Diffuse Indirect → BasePass",
+      "B. Diffuse Indirect → Scene Lighting → Reflections → BasePass",
+      "C. Scene Lighting → Diffuse Indirect → Reflections → BasePass",
+      "D. Reflections → Diffuse Indirect → Scene Lighting → BasePass"
+    ],
+    correct: 2,
+    explanation: "FDeferredShadingSceneRenderer::Render 内的调用顺序：RenderLumenSceneLighting → RenderDiffuseIndirectAndAmbientOcclusion → RenderLumenReflections → BasePass+Composite。这个顺序由 RDG 资源依赖决定，不是任意的。",
+    detailLink: DETAIL_LINK,
+    optionExplanations: [
+      "❌ 错误：Reflections 必须在 Scene Lighting 之后（依赖 ScreenProbe 输出）。",
+      "❌ 错误：Diffuse Indirect 必须在 Scene Lighting 之后（依赖 Radiosity 输出）。",
+      "✅ 正确：Scene Lighting → Diffuse Indirect → Reflections → BasePass。",
+      "❌ 错误：顺序完全错乱。"
+    ]
+  },
+  {
+    question: "Lumen 的 Pass 是否使用 Async Compute？",
+    options: [
+      "A. 全部走 Async Compute Queue",
+      "B. 全部走 Graphics Queue",
+      "C. 部分 Pass（HWRT）走 Async Compute，其他走 Graphics",
+      "D. 完全由 r.Lumen.AsyncCompute 控制"
+    ],
+    correct: 1,
+    explanation: "Lumen 的所有 Pass 走 Graphics Queue，不使用 Async Compute。原因：Pass 之间的输出依赖在 RDG 里已经显式声明，Graphics Queue 的 latency 足够覆盖 GPU 时长；Async Compute 在 Lumen 这种 RDG 强依赖场景下收益不大且复杂。",
+    detailLink: DETAIL_LINK,
+    optionExplanations: [
+      "❌ 错误：没有任何 Pass 走 Async Compute。",
+      "✅ 正确：全部 Graphics Queue，理由如题。",
+      "❌ 错误：HWRT 也不走 Async Compute，仍走 Graphics。",
+      "❌ 错误：r.Lumen.AsyncCompute 这个 CVar 不存在。"
+    ]
+  },
+  {
+    question: "哪个同步点是 Lumen 时间稳定性最容易出问题的地方？",
+    options: [
+      "A. FScene::UpdateLumenScene 末尾（GT → RT 快照）",
+      "B. MeshCardCapture 末 + Fence（RT → RHI）",
+      "C. ScreenProbeGather 入口读 prev frame SceneColor",
+      "D. DiffuseIndirectComposite 入口读 ScreenProbeRadiance"
+    ],
+    correct: 2,
+    explanation: "ScreenProbeGather 必须读上一帧的 SceneColor 和 HierarchicalDepth，这是 Lumen 时间相关 artifact（flicker/ghosting）的根源。TAA 历史复用 + 相机快速移动/切换时会暴露。GT→RT 快照和 RT→RHI Fence 是数据同步点，但不会引入时间稳定性问题。",
+    detailLink: DETAIL_LINK,
+    optionExplanations: [
+      "❌ 错误：这是数据快照点，不涉及时间稳定性。",
+      "❌ 错误：这是 Card 捕获的 GPU fence，同样不引入时间 artifact。",
+      "✅ 正确：prev frame 依赖是 Lumen 时间 artifact 的根源。",
+      "❌ 错误：这是同帧内的合成，不是时间稳定性问题。"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    question: "Lumen 三级 Trace 回退涉及哪些源码文件？（多选）",
+    options: [
+      "A. LumenScreenTracing.cpp（CPU 侧 Screen Trace）",
+      "B. LumenMeshSDFTracing.cpp（Mesh SDF Trace）",
+      "C. LumenHardwareRayTracing.cpp（HWRT）",
+      "D. LumenCardCapture.usf（Card 捕获）",
+      "E. LumenRadianceCache.cpp（辐照缓存）",
+      "F. LumenVoxelLighting.usf（体素兜底）"
+    ],
+    correct: [0, 1, 2, 5],
+    explanation: "三级 Trace 对应：LumenScreenTracing.cpp / LumenMeshSDFTracing.cpp / LumenHardwareRayTracing.cpp；远距离兜底是 LumenVoxelLighting.usf（VoxelConeTracing）。Card 捕获和辐照缓存不参与 Trace 回退。",
+    detailLink: DETAIL_LINK,
+    optionExplanations: [
+      "✅ 正确：LumenScreenTracing.cpp 是 Screen Trace 的 CPU 侧调度。",
+      "✅ 正确：LumenMeshSDFTracing.cpp 是 Mesh SDF Trace。",
+      "✅ 正确：LumenHardwareRayTracing.cpp 是 HWRT。",
+      "❌ 错误：Card 捕获是 Scene Lighting 阶段，不参与 Trace 回退。",
+      "❌ 错误：辐照缓存是 Screen Probe 的远距离近似层，不是 Trace 路径。",
+      "✅ 正确：体素兜底是第三级 Trace 之后的兜底。"
+    ]
+  },
+  {
+    question: "RenderLumenScreenProbeGather 内部 6 个子步骤包含哪些？（多选）",
+    options: [
+      "A. Uniform Probe Placement",
+      "B. Adaptive Probe Placement",
+      "C. TraceRays / CompositeTraces",
+      "D. FilterRadianceWithGather",
+      "E. RenderRadiosity",
+      "F. ComputeIndirect"
+    ],
+    correct: [0, 1, 2, 3, 5],
+    explanation: "Screen Probe Gather 6 步：Uniform / Adaptive / TraceRays (CompositeTraces) / FilterRadianceWithGather / ComputeIndirect。RenderRadiosity 是 RenderLumenSceneLighting 内部的 Pass，不在 ScreenProbeGather 里。",
+    detailLink: DETAIL_LINK,
+    optionExplanations: [
+      "✅ 正确：Uniform Probe Placement 是第 1 步。",
+      "✅ 正确：Adaptive Probe Placement 是第 2 步。",
+      "✅ 正确：TraceRays + CompositeTraces 是第 3 步（含三级回退）。",
+      "✅ 正确：FilterRadianceWithGather 是第 4 步（去噪）。",
+      "❌ 错误：RenderRadiosity 不在 ScreenProbeGather 里，是 Scene Lighting 阶段。",
+      "✅ 正确：ComputeIndirect 是第 6 步（最终 GI 颜色）。"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    statement: "Lumen 的 Surface Cache 增量更新每帧都重算所有 Card，只在第一次构建时使用脏矩形。",
+    correct: false,
+    explanation: "❌ 错误。Surface Cache 每帧只更新\"脏矩形\"（InvalidatedCards），其余 Card 复用 prev frame。这是 Lumen 显存和计算量可控的核心机制，全量重算会瞬间打爆显存和 GPU。",
+    detailLink: DETAIL_LINK
+  },
+  {
+    statement: "RenderLumenScreenProbeGather 必须读取上一帧的 SceneColor 和 HierarchicalDepth。",
+    correct: true,
+    explanation: "✅ 正确。Screen Trace 是 Lumen 三级 Trace 的首级，必须用 prev frame 的 SceneColor（颜色）+ HierarchicalDepth（深度 mip 链）做查询。这是 Lumen 时间相关 artifact 的根源。",
+    detailLink: DETAIL_LINK
+  },
+  {
+    statement: "Lumen 的 Radiosity 迭代可以无限次，不需要控制上限。",
+    correct: false,
+    explanation: "❌ 错误。Radiosity 迭代次数由 r.Lumen.Radiosity.ProbeResolution / r.Lumen.Radiosity.GatherRings 等参数控制。无限迭代会导致画面收敛但 GPU 爆炸，UE 默认做 2-4 次迭代。",
+    detailLink: DETAIL_LINK
+  },
+  {
+    statement: "MeshCardRepresentation 数据在离线 Cook 阶段生成，运行时只做增量更新。",
+    correct: true,
+    explanation: "✅ 正确。MeshCardRepresentation 通过 GCardRepresentationAsyncQueue 在离线阶段（或 Loading 阶段）生成 Card Representation 数据；运行时 UpdateMeshCards 只做增量更新。动态物体的 Card 更新开销大，是 Lumen 性能瓶颈点之一。",
+    detailLink: DETAIL_LINK
+  },
+  {
+    statement: "r.Lumen.HardwareRayTracing=1 时，所有 Trace 都走 HWRT。",
+    correct: false,
+    explanation: "❌ 错误。r.Lumen.HardwareRayTracing=1 时 HWRT 仅作为三级 Trace 的第三级启用（Screen Trace → Mesh SDF → HWRT）。Screen Trace 和 Mesh SDF 仍走软件路径，因为它们的命中率已经够高、且 HWRT 对它们没收益。=2 才强制全部 HWRT。",
+    detailLink: DETAIL_LINK
+  },
+  {
+    statement: "Lumen 完全不依赖任何 TAA 历史帧。",
+    correct: false,
+    explanation: "❌ 错误。Lumen 的 Screen Trace 强依赖 prev frame 数据（SceneColor + HierarchicalDepth），本质就是 TAA 历史帧的延伸。完全无历史帧的 Lumen 会出现严重时间闪烁。",
+    detailLink: DETAIL_LINK
+  }
+];
+
+const allQuestions = [];
+dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
+singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
+multiQuestions.forEach((q,i)=>allQuestions.push({mode:'multi',index:i,question:q.question.substring(0,40)+'...',type:'multi'}));
+trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:q.statement.substring(0,40)+'...',type:'tf'}));
+
+// ==================== 状态 ====================
+let currentMode = 'drag';
+let lastMode = 'drag';
+let lastIndex = 0;
+let dragIndex = 0, singleIndex = 0, multiIndex = 0;
+let scores = { drag: 0, single: 0, multi: 0, tf: 0 };
+let answered = { drag: [], single: [], multi: [], tf: [] };
+let answeredCorrect = { drag: [], single: [], multi: [], tf: [] };
+let tfIndex = 0;
+
+function initState() {
+  dragQuestions.forEach(() => { answered.drag.push(false); answeredCorrect.drag.push(false); });
+  singleQuestions.forEach(() => { answered.single.push(false); answeredCorrect.single.push(false); });
+  multiQuestions.forEach(() => { answered.multi.push(false); answeredCorrect.multi.push(false); });
+  trueFalseQuestions.forEach(() => { answered.tf.push(false); answeredCorrect.tf.push(false); });
+}
+initState();
+
+// ==================== 工具函数 ====================
+function $(id) { return document.getElementById(id); }
+function updateProgress(mode) {
+  const idx = mode === 'drag' ? dragIndex : mode === 'single' ? singleIndex : mode === 'multi' ? multiIndex : tfIndex;
+  const total = mode === 'drag' ? dragQuestions.length : mode === 'single' ? singleQuestions.length : mode === 'multi' ? multiQuestions.length : trueFalseQuestions.length;
+  $('current-index').textContent = idx + 1;
+  $('total-count').textContent = total;
+  $('progress-fill').style.width = ((idx + 1) / total * 100) + '%';
+}
+function setNavBtn(prevId, nextId, idx, total) {
+  $(prevId).disabled = idx === 0;
+  $(nextId).disabled = false;
+  $(nextId).textContent = idx === total - 1 ? "查看结果 →" : "下一题 →";
+}
+function updateTotalScore() {
+  const totalMax = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.drag + scores.single + scores.multi + scores.tf;
+  $('total-score').textContent = totalScore;
+  $('total-max').textContent = totalMax;
+}
+function getQuestionStatus(mode, idx) {
+  if (!answered[mode][idx]) return 'unanswered';
+  return answeredCorrect[mode][idx] ? 'correct' : 'wrong';
+}
+
+// ==================== 总览面板 ====================
+$('dashboard-btn').addEventListener('click', openDashboard);
+$('dashboard-close').addEventListener('click', closeDashboard);
+$('dashboard-overlay').addEventListener('click', (e) => { if (e.target === $('dashboard-overlay')) closeDashboard(); });
+$('reset-all-btn').addEventListener('click', resetAll);
+
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderDashboardGrid(tab.dataset.filter);
+  });
+});
+
+function openDashboard() {
+  updateDashboardStats();
+  renderDashboardGrid('all');
+  $('dashboard-overlay').classList.add('show');
+}
+function closeDashboard() { $('dashboard-overlay').classList.remove('show'); }
+
+function updateDashboardStats() {
+  const totalMax = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  let totalCorrect = 0, totalWrong = 0, totalUnanswered = 0;
+  ['drag','single','multi','tf'].forEach(mode => {
+    answered[mode].forEach((a, i) => {
+      if (!a) totalUnanswered++;
+      else if (answeredCorrect[mode][i]) totalCorrect++;
+      else totalWrong++;
+    });
+  });
+  const pct = totalMax > 0 ? Math.round(totalCorrect / totalMax * 100) : 0;
+  $('dash-total').textContent = pct + '%';
+  $('dash-correct').textContent = totalCorrect;
+  $('dash-wrong').textContent = totalWrong + totalUnanswered;
+}
+
+function renderDashboardGrid(filter) {
+  const grid = $('question-grid');
+  grid.innerHTML = '';
+  allQuestions.forEach((q, globalIdx) => {
+    const status = getQuestionStatus(q.mode, q.index);
+    if (filter !== 'all' && status !== filter) return;
+    const thumb = document.createElement('div');
+    thumb.className = `question-thumb ${status}`;
+    thumb.innerHTML = `
+      <div class="thumb-num">#${globalIdx + 1}</div>
+      <div class="thumb-type ${q.type}">${q.type === 'drag' ? '拖拽' : q.type === 'single' ? '单选' : q.type === 'tf' ? '判断' : '多选'}</div>
+      <div class="thumb-text">${q.question}</div>
+      <div class="thumb-status ${status === 'correct' ? 'correct-icon' : status === 'wrong' ? 'wrong-icon' : ''}">${status === 'correct' ? '✅' : status === 'wrong' ? '❌' : ''}</div>
+    `;
+    thumb.addEventListener('click', () => { closeDashboard(); switchMode(q.mode, q.index); });
+    grid.appendChild(thumb);
+  });
+}
+
+function switchMode(mode, idx) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.nav-tab[data-mode="${mode}"]`).classList.add('active');
+  currentMode = mode;
+  ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+  if (mode === 'drag') { $('drag-section').classList.remove('hidden'); dragIndex = idx; renderDrag(); }
+  else if (mode === 'single') { $('single-section').classList.remove('hidden'); singleIndex = idx; renderSingle(); }
+  else if (mode === 'multi') { $('multi-section').classList.remove('hidden'); multiIndex = idx; renderMulti(); }
+  else if (mode === 'tf') { $('tf-section').classList.remove('hidden'); tfIndex = idx; renderTrueFalse(); }
+}
+
+function resetAll() {
+  scores = { drag: 0, single: 0, multi: 0, tf: 0 };
+  answered = { drag: [], single: [], multi: [], tf: [] };
+  answeredCorrect = { drag: [], single: [], multi: [], tf: [] };
+  initState();
+  dragIndex = 0; singleIndex = 0; multiIndex = 0; tfIndex = 0;
+  currentMode = 'drag';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.nav-tab[data-mode="drag"]').classList.add('active');
+  ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+  $('drag-section').classList.remove('hidden');
+  renderDrag();
+  updateTotalScore();
+  closeDashboard();
+}
+
+// ==================== 拖拽填空 ====================
+let dragState = {};
+
+function renderDrag() {
+  const q = dragQuestions[dragIndex];
+  const sentenceEl = $('drag-sentence');
+  const draggablesEl = $('draggables');
+  let parts = q.sentence.split(/\{(\d)\}/g);
+  let html = '';
+  let blankIdx = 0;
+  for (let i = 0; i < parts.length; i++) {
+    if (/^\d$/.test(parts[i])) {
+      html += `<span class="drop-zone" data-idx="${blankIdx}"></span>`;
+      blankIdx++;
+    } else { html += parts[i]; }
+  }
+  sentenceEl.innerHTML = html;
+  draggablesEl.innerHTML = '';
+  q.pool.forEach((text) => {
+    const el = document.createElement('div');
+    el.className = 'draggable';
+    el.draggable = true;
+    el.textContent = text;
+    el.dataset.text = text;
+    el.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', text);
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragend', () => { el.classList.remove('dragging'); });
+    draggablesEl.appendChild(el);
+  });
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => { zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const text = e.dataTransfer.getData('text/plain');
+      if (!text) return;
+      // 取出原值
+      const prevText = zone.textContent;
+      zone.innerHTML = `<span class="dropped-text">${text}</span>`;
+      zone.dataset.ans = text;
+      zone.classList.add('filled');
+      // 池子恢复
+      document.querySelectorAll('.draggable').forEach(d => {
+        if (d.dataset.text === text) d.classList.add('used');
+        else if (d.dataset.text === prevText) d.classList.remove('used');
+      });
+    });
+  });
+  // 允许点击恢复
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('click', () => {
+      if (!zone.classList.contains('filled')) return;
+      const text = zone.dataset.ans;
+      zone.classList.remove('filled', 'correct', 'wrong');
+      zone.innerHTML = '';
+      delete zone.dataset.ans;
+      document.querySelectorAll('.draggable').forEach(d => {
+        if (d.dataset.text === text) d.classList.remove('used');
+      });
+    });
+  });
+  $('drag-feedback').className = 'feedback';
+  $('drag-feedback').innerHTML = '';
+  setNavBtn('drag-prev', 'drag-next', dragIndex, dragQuestions.length);
+  updateProgress('drag');
+  updateTotalScore();
+}
+
+$('drag-check-btn').addEventListener('click', () => {
+  const q = dragQuestions[dragIndex];
+  const zones = document.querySelectorAll('.drop-zone');
+  const userAns = Array.from(zones).map(z => z.dataset.ans || '');
+  const filledCount = userAns.filter(Boolean).length;
+  if (filledCount < q.answers.length) {
+    alert(`请填完所有 ${q.answers.length} 个空（当前已填 ${filledCount}）`);
+    return;
+  }
+  let allCorrect = true;
+  zones.forEach((zone, i) => {
+    if (userAns[i] === q.answers[i]) {
+      zone.classList.add('correct');
+      zone.classList.remove('wrong');
+    } else {
+      zone.classList.add('wrong');
+      zone.classList.remove('correct');
+      allCorrect = false;
+    }
+  });
+  const wasCorrect = answeredCorrect.drag[dragIndex];
+  if (allCorrect && !wasCorrect) scores.drag++;
+  answered.drag[dragIndex] = true;
+  answeredCorrect.drag[dragIndex] = allCorrect;
+  updateTotalScore();
+  const fb = $('drag-feedback');
+  fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'wrong');
+  let html = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 部分错误'}</div><div>${q.explanation}</div>`;
+  if (q.detailLink) html += `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5-Lumen-源码调用链.md</a></div>`;
+  q.blankExplanations.forEach((be, i) => {
+    const isCorrect = userAns[i] === q.answers[i];
+    html += `<div class="blank-detail ${isCorrect ? 'correct-blank' : 'wrong-blank'}"><div class="blank-detail-title">空 ${i+1}：${isCorrect ? '✓' : '✗'} 你的答案：${userAns[i] || '（未填）'} | 参考答案：${q.answers[i]}</div><div class="blank-detail-body">${be}</div></div>`;
+  });
+  fb.innerHTML = html;
+});
+
+$('drag-reset-btn').addEventListener('click', () => {
+  document.querySelectorAll('.drop-zone').forEach(z => { z.classList.remove('filled', 'correct', 'wrong'); z.innerHTML = ''; delete z.dataset.ans; });
+  document.querySelectorAll('.draggable').forEach(d => d.classList.remove('used'));
+  $('drag-feedback').className = 'feedback';
+  $('drag-feedback').innerHTML = '';
+});
+
+$('drag-prev').addEventListener('click', () => { if (dragIndex > 0) { dragIndex--; renderDrag(); } });
+$('drag-next').addEventListener('click', () => { if (dragIndex < dragQuestions.length - 1) { dragIndex++; renderDrag(); } else { lastMode = 'drag'; lastIndex = dragIndex; showResult(); } });
+
+// ==================== 单选题 ====================
+function renderSingle() {
+  const q = singleQuestions[singleIndex];
+  $('single-question').textContent = q.question;
+  const optsEl = $('single-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.dataset.sel = i;
+    div.innerHTML = `<div class="option-marker">${String.fromCharCode(65+i)}</div><div class="option-content"><div class="option-text">${opt.substring(2)}</div><div class="option-explain" data-explain="${i}"></div></div>`;
+    div.addEventListener('click', () => {
+      if (div.classList.contains('disabled')) return;
+      document.querySelectorAll('#single-options .option').forEach(o => o.classList.remove('selected'));
+      div.classList.add('selected');
+    });
+    optsEl.appendChild(div);
+  });
+  $('single-feedback').className = 'feedback';
+  $('single-feedback').innerHTML = '';
+  setNavBtn('single-prev', 'single-next', singleIndex, singleQuestions.length);
+  updateProgress('single');
+  updateTotalScore();
+}
+
+$('single-check-btn').addEventListener('click', () => {
+  const sel = document.querySelector('#single-options .option.selected');
+  if (!sel) { alert('请先选择一个选项'); return; }
+  const idx = parseInt(sel.dataset.sel);
+  const q = singleQuestions[singleIndex];
+  const isCorrect = idx === q.correct;
+  document.querySelectorAll('#single-options .option').forEach((o, i) => {
+    o.classList.remove('selected', 'correct', 'wrong', 'disabled');
+    o.classList.add('disabled');
+    if (i === q.correct) o.classList.add('correct');
+    else if (i === idx) o.classList.add('wrong');
+    const explain = o.querySelector('.option-explain');
+    explain.textContent = q.optionExplanations[i];
+    explain.classList.add('show');
+  });
+  const wasCorrect = answeredCorrect.single[singleIndex];
+  if (isCorrect && !wasCorrect) scores.single++;
+  answered.single[singleIndex] = true;
+  answeredCorrect.single[singleIndex] = isCorrect;
+  updateTotalScore();
+  const fb = $('single-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5-Lumen-源码调用链.md</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
+});
+
+$('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
+$('single-next').addEventListener('click', () => { if (singleIndex < singleQuestions.length - 1) { singleIndex++; renderSingle(); } else { lastMode = 'single'; lastIndex = singleIndex; showResult(); } });
+
+// ==================== 多选题 ====================
+function renderMulti() {
+  const q = multiQuestions[multiIndex];
+  $('multi-question').textContent = q.question;
+  const optsEl = $('multi-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option multi';
+    div.innerHTML = `<div class="option-marker">${String.fromCharCode(65+i)}</div><div class="option-content"><div class="option-text">${opt.substring(2)}</div><div class="option-explain" data-explain="${i}"></div></div>`;
+    div.addEventListener('click', () => { div.classList.toggle('selected'); });
+    optsEl.appendChild(div);
+  });
+  $('multi-feedback').className = 'feedback';
+  $('multi-feedback').innerHTML = '';
+  setNavBtn('multi-prev', 'multi-next', multiIndex, multiQuestions.length);
+  updateProgress('multi');
+  updateTotalScore();
+}
+
+$('multi-check-btn').addEventListener('click', () => {
+  const selected = Array.from(document.querySelectorAll('#multi-options .option.selected')).map(el => Array.from(el.parentNode.children).indexOf(el));
+  if (selected.length === 0) { alert('请至少选择一个选项'); return; }
+  const q = multiQuestions[multiIndex];
+  const isCorrect = selected.length === q.correct.length && selected.every(i => q.correct.includes(i));
+  document.querySelectorAll('#multi-options .option').forEach((o, i) => {
+    o.classList.remove('selected', 'correct', 'wrong', 'disabled');
+    o.classList.add('disabled');
+    if (q.correct.includes(i)) o.classList.add('correct');
+    else if (selected.includes(i)) o.classList.add('wrong');
+    const explain = o.querySelector('.option-explain');
+    explain.textContent = q.optionExplanations[i];
+    explain.classList.add('show');
+  });
+  const wasCorrect = answeredCorrect.multi[multiIndex];
+  if (isCorrect && !wasCorrect) scores.multi++;
+  answered.multi[multiIndex] = true;
+  answeredCorrect.multi[multiIndex] = isCorrect;
+  updateTotalScore();
+  const fb = $('multi-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5-Lumen-源码调用链.md</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
+});
+
+$('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
+$('multi-next').addEventListener('click', () => { if (multiIndex < multiQuestions.length - 1) { multiIndex++; renderMulti(); } else { lastMode = 'multi'; lastIndex = multiIndex; showResult(); } });
+
+// ==================== 导航切换 ====================
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMode = tab.dataset.mode;
+    ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+    document.querySelector('.nav-tabs').classList.remove('hidden');
+    document.querySelector('.score-bar').classList.remove('hidden');
+    document.querySelector('.progress-text').classList.remove('hidden');
+    document.querySelector('.progress-bar').classList.remove('hidden');
+    if (currentMode === 'drag') { $('drag-section').classList.remove('hidden'); renderDrag(); }
+    else if (currentMode === 'single') { $('single-section').classList.remove('hidden'); renderSingle(); }
+    else if (currentMode === 'multi') { $('multi-section').classList.remove('hidden'); renderMulti(); }
+    else if (currentMode === 'tf') { $('tf-section').classList.remove('hidden'); renderTrueFalse(); }
+  });
+});
+
+
+// ==================== 判断题 ====================
+function renderTrueFalse() {
+  const q = trueFalseQuestions[tfIndex];
+  $('tf-statement').textContent = q.statement;
+  $('tf-feedback').className = 'feedback';
+  $('tf-feedback').innerHTML = '';
+  document.getElementById('tf-true-btn').disabled = false;
+  document.getElementById('tf-false-btn').disabled = false;
+  setNavBtn('tf-prev', 'tf-next', tfIndex, trueFalseQuestions.length);
+  updateProgress('tf');
+  updateTotalScore();
+}
+
+function checkTrueFalse(userAnswer) {
+  const q = trueFalseQuestions[tfIndex];
+  const isCorrect = userAnswer === q.correct;
+  document.getElementById('tf-true-btn').disabled = true;
+  document.getElementById('tf-false-btn').disabled = true;
+  const fb = $('tf-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  let detailLinkHTML = q.detailLink ? `<div style="margin-top:0.8rem;"><a href="${q.detailLink}" style="color:var(--primary);text-decoration:underline;">📖 查看 UE5-Lumen-源码调用链.md</a></div>` : '';
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>${detailLinkHTML}`;
+  const wasCorrect = answeredCorrect.tf[tfIndex];
+  if (isCorrect && !wasCorrect) scores.tf++;
+  answered.tf[tfIndex] = true;
+  answeredCorrect.tf[tfIndex] = isCorrect;
+  updateTotalScore();
+}
+
+$('tf-true-btn').addEventListener('click', () => checkTrueFalse(true));
+$('tf-false-btn').addEventListener('click', () => checkTrueFalse(false));
+$('tf-prev').addEventListener('click', () => { if (tfIndex > 0) { tfIndex--; renderTrueFalse(); } });
+$('tf-next').addEventListener('click', () => { if (tfIndex < trueFalseQuestions.length - 1) { tfIndex++; renderTrueFalse(); } else { lastMode = 'tf'; lastIndex = tfIndex; showResult(); } });
+
+// ==================== 返回上一题 ====================
+function goBack() {
+  $('result-section').classList.add('hidden');
+  switchMode(lastMode, lastIndex);
+}
+
+// ==================== 结果 ====================
+function showResult() {
+  ['drag-section','single-section','multi-section','tf-section'].forEach(id => $(id).classList.add('hidden'));
+  $('result-section').classList.remove('hidden');
+  const total = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.drag + scores.single + scores.multi + scores.tf;
+  const pct = Math.round(totalScore / total * 100);
+  $('final-score').textContent = pct + '%';
+  const detail = $('result-detail');
+  detail.innerHTML = `
+    <div class="result-item"><span>拖拽填空</span><span>${scores.drag} / ${dragQuestions.length}</span></div>
+    <div class="result-item"><span>单选题</span><span>${scores.single} / ${singleQuestions.length}</span></div>
+    <div class="result-item"><span>多选题</span><span>${scores.multi} / ${multiQuestions.length}</span></div>
+    <div class="result-item"><span>判断题</span><span>${scores.tf} / ${trueFalseQuestions.length}</span></div>
+  `;
+}
+
+// ==================== 初始化 ====================
+renderDrag();
+updateTotalScore();
+</script>
+
+</body>
+</html>
