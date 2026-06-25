@@ -20,18 +20,23 @@
 
 - **[[瓶颈案例]]** — 按现象分类（DrawCall 过高、GC 卡顿、纹理带宽等）
 - **[[Profile 记录]]** — 具体项目的 Profile 数据截图与分析
+- **[[知识参考]]** — 从在线资源整理的方法论 / 工具 / 专项调优笔记（持续扩充）
 
 ---
 
 ## 现象速查表
 
-| 现象 | 首选工具 | 常见根因 | 解决方案 |
-|------|----------|----------|----------|
-| DrawCall 过高 | RenderDoc / Pix | 材质未合批 | GPU Instancing / SRP Batcher |
-| 卡顿 spikes | Unity Profiler / UE Insights | GC / 同步加载 | 对象池 / 异步加载 |
-| 纹理带宽高 | RenderDoc Texture Viewer | 纹理过大/未压缩 | ASTC/BC7 压缩、Mipmap |
-| 顶点处理瓶颈 | GPU Profiler | 模型面数过高 | LOD / 曲面细分策略 |
-| Cache Miss | Intel VTune / AMD uProf | ECS 布局不当 | SoA 结构 / 连续内存布局 |
+| 现象 | 首选工具 | 常见根因 | 解决方案 | 知识参考 |
+|------|----------|----------|----------|----------|
+| DrawCall 过高 | RenderDoc / Pix | 材质未合批 | GPU Instancing / SRP Batcher | [[Lumen 性能调优]] |
+| 卡顿 spikes | Unity Profiler / UE Insights | GC / 同步加载 | 对象池 / 异步加载 | [[Lyra 性能架构]] |
+| 纹理带宽高 | RenderDoc Texture Viewer | 纹理过大/未压缩 | ASTC/BC7 压缩、Mipmap | — |
+| 顶点处理瓶颈 | GPU Profiler | 模型面数过高 | Nanite / LOD | [[Nanite 性能调优]] |
+| Lumen 反射卡 | profilegpu | 反射 Pass 太多 | 降反射质量 / 平面反射替代 | [[Lumen 性能调优]] |
+| RT 等 GT 同步 | Insights Timing | RT Pass 慢 | 优化最长的 RT 阶段 | [[渲染线程瓶颈诊断]] |
+| 物理卡顿 | Insights + Chaos Visual | 同步物理 | 异步物理 / LOD 碰撞 | — |
+| 移动端发烫 | 厂商 SDK (PerfHUD) | GPU 持续满 | 降分辨率 / 简化材质 | [[渲染线程瓶颈诊断]] |
+| 加载卡顿 | Insights LoadTime | 同步加载 / Shader 编译 | AsyncLoad / 预流送 | [[Lyra 性能架构]] |
 
 ---
 
@@ -65,10 +70,28 @@
 
 ---
 
+## 知识参考索引
+
+从在线资源（官方文档、GDC 演讲、Lyra 源码、团队博客）整理的方法论与实战笔记：
+
+- **方法论**：
+  - [[性能优化方法论]] — Profile 思维框架、黄金三问、诊断流程图
+  - [[Unreal Insights 帧分析实战]] — 工具实操（5 步上手 + 5 个高频场景）
+
+- **专项调优**：
+  - [[Lumen 性能调优]] — Lumen 三种反射模式 + 5 个诊断维度
+  - [[Nanite 性能调优]] — Nanite 5 维度 + GDC 2024 material binning
+  - [[渲染线程瓶颈诊断]] — GT/RT/RHI 三线程 + 4 个最常见多线程坑
+
+- **架构参考**：
+  - [[Lyra 性能架构]] — Lyra 的性能设计哲学 + 5 大支柱
+
+---
+
 ## 关联知识库
 
 - [[02-引擎源码分析库]] — 引擎底层性能设计
-- [[99-Templates/性能优化]] — 新建记录模板
+- [[99-Templates/性能优化]] — 新建瓶颈案例记录的模板
 
 ---
 
@@ -76,3 +99,4 @@
 
 - [ ] 完成至少 1 次完整的帧分析（RenderDoc）
 - [ ] 记录至少 3 个可复用的优化方案
+- [ ] M5 专项：跑 Lyra 默认 map 录 30 秒 utrace，按 [[Lumen 性能调优]] 流程做一遍诊断

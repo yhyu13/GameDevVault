@@ -1,0 +1,101 @@
+{
+  "title": "RAG 综合 Detail 面试卡牌",
+  "header_title": "🎓 RAG 综合 Detail 深度面试卡牌",
+  "header_subtitle": "单选 · 多选 · 判断 — 源码级深度面试模拟",
+  "has_follow_up": true,
+  "drag": [],
+  "single": [
+    {
+      "question": "LangChain FAISS 索引创建中，__from 方法初始化的是什么索引结构？",
+      "options": [
+        "A. IndexHNSW",
+        "B. IndexFlatL2",
+        "C. IndexIVFFlat",
+        "D. IndexPQ"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：HNSW 需要显式配置",
+        "✅ 正确：默认使用 L2 欧氏距离的暴力索引",
+        "❌ 错误：IVF 需要训练聚类中心",
+        "❌ 错误：PQ 是量化压缩索引"
+      ]
+    },
+    {
+      "question": "在 RRF 融合中，如果某文档在密集检索中排第 3，在稀疏检索中也排第 3，c=60，它的 RRF 得分是多少？",
+      "options": [
+        "A. 1/63",
+        "B. 2/63",
+        "C. 1/36",
+        "D. 2/36"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：只计算了一个检索器的分数",
+        "✅ 正确：score = 1/(3+60) + 1/(3+60) = 2/63 ≈ 0.032",
+        "❌ 错误：分母错误",
+        "❌ 错误：分母和分子都错误"
+      ]
+    },
+    {
+      "question": "RecursiveCharacterTextSplitter 中 _good_splits 批处理机制的主要目的是？",
+      "options": [
+        "A. 减少内存占用",
+        "B. 减少 _merge_splits 调用次数",
+        "C. 支持多线程处理",
+        "D. 自动选择最佳分隔符"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：内存不是主要考虑",
+        "✅ 正确：收集所有合格片段后一次性合并，减少边界检查次数",
+        "❌ 错误：没有涉及多线程",
+        "❌ 错误：分隔符选择由 _split_text 负责"
+      ]
+    }
+  ],
+  "multi": [
+    {
+      "question": "RAG Triad 评估体系中，如果上下文相关性高但忠实度低，可能的原因？（多选）",
+      "options": [
+        "A. 检索到了正确文档",
+        "B. LLM 没有基于上下文回答",
+        "C. 提示词没有约束只能基于上下文",
+        "D. 上下文格式混乱",
+        "E. 检索 k 值太小",
+        "F. 嵌入模型维度太低"
+      ],
+      "correct": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "explanations": [
+        "✅ 上下文相关性高说明检索正确",
+        "✅ 忠实度低说明 LLM 偏离上下文",
+        "✅ 提示词设计缺陷导致 LLM 自由发挥",
+        "✅ 格式混乱让 LLM 无法有效利用上下文",
+        "❌ k 值太小影响上下文相关性",
+        "❌ 维度太低影响检索质量而非忠实度"
+      ]
+    }
+  ],
+  "tf": [
+    {
+      "question": "在语义分块中，如果 buffer_size 设为 0，每个句子独立嵌入，效果会比 buffer_size=1 更好。",
+      "correct": false,
+      "explanation": "❌ 错误：buffer_size=0 失去上下文信息，可能误判语义跳跃，导致分块边界不准确。"
+    },
+    {
+      "question": "HNSW 的 M 参数越大，图的连通性越好，召回率越高，但内存占用也越大。",
+      "correct": true,
+      "explanation": "✅ 正确：M 是每个节点的最大邻居数，越大图越稠密，搜索路径越丰富，但索引结构和内存开销增加。"
+    },
+    {
+      "question": "C-RAG 的 Retrieval Evaluator 只能使用人工标注来判断文档相关性。",
+      "correct": false,
+      "explanation": "❌ 错误：可以用 LLM 作为评估器自动判断，也可以用轻量级分类器（如 BERT 三分类模型）降低成本。"
+    }
+  ]
+}

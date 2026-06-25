@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG 基础入门互动式问答卡牌</title>
+<style>
+  :root {
+    --bg:#f5f5f0; --card-bg:#fff; --primary:#3a5a7c; --accent:#6b9e75; --accent-wrong:#c45c5c;
+    --text:#2c3e50; --text-light:#5d6d7e; --border:#d0d5dd; --shadow:rgba(0,0,0,0.08);
+    --drop-zone:#eef2f7; --draggable:#f0f4f8;
+    --status-correct:#e8f5e9; --status-wrong:#fce8e8; --status-unanswered:#f8f9fa;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+  header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center}
+  header h1{margin:0;font-size:1.4rem;font-weight:500}
+  header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
+  .header-left{flex:1}
+  .header-btn{padding:0.5rem 1.2rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.2s;font-size:0.95rem}
+  .header-btn:hover{background:rgba(255,255,255,0.25)}
+  .container{max-width:800px;margin:0 auto;padding:1.5rem}
+  
+  /* 导航标签 */
+  .nav-tabs{display:flex;gap:0.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+  .nav-tab{flex:1;min-width:120px;padding:0.7rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.95rem;transition:all 0.2s;color:var(--text-light)}
+  .nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+  .nav-tab:hover:not(.active){background:var(--drop-zone)}
+  
+  /* 进度 + 分数条 */
+  .score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.8rem}
+  .score-mini{font-size:0.9rem;color:var(--text-light);white-space:nowrap}
+  .score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.1rem}
+  .progress-text{text-align:right;font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem}
+  .progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.5rem}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+  
+  /* 卡片 */
+  .card{background:var(--card-bg);border-radius:12px;padding:1.8rem 2rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.5rem}
+  .card-number{display:inline-block;width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:0.85rem;font-weight:600;margin-right:0.6rem}
+  .card h3{margin:0 0 1.2rem;font-size:1.1rem;font-weight:500}
+  
+  /* 拖拽填空 */
+  .drag-sentence{font-size:1.05rem;line-height:2.2;margin-bottom:1.5rem}
+  .drop-zone{display:inline-block;min-width:100px;height:36px;line-height:34px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 4px;transition:all 0.2s;padding:0 8px}
+  .drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+  .drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8}
+  .drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+  .drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+  .draggables-container{display:flex;flex-wrap:wrap;gap:0.6rem;padding:1rem;background:var(--bg);border-radius:10px;margin-bottom:1rem}
+  .draggable{display:inline-block;padding:0.5rem 1rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;font-size:0.95rem;transition:all 0.15s;user-select:none}
+  .draggable:hover{background:#e1e8f0;transform:translateY(-2px);box-shadow:0 2px 6px var(--shadow)}
+  .draggable:active{cursor:grabbing}
+  .draggable.dragging{opacity:0.5}
+  .draggable.used{opacity:0.3;pointer-events:none}
+  
+  /* 选择项 */
+  .options{display:flex;flex-direction:column;gap:0.7rem}
+  .option{padding:0.9rem 1.2rem;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:0.7rem}
+  .option:hover{background:var(--drop-zone);border-color:var(--primary)}
+  .option.selected{border-color:var(--primary);background:#e8f0f8}
+  .option.correct{border-color:var(--accent);background:#e8f5e9}
+  .option.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .option.disabled{pointer-events:none}
+  .option-marker{width:22px;height:22px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700}
+  .option.selected .option-marker{border-color:var(--primary);background:var(--primary);color:#fff}
+  .option.correct .option-marker{border-color:var(--accent);background:var(--accent);color:#fff}
+  .option.wrong .option-marker{border-color:var(--accent-wrong);background:var(--accent-wrong);color:#fff}
+  .multi .option-marker{border-radius:4px}
+  .option-content{flex:1}
+  .option-explain{display:none;margin-top:0.5rem;font-size:0.85rem;color:#555;padding:0.4rem 0.6rem;border-radius:4px;background:rgba(0,0,0,0.03)}
+  .option-explain.show{display:block}
+  
+  /* 按钮 */
+  .btn-group{display:flex;gap:0.8rem;margin-top:1.5rem;justify-content:center;flex-wrap:wrap}
+  .btn{padding:0.7rem 1.8rem;border:none;border-radius:8px;font-size:1rem;cursor:pointer;transition:all 0.2s;font-weight:500}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:#2a4a6c}
+  .btn-secondary{background:var(--border);color:var(--text)}
+  .btn-secondary:hover{background:#c0c5cc}
+  .btn-danger{background:var(--accent-wrong);color:#fff}
+  .btn-danger:hover{background:#a04545}
+  .btn:disabled{opacity:0.5;cursor:not-allowed}
+  
+  /* 反馈 */
+  .feedback{margin-top:1rem;padding:1rem 1.2rem;border-radius:8px;display:none;font-size:0.95rem;line-height:1.6}
+  .feedback.show{display:block}
+  .feedback.correct{background:#e8f5e9;border-left:4px solid var(--accent)}
+  .feedback.wrong{background:#fce8e8;border-left:4px solid var(--accent-wrong)}
+  .feedback-title{font-weight:600;margin-bottom:0.4rem}
+  .blank-detail{margin:0.6rem 0;padding:0.6rem 0.8rem;border-radius:6px;background:#f8f9fa;border-left:3px solid var(--primary)}
+  .blank-detail.correct-blank{border-left-color:var(--accent);background:#f0f8f0}
+  .blank-detail.wrong-blank{border-left-color:var(--accent-wrong);background:#fdf0f0}
+  .blank-detail-title{font-weight:600;font-size:0.9rem;margin-bottom:0.2rem}
+  .blank-detail-body{font-size:0.88rem;color:#555}
+  
+  /* 导航按钮 */
+  .nav-buttons{display:flex;justify-content:space-between;margin-top:1rem}
+  .nav-btn{padding:0.5rem 1.2rem;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);cursor:pointer;transition:all 0.2s}
+  .nav-btn:hover{background:var(--drop-zone)}
+  .nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+  .nav-btn.active-question{background:var(--primary);color:#fff;border-color:var(--primary)}
+  
+  /* 总览面板（Dashboard） */
+  .dashboard-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
+  .dashboard-overlay.show{display:flex}
+  .dashboard-panel{background:var(--card-bg);border-radius:16px;width:100%;max-width:720px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+  .dashboard-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .dashboard-header h2{margin:0;font-size:1.2rem;font-weight:500}
+  .dashboard-close{font-size:1.5rem;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background 0.2s}
+  .dashboard-close:hover{background:var(--bg)}
+  .dashboard-body{padding:1.5rem;overflow-y:auto;flex:1}
+  
+  /* 统计 */
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+  .stat-card{text-align:center;padding:1rem;border-radius:10px;background:var(--bg)}
+  .stat-num{font-size:2rem;font-weight:700;color:var(--primary)}
+  .stat-label{font-size:0.85rem;color:var(--text-light);margin-top:0.2rem}
+  .stat-card.correct-card .stat-num{color:var(--accent)}
+  .stat-card.wrong-card .stat-num{color:var(--accent-wrong)}
+  
+  /* 筛选 */
+  .filter-tabs{display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap}
+  .filter-tab{padding:0.4rem 1rem;border:1px solid var(--border);border-radius:20px;background:var(--card-bg);cursor:pointer;font-size:0.85rem;transition:all 0.2s}
+  .filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .filter-tab:hover:not(.active){background:var(--drop-zone)}
+  
+  /* 题目网格 */
+  .question-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.8rem}
+  .question-thumb{padding:1rem;border-radius:10px;border:2px solid var(--border);cursor:pointer;transition:all 0.2s;background:var(--card-bg);position:relative}
+  .question-thumb:hover{transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow);border-color:var(--primary)}
+  .question-thumb.correct{border-color:var(--accent);background:var(--status-correct)}
+  .question-thumb.wrong{border-color:var(--accent-wrong);background:var(--status-wrong)}
+  .question-thumb.unanswered{border-color:var(--border);background:var(--status-unanswered)}
+  .thumb-num{font-size:0.75rem;color:var(--text-light);margin-bottom:0.3rem}
+  .thumb-type{display:inline-block;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;background:var(--primary);color:#fff;margin-bottom:0.4rem}
+  .thumb-type.drag{background:#6b5b95}
+  .thumb-type.single{background:#5b8a72}
+  .thumb-type.multi{background:#8a5b5b}
+  .thumb-text{font-size:0.85rem;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .thumb-status{position:absolute;top:0.5rem;right:0.5rem;font-size:1rem}
+  .thumb-status.correct-icon{color:var(--accent)}
+  .thumb-status.wrong-icon{color:var(--accent-wrong)}
+  
+  /* 结果 */
+  .result-card{text-align:center;padding:3rem 2rem}
+  .result-score{font-size:4rem;font-weight:700;color:var(--primary);margin:1rem 0}
+  .result-label{font-size:1.1rem;color:var(--text-light)}
+  .result-detail{margin-top:1.5rem;text-align:left}
+  .result-item{display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)}
+  .hidden{display:none!important}
+  
+  @media(max-width:600px){.container{padding:1rem}.card{padding:1.2rem}.drag-sentence{font-size:0.95rem}.stats-grid{grid-template-columns:repeat(3,1fr)}.question-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>🤖 RAG 基础入门互动式问答卡牌</h1>
+    <p>拖拽填空 · 单选 · 多选 · 判断 — 面试前 10 分钟速测</p>
+  </div>
+  <button class="header-btn" id="dashboard-btn">📊 题目总览</button>
+</header>
+
+<div class="container">
+  
+  <!-- 导航标签 -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-mode="drag">拖拽填空</div>
+    <div class="nav-tab" data-mode="single">单选题</div>
+    <div class="nav-tab" data-mode="multi">多选题</div>
+    <div class="nav-tab" data-mode="tf">判断题</div>
+  </div>
+  
+  <!-- 分数 + 进度 -->
+  <div class="score-bar">
+    <div class="score-mini">总得分：<span class="score-num" id="total-score">0</span> / <span id="total-max">8</span></div>
+  </div>
+  <div class="progress-text">当前：<span id="current-index">1</span> / <span id="total-count">5</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:10%"></div></div>
+  
+  <!-- 拖拽填空区 -->
+  <div id="drag-section">
+    <div class="card" id="drag-card">
+      <h3><span class="card-number">1</span>拖拽填空</h3>
+      <div class="drag-sentence" id="drag-sentence"></div>
+      <div class="draggables-container" id="draggables"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="drag-check-btn">检查答案</button>
+        <button class="btn btn-secondary" id="drag-reset-btn">重置</button>
+      </div>
+      <div class="feedback" id="drag-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="drag-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="drag-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <!-- 单选区 -->
+  <div id="single-section" class="hidden">
+    <div class="card" id="single-card">
+      <h3><span class="card-number">1</span>单选题</h3>
+      <div class="drag-sentence" id="single-question"></div>
+      <div class="options" id="single-options"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="single-check-btn">检查答案</button>
+      </div>
+      <div class="feedback" id="single-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="single-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="single-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <!-- 多选区 -->
+  <div id="multi-section" class="hidden">
+    <div class="card" id="multi-card">
+      <h3><span class="card-number">1</span>多选题</h3>
+      <div class="drag-sentence" id="multi-question"></div>
+      <div class="options multi" id="multi-options"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="multi-check-btn">检查答案</button>
+      </div>
+      <div class="feedback" id="multi-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="multi-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="multi-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <!-- 判断题 -->
+  <div id="tf-section" class="hidden">
+    <div class="card" id="tf-card">
+      <h3><span class="card-number">1</span>判断题</h3>
+      <div class="drag-sentence" id="tf-statement" style="font-size:1.1rem;margin-bottom:1.5rem"></div>
+      <div class="btn-group" style="justify-content:center">
+        <button class="btn btn-primary" id="tf-true-btn" style="background:var(--accent)">✅ 正确</button>
+        <button class="btn btn-danger" id="tf-false-btn">❌ 错误</button>
+      </div>
+      <div class="feedback" id="tf-feedback"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn" id="tf-prev" disabled>← 上一题</button>
+      <button class="nav-btn" id="tf-next">下一题 →</button>
+    </div>
+  </div>
+  
+  <div id="result-section" class="hidden">
+    <div class="card result-card">
+      <div class="result-label">测试完成</div>
+      <div class="result-score" id="final-score">0%</div>
+      <div class="result-label">得分</div>
+      <div class="result-detail" id="result-detail"></div>
+      <div class="btn-group" style="margin-top:2rem">
+        <button class="btn btn-secondary" onclick="goBack()">🔙 返回题目</button>
+        <button class="btn btn-primary" onclick="resetAll()">🔄 重新开始</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 总览面板 -->
+<div class="dashboard-overlay" id="dashboard-overlay">
+  <div class="dashboard-panel">
+    <div class="dashboard-header">
+      <h2>📊 题目总览</h2>
+      <div class="dashboard-close" id="dashboard-close">✕</div>
+    </div>
+    <div class="dashboard-body">
+      <!-- 统计 -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="dash-total">0%</div>
+          <div class="stat-label">总正确率</div>
+        </div>
+        <div class="stat-card correct-card">
+          <div class="stat-num" id="dash-correct">0</div>
+          <div class="stat-label">已做对</div>
+        </div>
+        <div class="stat-card wrong-card">
+          <div class="stat-num" id="dash-wrong">0</div>
+          <div class="stat-label">做错/未答</div>
+        </div>
+      </div>
+      <!-- 筛选 -->
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">全部</div>
+        <div class="filter-tab" data-filter="correct">✅ 正确</div>
+        <div class="filter-tab" data-filter="wrong">❌ 错误</div>
+        <div class="filter-tab" data-filter="unanswered">⬜ 未答</div>
+      </div>
+      <!-- 题目网格 -->
+      <div class="question-grid" id="question-grid"></div>
+      <div style="margin-top:1.5rem;text-align:center">
+        <button class="btn btn-danger" id="reset-all-btn">🔄 重置所有分数</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== 数据 ====================
+const dragQuestions = [
+  {
+    sentence: "RAG 的最小可行系统包含四步：{0}准备、{1}构建、检索优化、生成集成。",
+    answers: ["数据", "索引"],
+    pool: ["数据", "索引", "模型", "训练", "评估", "部署"],
+    explanation: "数据准备是第一步，包括数据加载和文本分块；索引构建包括向量嵌入和向量存储。",
+    blankExplanations: [
+      "数据准备是第一步，包括数据加载和文本分块",
+      "索引构建包括向量嵌入和向量存储"
+    ]
+  },
+  {
+    sentence: "LangChain 提供 {0} 级别的组件编排，LlamaIndex 提供 {1} 级别的索引抽象。",
+    answers: ["细粒度", "高层"],
+    pool: ["细粒度", "高层", "底层", "模块", "系统", "框架"],
+    explanation: "LangChain 提供细粒度 Chain+Agent 编排，LlamaIndex 提供高层 Index+Query Engine 抽象。",
+    blankExplanations: [
+      "LangChain 的 Chain + Agent 允许深度定制每个组件",
+      "LlamaIndex 的 Index + Query Engine 封装了完整流程"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    question: "RAG 主要解决 LLM 的哪两大问题？",
+    options: [
+      "A. 推理速度慢和内存占用大",
+      "B. 知识固化和幻觉",
+      "C. 模型体积大和训练成本高",
+      "D. 多语言支持和代码生成"
+    ],
+    correct: 1,
+    explanation: "✅ 正确：RAG 通过外部检索解决知识固化和幻觉",
+    optionExplanations: [
+      "❌ 错误：RAG 不解决推理速度和内存问题",
+      "✅ 正确：RAG 通过外部检索解决知识固化和幻觉",
+      "❌ 错误：模型体积和训练成本不是 RAG 的核心目标",
+      "❌ 错误：多语言和代码生成不是 RAG 的主要应用场景"
+    ]
+  },
+  {
+    question: "在 LangChain 的 RAG 流程中，normalize_embeddings=True 的作用是什么？",
+    options: [
+      "A. 提高嵌入模型的精度",
+      "B. 使点积等价于余弦相似度",
+      "C. 减少向量存储的占用空间",
+      "D. 加快嵌入计算速度"
+    ],
+    correct: 1,
+    explanation: "✅ 正确：归一化后向量模长为1，点积等价于余弦相似度",
+    optionExplanations: [
+      "❌ 错误：归一化不改变模型精度",
+      "✅ 正确：归一化后向量模长为1，点积等价于余弦相似度",
+      "❌ 错误：归一化不改变向量维度，不减少存储",
+      "❌ 错误：归一化需要额外计算，不加速"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    question: "RAG 四步流程中的数据准备包含哪些操作？（多选）",
+    options: [
+      "A. 数据加载（Document Loading）",
+      "B. 文本分块（Chunking）",
+      "C. 向量嵌入（Embedding）",
+      "D. 数据清洗（Cleaning）",
+      "E. 相似度搜索（Similarity Search）",
+      "F. 元数据标注（Metadata Tagging）"
+    ],
+    correct: [0, 1, 3],
+    explanation: "数据准备包括数据加载、文本分块和数据清洗。向量嵌入属于索引构建阶段，相似度搜索属于检索阶段。",
+    optionExplanations: [
+      "✅ 数据加载是准备阶段的第一步",
+      "✅ 文本分块是数据准备的核心操作",
+      "❌ 向量嵌入属于索引构建阶段",
+      "✅ 数据清洗属于数据准备",
+      "❌ 相似度搜索属于检索阶段",
+      "❌ 元数据标注不是标准四步中的必要步骤"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    statement: "RAG 能 100% 消除 LLM 的幻觉问题。",
+    correct: false,
+    explanation: "❌ 错误：RAG 只能约束幻觉，不能根除。如果检索到错误上下文或 LLM 不遵循指示，仍可能产生幻觉。"
+  },
+  {
+    statement: "LlamaIndex 的 Settings.llm 是全局单例配置，所有 Index 默认使用它。",
+    correct: true,
+    explanation: "✅ 正确：LlamaIndex 使用全局 Settings 管理默认 LLM 和嵌入模型，可以通过参数覆盖单个组件。"
+  },
+  {
+    statement: "在 RAG 中，检索到的上下文可以直接替代 LLM 生成答案。",
+    correct: false,
+    explanation: "❌ 错误：检索只召回相关上下文，答案生成仍需 LLM 基于上下文进行推理和生成。"
+  }
+];
+
+const allQuestions = [];
+dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
+singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
+multiQuestions.forEach((q,i)=>allQuestions.push({mode:'multi',index:i,question:q.question.substring(0,40)+'...',type:'multi'}));
+trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:q.statement.substring(0,40)+'...',type:'tf'}));
+
+// ==================== 状态 ====================
+let currentMode = 'drag';
+let lastMode = 'drag';
+let lastIndex = 0;
+let dragIndex = 0, singleIndex = 0, multiIndex = 0;
+let scores = { drag: 0, single: 0, multi: 0, tf: 0 };
+let answered = { drag: [], single: [], multi: [], tf: [] };
+let answeredCorrect = { drag: [], single: [], multi: [], tf: [] };
+let tfIndex = 0;
+
+function initState() {
+  dragQuestions.forEach(() => { answered.drag.push(false); answeredCorrect.drag.push(false); });
+  singleQuestions.forEach(() => { answered.single.push(false); answeredCorrect.single.push(false); });
+  multiQuestions.forEach(() => { answered.multi.push(false); answeredCorrect.multi.push(false); });
+  trueFalseQuestions.forEach(() => { answered.tf.push(false); answeredCorrect.tf.push(false); });
+}
+initState();
+
+// ==================== 工具函数 ====================
+function $(id) { return document.getElementById(id); }
+function updateProgress(mode) {
+  const idx = mode === 'drag' ? dragIndex : mode === 'single' ? singleIndex : mode === 'multi' ? multiIndex : tfIndex;
+  const total = mode === 'drag' ? dragQuestions.length : mode === 'single' ? singleQuestions.length : mode === 'multi' ? multiQuestions.length : trueFalseQuestions.length;
+  $('current-index').textContent = idx + 1;
+  $('total-count').textContent = total;
+  $('progress-fill').style.width = ((idx + 1) / total * 100) + '%';
+}
+function setNavBtn(prevId, nextId, idx, total) {
+  $(prevId).disabled = idx === 0;
+  $(nextId).disabled = false;
+  $(nextId).textContent = idx === total - 1 ? "查看结果 →" : "下一题 →";
+}
+function updateTotalScore() {
+  const totalMax = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.drag + scores.single + scores.multi + scores.tf;
+  $('total-score').textContent = totalScore;
+  $('total-max').textContent = totalMax;
+}
+function getQuestionStatus(mode, idx) {
+  if (!answered[mode][idx]) return 'unanswered';
+  return answeredCorrect[mode][idx] ? 'correct' : 'wrong';
+}
+
+// ==================== 总览面板 ====================
+$('dashboard-btn').addEventListener('click', openDashboard);
+$('dashboard-close').addEventListener('click', closeDashboard);
+$('dashboard-overlay').addEventListener('click', (e) => { if (e.target === $('dashboard-overlay')) closeDashboard(); });
+$('reset-all-btn').addEventListener('click', resetAll);
+
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderDashboardGrid(tab.dataset.filter);
+  });
+});
+
+function openDashboard() {
+  updateDashboardStats();
+  renderDashboardGrid('all');
+  $('dashboard-overlay').classList.add('show');
+}
+function closeDashboard() { $('dashboard-overlay').classList.remove('show'); }
+
+function updateDashboardStats() {
+  const totalMax = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  let totalCorrect = 0, totalWrong = 0, totalUnanswered = 0;
+  ['drag','single','multi','tf'].forEach(mode => {
+    answered[mode].forEach((a, i) => {
+      if (!a) totalUnanswered++;
+      else if (answeredCorrect[mode][i]) totalCorrect++;
+      else totalWrong++;
+    });
+  });
+  const pct = totalMax > 0 ? Math.round(totalCorrect / totalMax * 100) : 0;
+  $('dash-total').textContent = pct + '%';
+  $('dash-correct').textContent = totalCorrect;
+  $('dash-wrong').textContent = totalWrong + totalUnanswered;
+}
+
+function renderDashboardGrid(filter) {
+  const grid = $('question-grid');
+  grid.innerHTML = '';
+  allQuestions.forEach((q, globalIdx) => {
+    const status = getQuestionStatus(q.mode, q.index);
+    if (filter !== 'all' && status !== filter) return;
+    
+    const thumb = document.createElement('div');
+    thumb.className = `question-thumb ${status}`;
+    thumb.innerHTML = `
+      <div class="thumb-num">#${globalIdx + 1}</div>
+      <div class="thumb-type ${q.type}">${q.type === 'drag' ? '拖拽' : q.type === 'single' ? '单选' : q.type === 'multi' ? '多选' : '判断'}</div>
+      <div class="thumb-text">${q.question}</div>
+      <div class="thumb-status ${status === 'correct' ? 'correct-icon' : status === 'wrong' ? 'wrong-icon' : ''}">${status === 'correct' ? '✅' : status === 'wrong' ? '❌' : ''}</div>
+    `;
+    thumb.addEventListener('click', () => {
+      closeDashboard();
+      switchMode(q.mode, q.index);
+    });
+    grid.appendChild(thumb);
+  });
+}
+
+function switchMode(mode, idx) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.nav-tab[data-mode="${mode}"]`).classList.add('active');
+  currentMode = mode;
+  ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+  if (mode === 'drag') { $('drag-section').classList.remove('hidden'); dragIndex = idx; renderDrag(); }
+  else if (mode === 'single') { $('single-section').classList.remove('hidden'); singleIndex = idx; renderSingle(); }
+  else if (mode === 'multi') { $('multi-section').classList.remove('hidden'); multiIndex = idx; renderMulti(); }
+  else if (mode === 'tf') { $('tf-section').classList.remove('hidden'); tfIndex = idx; renderTrueFalse(); }
+}
+
+function resetAll() {
+  scores = { drag: 0, single: 0, multi: 0, tf: 0 };
+  answered = { drag: [], single: [], multi: [], tf: [] };
+  answeredCorrect = { drag: [], single: [], multi: [], tf: [] };
+  initState();
+  dragIndex = 0; singleIndex = 0; multiIndex = 0; tfIndex = 0;
+  currentMode = 'drag';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.nav-tab[data-mode="drag"]').classList.add('active');
+  ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+  $('drag-section').classList.remove('hidden');
+  renderDrag();
+  updateTotalScore();
+  closeDashboard();
+}
+
+// ==================== 拖拽填空 ====================
+function renderDrag() {
+  const q = dragQuestions[dragIndex];
+  const sentenceEl = $('drag-sentence');
+  const draggablesEl = $('draggables');
+  
+  let parts = q.sentence.split(/\{(\d)\}/g);
+  let html = '';
+  let blankIdx = 0;
+  for (let i = 0; i < parts.length; i++) {
+    if (/^\d$/.test(parts[i])) {
+      html += `<span class="drop-zone" data-idx="${blankIdx}" data-ans="${q.answers[blankIdx]}"></span>`;
+      blankIdx++;
+    } else {
+      html += parts[i];
+    }
+  }
+  sentenceEl.innerHTML = html;
+  
+  draggablesEl.innerHTML = '';
+  q.pool.forEach((text) => {
+    const el = document.createElement('div');
+    el.className = 'draggable';
+    el.draggable = true;
+    el.textContent = text;
+    el.dataset.text = text;
+    el.addEventListener('dragstart', onDragStart);
+    el.addEventListener('dragend', onDragEnd);
+    draggablesEl.appendChild(el);
+  });
+  
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', onDragOver);
+    zone.addEventListener('dragenter', onDragEnter);
+    zone.addEventListener('dragleave', onDragLeave);
+    zone.addEventListener('drop', onDrop);
+  });
+  
+  $('drag-feedback').className = 'feedback';
+  $('drag-feedback').innerHTML = '';
+  setNavBtn('drag-prev', 'drag-next', dragIndex, dragQuestions.length);
+  updateProgress('drag');
+  updateTotalScore();
+}
+
+let draggedEl = null;
+function onDragStart(e) {
+  draggedEl = e.target;
+  e.target.classList.add('dragging');
+  e.dataTransfer.setData('text/plain', e.target.dataset.text);
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDragEnd(e) { e.target.classList.remove('dragging'); }
+function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function onDragEnter(e) { e.target.closest('.drop-zone')?.classList.add('drag-over'); }
+function onDragLeave(e) { e.target.closest('.drop-zone')?.classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault();
+  const zone = e.target.closest('.drop-zone');
+  if (!zone) return;
+  zone.classList.remove('drag-over');
+  const text = e.dataTransfer.getData('text/plain');
+  zone.innerHTML = `<span class="dropped-text">${text}</span>`;
+  zone.classList.add('filled');
+  zone.dataset.val = text;
+  document.querySelectorAll('.draggable').forEach(d => {
+    if (d.dataset.text === text) d.classList.add('used');
+  });
+}
+
+$('drag-check-btn').addEventListener('click', () => {
+  const q = dragQuestions[dragIndex];
+  const zones = document.querySelectorAll('.drop-zone');
+  let allCorrect = true;
+  let detailHTML = '<div style="margin-top:1rem"><strong>逐空解析：</strong></div>';
+  
+  zones.forEach((zone, i) => {
+    const val = zone.dataset.val || '';
+    const ans = zone.dataset.ans;
+    zone.classList.remove('correct', 'wrong');
+    if (val === ans) {
+      zone.classList.add('correct');
+      detailHTML += `<div class="blank-detail correct-blank"><div class="blank-detail-title">空格 ${i+1}：✅ 正确</div><div class="blank-detail-body">你的答案：${val}。<br/>${q.blankExplanations[i]}</div></div>`;
+    } else {
+      zone.classList.add('wrong');
+      allCorrect = false;
+      detailHTML += `<div class="blank-detail wrong-blank"><div class="blank-detail-title">空格 ${i+1}：❌ 错误</div><div class="blank-detail-body">你的答案：${val || '(未填写)'}。<br/>正确答案：${ans}。<br/>${q.blankExplanations[i]}</div></div>`;
+    }
+  });
+  
+  const fb = $('drag-feedback');
+  fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = `<div class="feedback-title">${allCorrect ? '✅ 全部正确！' : '❌ 有错误'}</div><div>${q.explanation}</div>${detailHTML}`;
+  
+  const wasCorrect = answeredCorrect.drag[dragIndex];
+  if (allCorrect && !wasCorrect) scores.drag++;
+  answered.drag[dragIndex] = true;
+  answeredCorrect.drag[dragIndex] = allCorrect;
+  updateTotalScore();
+});
+
+$('drag-reset-btn').addEventListener('click', renderDrag);
+$('drag-prev').addEventListener('click', () => { if (dragIndex > 0) { dragIndex--; renderDrag(); } });
+$('drag-next').addEventListener('click', () => { if (dragIndex < dragQuestions.length - 1) { dragIndex++; renderDrag(); } else { lastMode = 'drag'; lastIndex = dragIndex; showResult(); } });
+
+// ==================== 单选题 ====================
+function renderSingle() {
+  const q = singleQuestions[singleIndex];
+  $('single-question').textContent = q.question;
+  const optsEl = $('single-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = `<div class="option-marker">${String.fromCharCode(65+i)}</div><div class="option-content"><div class="option-text">${opt.substring(2)}</div><div class="option-explain" data-explain="${i}"></div></div>`;
+    div.addEventListener('click', () => {
+      document.querySelectorAll('#single-options .option').forEach(o => o.classList.remove('selected'));
+      div.classList.add('selected');
+      div.dataset.sel = i;
+    });
+    optsEl.appendChild(div);
+  });
+  $('single-feedback').className = 'feedback';
+  $('single-feedback').innerHTML = '';
+  setNavBtn('single-prev', 'single-next', singleIndex, singleQuestions.length);
+  updateProgress('single');
+  updateTotalScore();
+}
+
+$('single-check-btn').addEventListener('click', () => {
+  const sel = document.querySelector('#single-options .option.selected');
+  if (!sel) { alert('请先选择一个选项'); return; }
+  const idx = parseInt(sel.dataset.sel);
+  const q = singleQuestions[singleIndex];
+  const isCorrect = idx === q.correct;
+  
+  document.querySelectorAll('#single-options .option').forEach((o, i) => {
+    o.classList.remove('selected', 'correct', 'wrong', 'disabled');
+    o.classList.add('disabled');
+    if (i === q.correct) o.classList.add('correct');
+    else if (i === idx) o.classList.add('wrong');
+    const explain = o.querySelector('.option-explain');
+    explain.textContent = q.optionExplanations[i];
+    explain.classList.add('show');
+  });
+  
+  const wasCorrect = answeredCorrect.single[singleIndex];
+  if (isCorrect && !wasCorrect) scores.single++;
+  answered.single[singleIndex] = true;
+  answeredCorrect.single[singleIndex] = isCorrect;
+  updateTotalScore();
+  
+  const fb = $('single-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+});
+
+$('single-prev').addEventListener('click', () => { if (singleIndex > 0) { singleIndex--; renderSingle(); } });
+$('single-next').addEventListener('click', () => { if (singleIndex < singleQuestions.length - 1) { singleIndex++; renderSingle(); } else { lastMode = 'single'; lastIndex = singleIndex; showResult(); } });
+
+// ==================== 多选题 ====================
+function renderMulti() {
+  const q = multiQuestions[multiIndex];
+  $('multi-question').textContent = q.question;
+  const optsEl = $('multi-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option multi';
+    div.innerHTML = `<div class="option-marker">${String.fromCharCode(65+i)}</div><div class="option-content"><div class="option-text">${opt.substring(2)}</div><div class="option-explain" data-explain="${i}"></div></div>`;
+    div.addEventListener('click', () => { div.classList.toggle('selected'); });
+    optsEl.appendChild(div);
+  });
+  $('multi-feedback').className = 'feedback';
+  $('multi-feedback').innerHTML = '';
+  setNavBtn('multi-prev', 'multi-next', multiIndex, multiQuestions.length);
+  updateProgress('multi');
+  updateTotalScore();
+}
+
+$('multi-check-btn').addEventListener('click', () => {
+  const selected = Array.from(document.querySelectorAll('#multi-options .option.selected')).map(el => {
+    return Array.from(el.parentNode.children).indexOf(el);
+  });
+  if (selected.length === 0) { alert('请至少选择一个选项'); return; }
+  
+  const q = multiQuestions[multiIndex];
+  const isCorrect = selected.length === q.correct.length && selected.every(i => q.correct.includes(i));
+  
+  document.querySelectorAll('#multi-options .option').forEach((o, i) => {
+    o.classList.remove('selected', 'correct', 'wrong', 'disabled');
+    o.classList.add('disabled');
+    if (q.correct.includes(i)) o.classList.add('correct');
+    else if (selected.includes(i)) o.classList.add('wrong');
+    const explain = o.querySelector('.option-explain');
+    explain.textContent = q.optionExplanations[i];
+    explain.classList.add('show');
+  });
+  
+  const wasCorrect = answeredCorrect.multi[multiIndex];
+  if (isCorrect && !wasCorrect) scores.multi++;
+  answered.multi[multiIndex] = true;
+  answeredCorrect.multi[multiIndex] = isCorrect;
+  updateTotalScore();
+  
+  const fb = $('multi-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+});
+
+$('multi-prev').addEventListener('click', () => { if (multiIndex > 0) { multiIndex--; renderMulti(); } });
+$('multi-next').addEventListener('click', () => { if (multiIndex < multiQuestions.length - 1) { multiIndex++; renderMulti(); } else { lastMode = 'multi'; lastIndex = multiIndex; showResult(); } });
+
+// ==================== 导航切换 ====================
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMode = tab.dataset.mode;
+    ['drag-section','single-section','multi-section','tf-section','result-section'].forEach(id => $(id).classList.add('hidden'));
+  document.querySelector('.nav-tabs').classList.remove('hidden');
+  document.querySelector('.score-bar').classList.remove('hidden');
+  document.querySelector('.progress-text').classList.remove('hidden');
+  document.querySelector('.progress-bar').classList.remove('hidden');
+    if (currentMode === 'drag') { $('drag-section').classList.remove('hidden'); renderDrag(); }
+    else if (currentMode === 'single') { $('single-section').classList.remove('hidden'); renderSingle(); }
+    else if (currentMode === 'multi') { $('multi-section').classList.remove('hidden'); renderMulti(); }
+    else if (currentMode === 'tf') { $('tf-section').classList.remove('hidden'); renderTrueFalse(); }
+  });
+});
+
+
+// ==================== 判断题 ====================
+function renderTrueFalse() {
+  const q = trueFalseQuestions[tfIndex];
+  $('tf-statement').textContent = q.statement;
+  $('tf-feedback').className = 'feedback';
+  $('tf-feedback').innerHTML = '';
+  document.getElementById('tf-true-btn').disabled = false;
+  document.getElementById('tf-false-btn').disabled = false;
+  setNavBtn('tf-prev', 'tf-next', tfIndex, trueFalseQuestions.length);
+  updateProgress('tf');
+  updateTotalScore();
+}
+
+function checkTrueFalse(userAnswer) {
+  const q = trueFalseQuestions[tfIndex];
+  const isCorrect = userAnswer === q.correct;
+  document.getElementById('tf-true-btn').disabled = true;
+  document.getElementById('tf-false-btn').disabled = true;
+  const fb = $('tf-feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✅ 正确！' : '❌ 错误'}</div><div>${q.explanation}</div>`;
+  const wasCorrect = answeredCorrect.tf[tfIndex];
+  if (isCorrect && !wasCorrect) scores.tf++;
+  answered.tf[tfIndex] = true;
+  answeredCorrect.tf[tfIndex] = isCorrect;
+  updateTotalScore();
+}
+
+$('tf-true-btn').addEventListener('click', () => checkTrueFalse(true));
+$('tf-false-btn').addEventListener('click', () => checkTrueFalse(false));
+$('tf-prev').addEventListener('click', () => { if (tfIndex > 0) { tfIndex--; renderTrueFalse(); } });
+$('tf-next').addEventListener('click', () => { if (tfIndex < trueFalseQuestions.length - 1) { tfIndex++; renderTrueFalse(); } else { lastMode = 'tf'; lastIndex = tfIndex; showResult(); } });
+
+// ==================== 返回上一题 ====================
+function goBack() {
+  $('result-section').classList.add('hidden');
+  switchMode(lastMode, lastIndex);
+}
+
+// ==================== 结果 ====================
+function showResult() {
+  ['drag-section','single-section','multi-section','tf-section'].forEach(id => $(id).classList.add('hidden'));
+  $('result-section').classList.remove('hidden');
+  
+  const total = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const totalScore = scores.drag + scores.single + scores.multi + scores.tf;
+  const pct = Math.round(totalScore / total * 100);
+  $('final-score').textContent = pct + '%';
+  
+  const detail = $('result-detail');
+  detail.innerHTML = `
+    <div class="result-item"><span>拖拽填空</span><span>${scores.drag} / ${dragQuestions.length}</span></div>
+    <div class="result-item"><span>单选题</span><span>${scores.single} / ${singleQuestions.length}</span></div>
+    <div class="result-item"><span>多选题</span><span>${scores.multi} / ${multiQuestions.length}</span></div>
+    <div class="result-item"><span>判断题</span><span>${scores.tf} / ${trueFalseQuestions.length}</span></div>
+  `;
+}
+
+// ==================== 初始化 ====================
+renderDrag();
+updateTotalScore();
+</script>
+
+</body>
+</html>

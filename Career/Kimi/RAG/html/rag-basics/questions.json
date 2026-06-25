@@ -1,0 +1,123 @@
+{
+  "title": "RAG 基础入门互动式问答卡牌",
+  "header_title": "🤖 RAG 基础入门互动式问答卡牌",
+  "header_subtitle": "拖拽填空 · 单选 · 多选 · 判断 — 面试前 10 分钟速测",
+  "has_follow_up": false,
+  "drag": [
+    {
+      "question": "RAG 的最小可行系统包含四步：{0}准备、{1}构建、检索优化、生成集成。",
+      "answers": [
+        "数据",
+        "索引"
+      ],
+      "pool": [
+        "数据",
+        "索引",
+        "模型",
+        "训练",
+        "评估",
+        "部署"
+      ],
+      "explanations": [
+        "数据准备是第一步，包括数据加载和文本分块",
+        "索引构建包括向量嵌入和向量存储"
+      ]
+    },
+    {
+      "question": "LangChain 提供 {0} 级别的组件编排，LlamaIndex 提供 {1} 级别的索引抽象。",
+      "answers": [
+        "细粒度",
+        "高层"
+      ],
+      "pool": [
+        "细粒度",
+        "高层",
+        "底层",
+        "模块",
+        "系统",
+        "框架"
+      ],
+      "explanations": [
+        "LangChain 的 Chain + Agent 允许深度定制每个组件",
+        "LlamaIndex 的 Index + Query Engine 封装了完整流程"
+      ]
+    }
+  ],
+  "single": [
+    {
+      "question": "RAG 主要解决 LLM 的哪两大问题？",
+      "options": [
+        "A. 推理速度慢和内存占用大",
+        "B. 知识固化和幻觉",
+        "C. 模型体积大和训练成本高",
+        "D. 多语言支持和代码生成"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：RAG 不解决推理速度和内存问题",
+        "✅ 正确：RAG 通过外部检索解决知识固化和幻觉",
+        "❌ 错误：模型体积和训练成本不是 RAG 的核心目标",
+        "❌ 错误：多语言和代码生成不是 RAG 的主要应用场景"
+      ]
+    },
+    {
+      "question": "在 LangChain 的 RAG 流程中，normalize_embeddings=True 的作用是什么？",
+      "options": [
+        "A. 提高嵌入模型的精度",
+        "B. 使点积等价于余弦相似度",
+        "C. 减少向量存储的占用空间",
+        "D. 加快嵌入计算速度"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：归一化不改变模型精度",
+        "✅ 正确：归一化后向量模长为1，点积等价于余弦相似度",
+        "❌ 错误：归一化不改变向量维度，不减少存储",
+        "❌ 错误：归一化需要额外计算，不加速"
+      ]
+    }
+  ],
+  "multi": [
+    {
+      "question": "RAG 四步流程中的数据准备包含哪些操作？（多选）",
+      "options": [
+        "A. 数据加载（Document Loading）",
+        "B. 文本分块（Chunking）",
+        "C. 向量嵌入（Embedding）",
+        "D. 数据清洗（Cleaning）",
+        "E. 相似度搜索（Similarity Search）",
+        "F. 元数据标注（Metadata Tagging）"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanations": [
+        "✅ 数据加载是准备阶段的第一步",
+        "✅ 文本分块是数据准备的核心操作",
+        "❌ 向量嵌入属于索引构建阶段",
+        "✅ 数据清洗属于数据准备",
+        "❌ 相似度搜索属于检索阶段",
+        "❌ 元数据标注不是标准四步中的必要步骤"
+      ]
+    }
+  ],
+  "tf": [
+    {
+      "question": "RAG 能 100% 消除 LLM 的幻觉问题。",
+      "correct": false,
+      "explanation": "❌ 错误：RAG 只能约束幻觉，不能根除。如果检索到错误上下文或 LLM 不遵循指示，仍可能产生幻觉。"
+    },
+    {
+      "question": "LlamaIndex 的 Settings.llm 是全局单例配置，所有 Index 默认使用它。",
+      "correct": true,
+      "explanation": "✅ 正确：LlamaIndex 使用全局 Settings 管理默认 LLM 和嵌入模型，可以通过参数覆盖单个组件。"
+    },
+    {
+      "question": "在 RAG 中，检索到的上下文可以直接替代 LLM 生成答案。",
+      "correct": false,
+      "explanation": "❌ 错误：检索只召回相关上下文，答案生成仍需 LLM 基于上下文进行推理和生成。"
+    }
+  ]
+}

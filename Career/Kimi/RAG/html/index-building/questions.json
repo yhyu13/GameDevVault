@@ -1,0 +1,126 @@
+{
+  "title": "RAG 索引构建互动式问答卡牌",
+  "header_title": "🔍 RAG 索引构建互动式问答卡牌",
+  "header_subtitle": "拖拽填空 · 单选 · 多选 · 判断 — 面试前 10 分钟速测",
+  "has_follow_up": false,
+  "drag": [
+    {
+      "question": "BERT 的 MLM 任务随机遮盖 {0}% 的 token，让模型预测 {1}。",
+      "answers": [
+        "15",
+        "原始token"
+      ],
+      "pool": [
+        "15",
+        "10",
+        "20",
+        "30",
+        "原始token",
+        "下一个token",
+        "词性",
+        "句法树"
+      ],
+      "explanations": [
+        "MLM 遮盖 15% 的 token（80% 换 [MASK]，10% 随机词，10% 保持原词）",
+        "目标是预测被遮盖的原始 token"
+      ]
+    },
+    {
+      "question": "向量数据库采用 {0} 索引做相似性搜索，传统数据库采用 {1} 索引做精确匹配。",
+      "answers": [
+        "HNSW/IVF/LSH",
+        "B-Tree/Hash"
+      ],
+      "pool": [
+        "HNSW/IVF/LSH",
+        "B-Tree/Hash",
+        "Full-Text",
+        "Inverted",
+        "Bitmap",
+        "Cluster"
+      ],
+      "explanations": [
+        "向量数据库使用 HNSW（图）、IVF（量化）、LSH（哈希）等 ANN 索引",
+        "传统数据库使用 B-Tree 和 Hash 索引做精确匹配"
+      ]
+    }
+  ],
+  "single": [
+    {
+      "question": "为什么对比学习（Contrastive Learning）优化相对距离而非绝对相似度？",
+      "options": [
+        "A. 相对距离计算更快",
+        "B. 避免过拟合到训练数据的特定分布",
+        "C. 绝对相似度无法计算",
+        "D. 相对距离更容易解释"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：计算复杂度没有显著差异",
+        "✅ 正确：追求绝对值 1.0 会导致过拟合，相对排序更鲁棒",
+        "❌ 错误：绝对相似度可以计算",
+        "❌ 错误：可解释性不是主要原因"
+      ]
+    },
+    {
+      "question": "FAISS 的 IndexFlatL2 和 HNSW 的核心区别？",
+      "options": [
+        "A. IndexFlatL2 支持增量添加",
+        "B. IndexFlatL2 是暴力线性扫描，HNSW 是近似图索引",
+        "C. HNSW 只能用于小规模数据",
+        "D. IndexFlatL2 支持 GPU 加速"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：IndexFlatL2 不支持增量添加",
+        "✅ 正确：Flat 是精确暴力搜索，HNSW 是近似最近邻图索引",
+        "❌ 错误：HNSW 适合大规模数据",
+        "❌ 错误：IndexFlatL2 本身不支持 GPU"
+      ]
+    }
+  ],
+  "multi": [
+    {
+      "question": "MTEB 排行榜评估嵌入模型时需要关注哪些维度？（多选）",
+      "options": [
+        "A. 模型参数量",
+        "B. 平均任务得分",
+        "C. 嵌入维度",
+        "D. 最大处理 Token 数",
+        "E. 模型发布者的 GitHub Stars",
+        "F. 训练数据的规模"
+      ],
+      "correct": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "explanations": [
+        "✅ 参数量影响能力和资源消耗",
+        "✅ 平均任务得分反映通用语义能力",
+        "✅ 嵌入维度影响信息密度和存储",
+        "✅ 最大 Token 数决定长文本适应性",
+        "❌ GitHub Stars 不是技术评估维度",
+        "❌ MTEB 不直接展示训练数据规模"
+      ]
+    }
+  ],
+  "tf": [
+    {
+      "question": "BERT 的 NSP（下一句预测）任务在现代模型中仍被广泛使用。",
+      "correct": false,
+      "explanation": "❌ 错误：RoBERTa 等后续研究发现 NSP 过于简单甚至损害性能，现代模型已移除 NSP。"
+    },
+    {
+      "question": "向量数据库和传统数据库（MySQL）是互补关系，而非替代关系。",
+      "correct": true,
+      "explanation": "✅ 正确：传统数据库存储结构化元数据，向量数据库负责高维向量检索，两者通常结合使用。"
+    },
+    {
+      "question": "HNSW 的 ef_search 参数越大，查询召回率越高，但查询速度越慢。",
+      "correct": true,
+      "explanation": "✅ 正确：ef_search 控制搜索时的候选集大小，越大搜索越充分（召回越高），但计算量也越大。"
+    }
+  ]
+}

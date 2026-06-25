@@ -1,0 +1,124 @@
+{
+  "title": "RAG 检索优化互动式问答卡牌",
+  "header_title": "⚡ RAG 检索优化互动式问答卡牌",
+  "header_subtitle": "拖拽填空 · 单选 · 多选 · 判断 — 面试前 10 分钟速测",
+  "has_follow_up": false,
+  "drag": [
+    {
+      "question": "RRF 融合公式中，文档得分 = Σ 1/({0} + {1})，其中 c 通常取 60。",
+      "answers": [
+        "rank",
+        "c"
+      ],
+      "pool": [
+        "rank",
+        "score",
+        "c",
+        "k",
+        "alpha",
+        "beta"
+      ],
+      "explanations": [
+        "rank_i 是文档在第 i 个检索器中的排名位置",
+        "c 是平滑常数，通常取 60，降低高排名的相对权重"
+      ]
+    },
+    {
+      "question": "Cross-Encoder 将 {0} 和 {1} 拼接后联合编码，输出单一相关性分数。",
+      "answers": [
+        "查询",
+        "文档"
+      ],
+      "pool": [
+        "查询",
+        "文档",
+        "标题",
+        "摘要",
+        "关键词",
+        "上下文"
+      ],
+      "explanations": [
+        "Cross-Encoder 将 Query 和 Document 拼接输入",
+        "文档（Document）与查询一起编码，实现细粒度交互"
+      ]
+    }
+  ],
+  "single": [
+    {
+      "question": "ColBERT 的 MaxSim 操作具体做什么？",
+      "options": [
+        "A. 计算查询和文档的 [CLS] 向量相似度",
+        "B. 每个查询 token 找文档中最相似 token，再求和",
+        "C. 将查询和文档拼接后做自注意力",
+        "D. 计算所有 token 对的平均相似度"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：这是 Bi-Encoder 的做法",
+        "✅ 正确：MaxSim = Σ max(sim(q_i, d_j)) for all q_i",
+        "❌ 错误：这是 Cross-Encoder 的做法",
+        "❌ 错误：平均会丢失最相关的匹配信号"
+      ]
+    },
+    {
+      "question": "C-RAG 中，如果检索评估器判断文档为不正确，系统会采取什么行动？",
+      "options": [
+        "A. 直接丢弃文档并返回空结果",
+        "B. 触发查询重写和 Web 搜索获取外部信息",
+        "C. 降低文档权重继续使用",
+        "D. 要求用户重新输入查询"
+      ],
+      "correct": 1,
+      "explanations": [
+        "❌ 错误：C-RAG 会主动寻求外部知识而非直接返回空",
+        "✅ 正确：不正确 → 查询重写 → Web 搜索 → 外部知识获取",
+        "❌ 错误：C-RAG 不是简单降权，而是主动行动",
+        "❌ 错误：C-RAG 是系统自动处理，不依赖用户"
+      ]
+    }
+  ],
+  "multi": [
+    {
+      "question": "混合检索相比单一检索的优势包括？（多选）",
+      "options": [
+        "A. 同时捕获关键词和语义",
+        "B. 计算成本更低",
+        "C. 对拼写错误更鲁棒",
+        "D. 参数调优更简单",
+        "E. 适合产品型号等精确匹配场景",
+        "F. 召回率和准确率同时提升"
+      ],
+      "correct": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "explanations": [
+        "✅ 稀疏向量精确匹配 + 密集向量语义理解",
+        "❌ 计算成本更高（需维护两套索引）",
+        "✅ 密集向量对拼写错误和近义词更鲁棒",
+        "❌ 融合权重等参数需要反复调优",
+        "✅ 稀疏检索擅长产品型号、函数名等精确匹配",
+        "✅ 是混合检索的主要目标"
+      ]
+    }
+  ],
+  "tf": [
+    {
+      "question": "RRF 融合需要对不同检索器的原始分数进行归一化。",
+      "correct": false,
+      "explanation": "❌ 错误：RRF 只关心排名位置，不需要原始分数，因此无需归一化。"
+    },
+    {
+      "question": "Cross-Encoder 的计算成本比 Bi-Encoder 高，因为需要对每个候选文档做一次完整推理。",
+      "correct": true,
+      "explanation": "✅ 正确：50 个候选文档需要 50 次 Transformer 前向传播，而 Bi-Encoder 只需 1 次查询编码 + 向量点积。"
+    },
+    {
+      "question": "DocumentCompressorPipeline 中的 transformers 按列表顺序依次执行。",
+      "correct": true,
+      "explanation": "✅ 正确：例如 [reranker, compressor] 表示先 ColBERT 重排，再 LLM 压缩，前一个输出作为后一个输入。"
+    }
+  ]
+}
