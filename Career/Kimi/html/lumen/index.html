@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UE5 Lumen 互动式问答卡牌</title>
+<title>Lumen SIGGRAPH 2021 论文笔记 · 互动式问答卡牌</title>
 <style>
 :root{--bg:#f5f5f0;--card-bg:#fff;--primary:#3a5a7c;--accent:#6b9e75;--accent-wrong:#c45c5c;--text:#2c3e50;--text-light:#5d6d7e;--border:#d0d5dd;--shadow:rgba(0,0,0,0.08);--drop-zone:#eef2f7;--draggable:#f0f4f8;--status-correct:#e8f5e9;--status-wrong:#fce8e8;--status-unanswered:#f8f9fa}
 *{box-sizing:border-box}
@@ -108,6 +108,7 @@ header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
 .thumb-type.drag{background:#6b5b95}
 .thumb-type.single{background:#5b8a72}
 .thumb-type.multi{background:#8a5b5b}
+.thumb-type.tf{background:#5b7a8a}
 .thumb-text{font-size:0.85rem;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .thumb-status{position:absolute;top:0.5rem;right:0.5rem;font-size:1rem}
 .thumb-status.correct-icon{color:var(--accent)}
@@ -125,8 +126,9 @@ header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
 
 <header>
   <div class="header-left">
-    <h1>💡 UE5 Lumen 互动式问答卡牌</h1>
-    <p>全局光照 · Surface Cache · Screen Probe — 面试前速测</p>
+    <h1>💡 Lumen SIGGRAPH 2021 论文笔记 · 互动式问答卡牌</h1>
+    <p>Software Ray Tracing · Radiance Cache · Screen Probe — 面试前速测</p>
+    <p style="margin-top:0.4rem;font-size:0.85rem;"><a href="callchain.html" style="color:#ffd966;text-decoration:underline;">🔗 配套：Lumen 源码调用链 · 调用链卡牌（4 主 Pass + 三级 Trace 回退） →</a></p>
   </div>
   <button class="header-btn" id="dashboard-btn">📊 题目总览</button>
 </header>
@@ -262,200 +264,196 @@ header p{margin:0.3rem 0 0;opacity:0.85;font-size:0.9rem}
 
 // ==================== Lumen 题目数据 ====================
 const dragQuestions = [
-  {
-    sentence: "Lumen 的 Surface Cache 存储 {0}（辐射率）、{1}（法线）和 {2}（深度），将复杂 3D 场景降维到 2D 纹理随机访问。",
-    answers: ["Radiance", "Normal", "Depth"],
-    pool: ["Radiance", "Normal", "Depth", "Color", "Albedo", "Position", "Opacity"],
-    explanation: "Surface Cache 的核心降维思想：将 3D 场景的几何信息缓存到 2D 纹理上，光照查询从射线-三角形求交变为 UV 随机访问。",
+      {
+        sentence: "Lumen 的三层结构中，底层用 {0} 做软件光追，中间层用 {1} 缓存直接光照，最高层用 {2} 做远距离低频近似。",
+        answers: ["SDF", "Surface Cache", "Radiance Cache"],
+        pool: ["SDF", "Surface Cache", "Radiance Cache", "Screen Probe", "Hardware RT", "Lightmap", "Voxel"],
+        explanation: "Lumen 的分层设计：SDF 负责软件光追求交，Surface Cache 缓存近处高分辨率光照，Radiance Cache 处理远处低频近似。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        blankExplanations: [
+          "SDF（Signed Distance Field）是 Lumen 软件光追的基础，用于快速场景求交。Hardware RT 是硬件方案，不是底层软件实现。",
+          "Surface Cache（表面缓存）存储近处物体的直接光照信息，类似虚拟纹理的管理方式。Screen Probe 是探针放置策略，不是缓存层。",
+          "Radiance Cache（辐射度缓存）用于远距离低频光照近似，降低计算开销。Lightmap 是传统预烘焙方案，与 Lumen 的动态理念相悖。"
+        ]
+      },
+      {
+        sentence: "Lumen 的 Software Ray Tracing 通过 {0} 和 {1} 实现，不依赖 {2} 硬件。",
+        answers: ["SDF", "Mesh Card", "RT Core"],
+        pool: ["SDF", "Mesh Card", "RT Core", "Lightmap", "GPU", "CPU", "Bounding Box"],
+        explanation: "Software Ray Tracing 是 Lumen 的工程化核心：SDF 提供距离查询，Mesh Card 提供表面缓存，全程不依赖 RT Core 硬件。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        blankExplanations: [
+          "SDF（有向距离场）提供快速安全距离查询，是 Sphere Tracing 的基础。Bounding Box 是粗筛，不能提供精确距离。",
+          "Mesh Card 是 Lumen 组织几何和缓存光照的基本单元，每个 Mesh 对应若干 Card。GPU/CPU 是计算载体，不是具体技术。",
+          "RT Core 是 NVIDIA 硬件光追单元，Lumen 的软件方案特意避免依赖它，以兼容更广泛的硬件。"
+        ]
+      },
+      {
+        sentence: "Lumen 的 Screen Space Probe 在 {0} 放置探针，动态更新，避免传统 {1} 的预烘焙限制。",
+        answers: ["屏幕空间", "Lightmap"],
+        pool: ["屏幕空间", "Lightmap", "世界空间", "Radiance Cache", "SDF", "Mesh Card", "GBuffer"],
+        explanation: "Screen Space Probe 是 Lumen 动态更新的关键：在屏幕空间放置探针，实时响应动态物体和光源变化。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        blankExplanations: [
+          "屏幕空间放置探针可以高效利用当前视角信息，但也需要处理边缘 case（新暴露区域）。世界空间放置会导致探针数量爆炸。",
+          "Lightmap（光照贴图）是传统预烘焙方案，无法响应动态变化，Lumen 用 Screen Probe 完全替代了它。"
+        ]
+      },
+      {
+        sentence: "Lumen 的 SDF 追踪循环中，若采样距离小于 {0} 则返回 {1}，否则沿射线继续前进。",
+        answers: ["EPSILON", "SkyRadiance"],
+        pool: ["EPSILON", "SkyRadiance", "0", "MAX_STEPS", "SceneRadiance", "MAX_DISTANCE", "Distance"],
+        explanation: "论文笔记中的伪代码：dist < EPSILON 时命中返回场景辐射度，t > MAX_DISTANCE 时返回 SkyRadiance。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        blankExplanations: [
+          "EPSILON 是命中阈值，表示射线已进入表面足够近的距离。0 过于严格，浮点误差会导致漏检。",
+          "命中后返回 scene.SampleRadiance(ray.pos, ray.dir)，未命中（超出 MAX_DISTANCE）返回 SkyRadiance(ray.dir)。SceneRadiance 是命中后的返回值，不是缺省值。"
+        ]
+      }
+    ];
 
-        detailLink: "../../UE5_Detail.md#lumen-surface-cache",
-    blankExplanations: [
-      "Radiance（辐射率）是 Surface Cache 最核心的存储内容，代表表面的颜色+光照信息。Color 不够精确，因为 Radiance 包含光照计算结果。",
-      "Normal（法线）用于光照计算时的表面方向。Position 不需要存，因为可以通过 UV 和 Card 参数反推。",
-      "Depth（深度）用于验证命中点的深度一致性，防止 UV 投影错误时的深度不匹配。Opacity 不是 Surface Cache 的核心存储。"
-    ]
-  },
-  {
-    sentence: "Lumen 的三级 Trace 回退：近处用 {0}（屏幕空间，零额外开销）→ 中距用 {1}（有向距离场，体积查询）→ 远处用 {2}（GPU 硬件光追，精确但昂贵）。",
-    answers: ["Screen Trace", "Mesh SDF", "Hardware Ray Trace"],
-    pool: ["Screen Trace", "Mesh SDF", "Hardware Ray Trace", "Cone Tracing", "Radiosity", "Ray Marching", "Path Tracing"],
-    explanation: "三级 Trace 是 Lumen 效率的核心：Screen Trace 处理近处（零开销），Mesh SDF 处理中距（体积查询），Hardware RT 处理远处（精确）。",
+    const singleQuestions = [
+      {
+        question: "为什么 Lumen 在开放世界动态昼夜系统中比烘焙光照更可行？",
+        options: [
+          "A. 烘焙光照精度更高",
+          "B. 烘焙光照需要重新烘焙，无法响应动态变化",
+          "C. Lumen 只支持静态场景",
+          "D. Lumen 使用预计算 Lightmap"
+        ],
+        correct: 1,
+        explanation: "烘焙光照（Lightmap）是离线预计算，运行时只采样。昼夜变化导致光照完全改变，必须重新烘焙，这在开放世界中不可行。Lumen 完全动态，无需预烘焙。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        optionExplanations: [
+          "❌ 错误：烘焙光照精度可以很高，但这不是可行性问题。",
+          "✅ 正确：动态昼夜系统要求光照随时间变化，烘焙光照每变化一次就需要重新烘焙，在开放世界中不可行。",
+          "❌ 错误：Lumen 支持动态场景，包括动态物体和光源。",
+          "❌ 错误：Lumen 不使用任何预计算 Lightmap，所有计算都是实时的。"
+        ]
+      },
+      {
+        question: "Lumen 的 Software Ray Tracing 相比 Hardware RT 的主要优势是什么？",
+        options: [
+          "A. 质量更高",
+          "B. 兼容更广泛的硬件，不依赖 RT Core",
+          "C. 速度更快",
+          "D. 支持更多材质"
+        ],
+        correct: 1,
+        explanation: "Software Ray Tracing 的核心优势是兼容性：不依赖 RT Core，可在消费级 GPU 上运行。论文明确指出这是'务实'的技术选型。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        optionExplanations: [
+          "❌ 错误：Hardware RT 在质量上更精确，Software RT 在复杂场景下开销也较大。",
+          "✅ 正确：论文强调 Software RT 不依赖 RT Core，兼容更广泛硬件，这是 UE5 面向全平台的务实选择。",
+          "❌ 错误：Software RT 在复杂场景下开销较大，不一定比 Hardware RT 快。",
+          "❌ 错误：Lumen 对半透明等材质支持有限，这不是 Software RT 的优势。"
+        ]
+      },
+      {
+        question: "Lumen 的 Radiance Cache 分层策略中，远距离用什么？",
+        options: [
+          "A. 高分辨率 Surface Cache",
+          "B. 低频辐射度缓存",
+          "C. 屏幕空间探针",
+          "D. 硬件光追"
+        ],
+        correct: 1,
+        explanation: "Radiance Cache 分层：近距离用高分辨率 Surface Cache，远距离用低频辐射度缓存，平衡质量与性能。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        optionExplanations: [
+          "❌ 错误：高分辨率 Surface Cache 用于近距离，远距离不需要高频细节。",
+          "✅ 正确：远距离光照变化平缓，用低频辐射度缓存（Radiance Cache）即可，大幅节省计算。",
+          "❌ 错误：Screen Probe 是探针放置策略，不是缓存分辨率策略。",
+          "❌ 错误：Hardware RT 是追踪回退方案，不是缓存分层的一部分。"
+        ]
+      }
+    ];
 
-        detailLink: "../../UE5_Detail.md#lumen-trace-fallback",
-    blankExplanations: [
-      "Screen Trace 利用上一帧的屏幕空间数据（Scene Color + Depth），对近处物体零额外几何开销。Cone Tracing 是 Screen Probe Gather 的技术，不是 Trace 层级。",
-      "Mesh SDF 使用有向距离场在 3D 空间做 Sphere Tracing，处理屏幕外但距离中等的物体。Radiosity 是光照传播方法，不是射线追踪。",
-      "Hardware Ray Trace 利用 GPU 硬件光追（RTX），处理远距离和复杂遮挡，精确但昂贵。Path Tracing 是离线渲染技术，不是 Lumen 的实时方案。"
-    ]
-  },
-  {
-    sentence: "Screen Probe Gather 发射 {0}（不是射线）在 {1} 上做 Cone Tracing，利用 {2} 的层级远距离用低分辨率采样，从 O(n) 降到 O(log n)。",
-    answers: ["Cone", "Surface Cache", "MipMap"],
-    pool: ["Cone", "Surface Cache", "MipMap", "Ray", "GBuffer", "Texture Array", "LODs"],
-    explanation: "Cone Tracing 覆盖立体角，一次采样获取平均辐射度；MipMap 让远距离自动使用低分辨率，采样数从 100 降到 10。",
+    const multiQuestions = [
+      {
+        question: "Lumen 的局限性包括哪些？（多选）",
+        options: [
+          "A. 纯软件方案在复杂场景下开销仍大",
+          "B. 镜面反射质量不如硬件 RT",
+          "C. 对植被等高频细节处理一般",
+          "D. 不支持动态物体",
+          "E. 需要预烘焙 Lightmap",
+          "F. 移动端不支持"
+        ],
+        correct: [0, 1, 2],
+        explanation: "论文笔记明确指出：纯软件方案开销大、镜面反射质量一般、植被高频细节处理不佳。Lumen 支持动态物体且不需要预烘焙。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        optionExplanations: [
+          "✅ 正确：论文评价中明确指出'纯软件方案在复杂场景下开销仍大'。",
+          "✅ 正确：论文指出'镜面反射质量不如硬件 RT'。",
+          "✅ 正确：论文指出'对植被等高频细节处理一般'。",
+          "❌ 错误：Lumen 支持动态物体，这是其核心优势之一。",
+          "❌ 错误：Lumen 不需要预烘焙，这是它区别于传统方案的关键。",
+          "❌ 错误：移动端支持是硬件限制，不是论文重点讨论的 Lumen 本身局限性。"
+        ]
+      },
+      {
+        question: "Lumen 的核心创新点包括哪些？（多选）",
+        options: [
+          "A. Software Ray Tracing（SDF + Mesh Card）",
+          "B. Radiance Cache 分层",
+          "C. Screen Space Probe",
+          "D. 预烘焙全局光照",
+          "E. 仅支持硬件 RT",
+          "F. 体素全局光照"
+        ],
+        correct: [0, 1, 2],
+        explanation: "论文核心创新：Software Ray Tracing + Radiance Cache 分层 + Screen Space Probe。预烘焙、仅硬件 RT、体素 GI 都不是 Lumen 的特点。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+        optionExplanations: [
+          "✅ 正确：Software Ray Tracing 是论文首要创新，通过 SDF + Mesh Card 实现。",
+          "✅ 正确：Radiance Cache 分层是性能与质量平衡的关键设计。",
+          "✅ 正确：Screen Space Probe 动态更新，避免预烘焙限制。",
+          "❌ 错误：Lumen 是实时无预烘焙方案，与传统 Lightmap 完全相反。",
+          "❌ 错误：Lumen 特意避免仅依赖硬件 RT，以兼容更广泛硬件。",
+          "❌ 错误：Lumen 选择 SDF 而非体素，论文笔记中对比了 Voxel-Based GI。"
+        ]
+      }
+    ];
 
-        detailLink: "../../UE5_Detail.md#lumen-screen-probe-gather",
-    blankExplanations: [
-      "Cone（锥体）覆盖一个立体角，一次采样获取该方向的平均辐射度，天然适合模糊反射。Ray（射线）太细，只能采样一个点，不适合粗糙表面。",
-      "Surface Cache（Lumen Card 的 Radiance Atlas）是 Cone Tracing 的查询目标。GBuffer 只存当前帧可见像素，不存全局光照信息。",
-      "MipMap 层级让 Cone 的开口角和行进距离直接映射到分辨率级别：远距离用低分辨率 Mip，近距用高分辨率。Texture Array 不是 Lumen 的缓存结构。"
-    ]
-  },
-  {
-    sentence: "Lumen 通过 {0} 迭代实现无限反弹：{1} 阶段收集周围其他 Card 的辐射度，{2} 阶段按 BRDF 散射并写回当前 Card 的 Radiance Atlas。",
-    answers: ["Radiosity", "Gather", "Scatter"],
-    pool: ["Radiosity", "Gather", "Scatter", "Ray Tracing", "Path Tracing", "Reflection", "Refraction"],
-    explanation: "Radiosity 迭代 = Gather（收集）→ Scatter（散射），每次迭代等效于一次光线反弹，但计算成本是 O(纹理采样) 而非 O(射线求交)。",
+    const trueFalseQuestions = [
+      {
+        statement: "Lumen 的 Software Ray Tracing 完全不依赖 GPU，只在 CPU 上运行。",
+        correct: false,
+        explanation: "❌ 错误。Software Ray Tracing 是在 GPU 上执行的软件实现，不依赖 RT Core 硬件加速单元，但仍然充分利用 GPU 的通用计算能力。CPU 只负责离线构建（如 SDF 生成）。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+      },
+      {
+        statement: "Lumen 的 Surface Cache 管理类似于虚拟纹理系统。",
+        correct: true,
+        explanation: "✅ 正确。论文笔记的实现难点分析中明确指出：'需要管理大量小纹理的分配与回收，像虚拟纹理'。两者都面临动态纹理分页和内存管理的挑战。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+      },
+      {
+        statement: "Lumen 的 Screen Space Probe 可以完美处理所有新暴露区域而没有任何限制。",
+        correct: false,
+        explanation: "❌ 错误。论文笔记明确指出 Screen Probe 的放置策略需要'处理边缘 case（新暴露区域）'。屏幕空间探针无法看到上一帧未暴露的区域，这是固有局限。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+      },
+      {
+        statement: "Lumen 通过 Radiance Cache 分层，在远距离使用低频缓存来近似全局光照。",
+        correct: true,
+        explanation: "✅ 正确。Radiance Cache 分层是 Lumen 的核心设计：近距离用高分辨率 Surface Cache，远距离用低频 Radiance Cache，这是质量与性能平衡的关键。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+      },
+      {
+        statement: "Lumen 的 SDF 在运行时实时生成，没有任何离线开销。",
+        correct: false,
+        explanation: "❌ 错误。SDF 在离线 Cook 阶段生成（论文笔记提到'每个 Mesh 需要生成 SDF'）。运行时动态物体更新开销大，这也是实现难点之一。",
+        detailLink: "../../Routine/01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+      }
+    ];
 
-        detailLink: "../../UE5_Detail.md#lumen-radiosity",
-    blankExplanations: [
-      "Radiosity（辐射度）迭代是表面到表面的能量传递方法。Ray Tracing 是逐点发射射线，不是缓存传播。Path Tracing 是离线渲染技术。",
-      "Gather 阶段：每个 Card 向周围发射 Cone 查询其他 Card 的 Radiance。Reflection 是反射现象，不是迭代阶段。",
-      "Scatter 阶段：将收集到的辐射度按 BRDF 散射，写回当前 Card 的 Radiance Atlas。Refraction 是折射，与间接光传播无关。"
-    ]
-  },
-  {
-    sentence: "Mesh SDF 在离线 Cook 阶段生成，只存 {0}（纯几何），运行时通过 {1} 步进求交；命中后颜色/法线来自 {2}（Lumen Card）的纹理采样。",
-    answers: ["距离", "Sphere Tracing", "Surface Cache"],
-    pool: ["距离", "Sphere Tracing", "Surface Cache", "颜色", "法线", "Ray Marching", "Radiance Atlas"],
-    explanation: "Mesh SDF 只负责几何求交（哪里命中），光照信息来自 Surface Cache。Sphere Tracing 大步跳过空区域，只在接近表面时细化。",
-
-        detailLink: "../../UE5_Detail.md#lumen-mesh-sdf",
-    blankExplanations: [
-      "Mesh SDF 只存储到最近表面的有向距离（标量），不存颜色、法线、材质。颜色法线不是 SDF 的内容。",
-      "Sphere Tracing 每次步进距离 = 当前 SDF 值（安全距离），大步跳过空区域。Ray Marching 是固定步长，不如 Sphere Tracing 高效。",
-      "命中后通过命中点世界坐标关联到 Lumen Card，从 Surface Cache（Radiance Atlas / Normal Atlas）采样。Radiance Atlas 是 Surface Cache 的一部分，但 Surface Cache 是更准确的答案。"
-    ]
-  }
-];
-
-const singleQuestions = [
-  {
-    question: "为什么 Lumen 不需要预计算 Lightmap？",
-    options: [
-      "A. Lightmap 精度不够",
-      "B. Surface Cache 增量更新 + Screen Probe 实时追踪，可以响应动态光源和物体",
-      "C. Lumen 使用烘焙纹理",
-      "D. Lumen 只支持静态场景"
-    ],
-    correct: 1,
-    explanation: "Lightmap 是离线烘焙所有光路到静态纹理，运行时只采样，不能响应动态变化。Lumen 的 Surface Cache 每帧增量更新 dirty Card，Screen Probe 实时追踪，完全动态。",
-
-        detailLink: "../../UE5_Detail.md#lumen-surface-cache",
-    optionExplanations: [
-      "❌ 错误：Lightmap 精度可以很高，但这不是 Lumen 不需要它的原因。",
-      "✅ 正确：Surface Cache 增量更新（只更新 dirty Card）+ Screen Probe 实时追踪，可以响应动态光源、移动物体和材质变化。",
-      "❌ 错误：Lumen 不使用任何烘焙纹理，所有计算都是实时的。",
-      "❌ 错误：Lumen 支持动态场景，包括动态光源和移动物体。"
-    ]
-  },
-  {
-    question: "Mesh SDF 命中后的颜色/法线信息来自哪里？",
-    options: [
-      "A. Mesh SDF 体积纹理本身",
-      "B. Surface Cache（Lumen Card 的 Radiance Atlas / Normal Atlas）",
-      "C. GBuffer 当前帧数据",
-      "D. 硬件光追直接查询"
-    ],
-    correct: 1,
-    explanation: "Mesh SDF 只存距离（纯几何），不存任何光照信息。命中后通过命中点世界坐标关联到 Lumen Card，从 Surface Cache 的纹理图集采样。",
-
-        detailLink: "../../UE5_Detail.md#lumen-mesh-sdf",
-    optionExplanations: [
-      "❌ 错误：Mesh SDF 只存储有向距离（标量），完全不存颜色、法线、材质信息。",
-      "✅ 正确：命中点世界坐标 → 查找 FLumenMeshCards → 选择最佳 Card → UV 投影 → 从 Radiance Atlas / Normal Atlas 采样。",
-      "❌ 错误：GBuffer 只包含当前帧可见表面的信息，对于屏幕外或射线命中的表面，GBuffer 没有数据。",
-      "❌ 错误：Hardware RT 是第三级回退，Mesh SDF 命中后优先使用 Surface Cache，只有 Surface Cache 未更新时才回退到 Hardware RT。"
-    ]
-  },
-  {
-    question: "Lumen 与 UE4 RTGI 的本质区别是什么？",
-    options: [
-      "A. Lumen 需要更多显存",
-      "B. RTGI 支持无限反弹，Lumen 只支持有限反弹",
-      "C. RTGI 纯屏幕空间每帧重新发射射线，Lumen 用缓存传播（Radiosity）在 Surface Cache 之间传递能量",
-      "D. RTGI 不支持反射"
-    ],
-    correct: 2,
-    explanation: "RTGI 是每帧全屏重新发射射线，反弹次数线性增长，无法处理屏幕外。Lumen 将光照缓存到 Surface Cache，通过 Radiosity 迭代在缓存之间传播，实现无限反弹。",
-
-        detailLink: "../../UE5_Detail.md#lumen-trace-fallback",
-    optionExplanations: [
-      "❌ 错误：虽然 Lumen 确实需要更多显存，但这不是本质区别。",
-      "❌ 错误：RTGI 只支持 1-2 次反弹（反弹次数线性增长导致开销爆炸），Lumen 通过 Radiosity 迭代实现无限反弹。",
-      "✅ 正确：RTGI 每帧从屏幕空间重新发射射线，反弹次数 = Pass 数量；Lumen 先捕获直接光到 Surface Cache，然后通过 Gather/Scatter 迭代在缓存之间传播能量，无需每帧发射新射线。",
-      "❌ 错误：RTGI 有 SSR 处理反射，但 GI 和反射是分离的。Lumen 是一体化支持。"
-    ]
-  }
-];
-
-const multiQuestions = [
-  {
-    question: "Lumen 的局限性包括哪些？（多选）",
-    options: [
-      "A. 半透明物体完全不参与 Lumen",
-      "B. Hair / Foliage 高频细节场景表现不佳",
-      "C. Surface Cache 更新有延迟",
-      "D. 内存占用较大",
-      "E. 移动端不支持",
-      "F. 自发光材质完全不受限制"
-    ],
-    correct: [0, 1, 2, 3, 4],
-    explanation: "自发光材质虽然支持，但有辐射区域大小和亮度限制（防止过曝）。其他都是 Lumen 的已知局限性。",
-
-        detailLink: "../../UE5_Detail.md#lumen-comparison",
-    optionExplanations: [
-      "✅ 正确：半透明物体完全不参与 Lumen 的间接光照计算。",
-      "✅ 正确：Hair 和 Foliage 的高频细节在 Surface Cache 的低分辨率捕获中表现不佳。",
-      "✅ 正确：Surface Cache 每帧限制更新数量（CardCapturesPerFrame），动态变化有延迟。",
-      "✅ 正确：需要存储 Surface Cache Atlas + Radiance Atlas + 多个 Mip 层级，显存占用较大。",
-      "✅ 正确：Lumen 需要支持 RTX 或 Mesh Shader 的硬件，移动端目前不支持。",
-      "❌ 错误：自发光材质有辐射区域大小和亮度限制（防止过曝），不是完全无限制。"
-    ]
-  },
-  {
-    question: "Lumen 与 UE4 RTGI 相比的优势包括哪些？（多选）",
-    options: [
-      "A. 无限反弹（Radiosity 迭代）",
-      "B. 支持屏幕外物体（Mesh SDF / Hardware RT）",
-      "C. 一体化反射支持（粗糙度模糊反射）",
-      "D. 预计算 Lightmap 烘焙",
-      "E. 固定 Pass 结构（不随反弹次数线性增长）",
-      "F. 更低的显存占用"
-    ],
-    correct: [0, 1, 2, 4],
-    explanation: "Lumen 需要预计算 Lightmap ×，显存占用更高 ×。优势在于无限反弹、屏幕外支持、一体化反射、固定 Pass 结构。",
-
-        detailLink: "../../UE5_Detail.md#lumen-screen-probe-gather",
-    optionExplanations: [
-      "✅ 正确：Radiosity 迭代在缓存之间传播能量，理论上支持无限反弹（实际 2-3 次迭代收敛）。",
-      "✅ 正确：Mesh SDF 和 Hardware RT 可以处理屏幕外物体，RTGI 完全无法处理。",
-      "✅ 正确：Lumen 一体化支持反射，包括粗糙度模糊反射，无需单独的 SSR/Reflection Capture。",
-      "❌ 错误：Lumen 不需要预计算 Lightmap，这是它的优势之一（实时响应动态变化）。",
-      "✅ 正确：Lumen 的 Pass 结构固定（Probe Gather + Radiosity + Composite），不随反弹次数增加。RTGI 每反弹一次需要一个新 Pass。",
-      "❌ 错误：Lumen 的显存占用比 RTGI 更高（需要存储 Surface Cache Atlas + Radiance Atlas）。"
-    ]
-  }
-];
-
-const trueFalseQuestions = [
-  { statement: "Lumen 的 Surface Cache 存储 Radiance、Normal 和 Depth。", correct: true, explanation: "✅ 正确。Surface Cache 的核心存储：Radiance Atlas（颜色+光照）、Normal Atlas（法线）、Depth Atlas（深度验证）。",
-     detailLink: "../../UE5_Detail.md#lumen-trace-fallback",
-},  { statement: "Mesh SDF 存储了颜色、法线和材质信息。", correct: false, explanation: "❌ 错误。Mesh SDF 只存储有向距离（标量），完全不存颜色、法线、材质。命中后的光照信息来自 Surface Cache（Lumen Card）。",
-     detailLink: "../../UE5_Detail.md#lumen-surface-cache",
-},  { statement: "Lumen 的 Screen Probe 发射的是射线（Ray）而非 Cone。", correct: false, explanation: "❌ 错误。Screen Probe 发射的是 Cone（锥体），覆盖一个立体角，一次采样获取平均辐射度。射线（Ray）太细，只能采样一个点，不适合粗糙表面。",
-     detailLink: "../../UE5_Detail.md#lumen-radiosity",
-},  { statement: "Lumen 的 Radiosity 迭代每次都需要发射新射线。", correct: false, explanation: "❌ 错误。Radiosity 迭代在已缓存的 Surface Cache 纹理之间做纹理采样和混合，不需要发射新射线。每次迭代成本是 O(纹理采样) 而非 O(射线求交)。",
-     detailLink: "../../UE5_Detail.md#lumen-mesh-sdf",
-},  { statement: "Lumen 在移动端完全支持。", correct: false, explanation: "❌ 错误。Lumen 需要支持 RTX 或 Mesh Shader 的硬件，移动端目前不支持。Surface Cache 的内存占用也限制了移动端可用性。",
-     detailLink: "../../UE5_Detail.md#lumen-comparison",
-}];
-
-const allQuestions = [];
-dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
-singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
-multiQuestions.forEach((q,i)=>allQuestions.push({mode:'multi',index:i,question:q.question.substring(0,40)+'...',type:'multi'}));
-trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:q.statement.substring(0,40)+'...',type:'tf'}));
+    const allQuestions = [];
+    dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
+    singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
+    multiQuestions.forEach((q,i)=>allQuestions.push({mode:'multi',index:i,question:q.question.substring(0,40)+'...',type:'multi'}));
+    trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:q.statement.substring(0,40)+'...',type:'tf'}));
 
 // ==================== 状态 ====================
 let currentMode = 'drag';
@@ -522,9 +520,9 @@ function openDashboard() {
 function closeDashboard() { $('dashboard-overlay').classList.remove('show'); }
 
 function updateDashboardStats() {
-  const totalMax = dragQuestions.length + singleQuestions.length + multiQuestions.length;
+  const totalMax = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
   let totalCorrect = 0, totalWrong = 0, totalUnanswered = 0;
-  ['drag','single','multi'].forEach(mode => {
+  ['drag','single','multi','tf'].forEach(mode => {
     answered[mode].forEach((a, i) => {
       if (!a) totalUnanswered++;
       else if (answeredCorrect[mode][i]) totalCorrect++;
@@ -547,7 +545,7 @@ function renderDashboardGrid(filter) {
     thumb.className = `question-thumb ${status}`;
     thumb.innerHTML = `
       <div class="thumb-num">#${globalIdx + 1}</div>
-      <div class="thumb-type ${q.type}">${q.type === 'drag' ? '拖拽' : q.type === 'single' ? '单选' : '多选'}</div>
+      <div class="thumb-type ${q.type}">${q.type === 'drag' ? '拖拽' : q.type === 'single' ? '单选' : q.type === 'tf' ? '判断' : '多选'}</div>
       <div class="thumb-text">${q.question}</div>
       <div class="thumb-status ${status === 'correct' ? 'correct-icon' : status === 'wrong' ? 'wrong-icon' : ''}">${status === 'correct' ? '✅' : status === 'wrong' ? '❌' : ''}</div>
     `;
