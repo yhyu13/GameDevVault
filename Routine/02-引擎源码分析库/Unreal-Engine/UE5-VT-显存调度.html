@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5 虚拟纹理系统 — 显存调度 · 互动式面试卡牌</title>
+<style>
+  :root {
+    --bg:#f5f5f0; --card-bg:#fff; --primary:#3a5a7c; --accent:#6b9e75; --accent-wrong:#c45c5c;
+    --text:#2c3e50; --text-light:#5d6d7e; --border:#d0d5dd; --shadow:rgba(0,0,0,0.08);
+    --drop-zone:#eef2f7; --draggable:#f0f4f8;
+    --status-correct:#e8f5e9; --status-wrong:#fce8e8; --status-unanswered:#f8f9fa;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+  header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.8rem}
+  header h1{margin:0;font-size:1.3rem;font-weight:500}
+  header p{margin:0.2rem 0 0;opacity:0.85;font-size:0.85rem}
+  .header-left{flex:1;min-width:260px}
+  .header-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
+  .header-btn{padding:0.5rem 1rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.2s;font-size:0.88rem;text-decoration:none;display:inline-block}
+  .header-btn:hover{background:rgba(255,255,255,0.25)}
+  .container{max-width:820px;margin:0 auto;padding:1.5rem}
+  .nav-tabs{display:flex;gap:0.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+  .nav-tab{flex:1;min-width:90px;padding:0.6rem 0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.85rem;transition:all 0.2s;color:var(--text-light)}
+  .nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+  .nav-tab:hover:not(.active){background:var(--drop-zone)}
+  .score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.6rem;flex-wrap:wrap}
+  .score-mini{font-size:0.85rem;color:var(--text-light);white-space:nowrap}
+  .score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+  .progress-text{text-align:right;font-size:0.8rem;color:var(--text-light);margin-bottom:0.3rem}
+  .progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+  .card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:26px;font-size:0.8rem;font-weight:600;margin-right:0.5rem}
+  .card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5}
+  .q-type{font-size:0.75rem;color:var(--text-light);background:#eef2f7;padding:2px 8px;border-radius:4px;margin-left:0.4rem}
+  .drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem}
+  .drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all 0.2s;padding:0 6px;font-size:0.95rem}
+  .drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+  .drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8;cursor:pointer}
+  .drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+  .drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+  .drop-zone.correct .dropped-text{color:var(--accent)}
+  .drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+  .drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.8rem;background:var(--drop-zone);border-radius:8px}
+  .draggable{padding:0.4rem 0.9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all 0.15s;font-size:0.92rem}
+  .draggable:hover{background:#dbe4ee;border-color:var(--primary);transform:translateY(-1px)}
+  .draggable.used{opacity:0.35;cursor:default;pointer-events:none}
+  .options-list{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.0rem}
+  .option{padding:0.7rem 1.0rem;background:var(--card-bg);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.6rem;font-size:0.95rem;line-height:1.45}
+  .option:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .option.selected{border-color:var(--primary);background:#e8f0f8}
+  .option.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .option.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:600;flex-shrink:0;background:#fff}
+  .option.selected .opt-marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .option.correct-mark .opt-marker{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+  .tf-options{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.0rem}
+  .tf-btn{padding:0.9rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;transition:all 0.15s;font-size:0.95rem;text-align:center}
+  .tf-btn:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .tf-btn.selected{border-color:var(--primary);background:#e8f0f8}
+  .tf-btn.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .tf-btn.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .feedback{margin-top:1.0rem;padding:0.9rem 1.1rem;border-radius:8px;background:#f0f4f8;border-left:3px solid var(--primary);font-size:0.92rem;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback.feedback-correct{border-left-color:var(--accent);background:#e8f5e9}
+  .feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:#fce8e8}
+  .feedback-title{font-weight:600;margin-bottom:0.3rem;display:block}
+  .feedback ul{margin:0.4rem 0 0 0;padding-left:1.2rem}
+  .feedback li{margin-bottom:0.3rem}
+  .action-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1.0rem}
+  .btn{padding:0.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:0.9rem;transition:all 0.15s}
+  .btn:hover{background:var(--drop-zone);border-color:var(--primary)}
+  .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn-primary:hover{background:#2c4661;border-color:#2c4661;color:#fff}
+  .btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn-accent:hover{filter:brightness(0.95)}
+  .nav-row{display:flex;justify-content:space-between;margin-top:0.8rem;gap:0.6rem}
+  .overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .overview-panel.show{display:block}
+  .overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:0.5rem}
+  .overview-header h2{margin:0;font-size:1.15rem;font-weight:500}
+  .overview-stats{display:flex;gap:0.5rem;flex-wrap:wrap}
+  .filter-btn{padding:0.4rem 0.8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.82rem;transition:all 0.15s}
+  .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .filter-btn:hover:not(.active){background:#dbe4ee}
+  .overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem}
+  .overview-item{aspect-ratio:1;border-radius:8px;background:var(--status-unanswered);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;font-size:0.78rem;text-align:center;padding:0.2rem}
+  .overview-item.correct{background:var(--status-correct);border-color:var(--accent)}
+  .overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong)}
+  .overview-item:hover{transform:scale(1.04);box-shadow:0 2px 8px var(--shadow)}
+  .overview-item .ov-num{font-weight:700;font-size:1.0rem;margin-bottom:0.1rem}
+  .overview-item .ov-type{font-size:0.65rem;opacity:0.75;text-transform:uppercase;letter-spacing:0.5px}
+  .hidden{display:none}
+  @media (max-width:600px){
+    .container{padding:1rem}
+    .card{padding:1.2rem 1.0rem}
+    header{padding:1rem}
+    header h1{font-size:1.1rem}
+    .nav-tab{font-size:0.78rem;padding:0.5rem 0.3rem}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>UE5 虚拟纹理系统 — 显存调度 · 互动式面试卡牌</h1>
+    <p>UE 5.3 · Runtime Virtual Texture · 共 10 题（拖拽 2 + 单选 3 + 多选 2 + 判断 3）· 配套笔记：<a class="header-btn" href="UE5-VT-显存调度.md" target="_blank">打开分析笔记</a></p>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" id="btn-overview">📊 题目总览</button>
+    <button class="header-btn" id="btn-reset-all">🔄 重置全部</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-type="all">全部</div>
+    <div class="nav-tab" data-type="drag">拖拽填空</div>
+    <div class="nav-tab" data-type="single">单选题</div>
+    <div class="nav-tab" data-type="multi">多选题</div>
+    <div class="nav-tab" data-type="tf">判断题</div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-mini">已答 <span class="score-num" id="answered-num">0</span> / <span id="total-num">10</span></div>
+    <div class="score-mini">正确 <span class="score-num" id="correct-num" style="color:var(--accent)">0</span></div>
+    <div class="score-mini">错误 <span class="score-num" id="wrong-num" style="color:var(--accent-wrong)">0</span></div>
+    <div class="score-mini">得分率 <span class="score-num" id="score-pct">0%</span></div>
+  </div>
+
+  <div class="progress-text" id="progress-text">第 1 题 / 共 10 题</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:10%"></div></div>
+
+  <div id="overview-panel" class="overview-panel">
+    <div class="overview-header">
+      <h2>题目总览</h2>
+      <div class="overview-stats">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="unanswered">未答</button>
+        <button class="filter-btn" data-filter="correct">正确</button>
+        <button class="filter-btn" data-filter="wrong">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <div id="q-container"></div>
+
+  <div class="nav-row">
+    <button class="btn" id="btn-prev">← 上一题</button>
+    <button class="btn" id="btn-next">下一题 →</button>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// UE5 虚拟纹理系统 — 显存调度
+// 10 题：拖拽填空 × 2 + 单选 × 3 + 多选 × 2 + 判断 × 3
+// ============================================================
+
+const dragQuestions = [
+  {
+    sentence: "UE5 虚拟纹理调度的代码调用链：FSceneRenderer::Render → FVirtualTextureSystem::Update → {0}（收集所有可见物体的 VT 请求）→ {1}（更新 GPU Page Table）→ FVirtualTexturePhysicalSpace::Update → {2}（显存不足时 LRU 回退）。",
+    answers: ["GatherPageRequests", "FTexturePageMap::UpdateGPU", "EvictLRU"],
+    pool: ["GatherPageRequests", "FTexturePageMap::UpdateGPU", "EvictLRU", "AllocateTexture", "FinalizeTexture", "SubmitGPU"],
+    perSlotAnalysis: [
+      "GatherPageRequests = 请求层入口，遍历场景可见物体，收集所有对 VT 的 page 请求（带优先级）。",
+      "FTexturePageMap::UpdateGPU = 把 CPU 端的 Page Table 同步到 GPU 端的 Page Table Texture（这是 GPU 着色器查页表的关键步骤）。",
+      "EvictLRU = 物理纹理池满时按 FrameUsed 时间戳淘汰最近最少使用的 page，把显存腾出来给新请求。"
+    ]
+  },
+  {
+    sentence: "FPhysicalPage 结构体的关键字段：{0}（8 bits，区分虚拟空间上限 256 个）、{1}（12 bits，虚拟页 X 坐标）、{2}（最后使用帧号，用于 LRU）。",
+    answers: ["VirtualSpaceID", "vPageX", "FrameUsed"],
+    pool: ["VirtualSpaceID", "vPageX", "vPageY", "FrameUsed", "RefCount", "MipLevel"],
+    perSlotAnalysis: [
+      "VirtualSpaceID（8 bits）= 标识 page 属于哪个虚拟纹理空间，最多 256 个虚拟空间（UE5 实际工程上限）。",
+      "vPageX（12 bits）= 虚拟页 X 坐标，配合 vPageY（12 bits）共同表达 4096×4096 = 16M 虚拟页上限。",
+      "FrameUsed（uint32）= 最后被使用的帧号，用于 LRU 排序——每隔一帧会 sweep 一次物理池，找最久未用的 page 淘汰。"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    question: "UE5 虚拟纹理系统的关键跨线程同步点是？",
+    options: [
+      "A. FSceneRenderer::Render（RenderThread 主入口）",
+      "B. FVirtualTextureSystem::Update（GameThread / RenderThread / RHIThread 三方汇合点）",
+      "C. FTexturePageMap::UpdateGPU（仅 RenderThread）",
+      "D. FRenderResource::InitRHI（仅 RHIThread）"
+    ],
+    correct: 1,
+    analysis: [
+      "❌ 错误：FSceneRenderer::Render 是渲染主入口，但 VT 的协调点不在它这里。",
+      "✅ 正确：FVirtualTextureSystem::Update 是 GameThread（流送请求 + 优先级）/ RenderThread（维护 GPU Page Table）/ RHIThread（执行实际物理纹理更新）三方汇合点——VT 系统的\"协调心跳\"在这里完成。笔记明确标出：「关键的跨线程同步点在 FVirtualTextureSystem::Update()」。",
+      "❌ 错误：FTexturePageMap::UpdateGPU 只是 RenderThread 内部动作（把 Page Table 同步到 GPU），不是跨线程同步点。",
+      "❌ 错误：FRenderResource::InitRHI 是 RHI 通用初始化机制，不是 VT 特有的同步点。"
+    ]
+  },
+  {
+    question: "UE5 GPU Page Table 用 Texture 存储而非 Buffer 的核心原因是？",
+    options: [
+      "A. Texture 比 StructuredBuffer 在大多数 GPU 上采样更快",
+      "B. 利用硬件双线性过滤（Bilinear Filter）做插值，Page Table 邻居查询免费拿到 4 邻域",
+      "C. StructuredBuffer 在某些 GPU 上不可用",
+      "D. Texture 存储可同时被 VS/PS/CS 访问"
+    ],
+    correct: 1,
+    analysis: [
+      "❌ 错误：Texture vs Buffer 的\"快慢\"是 GPU / API 相关的，没有普适结论。",
+      "✅ 正确：Page Table 用 Texture 存储最关键的动机是**利用硬件双线性过滤做插值**——查询 Page Table 时硬件自动给你 4 邻域 page 信息的加权插值，等于免费做了一个 4 tap filter，简化了 page 切换时的边界 artifact 处理。",
+      "❌ 错误：所有 SM5+ GPU 都支持 StructuredBuffer，UE5 最低要求 SM5。",
+      "❌ 错误：Buffer 同样可被 VS/PS/CS 访问，这不是 Texture 的优势。"
+    ]
+  },
+  {
+    question: "UE5 虚拟纹理系统的物理纹理池的最大限制是？",
+    options: [
+      "A. 启动时固定、不能动态扩容/缩容（这是 UE5 VT 的可改进点之一）",
+      "B. 受 GPU 显存总量上限限制，可动态调整",
+      "C. 由 LOD Bias 自动决定",
+      "D. 没有任何硬限制，可以无限增长"
+    ],
+    correct: 0,
+    analysis: [
+      "✅ 正确：物理纹理池大小是启动时固定的，不能动态扩容/缩容——笔记明确把它列为 UE5 VT 系统的「可改进点之一」。如果场景纹理需求超过池容量，只能靠 LRU 回退降质量，不能临时扩容。",
+      "❌ 错误：物理池是配置项不是动态项，启动后固定；只有 LRU 行为会因池容量变化而变化。",
+      "❌ 错误：LOD Bias 影响 Mip 选择，不决定物理池容量。",
+      "❌ 错误：物理池有硬上限，超过就触发 EvictLRU。"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    question: "UE5 VT 系统的三层调度解耦清晰，每层职责单一。下列哪些是三层调度的核心函数？（多选）",
+    options: [
+      "A. GatherPageRequests（请求层：收集所有可见物体的 VT 请求）",
+      "B. FTexturePageMap::UpdateGPU（GPU Page Table 层：把 CPU Page Table 同步到 GPU）",
+      "C. FVirtualTexturePhysicalSpace::AllocatePhysicalPage（物理页层：物理池分配 / LRU 回退）",
+      "D. AllocateVirtualTexture（创建虚拟纹理资源）",
+      "E. FinalizeTexture（异步加载完成的回调）",
+      "F. SubmitGPU（GPU 提交命令）"
+    ],
+    correct: [0, 1, 2],
+    analysis: [
+      "✅ A 正确：GatherPageRequests = 请求层入口，是 VT 调度的第一步。",
+      "✅ B 正确：FTexturePageMap::UpdateGPU = GPU Page Table 层，把请求映射到 GPU 可查的 Page Table Texture。",
+      "✅ C 正确：FVirtualTexturePhysicalSpace::AllocatePhysicalPage = 物理页层（实际分配 / LRU 回退）。",
+      "❌ D 错误：AllocateVirtualTexture 是资源创建阶段（一次性），不在每帧调度循环里。",
+      "❌ E 错误：FinalizeTexture 是异步加载完成回调（IVirtualTextureFinalizer），是 Finalize 阶段的回调，不是调度循环核心。",
+      "❌ F 错误：SubmitGPU 是 RHI 通用机制，所有渲染 Pass 都有，不是 VT 调度核心。"
+    ]
+  },
+  {
+    question: "FPhysicalPage 的关键设计决策包括以下哪些？（多选）",
+    options: [
+      "A. VirtualSpaceID 用 8 bits = 256 个虚拟空间上限",
+      "B. vPageX / vPageY 各 12 bits → 单 VT 最多 4096×4096 = 16M 虚拟页",
+      "C. FrameUsed 字段用于 LRU 排序（每帧 sweep 一次）",
+      "D. 16 bytes 整体对齐到 1 个 Cache Line（64-byte）的 1/4",
+      "E. RefCount 跨进程共享以减少内存占用",
+      "F. 必须 64 bytes 对齐以避免 false sharing"
+    ],
+    correct: [0, 1, 2, 3],
+    analysis: [
+      "✅ A 正确：VirtualSpaceID 8 bits = 256 个虚拟空间，这是工程经验上限（绝大多数项目用不到这么多）。",
+      "✅ B 正确：vPageX / vPageY 各 12 bits 配合 → 单 VT 4096×4096 虚拟页，远超实际项目需求。",
+      "✅ C 正确：FrameUsed 记录最后被使用帧号，LRU sweep 时按此排序找最久未用的 page 淘汰。",
+      "✅ D 正确：FPhysicalPage 12 bytes 数据 + 4 bytes padding = 16 bytes，正好是 64-byte Cache Line 的 1/4。**4 个 page 共享 1 个 Cache Line**，LRU 顺序遍历时 cache 命中率 100%。",
+      "❌ E 错误：UE5 的 RefCount 不跨进程（即使编辑器 + Standalone PIE 也是进程内），跨进程 VT 同步走 Serialization / IPC。",
+      "❌ F 错误：FPhysicalPage 是 16 bytes（1/4 Cache Line），不是 64 bytes 对齐；size 类结构一般不做 false sharing 对齐（因为读写热点天然分散）。"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    question: "UE5 虚拟纹理系统的物理纹理池大小可以在运行时动态扩容。",
+    answer: false,
+    analysis: "✅ 正确理解：物理纹理池大小是**启动时固定**的，不能动态扩容/缩容——这是 UE5 VT 系统的「可改进点之一」，笔记明确标出。如果场景纹理需求超过池容量，只能靠 LRU 回退降质量，无法临时扩容。❌ 常见误解：以为 VT 池大小跟显存使用量动态绑定。\n\n**追问**：『那 Unity 的 Virtual Texturing 呢？』\n→ Unity 的 Streaming Mipmap 工具可以在 build 时调整池大小，运行时也是相对固定，但比 UE5 Runtime VT 更依赖外部工具链。"
+  },
+  {
+    question: "UE5 VT 系统的 LRU 回退策略是全局的，不区分不同 VT 的优先级。",
+    answer: true,
+    analysis: "✅ 正确理解：当前 LRU 是**全局**的（所有物理页共享一个 FrameUsed 时间戳），**没有考虑不同 VT 的优先级差异**——比如角色纹理（高优先级）vs 远景纹理（低优先级）目前是同等对待。这是 UE5 VT 的「可改进点之一」。❌ 常见误解：以为 LRU 已经按 VTSpace 优先级分组。\n\n**追问**：『那怎么改进？』\n→ 引入分层 LRU（按 VTSpace 优先级）或 per-VTSpace 的 LRU 队列，但这会增加 Page Table 管理的复杂度，也会让\"全局 EvictLRU 的 O(N) sweep\"变成\"per-VTSpace sweep\"——性能与精度的权衡。"
+  },
+  {
+    question: "FPhysicalPage 16 bytes，4 个 page 正好共用 1 个 64-byte Cache Line，提升 LRU 遍历效率。",
+    answer: true,
+    analysis: "✅ 正确理解：FPhysicalPage 12 bytes（VirtualSpaceID:8 + vPageX:12 + vPageY:12 共 32 bits = 4 bytes，FrameUsed = 4 bytes，RefCount = 4 bytes）+ 4 bytes padding = 16 bytes。**4 个相邻 page 共享 1 个 64-byte Cache Line**，LRU 顺序遍历时命中率 100%（一次 cache miss 拿 4 个 page）。❌ 常见误解：以为 16 bytes 占满 1 个 Cache Line，会浪费 75% 带宽。\n\n**追问**：『如果改成 64 bytes 对齐会怎样？』\n→ 物理页元数据膨胀 4 倍，cache 利用率反而下降到 25%，LRU sweep 在大场景里会成为瓶颈——所以 UE 选了 16 bytes / 1/4 Cache Line 这种紧凑设计。"
+  }
+];
+
+// 构造统一的题目列表
+const allQuestions = [
+  ...dragQuestions.map((q,i)=>({type:'drag', index:i})),
+  ...singleQuestions.map((q,i)=>({type:'single', index:i})),
+  ...multiQuestions.map((q,i)=>({type:'multi', index:i})),
+  ...trueFalseQuestions.map((q,i)=>({type:'tf', index:i}))
+];
+
+let currentQ = 0;
+let currentType = 'all';
+let overviewOpen = false;
+let overviewFilter = 'all';
+let answeredSet = new Map();
+
+function qKey(type, idx) { return type + '_' + idx; }
+function getTotal() { return allQuestions.length; }
+function getFilteredIndices() {
+  if (currentType === 'all') return allQuestions.map((_,i)=>i);
+  return allQuestions.map((q,i)=>q.type===currentType?i:-1).filter(i=>i>=0);
+}
+
+function getCurrentQDef() {
+  const def = allQuestions[currentQ];
+  if (def.type === 'drag') return { def: dragQuestions[def.index], type: 'drag', num: def.index+1, typeLabel: '拖拽填空' };
+  if (def.type === 'single') return { def: singleQuestions[def.index], type: 'single', num: def.index+1, typeLabel: '单选题' };
+  if (def.type === 'multi') return { def: multiQuestions[def.index], type: 'multi', num: def.index+1, typeLabel: '多选题' };
+  return { def: trueFalseQuestions[def.index], type: 'tf', num: def.index+1, typeLabel: '判断题' };
+}
+
+function setAnswered(type, idx, result) {
+  answeredSet.set(qKey(type, idx), result);
+  updateScoreBar();
+  updateOverviewGrid();
+}
+
+function updateScoreBar() {
+  const total = getTotal();
+  let correct = 0, wrong = 0;
+  for (const v of answeredSet.values()) {
+    if (v === 'correct') correct++;
+    else if (v === 'wrong') wrong++;
+  }
+  const answered = correct + wrong;
+  document.getElementById('answered-num').textContent = answered;
+  document.getElementById('correct-num').textContent = correct;
+  document.getElementById('wrong-num').textContent = wrong;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  document.getElementById('score-pct').textContent = pct + '%';
+}
+
+function updateProgress() {
+  const filtered = getFilteredIndices();
+  const pos = filtered.indexOf(currentQ);
+  const total = filtered.length;
+  document.getElementById('progress-text').textContent = `第 ${pos+1} 题 / 共 ${total} 题`;
+  document.getElementById('progress-fill').style.width = (total > 0 ? ((pos+1)/total)*100 : 0) + '%';
+  document.getElementById('total-num').textContent = total;
+}
+
+function updateOverviewGrid() {
+  const grid = document.getElementById('overview-grid');
+  grid.innerHTML = '';
+  allQuestions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'overview-item';
+    const status = answeredSet.get(qKey(q.type, q.index));
+    if (status === 'correct') div.classList.add('correct');
+    else if (status === 'wrong') div.classList.add('wrong');
+    if (i === currentQ) div.style.outline = '3px solid var(--primary)';
+
+    if (overviewFilter === 'unanswered' && status) { div.style.display = 'none'; return; }
+    if (overviewFilter === 'correct' && status !== 'correct') { div.style.display = 'none'; return; }
+    if (overviewFilter === 'wrong' && status !== 'wrong') { div.style.display = 'none'; return; }
+
+    const typeMap = { drag: '拖', single: '单', multi: '多', tf: '判' };
+    div.innerHTML = `<div class="ov-num">${i+1}</div><div class="ov-type">${typeMap[q.type]}</div>`;
+    div.onclick = () => {
+      currentQ = i;
+      renderQuestion();
+      toggleOverview(false);
+    };
+    grid.appendChild(div);
+  });
+}
+
+function toggleOverview(force) {
+  const panel = document.getElementById('overview-panel');
+  if (typeof force === 'boolean') {
+    overviewOpen = force;
+    panel.classList.toggle('show', force);
+  } else {
+    overviewOpen = !overviewOpen;
+    panel.classList.toggle('show', overviewOpen);
+  }
+  if (overviewOpen) updateOverviewGrid();
+}
+
+function renderDrag(def) {
+  const container = document.getElementById('q-container');
+  const parts = def.sentence.split(/(\{\d+\})/g);
+  let slotsHTML = '';
+  let slotIdx = 0;
+  for (const p of parts) {
+    const m = p.match(/^\{(\d+)\)$/);
+    if (m) {
+      slotsHTML += `<span class="drop-zone" data-slot="${slotIdx}" data-empty="true">　</span>`;
+      slotIdx++;
+    } else {
+      slotsHTML += p;
+    }
+  }
+
+  const shuffled = [...def.pool].sort(()=>Math.random()-0.5);
+  let poolHTML = '<div class="drag-pool">';
+  for (const term of shuffled) {
+    poolHTML += `<div class="draggable" draggable="true" data-term="${term}">${term}</div>`;
+  }
+  poolHTML += '</div>';
+
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.sentence.replace(/[{}]/g,'').substring(0,40)}…<span class="q-type">拖拽填空</span></h3>
+      <div class="drag-sentence">${slotsHTML}</div>
+      ${poolHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+
+  const fillState = Array(def.answers.length).fill(null);
+  const draggables = container.querySelectorAll('.draggable');
+  const dropZones = container.querySelectorAll('.drop-zone');
+
+  draggables.forEach(d => {
+    d.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', d.dataset.term);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+
+  dropZones.forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const term = e.dataTransfer.getData('text/plain');
+      const slot = parseInt(zone.dataset.slot);
+
+      const sourceDraggable = Array.from(draggables).find(d => d.dataset.term === term);
+      const existingSlot = fillState.indexOf(term);
+      if (existingSlot >= 0 && existingSlot !== slot) {
+        fillState[existingSlot] = null;
+        const oldZone = container.querySelector(`[data-slot="${existingSlot}"]`);
+        oldZone.textContent = '　';
+        oldZone.dataset.empty = 'true';
+        oldZone.classList.remove('filled', 'correct', 'wrong');
+      }
+      fillState[slot] = term;
+      zone.innerHTML = `<span class="dropped-text">${term}</span>`;
+      zone.dataset.empty = 'false';
+      zone.classList.add('filled');
+      zone.classList.remove('correct', 'wrong');
+      if (sourceDraggable) sourceDraggable.classList.add('used');
+
+      hideFeedback();
+    });
+
+    zone.addEventListener('click', () => {
+      if (zone.dataset.empty === 'true' || !fillState[parseInt(zone.dataset.slot)]) return;
+      const slot = parseInt(zone.dataset.slot);
+      const term = fillState[slot];
+      fillState[slot] = null;
+      zone.textContent = '　';
+      zone.dataset.empty = 'true';
+      zone.classList.remove('filled', 'correct', 'wrong');
+      const sourceDraggable = Array.from(draggables).find(d => d.dataset.term === term);
+      if (sourceDraggable) sourceDraggable.classList.remove('used');
+      hideFeedback();
+    });
+  });
+
+  document.getElementById('btn-check').onclick = () => {
+    let allCorrect = true;
+    fillState.forEach((term, i) => {
+      const zone = container.querySelector(`[data-slot="${i}"]`);
+      zone.classList.remove('correct', 'wrong');
+      if (term === def.answers[i]) {
+        zone.classList.add('correct');
+      } else {
+        zone.classList.add('wrong');
+        allCorrect = false;
+      }
+    });
+    const isFull = fillState.every(t => t !== null);
+    if (!isFull) {
+      showFeedback(false, '<b>未填完</b><br>请把所有空位都填上后再检查。');
+      return;
+    }
+    let html = '<span class="feedback-title">' + (allCorrect ? '✅ 完全正确！' : '❌ 有错误') + '</span>';
+    html += '<ul>';
+    fillState.forEach((term, i) => {
+      const ok = term === def.answers[i];
+      html += `<li>第 ${i+1} 空：<b>${ok?'✅ 正确':'❌ 错误'}</b> —— 你的答案：<code>${term}</code>；正确答案：<code>${def.answers[i]}</code>。${def.perSlotAnalysis[i]}</li>`;
+    });
+    html += '</ul>';
+    showFeedback(allCorrect, html);
+    setAnswered('drag', dragQuestions.indexOf(def), allCorrect ? 'correct' : 'wrong');
+  };
+
+  document.getElementById('btn-reset').onclick = () => renderDrag(def);
+}
+
+function renderSingle(def) {
+  const container = document.getElementById('q-container');
+  let optsHTML = '<div class="options-list">';
+  def.options.forEach((opt, i) => {
+    optsHTML += `<div class="option" data-opt="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${opt.substring(2)}</span></div>`;
+  });
+  optsHTML += '</div>';
+
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">单选题</span></h3>
+      ${optsHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+
+  let selected = null;
+  const opts = container.querySelectorAll('.option');
+  opts.forEach(o => {
+    o.onclick = () => {
+      if (selected !== null) return;
+      selected = parseInt(o.dataset.opt);
+      o.classList.add('selected');
+      hideFeedback();
+    };
+  });
+
+  document.getElementById('btn-check').onclick = () => {
+    if (selected === null) {
+      showFeedback(false, '<b>未选择</b><br>请先选一个选项。');
+      return;
+    }
+    const ok = selected === def.correct;
+    opts.forEach((o, i) => {
+      if (i === def.correct) o.classList.add('correct-mark');
+      if (i === selected && i !== def.correct) o.classList.add('wrong-mark');
+    });
+    let html = '<span class="feedback-title">' + (ok ? '✅ 回答正确！' : '❌ 回答错误') + '</span>';
+    html += '<ul>';
+    def.analysis.forEach((a, i) => html += `<li>${a}</li>`);
+    html += '</ul>';
+    showFeedback(ok, html);
+    setAnswered('single', singleQuestions.indexOf(def), ok ? 'correct' : 'wrong');
+  };
+
+  document.getElementById('btn-reset').onclick = () => renderSingle(def);
+}
+
+function renderMulti(def) {
+  const container = document.getElementById('q-container');
+  let optsHTML = '<div class="options-list">';
+  def.options.forEach((opt, i) => {
+    optsHTML += `<div class="option" data-opt="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${opt.substring(2)}</span></div>`;
+  });
+  optsHTML += '</div>';
+
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">多选题</span></h3>
+      ${optsHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+
+  const selected = new Set();
+  const opts = container.querySelectorAll('.option');
+  opts.forEach(o => {
+    o.onclick = () => {
+      const i = parseInt(o.dataset.opt);
+      if (selected.has(i)) {
+        selected.delete(i);
+        o.classList.remove('selected');
+      } else {
+        selected.add(i);
+        o.classList.add('selected');
+      }
+      hideFeedback();
+    };
+  });
+
+  document.getElementById('btn-check').onclick = () => {
+    if (selected.size === 0) {
+      showFeedback(false, '<b>未选择</b><br>多选题必须至少选 1 项。');
+      return;
+    }
+    const correctSet = new Set(def.correct);
+    const isExactMatch = selected.size === correctSet.size && [...selected].every(i => correctSet.has(i));
+    opts.forEach((o, i) => {
+      if (correctSet.has(i)) o.classList.add('correct-mark');
+      if (selected.has(i) && !correctSet.has(i)) o.classList.add('wrong-mark');
+    });
+    let html = '<span class="feedback-title">' + (isExactMatch ? '✅ 完全正确！' : '❌ 有错误 / 漏选') + '</span>';
+    html += '<ul>';
+    def.analysis.forEach((a, i) => html += `<li>${a}</li>`);
+    html += '</ul>';
+    showFeedback(isExactMatch, html);
+    setAnswered('multi', multiQuestions.indexOf(def), isExactMatch ? 'correct' : 'wrong');
+  };
+
+  document.getElementById('btn-reset').onclick = () => renderMulti(def);
+}
+
+function renderTF(def) {
+  const container = document.getElementById('q-container');
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">判断题</span></h3>
+      <div class="tf-options">
+        <div class="tf-btn" data-tf="true">✅ 正确（True）</div>
+        <div class="tf-btn" data-tf="false">❌ 错误（False）</div>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+
+  let selected = null;
+  const btns = container.querySelectorAll('.tf-btn');
+  btns.forEach(b => {
+    b.onclick = () => {
+      btns.forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      selected = b.dataset.tf === 'true';
+      hideFeedback();
+    };
+  });
+
+  document.getElementById('btn-check').onclick = () => {
+    if (selected === null) {
+      showFeedback(false, '<b>未选择</b><br>请先选 True 或 False。');
+      return;
+    }
+    const ok = selected === def.answer;
+    btns.forEach(b => {
+      const v = b.dataset.tf === 'true';
+      if (v === def.answer) b.classList.add('correct-mark');
+      if (v === selected && v !== def.answer) b.classList.add('wrong-mark');
+    });
+    const analysisParts = def.analysis.split('\n\n');
+    let html = '<span class="feedback-title">' + (ok ? '✅ 判断正确！' : '❌ 判断错误') + '</span>';
+    html += '<div style="white-space:pre-line;margin-top:0.3rem">' + analysisParts[0] + '</div>';
+    if (analysisParts.length > 1) {
+      html += '<div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px dashed var(--border);white-space:pre-line;color:var(--text-light)">' + analysisParts.slice(1).join('\n\n') + '</div>';
+    }
+    showFeedback(ok, html);
+    setAnswered('tf', trueFalseQuestions.indexOf(def), ok ? 'correct' : 'wrong');
+  };
+
+  document.getElementById('btn-reset').onclick = () => renderTF(def);
+}
+
+function renderQuestion() {
+  const { def, type } = getCurrentQDef();
+  if (type === 'drag') renderDrag(def);
+  else if (type === 'single') renderSingle(def);
+  else if (type === 'multi') renderMulti(def);
+  else if (type === 'tf') renderTF(def);
+  updateProgress();
+  updateOverviewGrid();
+}
+
+function showFeedback(ok, html) {
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = html;
+  fb.classList.add('show');
+  fb.classList.toggle('feedback-correct', ok);
+  fb.classList.toggle('feedback-wrong', !ok);
+}
+
+function hideFeedback() {
+  const fb = document.getElementById('feedback');
+  if (fb) {
+    fb.classList.remove('show');
+    fb.innerHTML = '';
+  }
+}
+
+function navTo(direction) {
+  const filtered = getFilteredIndices();
+  if (filtered.length === 0) return;
+  const pos = filtered.indexOf(currentQ);
+  let newPos = pos + direction;
+  if (newPos < 0) newPos = filtered.length - 1;
+  if (newPos >= filtered.length) newPos = 0;
+  currentQ = filtered[newPos];
+  renderQuestion();
+}
+
+document.getElementById('btn-prev').onclick = () => navTo(-1);
+document.getElementById('btn-next').onclick = () => navTo(1);
+document.getElementById('btn-overview').onclick = () => toggleOverview();
+document.getElementById('btn-reset-all').onclick = () => {
+  if (!confirm('确认重置全部答题记录？')) return;
+  answeredSet.clear();
+  updateScoreBar();
+  updateOverviewGrid();
+  currentQ = 0;
+  renderQuestion();
+};
+
+document.querySelectorAll('.nav-tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentType = t.dataset.type;
+    const filtered = getFilteredIndices();
+    if (filtered.length > 0) currentQ = filtered[0];
+    renderQuestion();
+  };
+});
+
+document.querySelectorAll('.filter-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    overviewFilter = b.dataset.filter;
+    updateOverviewGrid();
+  };
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') navTo(-1);
+  else if (e.key === 'ArrowRight') navTo(1);
+  else if (e.key === 'o' || e.key === 'O') toggleOverview();
+});
+
+updateScoreBar();
+renderQuestion();
+updateOverviewGrid();
+</script>
+
+</body>
+</html>
