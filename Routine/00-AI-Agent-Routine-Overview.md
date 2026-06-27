@@ -52,8 +52,8 @@
 
 ## 快速入口
 
-- [今日待办 → 10-Daily-Routines/Today-TODO.md](10-Daily-Routines/Today-TODO.md)
-- [本周 Sprint → 20-Weekly-Routines/Current-Sprint.md](20-Weekly-Routines/Current-Sprint.md)
-- [开发任务池 → 40-Agent-Coding-Tasks/Task-Backlog.md](40-Agent-Coding-Tasks/Task-Backlog.md)
-- [技能模板 → 60-Templates/New-Skill-Template.md](60-Templates/New-Skill-Template.md)
-- [MCP 注册表 → 70-References/MCP-Server-Registry.md](70-References/MCP-Server-Registry.md)
+- [今日待办 → 10-Daily-Routines/Today-TODO.md](Today-TODO.md)
+- [本周 Sprint → 20-Weekly-Routines/Current-Sprint.md](Current-Sprint.md)
+- [开发任务池 → 40-Agent-Coding-Tasks/Task-Backlog.md](Task-Backlog.md)
+- [技能模板 → 60-Templates/New-Skill-Template.md](New-Skill-Template.md)
+- [MCP 注册表 → 70-References/MCP-Server-Registry.md](MCP-Server-Registry.md)

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen SIGGRAPH 2021 论文笔记 · 互动式问答卡牌</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background: #f5f2ed;
+    color: #3a3630;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  header {
+    background: #e8e2d9;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #d6cfc4;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  h1 { font-size: 1.3rem; color: #5a5248; }
+  .header-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .header-btn {
+    background: #b8a99a;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .header-btn:hover { background: #a69786; }
+  .header-btn.active { background: #8a7a6a; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+
+  .progress-bar {
+    background: #e0dbd2;
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: #9a8b7a;
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text { font-size: 0.85rem; color: #8a7a6a; margin-bottom: 0.5rem; }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+  }
+  .card-title { font-size: 1.1rem; color: #5a5248; margin-bottom: 1rem; font-weight: 600; }
+  .card-subtitle { font-size: 0.9rem; color: #8a7a6a; margin-bottom: 0.5rem; }
+
+  .question-text { font-size: 1.05rem; margin-bottom: 1.2rem; color: #3a3630; }
+  .question-text .blank { display: inline-block; min-width: 80px; padding: 2px 8px; border-bottom: 2px solid #b8a99a; margin: 0 2px; text-align: center; color: #9a8b7a; font-style: italic; }
+  .question-text .blank.filled { border-bottom-color: #7a9a7a; color: #3a3630; font-style: normal; }
+  .question-text .blank.correct { background: #e8f5e8; border-bottom-color: #5a8a5a; }
+  .question-text .blank.wrong { background: #f5e8e8; border-bottom-color: #8a5a5a; }
+
+  .options { display: flex; flex-direction: column; gap: 0.6rem; }
+  .option {
+    background: #faf8f5;
+    border: 1px solid #e0dbd2;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .option:hover { background: #f0ece5; border-color: #c0b8ac; }
+  .option.selected { border-color: #8a7a6a; background: #f0ece5; }
+  .option.correct { border-color: #5a8a5a; background: #e8f5e8; }
+  .option.wrong { border-color: #8a5a5a; background: #f5e8e8; }
+  .option.disabled { pointer-events: none; opacity: 0.8; }
+  .option-letter { font-weight: 600; color: #8a7a6a; min-width: 20px; }
+  .option-text { flex: 1; }
+
+  .drag-pool { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .drag-item {
+    background: #e8e2d9;
+    border: 1px solid #d6cfc4;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    cursor: grab;
+    font-size: 0.9rem;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .drag-item:hover { transform: translateY(-2px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .drag-item.dragging { opacity: 0.5; cursor: grabbing; }
+  .drag-item.used { opacity: 0.4; cursor: default; pointer-events: none; }
+
+  .explanation {
+    background: #f5f2ed;
+    border-left: 3px solid #b8a99a;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 0 6px 6px 0;
+    display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation-title { font-weight: 600; color: #5a5248; margin-bottom: 0.3rem; }
+  .explanation a { color: #7a6a5a; }
+  .explanation a:hover { color: #5a4a3a; }
+
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 1.5rem; gap: 0.5rem; flex-wrap: wrap; }
+  .btn {
+    background: #b8a99a;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .btn:hover { background: #a69786; }
+  .btn:disabled { background: #d0c8be; cursor: not-allowed; }
+  .btn-secondary { background: #c0b8ac; }
+  .btn-secondary:hover { background: #b0a89c; }
+
+  .score-display { font-size: 0.95rem; color: #5a5248; margin-top: 1rem; padding: 0.6rem; background: #f5f2ed; border-radius: 6px; }
+  .score-display.correct { color: #5a8a5a; }
+  .score-display.wrong { color: #8a5a5a; }
+
+  .dashboard {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .dashboard.show { display: grid; }
+  .thumb {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border-left: 4px solid #b8a99a;
+  }
+  .thumb:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .thumb.correct { border-left-color: #5a8a5a; }
+  .thumb.wrong { border-left-color: #8a5a5a; }
+  .thumb.unanswered { border-left-color: #b8a99a; }
+  .thumb-type {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: #e8e2d9;
+    color: #5a5248;
+    margin-bottom: 0.4rem;
+  }
+  .thumb-type.drag { background: #d4e8d4; }
+  .thumb-type.single { background: #d4d8e8; }
+  .thumb-type.multi { background: #e8d4d4; }
+  .thumb-type.tf { background: #5b7a8a; color: #fff; }
+  .thumb-question { font-size: 0.9rem; color: #3a3630; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .thumb-status { font-size: 0.8rem; color: #8a7a6a; margin-top: 0.3rem; }
+
+  .mode-tabs { display: flex; gap: 0.3rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .mode-tab {
+    background: #e0dbd2;
+    border: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #5a5248;
+    transition: all 0.2s;
+  }
+  .mode-tab:hover { background: #d0c8be; }
+  .mode-tab.active { background: #b8a99a; color: #fff; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎯 Lumen SIGGRAPH 2021 论文笔记 · 互动式问答卡牌</h1>
+  <div class="header-btns">
+    <button class="header-btn" id="dashboard-btn">📊 题目总览</button>
+    <button class="header-btn" id="reshuffle-btn">🔄 随机打乱</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="progress-text">进度: <span id="progress-text">0 / 0</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <div class="mode-tabs" id="mode-tabs">
+    <button class="mode-tab" data-mode="drag">拖拽填空</button>
+    <button class="mode-tab" data-mode="single">单选题</button>
+    <button class="mode-tab" data-mode="multi">多选题</button>
+    <button class="mode-tab" data-mode="tf">判断题</button>
+  </div>
+
+  <div id="quiz-area"></div>
+  <div id="dashboard-area" class="dashboard"></div>
+</div>
+
+<script>
+(function() {
+// ==================== Data ====================
+const dragQuestions = [
+  {
+    sentence: "Lumen 的三层结构中，底层用 {0} 做软件光追，中间层用 {1} 缓存直接光照，最高层用 {2} 做远距离低频近似。",
+    blanks: ["SDF", "Surface Cache", "Radiance Cache"],
+    pool: ["SDF", "Surface Cache", "Radiance Cache", "Screen Probe", "Hardware RT", "Lightmap", "Voxel"],
+    explanation: "Lumen 的分层架构是：底层 SDF 做软件光追，中间 Surface Cache 缓存直接光照，最高层 Radiance Cache 做远距离低频近似。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    blankExplanations: [
+      "SDF (Signed Distance Field) 是 Lumen 软件光追的底层加速结构，用于快速求交。",
+      "Surface Cache 缓存表面直接光照，避免每帧重新计算光照。",
+      "Radiance Cache 用于远距离低频全局光照近似，降低计算开销。"
+    ]
+  },
+  {
+    sentence: "Lumen 的 Software Ray Tracing 通过 {0} 和 {1} 实现，不依赖 {2} 硬件。",
+    blanks: ["SDF", "Mesh Card", "RT Core"],
+    pool: ["SDF", "Mesh Card", "RT Core", "Lightmap", "GPU", "CPU", "Bounding Box"],
+    explanation: "Lumen 的软件光追通过 SDF 和 Mesh Card 实现，不依赖 RT Core 硬件加速。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    blankExplanations: [
+      "SDF 提供快速距离查询，是软件光追的核心加速结构。",
+      "Mesh Card 将场景表面切分成小卡片，用于缓存和快速采样。",
+      "RT Core 是 NVIDIA 硬件光追单元，Lumen 软件光追不依赖它。"
+    ]
+  },
+  {
+    sentence: "Lumen 的 Screen Space Probe 在 {0} 放置探针，动态更新，避免传统 {1} 的预烘焙限制。",
+    blanks: ["屏幕空间", "Lightmap"],
+    pool: ["屏幕空间", "Lightmap", "世界空间", "Radiance Cache", "SDF", "Mesh Card", "GBuffer"],
+    explanation: "Screen Space Probe 在屏幕空间放置探针，动态更新，避免了传统 Lightmap 需要预烘焙的限制。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    blankExplanations: [
+      "屏幕空间探针跟随相机视锥动态放置，无需预计算。",
+      "传统 Lightmap 需要预烘焙，无法支持动态场景和光照变化。"
+    ]
+  },
+  {
+    sentence: "Lumen 的 SDF 追踪循环中，若采样距离小于 {0} 则返回 {1}，否则沿射线继续前进。",
+    blanks: ["EPSILON", "SkyRadiance"],
+    pool: ["EPSILON", "SkyRadiance", "0", "MAX_STEPS", "SceneRadiance", "MAX_DISTANCE", "Distance"],
+    explanation: "SDF 追踪循环中，距离小于 EPSILON 表示命中表面，否则返回 SkyRadiance 作为天空贡献。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    blankExplanations: [
+      "EPSILON 是极小值，用于判断射线是否与表面相交。",
+      "当未命中场景时，返回 SkyRadiance 作为环境光照贡献。"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    question: "为什么 Lumen 在开放世界动态昼夜系统中比烘焙光照更可行？",
+    options: [
+      "A. 因为 Lumen 的 Lightmap 分辨率更高",
+      "B. 因为 Lumen 完全动态计算全局光照，无需预烘焙",
+      "C. 因为 Lumen 只支持硬件光追",
+      "D. 因为 Lumen 的 SDF 在运行时生成更快"
+    ],
+    correct: 1,
+    explanation: "Lumen 完全动态计算全局光照，无需预烘焙 Lightmap，因此在动态昼夜变化的开放世界中更可行。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    optionExplanations: [
+      "Lightmap 是预烘焙方案，Lumen 的目的正是减少对 Lightmap 的依赖。",
+      "正确。Lumen 的动态 GI 无需预计算，适合动态变化场景。",
+      "Lumen 同时支持软件和硬件光追，不是只支持硬件光追。",
+      "SDF 生成速度是优势之一，但不是开放世界动态昼夜系统更可行的主要原因。"
+    ]
+  },
+  {
+    question: "Lumen 的 Software Ray Tracing 相比 Hardware RT 的主要优势是什么？",
+    options: [
+      "A. 画质更高",
+      "B. 不依赖特定硬件，兼容性更好",
+      "C. 速度更快",
+      "D. 内存占用更小"
+    ],
+    correct: 1,
+    explanation: "Software Ray Tracing 不依赖 RT Core 等特定硬件，在更广泛的 GPU 上可运行，兼容性更好。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    optionExplanations: [
+      "硬件光追在画质上通常更有优势。",
+      "正确。软件光追不依赖特定硬件，兼容性是主要优势。",
+      "硬件光追通常速度更快。",
+      "软件光追的内存占用不一定更小。"
+    ]
+  },
+  {
+    question: "Lumen 的 Radiance Cache 分层策略中，远距离用什么？",
+    options: [
+      "A. 高频缓存",
+      "B. 低频缓存",
+      "C. 实时追踪",
+      "D. 烘焙 Lightmap"
+    ],
+    correct: 1,
+    explanation: "Radiance Cache 在远距离使用低频缓存来近似全局光照，减少高频细节的计算开销。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    optionExplanations: [
+      "远距离使用低频而非高频缓存。",
+      "正确。远距离光照变化缓慢，低频缓存足够近似。",
+      "远距离不实时追踪每条射线，而是使用缓存。",
+      "Lumen 不依赖烘焙 Lightmap。"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    question: "Lumen 的局限性包括哪些？",
+    options: [
+      "A. 对镜面反射支持有限",
+      "B. 半透明物体处理较粗糙",
+      "C. 极高密度几何体性能下降",
+      "D. 不支持动态光源"
+    ],
+    correct: [0, 1, 2],
+    explanation: "Lumen 对镜面反射、半透明物体和极高密度几何体的处理存在局限性，但支持动态光源。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    optionExplanations: [
+      "Lumen 主要专注于漫反射 GI，对镜面反射支持有限。",
+      "半透明物体的多次散射和折射计算较复杂，Lumen 处理较粗糙。",
+      "极高密度几何体导致 SDF 和 Surface Cache 开销增大。",
+      "Lumen 支持动态光源，这是其核心优势之一。"
+    ]
+  },
+  {
+    question: "Lumen 的核心创新点包括哪些？",
+    options: [
+      "A. SDF 软件光追",
+      "B. Surface Cache 表面光照缓存",
+      "C. Radiance Cache 分层近似",
+      "D. 预烘焙 Lightmap"
+    ],
+    correct: [0, 1, 2],
+    explanation: "Lumen 的核心创新包括 SDF 软件光追、Surface Cache 和 Radiance Cache 分层，不包括预烘焙 Lightmap。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md",
+    optionExplanations: [
+      "SDF 软件光追是 Lumen 实现动态 GI 的基础技术。",
+      "Surface Cache 缓存表面光照，减少重复计算。",
+      "Radiance Cache 分层策略平衡了质量和性能。",
+      "Lumen 的设计目标就是减少对预烘焙 Lightmap 的依赖。"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    statement: "Lumen 的 Software Ray Tracing 完全不依赖 GPU，只在 CPU 上运行。",
+    correct: false,
+    explanation: "Software Ray Tracing 仍然运行在 GPU 上，只是不依赖 RT Core 硬件加速单元，使用 GPU 计算着色器实现。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+  },
+  {
+    statement: "Lumen 的 Surface Cache 管理类似于虚拟纹理系统。",
+    correct: true,
+    explanation: "Surface Cache 的管理方式确实类似于虚拟纹理系统，按需分配和回收缓存页面，动态加载和卸载。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+  },
+  {
+    statement: "Lumen 的 Screen Space Probe 可以完美处理所有新暴露区域而没有任何限制。",
+    correct: false,
+    explanation: "Screen Space Probe 在处理新暴露区域（如开门后的房间）时存在限制，可能需要时间收敛或出现漏光。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+  },
+  {
+    statement: "Lumen 通过 Radiance Cache 分层，在远距离使用低频缓存来近似全局光照。",
+    correct: true,
+    explanation: "Radiance Cache 确实采用分层策略，远距离使用低频缓存，近距离使用更高精度的表示。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+  },
+  {
+    statement: "Lumen 的 SDF 在运行时实时生成，没有任何离线开销。",
+    correct: false,
+    explanation: "SDF 可以在运行时生成，但通常会有预计算阶段来加速生成，且极高密度几何体仍会带来开销。",
+    detailLink: "../../../01-论文笔记库/Lumen-SIGGRAPH-2021.md"
+  }
+];
+
+// Save originals at load time
+const _origDrag = JSON.parse(JSON.stringify(dragQuestions));
+const _origSingle = JSON.parse(JSON.stringify(singleQuestions));
+const _origMulti = JSON.parse(JSON.stringify(multiQuestions));
+const _origTF = JSON.parse(JSON.stringify(trueFalseQuestions));
+
+// ==================== State ====================
+let currentMode = 'drag';
+let currentDragIndex = 0, currentSingleIndex = 0, currentMultiIndex = 0, currentTFIndex = 0;
+let dragScores = [], singleScores = [], multiScores = [], tfScores = [];
+let allQuestions = [];
+let userDragAnswers = [];
+let userSingleAnswer = null;
+let userMultiAnswers = [];
+let userTFAnswer = null;
+let answered = false;
+
+// ==================== Utils ====================
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleOptions(q) {
+  const indices = q.options.map((_, i) => i);
+  const shuffled = shuffleArray(indices);
+  const newOptions = shuffled.map(i => q.options[i]);
+  const newExplanations = shuffled.map(i => q.optionExplanations[i]);
+  const newCorrect = Array.isArray(q.correct)
+    ? q.correct.map(oi => shuffled.indexOf(oi)).filter(i => i >= 0).sort((a,b)=>a-b)
+    : shuffled.indexOf(q.correct);
+  return { ...q, options: newOptions, optionExplanations: newExplanations, correct: newCorrect };
+}
+
+function rebuildAllQuestions() {
+  allQuestions.length = 0;
+  dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
+  singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
+  multiQuestions.forEach((q,i)=>allQuestions.push({mode:'multi',index:i,question:q.question.substring(0,40)+'...',type:'multi'}));
+  trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:q.statement.substring(0,40)+'...',type:'tf'}));
+}
+
+function initScores() {
+  dragScores = Array(dragQuestions.length).fill(null);
+  singleScores = Array(singleQuestions.length).fill(null);
+  multiScores = Array(multiQuestions.length).fill(null);
+  tfScores = Array(trueFalseQuestions.length).fill(null);
+}
+
+function resetCurrent() {
+  answered = false;
+  userDragAnswers = [];
+  userSingleAnswer = null;
+  userMultiAnswers = [];
+  userTFAnswer = null;
+}
+
+function resetAll() {
+  currentDragIndex = 0; currentSingleIndex = 0; currentMultiIndex = 0; currentTFIndex = 0;
+  initScores();
+  resetCurrent();
+  updateProgress();
+}
+
+function reshuffleAll() {
+  resetAll();
+  const newDrag = shuffleArray(_origDrag);
+  dragQuestions.length = 0;
+  newDrag.forEach(q => dragQuestions.push(q));
+  
+  const newSingle = shuffleArray(_origSingle).map(shuffleOptions);
+  singleQuestions.length = 0;
+  newSingle.forEach(q => singleQuestions.push(q));
+  
+  const newMulti = shuffleArray(_origMulti).map(shuffleOptions);
+  multiQuestions.length = 0;
+  newMulti.forEach(q => multiQuestions.push(q));
+  
+  const newTF = shuffleArray(_origTF);
+  trueFalseQuestions.length = 0;
+  newTF.forEach(q => trueFalseQuestions.push(q));
+  
+  rebuildAllQuestions();
+  updateDashboard();
+  updateProgress();
+  if (currentMode === 'drag') renderDrag();
+  else if (currentMode === 'single') renderSingle();
+  else if (currentMode === 'multi') renderMulti();
+  else if (currentMode === 'tf') renderTrueFalse();
+}
+
+function updateProgress() {
+  const total = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const answeredCount = dragScores.filter(s=>s!==null).length + singleScores.filter(s=>s!==null).length + multiScores.filter(s=>s!==null).length + tfScores.filter(s=>s!==null).length;
+  document.getElementById('progress-text').textContent = answeredCount + ' / ' + total;
+  document.getElementById('progress-fill').style.width = (total ? (answeredCount/total*100) : 0) + '%';
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.mode === mode);
+  });
+  document.getElementById('quiz-area').classList.remove('hidden');
+  document.getElementById('dashboard-area').classList.remove('show');
+  document.getElementById('dashboard-btn').classList.remove('active');
+  resetCurrent();
+  if (mode === 'drag') renderDrag();
+  else if (mode === 'single') renderSingle();
+  else if (mode === 'multi') renderMulti();
+  else if (mode === 'tf') renderTrueFalse();
+}
+
+function toggleDashboard() {
+  const quizArea = document.getElementById('quiz-area');
+  const dashArea = document.getElementById('dashboard-area');
+  const btn = document.getElementById('dashboard-btn');
+  if (dashArea.classList.contains('show')) {
+    dashArea.classList.remove('show');
+    quizArea.classList.remove('hidden');
+    btn.classList.remove('active');
+  } else {
+    dashArea.classList.add('show');
+    quizArea.classList.add('hidden');
+    btn.classList.add('active');
+    updateDashboard();
+  }
+}
+
+function updateDashboard() {
+  const dash = document.getElementById('dashboard-area');
+  dash.innerHTML = '';
+  allQuestions.forEach((item, idx) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    let scoreArr, qIdx, status, label;
+    if (item.mode === 'drag') { scoreArr = dragScores; qIdx = item.index; label = '拖拽'; }
+    else if (item.mode === 'single') { scoreArr = singleScores; qIdx = item.index; label = '单选'; }
+    else if (item.mode === 'multi') { scoreArr = multiScores; qIdx = item.index; label = '多选'; }
+    else { scoreArr = tfScores; qIdx = item.index; label = '判断'; }
+    const s = scoreArr[qIdx];
+    if (s === true) { thumb.classList.add('correct'); status = '✅ 正确'; }
+    else if (s === false) { thumb.classList.add('wrong'); status = '❌ 错误'; }
+    else { thumb.classList.add('unanswered'); status = '⏳ 未作答'; }
+    thumb.innerHTML = '<span class="thumb-type ' + item.type + '">' + label + '</span><div class="thumb-question">' + item.question + '</div><div class="thumb-status">' + status + '</div>';
+    thumb.onclick = () => { toggleDashboard(); switchMode(item.mode); };
+    dash.appendChild(thumb);
+  });
+}
+
+function updateDashboardStats() {
+  // Call after scoring
+  updateDashboard();
+}
+
+// ==================== Drag ====================
+function renderDrag() {
+  const q = dragQuestions[currentDragIndex];
+  const el = document.getElementById('quiz-area');
+  let html = '<div class="card">';
+  html += '<div class="card-subtitle">拖拽填空 · 第 ' + (currentDragIndex+1) + ' / ' + dragQuestions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.sentence.replace(/\{([0-9]+)\}/g, (m, i) => {
+    const val = userDragAnswers[i] || '';
+    const cls = val ? 'filled' : '';
+    return '<span class="blank ' + cls + '" data-index="' + i + '" onclick="handleBlankClick(' + i + ')">' + (val || ' ') + '</span>';
+  }) + '</div>';
+  html += '<div class="drag-pool">';
+  q.pool.forEach((item, i) => {
+    const used = userDragAnswers.includes(item);
+    html += '<span class="drag-item' + (used ? ' used' : '') + '" draggable="true" data-val="' + item + '" ondragstart="handleDragStart(event)" onclick="handleDragClick('\'' + item + '\'')">' + item + '</span>';
+  });
+  html += '</div>';
+  html += '<div class="nav-btns">';
+  html += '<button class="btn btn-secondary" onclick="prevDrag()" ' + (currentDragIndex===0?'disabled':'') + '>上一题</button>';
+  html += '<button class="btn" onclick="checkDrag()">提交</button>';
+  html += '<button class="btn" onclick="nextDrag()">下一题</button>';
+  html += '</div>';
+  if (answered) {
+    html += '<div class="score-display ' + (dragScores[currentDragIndex]?'correct':'wrong') + '">' + (dragScores[currentDragIndex]?'✅ 正确':'❌ 错误') + '</div>';
+    html += '<div class="explanation show"><div class="explanation-title">解析</div><p>' + q.explanation + '</p>';
+    if (q.detailLink) html += '<p><a href="' + q.detailLink + '" target="_blank">📄 查看笔记原文</a></p>';
+    if (q.blankExplanations) {
+      html += '<ul>';
+      q.blankExplanations.forEach((be, i) => {
+        html += '<li><strong>空 ' + (i+1) + ' (' + q.blanks[i] + '):</strong> ' + be + '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+window.handleDragStart = function(e) { e.dataTransfer.setData('text/plain', e.target.dataset.val); };
+window.handleDragClick = function(val) {
+  if (answered) return;
+  const blankIdx = userDragAnswers.indexOf(null) >= 0 ? userDragAnswers.indexOf(null) : userDragAnswers.length;
+  if (blankIdx < dragQuestions[currentDragIndex].blanks.length) {
+    userDragAnswers[blankIdx] = val;
+    renderDrag();
+  }
+};
+window.handleBlankClick = function(idx) {
+  if (answered) return;
+  userDragAnswers[idx] = null;
+  renderDrag();
+};
+window.checkDrag = function() {
+  const q = dragQuestions[currentDragIndex];
+  let correct = true;
+  for (let i = 0; i < q.blanks.length; i++) {
+    if (userDragAnswers[i] !== q.blanks[i]) correct = false;
+  }
+  dragScores[currentDragIndex] = correct;
+  answered = true;
+  updateProgress();
+  updateDashboardStats();
+  renderDrag();
+};
+window.prevDrag = function() { if (currentDragIndex > 0) { currentDragIndex--; resetCurrent(); renderDrag(); } };
+window.nextDrag = function() { if (currentDragIndex < dragQuestions.length-1) { currentDragIndex++; resetCurrent(); renderDrag(); } };
+
+// ==================== Single ====================
+function renderSingle() {
+  const q = singleQuestions[currentSingleIndex];
+  const el = document.getElementById('quiz-area');
+  let html = '<div class="card">';
+  html += '<div class="card-subtitle">单选题 · 第 ' + (currentSingleIndex+1) + ' / ' + singleQuestions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.question + '</div>';
+  html += '<div class="options">';
+  q.options.forEach((opt, i) => {
+    let cls = '';
+    if (answered) {
+      if (i === q.correct) cls = 'correct';
+      else if (i === userSingleAnswer) cls = 'wrong';
+      cls += ' disabled';
+    } else if (i === userSingleAnswer) {
+      cls = 'selected';
+    }
+    html += '<div class="option ' + cls + '" onclick="selectSingle(' + i + ')"><span class="option-letter">' + String.fromCharCode(65+i) + '</span><span class="option-text">' + opt + '</span></div>';
+  });
+  html += '</div>';
+  html += '<div class="nav-btns">';
+  html += '<button class="btn btn-secondary" onclick="prevSingle()" ' + (currentSingleIndex===0?'disabled':'') + '>上一题</button>';
+  html += '<button class="btn" onclick="checkSingle()">提交</button>';
+  html += '<button class="btn" onclick="nextSingle()">下一题</button>';
+  html += '</div>';
+  if (answered) {
+    html += '<div class="score-display ' + (singleScores[currentSingleIndex]?'correct':'wrong') + '">' + (singleScores[currentSingleIndex]?'✅ 正确':'❌ 错误') + '</div>';
+    html += '<div class="explanation show"><div class="explanation-title">解析</div><p>' + q.explanation + '</p>';
+    if (q.detailLink) html += '<p><a href="' + q.detailLink + '" target="_blank">📄 查看笔记原文</a></p>';
+    if (q.optionExplanations) {
+      html += '<ul>';
+      q.optionExplanations.forEach((oe, i) => {
+        const isCorrect = i === q.correct;
+        html += '<li><strong>' + String.fromCharCode(65+i) + (isCorrect ? ' ✅' : '') + ':</strong> ' + oe + '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+window.selectSingle = function(i) { if (answered) return; userSingleAnswer = i; renderSingle(); };
+window.checkSingle = function() {
+  if (userSingleAnswer === null) return;
+  singleScores[currentSingleIndex] = (userSingleAnswer === singleQuestions[currentSingleIndex].correct);
+  answered = true;
+  updateProgress();
+  updateDashboardStats();
+  renderSingle();
+};
+window.prevSingle = function() { if (currentSingleIndex > 0) { currentSingleIndex--; resetCurrent(); renderSingle(); } };
+window.nextSingle = function() { if (currentSingleIndex < singleQuestions.length-1) { currentSingleIndex++; resetCurrent(); renderSingle(); } };
+
+// ==================== Multi ====================
+function renderMulti() {
+  const q = multiQuestions[currentMultiIndex];
+  const el = document.getElementById('quiz-area');
+  let html = '<div class="card">';
+  html += '<div class="card-subtitle">多选题 · 第 ' + (currentMultiIndex+1) + ' / ' + multiQuestions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.question + '</div>';
+  html += '<div class="options">';
+  q.options.forEach((opt, i) => {
+    let cls = '';
+    const selected = userMultiAnswers.includes(i);
+    if (answered) {
+      const isCorrect = q.correct.includes(i);
+      if (isCorrect) cls = 'correct';
+      else if (selected) cls = 'wrong';
+      cls += ' disabled';
+    } else if (selected) {
+      cls = 'selected';
+    }
+    html += '<div class="option ' + cls + '" onclick="toggleMulti(' + i + ')"><span class="option-letter">' + String.fromCharCode(65+i) + '</span><span class="option-text">' + opt + '</span></div>';
+  });
+  html += '</div>';
+  html += '<div class="nav-btns">';
+  html += '<button class="btn btn-secondary" onclick="prevMulti()" ' + (currentMultiIndex===0?'disabled':'') + '>上一题</button>';
+  html += '<button class="btn" onclick="checkMulti()">提交</button>';
+  html += '<button class="btn" onclick="nextMulti()">下一题</button>';
+  html += '</div>';
+  if (answered) {
+    html += '<div class="score-display ' + (multiScores[currentMultiIndex]?'correct':'wrong') + '">' + (multiScores[currentMultiIndex]?'✅ 正确':'❌ 错误') + '</div>';
+    html += '<div class="explanation show"><div class="explanation-title">解析</div><p>' + q.explanation + '</p>';
+    if (q.detailLink) html += '<p><a href="' + q.detailLink + '" target="_blank">📄 查看笔记原文</a></p>';
+    if (q.optionExplanations) {
+      html += '<ul>';
+      q.optionExplanations.forEach((oe, i) => {
+        const isCorrect = q.correct.includes(i);
+        html += '<li><strong>' + String.fromCharCode(65+i) + (isCorrect ? ' ✅' : '') + ':</strong> ' + oe + '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+window.toggleMulti = function(i) {
+  if (answered) return;
+  const idx = userMultiAnswers.indexOf(i);
+  if (idx >= 0) userMultiAnswers.splice(idx, 1);
+  else userMultiAnswers.push(i);
+  userMultiAnswers.sort((a,b)=>a-b);
+  renderMulti();
+};
+window.checkMulti = function() {
+  if (!userMultiAnswers.length) return;
+  const q = multiQuestions[currentMultiIndex];
+  let correct = userMultiAnswers.length === q.correct.length;
+  if (correct) {
+    for (let i = 0; i < q.correct.length; i++) {
+      if (userMultiAnswers[i] !== q.correct[i]) { correct = false; break; }
+    }
+  }
+  multiScores[currentMultiIndex] = correct;
+  answered = true;
+  updateProgress();
+  updateDashboardStats();
+  renderMulti();
+};
+window.prevMulti = function() { if (currentMultiIndex > 0) { currentMultiIndex--; resetCurrent(); renderMulti(); } };
+window.nextMulti = function() { if (currentMultiIndex < multiQuestions.length-1) { currentMultiIndex++; resetCurrent(); renderMulti(); } };
+
+// ==================== True/False ====================
+function renderTrueFalse() {
+  const q = trueFalseQuestions[currentTFIndex];
+  const el = document.getElementById('quiz-area');
+  let html = '<div class="card">';
+  html += '<div class="card-subtitle">判断题 · 第 ' + (currentTFIndex+1) + ' / ' + trueFalseQuestions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.statement + '</div>';
+  html += '<div class="options">';
+  const opts = ['正确', '错误'];
+  opts.forEach((opt, i) => {
+    const val = i === 0;
+    let cls = '';
+    if (answered) {
+      if (val === q.correct) cls = 'correct';
+      else if (val === userTFAnswer) cls = 'wrong';
+      cls += ' disabled';
+    } else if (val === userTFAnswer) {
+      cls = 'selected';
+    }
+    html += '<div class="option ' + cls + '" onclick="selectTF(' + val + ')"><span class="option-text">' + opt + '</span></div>';
+  });
+  html += '</div>';
+  html += '<div class="nav-btns">';
+  html += '<button class="btn btn-secondary" onclick="prevTF()" ' + (currentTFIndex===0?'disabled':'') + '>上一题</button>';
+  html += '<button class="btn" onclick="checkTF()">提交</button>';
+  html += '<button class="btn" onclick="nextTF()">下一题</button>';
+  html += '</div>';
+  if (answered) {
+    html += '<div class="score-display ' + (tfScores[currentTFIndex]?'correct':'wrong') + '">' + (tfScores[currentTFIndex]?'✅ 正确':'❌ 错误') + '</div>';
+    html += '<div class="explanation show"><div class="explanation-title">解析</div><p>' + q.explanation + '</p>';
+    if (q.detailLink) html += '<p><a href="' + q.detailLink + '" target="_blank">📄 查看笔记原文</a></p>';
+    html += '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+window.selectTF = function(val) { if (answered) return; userTFAnswer = val; renderTrueFalse(); };
+window.checkTF = function() {
+  if (userTFAnswer === null) return;
+  tfScores[currentTFIndex] = (userTFAnswer === trueFalseQuestions[currentTFIndex].correct);
+  answered = true;
+  updateProgress();
+  updateDashboardStats();
+  renderTrueFalse();
+};
+window.prevTF = function() { if (currentTFIndex > 0) { currentTFIndex--; resetCurrent(); renderTrueFalse(); } };
+window.nextTF = function() { if (currentTFIndex < trueFalseQuestions.length-1) { currentTFIndex++; resetCurrent(); renderTrueFalse(); } };
+
+// ==================== Init ====================
+initScores();
+rebuildAllQuestions();
+updateProgress();
+
+// Tabs
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => switchMode(tab.dataset.mode));
+});
+
+// Dashboard
+document.getElementById('dashboard-btn').addEventListener('click', toggleDashboard);
+
+// Reshuffle
+document.getElementById('reshuffle-btn').addEventListener('click', reshuffleAll);
+
+// Start
+switchMode('drag');
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体积云 Volumetric Cloud · 互动式问答卡牌</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background: #f5f2ed;
+    color: #3a3630;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  header {
+    background: #e8e2d9;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #d6cfc4;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  h1 { font-size: 1.3rem; color: #5a5248; }
+  .header-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .header-btn {
+    background: #b8a99a;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .header-btn:hover { background: #a69786; }
+  .header-btn.active { background: #8a7a6a; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+
+  .progress-bar {
+    background: #e0dbd2;
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: #9a8b7a;
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text { font-size: 0.85rem; color: #8a7a6a; margin-bottom: 0.5rem; }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+  }
+  .card-title { font-size: 1.1rem; color: #5a5248; margin-bottom: 1rem; font-weight: 600; }
+  .card-subtitle { font-size: 0.9rem; color: #8a7a6a; margin-bottom: 0.5rem; }
+
+  .question-text { font-size: 1.05rem; margin-bottom: 1.2rem; color: #3a3630; }
+  .question-text .blank { display: inline-block; min-width: 80px; padding: 2px 8px; border-bottom: 2px solid #b8a99a; margin: 0 2px; text-align: center; color: #9a8b7a; font-style: italic; }
+  .question-text .blank.filled { border-bottom-color: #7a9a7a; color: #3a3630; font-style: normal; }
+  .question-text .blank.correct { background: #e8f5e8; border-bottom-color: #5a8a5a; }
+  .question-text .blank.wrong { background: #f5e8e8; border-bottom-color: #8a5a5a; }
+
+  .options { display: flex; flex-direction: column; gap: 0.6rem; }
+  .option {
+    background: #faf8f5;
+    border: 1px solid #e0dbd2;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .option:hover { background: #f0ece5; border-color: #c0b8ac; }
+  .option.selected { border-color: #8a7a6a; background: #f0ece5; }
+  .option.correct { border-color: #5a8a5a; background: #e8f5e8; }
+  .option.wrong { border-color: #8a5a5a; background: #f5e8e8; }
+  .option.disabled { pointer-events: none; opacity: 0.8; }
+  .option-letter { font-weight: 600; color: #8a7a6a; min-width: 20px; }
+  .option-text { flex: 1; }
+
+  .drag-pool { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .drag-item {
+    background: #e8e2d9;
+    border: 1px solid #d6cfc4;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    cursor: grab;
+    font-size: 0.9rem;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .drag-item:hover { transform: translateY(-2px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .drag-item.dragging { opacity: 0.5; cursor: grabbing; }
+  .drag-item.used { opacity: 0.4; cursor: default; pointer-events: none; }
+
+  .explanation {
+    background: #f5f2ed;
+    border-left: 3px solid #b8a99a;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 0 6px 6px 0;
+    display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation-title { font-weight: 600; color: #5a5248; margin-bottom: 0.3rem; }
+  .explanation a { color: #7a6a5a; }
+  .explanation a:hover { color: #5a4a3a; }
+
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 1.5rem; gap: 0.5rem; flex-wrap: wrap; }
+  .btn {
+    background: #b8a99a;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .btn:hover { background: #a69786; }
+  .btn:disabled { background: #d0c8be; cursor: not-allowed; }
+  .btn-secondary { background: #c0b8ac; }
+  .btn-secondary:hover { background: #b0a89c; }
+
+  .score-display { font-size: 0.95rem; color: #5a5248; margin-top: 1rem; padding: 0.6rem; background: #f5f2ed; border-radius: 6px; }
+  .score-display.correct { color: #5a8a5a; }
+  .score-display.wrong { color: #8a5a5a; }
+
+  .dashboard {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .dashboard.show { display: grid; }
+  .thumb {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border-left: 4px solid #b8a99a;
+  }
+  .thumb:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .thumb.correct { border-left-color: #5a8a5a; }
+  .thumb.wrong { border-left-color: #8a5a5a; }
+  .thumb.unanswered { border-left-color: #b8a99a; }
+  .thumb-type {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: #e8e2d9;
+    color: #5a5248;
+    margin-bottom: 0.4rem;
+  }
+  .thumb-type.drag { background: #d4e8d4; }
+  .thumb-type.single { background: #d4d8e8; }
+  .thumb-type.multi { background: #e8d4d4; }
+  .thumb-type.tf { background: #5b7a8a; color: #fff; }
+  .thumb-question { font-size: 0.9rem; color: #3a3630; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .thumb-status { font-size: 0.8rem; color: #8a7a6a; margin-top: 0.3rem; }
+
+  .mode-tabs { display: flex; gap: 0.3rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .mode-tab {
+    background: #e0dbd2;
+    border: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #5a5248;
+    transition: all 0.2s;
+  }
+  .mode-tab:hover { background: #d0c8be; }
+  .mode-tab.active { background: #b8a99a; color: #fff; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎯 体积云 Volumetric Cloud · 互动式问答卡牌</h1>
+  <div class="header-btns">
+    <button class="header-btn" id="dashboard-btn">📊 题目总览</button>
+    <button class="header-btn" id="reshuffle-btn">🔄 随机打乱</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="progress-text">进度: <span id="progress-text">0 / 0</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <div class="mode-tabs" id="mode-tabs">
+    <button class="mode-tab" data-mode="drag">拖拽填空</button>
+    <button class="mode-tab" data-mode="single">单选题</button>
+    <button class="mode-tab" data-mode="multi">多选题</button>
+    <button class="mode-tab" data-mode="tf">判断题</button>
+  </div>
+
+  <div id="quiz-area"></div>
+  <div id="dashboard-area" class="dashboard"></div>
+</div>
+
+<script>
+(function() {
+// ==================== Data ====================
+const dragQuestions = [
+  {
+    sentence: "Ray Marching 中，先与云层 {0} 求交确定步进范围；在步进循环中采样 {1} 噪声和 {2} 噪声构建密度场；光照计算使用 {3} 近似。",
+    blanks: ["包围盒", "形状", "细节", "Beer-Powder"],
+    pool: ["包围盒", "形状", "细节", "Beer-Powder", "包围球", "颜色", "透明度", "Phong"],
+    explanation: "Ray Marching 流程：先与云层包围盒求交确定步进范围，然后采样形状噪声和细节噪声构建密度场，光照计算使用 Beer-Powder 近似。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    blankExplanations: [
+      "包围盒（AABB）用于快速确定射线进入和离开云层的范围，避免无效步进。",
+      "形状噪声（如 Worley noise）定义云层的大体形状和结构。",
+      "细节噪声叠加在形状噪声上，增加云层的细节和边缘不规则性。",
+      "Beer-Powder 近似是一种简化的体积光照模型，计算光的吸收和散射。"
+    ]
+  },
+  {
+    sentence: "体积云 Shader 的核心积分变量是 {0}（表示光能积累）和 {1}（表示光线穿透率）；当 {1} 小于 0.01 时执行 {2} 退出。",
+    blanks: ["lightEnergy", "transmittance", "早期"],
+    pool: ["lightEnergy", "transmittance", "早期", "albedo", "opacity", "延迟", "深度"],
+    explanation: "体积云 Shader 中，lightEnergy 积累光能，transmittance 表示光线穿透率；当 transmittance < 0.01 时执行早期退出（Early Exit）优化。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    blankExplanations: [
+      "lightEnergy 是沿射线积累的光能量，最终输出为云层的颜色亮度。",
+      "transmittance 表示光线穿过介质后的剩余比例，0 表示完全不透明。",
+      "早期退出（Early Exit）是性能优化：当光线几乎被完全遮挡时停止步进。"
+    ]
+  },
+  {
+    sentence: "性能分级中，高配用 {0} steps + 3D Worley noise，中配用 {1} steps + 2D 噪声烘焙 3D，低配用 {2} steps + 纯 2D 噪声。",
+    blanks: ["128", "64", "32"],
+    pool: ["128", "64", "32", "256", "48", "16", "96"],
+    explanation: "体积云性能分级：高配 128 steps + 3D Worley noise，中配 64 steps + 2D 噪声烘焙 3D，低配 32 steps + 纯 2D 噪声。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    blankExplanations: [
+      "高配使用 128 步 Ray Marching，配合 3D Worley noise 获得最高质量。",
+      "中配降至 64 步，使用 2D 噪声烘焙到 3D 纹理来平衡质量和性能。",
+      "低配使用 32 步 + 纯 2D 噪声，适合移动端和低性能设备。"
+    ]
+  },
+  {
+    sentence: "调参时先调 {0} 和 {1} 确定云层存在，再调 {2} 平衡质量；Mobile 上必须开 {3} 开关。",
+    blanks: ["_Coverage", "_CloudBaseHeight", "_StepCount", "LOD"],
+    pool: ["_Coverage", "_CloudBaseHeight", "_StepCount", "LOD", "_DetailScale", "_LightAbsorption", "_CloudColor"],
+    explanation: "体积云调参顺序：先调 Coverage 和 CloudBaseHeight 确定云层基本存在，再调 StepCount 平衡质量，Mobile 上必须开启 LOD。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    blankExplanations: [
+      "_Coverage 控制云层覆盖范围，值为 0 时无云，1 时完全覆盖。",
+      "_CloudBaseHeight 确定云层底部高度，影响云层在天空中的位置。",
+      "_StepCount 控制 Ray Marching 步数，直接权衡质量和性能。",
+      "Mobile 上开启 LOD（Level of Detail）开关可降低远处采样开销。"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    question: "为什么体积云 Ray Marching 需要'早期退出'（transmittance < 0.01 break）？",
+    options: [
+      "A. 为了让云更透明",
+      "B. 减少无贡献步进，优化性能",
+      "C. 为了增加光线穿透",
+      "D. 为了简化 Shader 代码"
+    ],
+    correct: 1,
+    explanation: "当 transmittance 接近 0 时，后续步进对最终颜色几乎没有贡献，提前退出可显著减少计算量，提升性能。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    optionExplanations: [
+      "早期退出不会刻意让云更透明，而是当已经足够不透明时停止。",
+      "正确。减少无贡献的步进是纯粹性能优化，对最终画面影响极小。",
+      "早期退出不是为了增加穿透，而是因为已经几乎没有穿透了。",
+      "代码复杂度并没有因此简化，这是运行时优化而非代码简化。"
+    ]
+  },
+  {
+    question: "体积云边缘锯齿的最佳解决方案是什么？",
+    options: [
+      "A. 增加步数到 256",
+      "B. 蓝噪声抖动 + TAA 复用历史帧",
+      "C. 降低分辨率渲染",
+      "D. 使用 FXAA 后处理"
+    ],
+    correct: 1,
+    explanation: "蓝噪声抖动提供时域上的采样分布，配合 TAA 复用历史帧信息，是体积云边缘锯齿的标准解决方案。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    optionExplanations: [
+      "增加步数可以改善质量但开销大，且不是边缘锯齿的针对性方案。",
+      "正确。蓝噪声抖动 + TAA 是体积云抗锯齿的行业标准做法。",
+      "降低分辨率会加剧锯齿问题，而非解决。",
+      "FXAA 是后处理抗锯齿，但体积云需要时域采样配合，TAA 更优。"
+    ]
+  },
+  {
+    question: "摄像机朝向地平线时性能波动的原因是什么？",
+    options: [
+      "A. 云层密度在地平线更高",
+      "B. 射线穿过云层路径更长，步数更多",
+      "C. 地平线处光照计算更复杂",
+      "D. 相机视锥裁剪失效"
+    ],
+    correct: 1,
+    explanation: "摄像机朝向地平线时，视线与云层夹角小，射线穿过云层的路径变长，导致步进次数增加，性能下降。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    optionExplanations: [
+      "云层密度分布不因地平线方向而显著变化。",
+      "正确。射线穿过的云层厚度增加，Ray Marching 步数与路径长度成正比。",
+      "光照计算复杂度不随视角方向显著变化。",
+      "视锥裁剪在地平线处仍然有效，不是性能波动原因。"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    question: "体积云的性能优化手段包括哪些？",
+    options: [
+      "A. 早期退出（Early Exit）",
+      "B. 包围盒快速剔除",
+      "C. LOD 分级采样",
+      "D. 固定 256 步步进",
+      "E. 2D 噪声烘焙替代 3D",
+      "F. 降低屏幕分辨率渲染"
+    ],
+    correct: [0, 1, 2, 4, 5],
+    explanation: "体积云性能优化包括早期退出、包围盒剔除、LOD 分级、2D 噪声烘焙替代，以及降低分辨率渲染（如 half-res）。固定 256 步是反优化。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    optionExplanations: [
+      "早期退出在光线被完全遮挡时停止步进，显著减少计算量。",
+      "包围盒快速剔除避免对无云区域的无效步进。",
+      "LOD 分级在远处降低采样密度，减少远处开销。",
+      "固定 256 步是质量优先但性能开销大的做法，不是优化手段。",
+      "2D 噪声烘焙到 3D 纹理大幅降低内存和采样开销。",
+      "降低屏幕分辨率渲染（如 half-res）再 upscale 是常用性能优化。"
+    ]
+  },
+  {
+    question: "参数 _Coverage 的作用和影响包括哪些？",
+    options: [
+      "A. 控制云层覆盖范围",
+      "B. 值为 0 时天空无云",
+      "C. 值为 1 时天空完全覆盖",
+      "D. 影响云层的颜色"
+    ],
+    correct: [0, 1, 2],
+    explanation: "_Coverage 控制云层覆盖范围：0 为无云，1 为完全覆盖。它本身不直接影响云层颜色，颜色由其他参数控制。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md",
+    optionExplanations: [
+      "Coverage 直接控制云层的覆盖范围，是最核心的参数之一。",
+      "值为 0 时噪声采样结果完全被裁剪，天空显示无云。",
+      "值为 1 时云层覆盖整个天空，没有缝隙。",
+      "云层颜色由 _CloudColor 等参数控制，Coverage 只影响存在性。"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    statement: "体积云的 Ray Marching 只能使用固定步长，不支持动态调整。",
+    correct: false,
+    explanation: "Ray Marching 可以使用自适应步长（如基于密度或空步长跳过），甚至空步长加速（Empty Space Skipping），并非只能固定步长。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md"
+  },
+  {
+    statement: "蓝噪声抖动 + TAA 复用历史帧是解决体积云边缘锯齿的标准方案。",
+    correct: true,
+    explanation: "蓝噪声提供良好的时域采样分布，TAA 复用历史帧信息，两者配合是体积云抗锯齿的行业标准做法。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md"
+  },
+  {
+    statement: "Beer-Powder 近似在体积云光照中同时考虑了光的吸收和散射。",
+    correct: true,
+    explanation: "Beer-Powder 近似同时考虑了光在体积介质中的吸收（消光）和散射（in-scattering），是简化的体积光照模型。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md"
+  },
+  {
+    statement: "体积云只支持单向光（太阳），多光源场景下不需要任何额外处理。",
+    correct: false,
+    explanation: "体积云可以支持多光源，但每个额外光源都需要额外的光照积分计算，会显著增加开销，需要额外处理。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md"
+  },
+  {
+    statement: "在低配方案中，32 steps + 纯 2D 噪声可以取得与高配 128 steps + 3D Worley 完全相同的质量。",
+    correct: false,
+    explanation: "32 steps + 纯 2D 噪声是明显的质量降级方案，无法达到 128 steps + 3D Worley 的质量，这是性能与质量的权衡。",
+    detailLink: "../../../03-Shader与特效案例集/体积云-Volumetric-Cloud.md"
+  }
+];
+
+// Save originals at load time
+const _origDrag = JSON.parse(JSON.stringify(dragQuestions));
+const _origSingle = JSON.parse(JSON.stringify(singleQuestions));
+const _origMulti = JSON.parse(JSON.stringify(multiQuestions));
+const _origTF = JSON.parse(JSON.stringify(trueFalseQuestions));
+
+// ==================== State ====================
+let currentMode = 'drag';
+let currentDragIndex = 0, currentSingleIndex = 0, currentMultiIndex = 0, currentTFIndex = 0;
+let dragScores = [], singleScores = [], multiScores = [], tfScores = [];
+let allQuestions = [];
+let userDragAnswers = [];
+let userSingleAnswer = null;
+let userMultiAnswers = [];
+let userTFAnswer = null;
+let answered = false;
+
+// ==================== Utils ====================
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleOptions(q) {
+  const indices = q.options.map((_, i) => i);
+  const shuffled = shuffleArray(indices);
+  const newOptions = shuffled.map(i => q.options[i]);
+  const newExplanations = shuffled.map(i => q.optionExplanations[i]);
+  const newCorrect = Array.isArray(q.correct)
+    ? q.correct.map(oi => shuffled.indexOf(oi)).filter(i => i >= 0).sort((a,b)=>a-b)
+    : shuffled.indexOf(q.correct);
+  return { ...q, options: newOptions, optionExplanations: newExplanations, correct: newCorrect };
+}
+
+function rebuildAllQuestions() {
+  allQuestions.length = 0;
+  dragQuestions.forEach((q,i)=>allQuestions.push({mode:'drag',index:i,question:q.sentence.substring(0,40)+'...',type:'drag'}));
+  singleQuestions.forEach((q,i)=>allQuestions.push({mode:'single',index:i,question:q.question.substring(0,40)+'...',type:'single'}));
+  multiQuestions.forEach((q,i)=>allQuestions.push({mode:'multi',index:i,question:q.question.substring(0,40)+'...',type:'multi'}));
+  trueFalseQuestions.forEach((q,i)=>allQuestions.push({mode:'tf',index:i,question:q.statement.substring(0,40)+'...',type:'tf'}));
+}
+
+function initScores() {
+  dragScores = Array(dragQuestions.length).fill(null);
+  singleScores = Array(singleQuestions.length).fill(null);
+  multiScores = Array(multiQuestions.length).fill(null);
+  tfScores = Array(trueFalseQuestions.length).fill(null);
+}
+
+function resetCurrent() {
+  answered = false;
+  userDragAnswers = [];
+  userSingleAnswer = null;
+  userMultiAnswers = [];
+  userTFAnswer = null;
+}
+
+function resetAll() {
+  currentDragIndex = 0; currentSingleIndex = 0; currentMultiIndex = 0; currentTFIndex = 0;
+  initScores();
+  resetCurrent();
+  updateProgress();
+}
+
+function reshuffleAll() {
+  resetAll();
+  const newDrag = shuffleArray(_origDrag);
+  dragQuestions.length = 0;
+  newDrag.forEach(q => dragQuestions.push(q));
+  
+  const newSingle = shuffleArray(_origSingle).map(shuffleOptions);
+  singleQuestions.length = 0;
+  newSingle.forEach(q => singleQuestions.push(q));
+  
+  const newMulti = shuffleArray(_origMulti).map(shuffleOptions);
+  multiQuestions.length = 0;
+  newMulti.forEach(q => multiQuestions.push(q));
+  
+  const newTF = shuffleArray(_origTF);
+  trueFalseQuestions.length = 0;
+  newTF.forEach(q => trueFalseQuestions.push(q));
+  
+  rebuildAllQuestions();
+  updateDashboard();
+  updateProgress();
+  if (currentMode === 'drag') renderDrag();
+  else if (currentMode === 'single') renderSingle();
+  else if (currentMode === 'multi') renderMulti();
+  else if (currentMode === 'tf') renderTrueFalse();
+}
+
+function updateProgress() {
+  const total = dragQuestions.length + singleQuestions.length + multiQuestions.length + trueFalseQuestions.length;
+  const answeredCount = dragScores.filter(s=>s!==null).length + singleScores.filter(s=>s!==null).length + multiScores.filter(s=>s!==null).length + tfScores.filter(s=>s!==null).length;
+  document.getElementById('progress-text').textContent = answeredCount + ' / ' + total;
+  document.getElementById('progress-fill').style.width = (total ? (answeredCount/total*100) : 0) + '%';
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.mode === mode);
+  });
+  document.getElementById('quiz-area').classList.remove('hidden');
+  document.getElementById('dashboard-area').classList.remove('show');
+  document.getElementById('dashboard-btn').classList.remove('active');
+  resetCurrent();
+  if (mode === 'drag') renderDrag();
+  else if (mode === 'single') renderSingle();
+  else if (mode === 'multi') renderMulti();
+  else if (mode === 'tf') renderTrueFalse();
+}
+
+function toggleDashboard() {
+  const quizArea = document.getElementById('quiz-area');
+  const dashArea = document.getElementById('dashboard-area');
+  const btn = document.getElementById('dashboard-btn');
+  if (dashArea.classList.contains('show')) {
+    dashArea.classList.remove('show');
+    quizArea.classList.remove('hidden');
+    btn.classList.remove('active');
+  } else {
+    dashArea.classList.add('show');
+    quizArea.classList.add('hidden');
+    btn.classList.add('active');
+    updateDashboard();
+  }
+}
+
+function updateDashboard() {
+  const dash = document.getElementById('dashboard-area');
+  dash.innerHTML = '';
+  allQuestions.forEach((item, idx) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    let scoreArr, qIdx, status, label;
+    if (item.mode === 'drag') { scoreArr = dragScores; qIdx = item.index; label = '拖拽'; }
+    else if (item.mode === 'single') { scoreArr = singleScores; qIdx = item.index; label = '单选'; }
+    else if (item.mode === 'multi') { scoreArr = multiScores; qIdx = item.index; label = '多选'; }
+    else { scoreArr = tfScores; qIdx = item.index; label = '判断'; }
+    const s = scoreArr[qIdx];
+    if (s === true) { thumb.classList.add('correct'); status = '✅ 正确'; }
+    else if (s === false) { thumb.classList.add('wrong'); status = '❌ 错误'; }
+    else { thumb.classList.add('unanswered'); status = '⏳ 未作答'; }
+    thumb.innerHTML = '<span class="thumb-type ' + item.type + '">' + label + '</span><div class="thumb-question">' + item.question + '</div><div class="thumb-status">' + status + '</div>';
+    thumb.onclick = () => { toggleDashboard(); switchMode(item.mode); };
+    dash.appendChild(thumb);
+  });
+}
+
+function updateDashboardStats() {
+  updateDashboard();
+}
+
+// ==================== Drag ====================
+function renderDrag() {
+  const q = dragQuestions[currentDragIndex];
+  const el = document.getElementById('quiz-area');
+  let html = '<div class="card">';
+  html += '<div class="card-subtitle">拖拽填空 · 第 ' + (currentDragIndex+1) + ' / ' + dragQuestions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.sentence.replace(/\{([0-9]+)\}/g, (m, i) => {
+    const val = userDragAnswers[i] || '';
+    const cls = val ? 'filled' : '';
+    return '<span class="blank ' + cls + '" data-index="' + i + '" onclick="handleBlankClick(' + i + ')">' + (val || ' ') + '</span>';
+  }) + '</div>';
+  html += '<div class="drag-pool">';
+  q.pool.forEach((item, i) => {
+    const used = userDragAnswers.includes(item);
+    html += '<span class="drag-item' + (used ? ' used' : '') + '" draggable="true" data-val="' + item + '" ondragstart="handleDragStart(event)" onclick="handleDragClick('\'' + item + '\'')">' + item + '</span>';
+  });
+  html += '</div>';
+  html += '<div class="nav-btns">';
+  html += '<button class="btn btn-secondary" onclick="prevDrag()" ' + (currentDragIndex===0?'disabled':'') + '>上一题</button>';
+  html += '<button class="btn" onclick="checkDrag()">提交</button>';
+  html += '<button class="btn" onclick="nextDrag()">下一题</button>';
+  html += '</div>';
+  if (answered) {
+    html += '<div class="score-display ' + (dragScores[currentDragIndex]?'correct':'wrong') + '">' + (dragScores[currentDragIndex]?'✅ 正确':'❌ 错误') + '</div>';
+    html += '<div class="explanation show"><div class="explanation-title">解析</div><p>' + q.explanation + '</p>';
+    if (q.detailLink) html += '<p><a href="' + q.detailLink + '" target="_blank">📄 查看笔记原文</a></p>';
+    if (q.blankExplanations) {
+      html += '<ul>';
+      q.blankExplanations.forEach((be, i) => {
+        html += '<li><strong>空 ' + (i+1) + ' (' + q.blanks[i] + '):</strong> ' + be + '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+window.handleDragStart = function(e) { e.dataTransfer.setData('text/plain', e.target.dataset.val); };
+window.handleDragClick = function(val) {
+  if (answered) return;
+  const blankIdx = userDragAnswers.indexOf(null) >= 0 ? userDragAnswers.indexOf(null) : userDragAnswers.length;
+  if (blankIdx < dragQuestions[currentDragIndex].blanks.length) {
+    userDragAnswers[blankIdx] = val;
+    renderDrag();
+  }
+};
+window.handleBlankClick = function(idx) {
+  if (answered) return;
+  userDragAnswers[idx] = null;
+  renderDrag();
+};
+window.checkDrag = function() {
+  const q = dragQuestions[currentDragIndex];
+  let correct = true;
+  for (let i = 0; i < q.blanks.length; i++) {
+    if (userDragAnswers[i] !== q.blanks[i]) correct = false;
+  }
+  dragScores[currentDragIndex] = correct;
+  answered = true;
+  updateProgress();
+  updateDashboardStats();
+  renderDrag();
+};
+window.prevDrag = function() { if (currentDragIndex > 0) { currentDragIndex--; resetCurrent(); renderDrag(); } };
+window.nextDrag = function() { if (currentDragIndex < dragQuestions.length-1) { currentDragIndex++; resetCurrent(); renderDrag(); } };
+
+// ==================== Single ====================
+function renderSingle() {
+  const q = singleQuestions[currentSingleIndex];
+  const el = document.getElementById('quiz-area');
+  let html = '<div class="card">';
+  html += '<div class="card-subtitle">单选题 · 第 ' + (currentSingleIndex+1) + ' / ' + singleQuestions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.question + '</div>';
+  html += '<div class="options">';
+  q.options.forEach((opt, i) => {
+    let cls = '';
+    if (answered) {
+      if (i === q.correct) cls = 'correct';
+      else if (i === userSingleAnswer) cls = 'wrong';
+      cls += ' disabled';
+    } else if (i === userSingleAnswer) {
+      cls = 'selected';
+    }
+    html += '<div class="option ' + cls + '" onclick="selectSingle(' + i + ')"><span class="option-letter">' + String.fromCharCode(65+i) + '</span><span class="option-text">' + opt + '</span></div>';
+  });
+  html += '</div>';
+  html += '<div class="nav-btns">';
+  html += '<button class="btn btn-secondary" onclick="prevSingle()" ' + (currentSingleIndex===0?'disabled':'') + '>上一题</button>';
+  html += '<button class="btn" onclick="checkSingle()">提交</button>';
+  html += '<button class="btn" onclick="nextSingle()">下一题</button>';
+  html += '</div>';
+  if (answered) {
+    html += '<div class="score-display ' + (singleScores[currentSingleIndex]?'correct':'wrong') + '">' + (singleScores[currentSingleIndex]?'✅ 正确':'❌ 错误') + '</div>';
+    html += '<div class="explanation show"><div class="explanation-title">解析</div><p>' + q.explanation + '</p>';
+    if (q.detailLink) html += '<p><a href="' + q.detailLink + '" target="_blank">📄 查看笔记原文</a></p>';
+    if (q.optionExplanations) {
+      html += '<ul>';
+      q.optionExplanations.forEach((oe, i) => {
+        const isCorrect = i === q.correct;
+        html += '<li><strong>' + String.fromCharCode(65+i) + (isCorrect ? ' ✅' : '') + ':</strong> ' + oe + '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+window.selectSingle = function(i) { if (answered) return; userSingleAnswer = i; renderSingle(); };
+window.checkSingle = function() {
+  if (userSingleAnswer === null) return;
+  singleScores[currentSingleIndex] = (userSingleAnswer === singleQuestions[currentSingleIndex].correct);
+  answered = true;
+  updateProgress();
+  updateDashboardStats();
+  renderSingle();
+};
+window.prevSingle = function() { if (currentSingleIndex > 0) { currentSingleIndex--; resetCurrent(); renderSingle(); } };
+window.nextSingle = function() { if (currentSingleIndex < singleQuestions.length-1) { currentSingleIndex++; resetCurrent(); renderSingle(); } };
+
+// ==================== Multi ====================
+function renderMulti() {
+  const q = multiQuestions[currentMultiIndex];
+  const el = document.getElementById('quiz-area');
+  let html = '<div class="card">';
+  html += '<div class="card-subtitle">多选题 · 第 ' + (currentMultiIndex+1) + ' / ' + multiQuestions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.question + '</div>';
+  html += '<div class="options">';
+  q.options.forEach((opt, i) => {
+    let cls = '';
+    const selected = userMultiAnswers.includes(i);
+    if (answered) {
+      const isCorrect = q.correct.includes(i);
+      if (isCorrect) cls = 'correct';
+      else if (selected) cls = 'wrong';
+      cls += ' disabled';
+    } else if (selected) {
+      cls = 'selected';
+    }
+    html += '<div class="option ' + cls + '" onclick="toggleMulti(' + i + ')"><span class="option-letter">' + String.fromCharCode(65+i) + '</span><span class="option-text">' + opt + '</span></div>';
+  });
+  html += '</div>';
+  html += '<div class="nav-btns">';
+  html += '<button class="btn btn-secondary" onclick="prevMulti()" ' + (currentMultiIndex===0?'disabled':'') + '>上一题</button>';
+  html += '<button class="btn" onclick="checkMulti()">提交</button>';
+  html += '<button class="btn" onclick="nextMulti()">下一题</button>';
+  html += '</div>';
+  if (answered) {
+    html += '<div class="score-display ' + (multiScores[currentMultiIndex]?'correct':'wrong') + '">' + (multiScores[currentMultiIndex]?'✅ 正确':'❌ 错误') + '</div>';
+    html += '<div class="explanation show"><div class="explanation-title">解析</div><p>' + q.explanation + '</p>';
+    if (q.detailLink) html += '<p><a href="' + q.detailLink + '" target="_blank">📄 查看笔记原文</a></p>';
+    if (q.optionExplanations) {
+      html += '<ul>';
+      q.optionExplanations.forEach((oe, i) => {
+        const isCorrect = q.correct.includes(i);
+        html += '<li><strong>' + String.fromCharCode(65+i) + (isCorrect ? ' ✅' : '') + ':</strong> ' + oe + '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+window.toggleMulti = function(i) {
+  if (answered) return;
+  const idx = userMultiAnswers.indexOf(i);
+  if (idx >= 0) userMultiAnswers.splice(idx, 1);
+  else userMultiAnswers.push(i);
+  userMultiAnswers.sort((a,b)=>a-b);
+  renderMulti();
+};
+window.checkMulti = function() {
+  if (!userMultiAnswers.length) return;
+  const q = multiQuestions[currentMultiIndex];
+  let correct = userMultiAnswers.length === q.correct.length;
+  if (correct) {
+    for (let i = 0; i < q.correct.length; i++) {
+      if (userMultiAnswers[i] !== q.correct[i]) { correct = false; break; }
+    }
+  }
+  multiScores[currentMultiIndex] = correct;
+  answered = true;
+  updateProgress();
+  updateDashboardStats();
+  renderMulti();
+};
+window.prevMulti = function() { if (currentMultiIndex > 0) { currentMultiIndex--; resetCurrent(); renderMulti(); } };
+window.nextMulti = function() { if (currentMultiIndex < multiQuestions.length-1) { currentMultiIndex++; resetCurrent(); renderMulti(); } };
+
+// ==================== True/False ====================
+function renderTrueFalse() {
+  const q = trueFalseQuestions[currentTFIndex];
+  const el = document.getElementById('quiz-area');
+  let html = '<div class="card">';
+  html += '<div class="card-subtitle">判断题 · 第 ' + (currentTFIndex+1) + ' / ' + trueFalseQuestions.length + ' 题</div>';
+  html += '<div class="question-text">' + q.statement + '</div>';
+  html += '<div class="options">';
+  const opts = ['正确', '错误'];
+  opts.forEach((opt, i) => {
+    const val = i === 0;
+    let cls = '';
+    if (answered) {
+      if (val === q.correct) cls = 'correct';
+      else if (val === userTFAnswer) cls = 'wrong';
+      cls += ' disabled';
+    } else if (val === userTFAnswer) {
+      cls = 'selected';
+    }
+    html += '<div class="option ' + cls + '" onclick="selectTF(' + val + ')"><span class="option-text">' + opt + '</span></div>';
+  });
+  html += '</div>';
+  html += '<div class="nav-btns">';
+  html += '<button class="btn btn-secondary" onclick="prevTF()" ' + (currentTFIndex===0?'disabled':'') + '>上一题</button>';
+  html += '<button class="btn" onclick="checkTF()">提交</button>';
+  html += '<button class="btn" onclick="nextTF()">下一题</button>';
+  html += '</div>';
+  if (answered) {
+    html += '<div class="score-display ' + (tfScores[currentTFIndex]?'correct':'wrong') + '">' + (tfScores[currentTFIndex]?'✅ 正确':'❌ 错误') + '</div>';
+    html += '<div class="explanation show"><div class="explanation-title">解析</div><p>' + q.explanation + '</p>';
+    if (q.detailLink) html += '<p><a href="' + q.detailLink + '" target="_blank">📄 查看笔记原文</a></p>';
+    html += '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+window.selectTF = function(val) { if (answered) return; userTFAnswer = val; renderTrueFalse(); };
+window.checkTF = function() {
+  if (userTFAnswer === null) return;
+  tfScores[currentTFIndex] = (userTFAnswer === trueFalseQuestions[currentTFIndex].correct);
+  answered = true;
+  updateProgress();
+  updateDashboardStats();
+  renderTrueFalse();
+};
+window.prevTF = function() { if (currentTFIndex > 0) { currentTFIndex--; resetCurrent(); renderTrueFalse(); } };
+window.nextTF = function() { if (currentTFIndex < trueFalseQuestions.length-1) { currentTFIndex++; resetCurrent(); renderTrueFalse(); } };
+
+// ==================== Init ====================
+initScores();
+rebuildAllQuestions();
+updateProgress();
+
+// Tabs
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => switchMode(tab.dataset.mode));
+});
+
+// Dashboard
+document.getElementById('dashboard-btn').addEventListener('click', toggleDashboard);
+
+// Reshuffle
+document.getElementById('reshuffle-btn').addEventListener('click', reshuffleAll);
+
+// Start
+switchMode('drag');
+
+})();
+</script>
+</body>
+</html>

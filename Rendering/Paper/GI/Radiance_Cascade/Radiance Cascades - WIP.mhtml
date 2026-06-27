@@ -1,0 +1,382 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://radiance-cascades.com/
+Subject: Radiance Cascades - WIP
+Date: Sat, 31 Jan 2026 17:41:35 +0800
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--0zsbImLCIYZdqrRBRDdrMf1r1irZj9G8cfVqFIrcWi----"
+
+
+------MultipartBoundary--0zsbImLCIYZdqrRBRDdrMf1r1irZj9G8cfVqFIrcWi----
+Content-Type: text/html
+Content-ID: <frame-4EBD673309149DE0CC09FDE90C875E19@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://radiance-cascades.com/
+
+<html><head><meta http-equiv=3D"Content-Type" content=3D"text/html; charset=
+=3DUTF-8"><link rel=3D"stylesheet" type=3D"text/css" href=3D"cid:css-da1128=
+6a-3c77-4840-88a4-df55a877cbc5@mhtml.blink" />
+  <title>Radiance Cascades - WIP</title>
+
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1">
+
+ =20
+</head>
+
+<body>
+   =20
+  <socials>
+    <github class=3D"icon">
+      <a href=3D"https://github.com/radiance-cascades" target=3D"_blank">
+        <svg width=3D"24" height=3D"24" viewBox=3D"0 0 98 96" xmlns=3D"http=
+://www.w3.org/2000/svg">
+          <path fill-rule=3D"evenodd" clip-rule=3D"evenodd" d=3D"M48.854 0C=
+21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1=
+.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-=
+5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934=
+.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.17=
+8 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.9=
+4-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426=
+ 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.3=
+56 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.=
+015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4=
+.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 1=
+9.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"></path=
+>
+        </svg>
+      </a>
+    </github>
+    <discord class=3D"icon">
+      <a href=3D"https://discord.com/invite/WSW7d2wrps" target=3D"_blank">
+        <svg width=3D"24" xmlns=3D"http://www.w3.org/2000/svg" viewBox=3D"0=
+ 0 127.14 96.36">
+          <path d=3D"M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,=
+0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,10=
+5.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,3=
+2.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,=
+1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.=
+68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0=
+C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s=
+5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,6=
+5.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84=
+.69,65.69Z"></path>
+        </svg>
+      </a>
+    </discord>
+  </socials>
+  <section id=3D"content">
+    <h1>Radiance Cascades</h1>
+    <p>
+      A scalable approach to realtime dynamic global illumination.
+    </p>
+      <br>
+    <div id=3D"rc-demo">
+      <div id=3D"rc-canvas">
+    <div style=3D"display: flex; gap: 20px;">
+      <div id=3D"rc-canvas-canvas-container"><canvas width=3D"1024" height=
+=3D"1024" style=3D"width: 512px; height: 512px;"></canvas></div>
+ =20
+      <div style=3D"display: flex; flex-direction: column; justify-content:=
+ space-between;">
+          <div id=3D"rc-canvas-color-picker" style=3D"display: flex; flex-d=
+irection: column;  border: solid 1px white; margin: 1px;">
+            <input type=3D"color" id=3D"rc-canvas-color-input" value=3D"#ff=
+ffff" style=3D"width: 20px; height: 20px; padding: 0; border: none;">
+        <button class=3D"color" style=3D"background-color: rgb(255, 246, 21=
+1);"><span class=3D"arrow hidden">=E2=96=B6</span></button><button class=3D=
+"color" style=3D"background-color: rgb(249, 168, 117);"><span class=3D"arro=
+w hidden">=E2=96=B6</span></button><button class=3D"color" style=3D"backgro=
+und-color: rgb(235, 107, 111);"><span class=3D"arrow hidden">=E2=96=B6</spa=
+n></button><button class=3D"color" style=3D"background-color: rgb(124, 63, =
+88);"><span class=3D"arrow hidden">=E2=96=B6</span></button><button class=
+=3D"color" style=3D"background-color: rgb(3, 196, 161);"><span class=3D"arr=
+ow hidden">=E2=96=B6</span></button><button class=3D"color" style=3D"backgr=
+ound-color: rgb(61, 158, 252);"><span class=3D"arrow hidden">=E2=96=B6</spa=
+n></button><button class=3D"color" style=3D"background-color: rgb(0, 0, 0);=
+"><span class=3D"arrow">=E2=96=B6</span></button><button class=3D"color" st=
+yle=3D"background-color: var(--pre-background);"><span class=3D"arrow hidde=
+n">=E2=96=B6</span><span class=3D"erase"><svg xmlns=3D"http://www.w3.org/20=
+00/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24" fill=3D"none" stro=
+ke=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D"round" stroke-line=
+join=3D"round"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fill=3D"none"></pa=
+th><path d=3D"M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.=
+41 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3"></path><path d=3D"M18 13.3l-6.3 -6.3"><=
+/path></svg></span></button></div>
+        <div style=3D"display: flex; flex-direction: column; gap: 2px">
+        <button id=3D"rc-canvas-sun" class=3D"iconButton"><svg xmlns=3D"htt=
+p://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24" f=
+ill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D"r=
+ound" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v24H0z" f=
+ill=3D"none"></path><path d=3D"M9.173 14.83a4 4 0 1 1 5.657 -5.657"></path>=
+<path d=3D"M11.294 12.707l.174 .247a7.5 7.5 0 0 0 8.845 2.492a9 9 0 0 1 -14=
+.671 2.914"></path><path d=3D"M3 12h1"></path><path d=3D"M12 3v1"></path><p=
+ath d=3D"M5.6 5.6l.7 .7"></path><path d=3D"M3 21l18 -18"></path></svg></but=
+ton>
+        <button id=3D"rc-canvas-clear" class=3D"iconButton"><svg xmlns=3D"h=
+ttp://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24"=
+ fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D=
+"round" stroke-linejoin=3D"round" class=3D"icon icon-tabler icons-tabler-ou=
+tline icon-tabler-trash"><path stroke=3D"none" d=3D"M0 0h24v24H0z" fill=3D"=
+none"></path><path d=3D"M4 7l16 0"></path><path d=3D"M10 11l0 6"></path><pa=
+th d=3D"M14 11l0 6"></path><path d=3D"M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2=
+ -2l1 -12"></path><path d=3D"M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></pa=
+th></svg></button>
+        <button id=3D"rc-canvas-reset" class=3D"iconButton"><svg xmlns=3D"h=
+ttp://www.w3.org/2000/svg" width=3D"16" height=3D"16" viewBox=3D"0 0 24 24"=
+ fill=3D"none" stroke=3D"currentColor" stroke-width=3D"1" stroke-linecap=3D=
+"round" stroke-linejoin=3D"round"><path stroke=3D"none" d=3D"M0 0h24v24H0z"=
+ fill=3D"none"></path><path d=3D"M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4">=
+</path><path d=3D"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></svg></but=
+ton>
+        </div>
+      </div>
+  </div></div>
+      <br>
+      <div id=3D"outer-container">
+        <div style=3D"display: flex; align-items: center; gap: 4px">
+          <input type=3D"checkbox" id=3D"enable-srgb" checked=3D"">
+          <label for=3D"enable-srgb">2D SRGB Falloff</label>
+        </div>
+      <div style=3D"display: flex; align-items: center; gap: 8px;">Brush Al=
+pha<input id=3D"outer-container-brush-alpha-slider" class=3D"slider" type=
+=3D"range" min=3D"0" max=3D"1" value=3D"1" step=3D"0.01"><span>1</span></di=
+v><div style=3D"display: flex; align-items: center; gap: 8px;">Brush Radius=
+<input id=3D"outer-container-brush-radius-slider" class=3D"slider" type=3D"=
+range" min=3D"1" max=3D"100" step=3D"0.1" value=3D"8"><span>8</span></div><=
+/div>
+
+      <details style=3D"cursor: pointer">
+        <summary>Additional Controls</summary>
+
+      <div style=3D"display: none; align-items: center; gap: 4px;">
+        <input type=3D"checkbox" id=3D"bilinear-fix">
+        <label for=3D"bilinear-fix">Bilinear Fix</label>
+      </div>
+
+      <div style=3D"display: flex; align-items: center; gap: 4px;">
+        <input type=3D"checkbox" id=3D"disable-mips">
+        <label for=3D"disable-mips">Disable Mips</label>
+      </div>
+
+      <div style=3D"display: flex; align-items: center; gap: 4px;">
+        <input type=3D"checkbox" id=3D"nonlinear-accumulation">
+        <label for=3D"nonlinear-accumulation">Non-Linear Accumulation</labe=
+l>
+      </div>
+
+      <div style=3D"display: flex; align-items: center; gap: 4px">
+        <input type=3D"checkbox" id=3D"add-noise">
+        <label for=3D"add-noise">Naive GI Noise</label>
+      </div>
+
+      <div style=3D"display: none; align-items: center; gap: 4px">
+        <input type=3D"checkbox" id=3D"ringing-fix">
+        <label for=3D"ringing-fix">Ringing Fix</label>
+      </div>
+
+      <div id=3D"additional-controls-container">
+      <div style=3D"display: flex; align-items: center; gap: 8px;">Pixels B=
+etween Base Probes<input id=3D"additional-controls-container-pixels-between=
+ base probes-slider" class=3D"slider" type=3D"range" min=3D"0" max=3D"4" va=
+lue=3D"0" step=3D"1"><span>1</span></div><div style=3D"display: flex; align=
+-items: center; gap: 8px;">Interval Length<input id=3D"additional-controls-=
+container-interval-length-slider" class=3D"slider" type=3D"range" min=3D"1"=
+ max=3D"512" step=3D"0.1" value=3D"1"><span>1</span></div><div style=3D"dis=
+play: flex; align-items: center; gap: 8px;">Base Ray Count<input id=3D"addi=
+tional-controls-container-base-ray count-slider" class=3D"slider" type=3D"r=
+ange" min=3D"1" max=3D"3" step=3D"1" value=3D"1"><span>4</span></div><div s=
+tyle=3D"display: flex; align-items: center; gap: 8px;">Interval Overlap %<i=
+nput id=3D"additional-controls-container-interval-overlap %-slider" class=
+=3D"slider" type=3D"range" min=3D"-1" max=3D"2" step=3D"0.01" value=3D"0.1"=
+><span>0.1</span></div><div style=3D"display: flex; align-items: center; ga=
+p: 8px;">(RC) Layer to Render<input id=3D"additional-controls-container-(rc=
+)-layer to render-slider" class=3D"slider" type=3D"range" min=3D"0" max=3D"=
+5" value=3D"0" step=3D"1"><span>0</span></div><div style=3D"display: flex; =
+align-items: center; gap: 8px;">(RC) Layer Count<input id=3D"additional-con=
+trols-container-(rc)-layer count-slider" class=3D"slider" type=3D"range" mi=
+n=3D"1" max=3D"6" value=3D"6" step=3D"1"><span>6</span></div><div style=3D"=
+display: flex; align-items: center; gap: 8px;">Stage To Render<input id=3D"=
+additional-controls-container-stage-to render-slider" class=3D"slider" type=
+=3D"range" min=3D"0" max=3D"3" value=3D"3" step=3D"1"><span>3</span></div><=
+/div>
+
+      <div style=3D"display: flex; align-items: center; gap: 8px">
+      Sun Angle
+      <input id=3D"rc-sun-angle-slider" class=3D"slider" type=3D"range" min=
+=3D"0" max=3D"6.2" step=3D"0.1" value=3D"2.0" disabled=3D"">
+        </div>
+
+        <div style=3D"display: flex; align-items: center; gap: 4px">
+        <input type=3D"checkbox" id=3D"reduce-demand">
+        <label for=3D"reduce-demand">Reduce Demand (Calculate over 2 frames=
+)</label>
+      </div>
+
+      </details>
+    </div>
+    <br>
+
+    <h1>Papers</h1>
+    <ul>
+      <li>
+        <a href=3D"https://github.com/Raikiri/RadianceCascadesPaper" target=
+=3D"_blank">Radiance Cascades: A Novel Approach
+          to Calculating Global Illumination [WIP]</a>
+      </li>
+      <li>
+        <a href=3D"https://arxiv.org/abs/2408.14425" target=3D"_blank">Radi=
+ance Cascades: A Novel High-Resolution Formal
+          Solution for Multidimensional Non-LTE Radiative Transfer</a>
+      </li>
+      <li>
+        <a href=3D"https://arxiv.org/abs/2505.02041" target=3D"_blank">Holo=
+graphic Radiance Cascades for 2D Global Illumination</a>
+      </li>
+    </ul>
+
+    <h1>Textual / Video presentations</h1>
+    <ul>
+      <li>
+        <a href=3D"https://mini.gmshaders.com/p/radiance-cascades" target=
+=3D"_blank">GM Shaders Guest: Radiance Cascades -
+          Part One: Introduction to Radiance Cascades</a> by
+        <a href=3D"https://x.com/yaazarai" target=3D"_blank">Yaazarai</a>
+      </li>
+     =20
+      <li><a href=3D"https://mini.gmshaders.com/p/radiance-cascades2" targe=
+t=3D"_blank">GM Shaders Guest: Radiance Cascades
+          2 - Part Two: Optimizations and Code Deep Dive</a></li><a href=3D=
+"https://mini.gmshaders.com/p/radiance-cascades2" target=3D"_blank">
+      </a><li><a href=3D"https://mini.gmshaders.com/p/radiance-cascades2" t=
+arget=3D"_blank">
+        </a><a href=3D"https://youtu.be/3so7xdZHKxw" target=3D"_blank">Expl=
+oring a New Approach to Realistic Lighting: Radiance
+          Cascades</a>
+        by <a href=3D"https://www.youtube.com/@simondev758" target=3D"_blan=
+k">SimonDev</a>.
+        Simon was also kind enough to provide an open source <a href=3D"htt=
+ps://simondevyoutube.github.io/Shaders_RadianceCascades/" target=3D"_blank"=
+>implementation + demo</a>
+      </li>
+      <li><a href=3D"https://jason.today/rc" target=3D"_blank">Building Rea=
+l-Time Global Illumination: Radiance Cascades</a> by <a href=3D"https://jas=
+on.today/">Jason McGhee</a>
+      </li>
+    </ul>
+
+    <h1>Demos / Implementations</h1>
+    <ul>
+      <li><a href=3D"https://www.shadertoy.com/view/mtlBzX" target=3D"_blan=
+k"> implementation by fad. Includes some temporal
+          latency due to shadertoy limitiations.</a></li>
+      <li><a href=3D"https://tmpvar.com/poc/radiance-cascades" target=3D"_b=
+lank">Building Intuition around Radiance
+          Cascades</a> by <a href=3D"https://x.com/tmpvar" target=3D"_blank=
+">tmpvar</a></li>
+      <li><a href=3D"https://radiance-cascades.github.io/LegitScriptEditor/=
+?gh=3DRaikiri/LegitCascades/Scaling.ls" target=3D"_blank">Basic implementat=
+ion of RC on LegitScript</a></li>
+      <li><a href=3D"https://github.com/Yaazarai/Volumetric-HRC/tree/main" =
+target=3D"_blank">HRC implementation, source and explainer</a> by <a href=
+=3D"https://github.com/Yaazarai" target=3D"_blank">Yaazarai</a></li>
+      <li><a href=3D"https://github.com/Youssef-Afella/UnityURP-RadianceCas=
+cades2DGI" target=3D"_blank">RC implementation for Unity URP</a> by <a href=
+=3D"https://github.com/Youssef-Afella" target=3D"_blank">Youssef Af</a></li=
+>
+    </ul>
+
+    <h1>Utilities</h1>
+    <ul>
+      <li><a href=3D"https://www.shadertoy.com/view/4clcWn" target=3D"_blan=
+k">Bilinear and forking fix</a> by <a href=3D"https://x.com/MytinoDev" targ=
+et=3D"_blank">MytinoDev</a></li>
+      <li> <a href=3D"https://mastodon.social/@kornel" target=3D"_blank">Ko=
+rnel</a> made a <a href=3D"https://kornel.ski/radiance" target=3D"_blank">c=
+alculator</a> to compute the
+        optimal cascade interval lengths based on the penumbra angle, minim=
+um light size and probe spacing. </li>
+      <li><a href=3D"https://www.shadertoy.com/view/XcfyDj" target=3D"_blan=
+k">Parallel fix</a> by <a href=3D"https://x.com/mxacop">mxacop</a></li>
+      <li><a href=3D"https://radiance-cascades.github.io/LegitScriptEditor/=
+" target=3D"_blank">LegitScriptEditor</a> -- webgl-based shader editor tool=
+ by <a href=3D"https://x.com/tmpvar" target=3D"_blank">tmpvar</a>
+          and <a href=3D"https://github.com/Raikiri" target=3D"_blank">Alex=
+ander</a>. Similar to shadertoy, but allows creating more complex render pa=
+sses and
+          doesn't rely on backend/server infrastructure (other than github)=
+, because you can link to demos directly in your github repo like this http=
+s://radiance-cascades.github.io/LegitScriptEditor/?gh=3DRaikiri/LegitCascad=
+es/Scaling.ls</li>
+      <li><a href=3D"https://www.desmos.com/calculator/1syt8xa8xl" target=
+=3D"_blank">HRC ray visualiser in desmos</a> by <a href=3D"https://www.shad=
+ertoy.com/user/fad" target=3D"_blank">fad</a>
+    </li></ul>
+    </section>
+ =20
+
+ =20
+
+
+
+
+</body></html>
+------MultipartBoundary--0zsbImLCIYZdqrRBRDdrMf1r1irZj9G8cfVqFIrcWi----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: cid:css-da11286a-3c77-4840-88a4-df55a877cbc5@mhtml.blink
+
+@charset "utf-8";
+
+html { margin: 0px; padding: 0px; color: rgb(238, 238, 238); font-family: s=
+ans-serif; }
+
+body { background: rgb(34, 34, 34); display: flex; flex-direction: column; =
+justify-content: space-between; margin: 0px; }
+
+li, p { line-height: 1.5; }
+
+#content { display: flex; flex-direction: column; padding: 10px; margin: 0p=
+x auto; min-width: 300px; max-width: 800px; width: calc(100% - 20px); }
+
+#content { max-width: 800px; min-height: 100%; justify-content: center; }
+
+#content .textual { color: rgb(221, 221, 221); }
+
+#content .textual { font-size: 2em; }
+
+#content a:visited { color: rgb(255, 119, 0); }
+
+#content a { color: rgb(0, 119, 255); }
+
+socials { display: flex; align-items: center; justify-content: flex-end; pa=
+dding: 8px; }
+
+socials .icon { margin: 0.5em; overflow: visible; }
+
+socials .a { text-decoration: none; }
+
+socials .icon a svg path { fill: rgb(221, 221, 221); }
+
+socials .icon a:hover svg path { fill: rgb(0, 132, 255); }
+
+#rc-demo { display: flex; flex-direction: column; margin: auto; }
+
+#rc-demo button { border: none; cursor: pointer; }
+
+#rc-demo .color { max-width: 20px; width: 20px; height: 20px; position: rel=
+ative; }
+
+#rc-demo canvas { image-rendering: auto; width: fit-content; }
+
+#rc-demo .iconButton { margin-left: -1px; padding: 4px 0px 0px; width: 24px=
+; height: 24px; }
+
+#rc-demo .erase { position: absolute; top: 2px; left: 1px; }
+
+#rc-demo .arrow { border: none; position: absolute; top: 0px; left: -17px; =
+cursor: auto; color: white; }
+
+#rc-demo .hidden { display: none; }
+------MultipartBoundary--0zsbImLCIYZdqrRBRDdrMf1r1irZj9G8cfVqFIrcWi------

@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>UE5 ModelContextProtocol 源码分析 — 互动知识卡牌</title>
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --card-bg: #ffffff;
+    --accent: #a38d6d;
+    --accent-light: #c4b49a;
+    --text: #3d3a36;
+    --text-secondary: #7a756d;
+    --correct: #6b9b6b;
+    --correct-bg: #eef6ee;
+    --wrong: #b06b6b;
+    --wrong-bg: #f9eeee;
+    --border: #e2ddd6;
+    --shadow: rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 24px 0 8px;
+  }
+  .header h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .header .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  /* Score & Progress */
+  .score-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .score-bar .score { font-weight: 600; color: var(--accent); }
+  .progress-text { font-size: 0.85rem; color: var(--text-secondary); }
+  .progress-bar-wrap {
+    height: 6px;
+    background: #e8e4df;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent-light);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .card-type {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    background: #f0ece4;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .card-number {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+  .question-text {
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  /* Drag & Drop */
+  .drop-zone {
+    display: inline-block;
+    min-width: 80px;
+    height: 36px;
+    line-height: 36px;
+    background: #f9f7f4;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    text-align: center;
+    vertical-align: middle;
+    margin: 0 2px;
+    padding: 0 8px;
+    font-size: 0.95rem;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  .drop-zone.drag-over { border-color: var(--accent); background: #f0ece4; }
+  .drop-zone.filled { border-style: solid; border-color: var(--accent-light); background: #faf8f5; }
+  .drop-zone.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drop-zone.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+
+  .draggable-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 16px;
+    background: #faf8f5;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .draggable-item {
+    padding: 8px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    box-shadow: 0 1px 2px var(--shadow);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .draggable-item:active { cursor: grabbing; transform: scale(1.03); box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+  .draggable-item.dragging { opacity: 0.6; }
+  .draggable-item.placed { opacity: 0.4; pointer-events: none; }
+
+  /* Options */
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .option-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #faf8f5;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.95rem;
+  }
+  .option-item:hover { background: #f0ece4; border-color: var(--accent-light); }
+  .option-item.selected { border-color: var(--accent); background: #f5f1ea; }
+  .option-item.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option-item.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option-item .marker {
+    width: 22px; height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700;
+    flex-shrink: 0;
+    color: transparent;
+  }
+  .option-item.selected .marker { border-color: var(--accent); color: var(--accent); }
+  .option-item.correct .marker { border-color: var(--correct); color: var(--correct); }
+  .option-item.wrong .marker { border-color: var(--wrong); color: var(--wrong); }
+
+  /* True/False */
+  .tf-buttons { display: flex; gap: 12px; margin-top: 4px; }
+  .tf-btn {
+    flex: 1;
+    padding: 14px;
+    background: #faf8f5;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tf-btn:hover { background: #f0ece4; }
+  .tf-btn.selected { border-color: var(--accent); background: #f5f1ea; }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+
+  /* Explanation */
+  .explanation {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #faf8f5;
+    border-left: 3px solid var(--accent-light);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .explanation.correct-border { border-left-color: var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-border { border-left-color: var(--wrong); background: var(--wrong-bg); }
+  .explanation-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+  }
+  .explanation ul { margin-left: 18px; margin-top: 4px; }
+  .explanation li { margin-bottom: 4px; }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #8f7a5c; }
+  .btn-secondary { background: #e8e4df; color: var(--text); }
+  .btn-secondary:hover { background: #ddd8d1; }
+  .btn-danger { background: #d4a5a5; color: #fff; }
+  .btn-danger:hover { background: #c48e8e; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Navigation */
+  .nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-bar .btn { flex: 0 1 auto; min-width: 80px; }
+  .nav-center {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ddd8d1;
+    transition: background 0.2s;
+  }
+  .nav-dot.active { background: var(--accent); }
+  .nav-dot.answered { background: var(--accent-light); }
+
+  /* Dashboard */
+  .dashboard {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+  }
+  .dashboard-item {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.85rem;
+    padding: 4px;
+  }
+  .dashboard-item:hover { transform: translateY(-2px); box-shadow: 0 2px 6px var(--shadow); }
+  .dashboard-item .qnum { font-weight: 700; font-size: 1rem; }
+  .dashboard-item .qlabel { font-size: 0.65rem; text-transform: uppercase; color: var(--text-secondary); margin-top: 2px; }
+  .dashboard-item.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .dashboard-item.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .dashboard-item.answered { border-color: var(--accent-light); background: #f5f1ea; }
+  .dashboard-item.current { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 6px 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Result */
+  .result-panel {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  .result-score {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .result-detail {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .result-detail .stat {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 24px;
+    min-width: 100px;
+  }
+  .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Touch drag ghost */
+  .touch-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.9;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 18px; }
+    .header h1 { font-size: 1.1rem; }
+    .question-text { font-size: 0.95rem; }
+    .draggable-item { padding: 6px 12px; font-size: 0.85rem; }
+    .drop-zone { min-width: 60px; height: 32px; line-height: 32px; font-size: 0.85rem; }
+    .btn { padding: 10px 14px; font-size: 0.9rem; }
+    .result-score { font-size: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>UE5 ModelContextProtocol 源码分析</h1>
+    <div class="subtitle">互动知识卡牌 · 18 题</div>
+  </div>
+
+  <!-- Score & Progress -->
+  <div class="score-bar" id="scoreBar">
+    <span class="score" id="scoreDisplay">得分: 0 / 18</span>
+    <span class="progress-text" id="progressText">1 / 18</span>
+  </div>
+  <div class="progress-bar-wrap" id="progressWrap">
+    <div class="progress-bar" id="progressBar" style="width: 5%"></div>
+  </div>
+
+  <!-- Question Card -->
+  <div class="card" id="questionCard">
+    <div class="card-header">
+      <span class="card-type" id="cardType">填空</span>
+      <span class="card-number" id="cardNumber">1 / 18</span>
+    </div>
+    <div class="question-text" id="questionText"></div>
+    <div id="questionContent"></div>
+    <div class="btn-row" id="actionRow">
+      <button class="btn btn-primary" id="checkBtn" onclick="checkCurrent()">检查答案</button>
+      <button class="btn btn-secondary" id="resetBtn" onclick="resetCurrent()">重置本题</button>
+    </div>
+    <div id="explanationArea"></div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav-bar" id="navBar">
+    <button class="btn btn-secondary" onclick="prevQuestion()">上一题</button>
+    <div class="nav-center" id="navDots"></div>
+    <button class="btn btn-secondary" onclick="nextQuestion()">下一题</button>
+  </div>
+
+  <div class="btn-row" style="justify-content: center;">
+    <button class="btn btn-secondary" onclick="showDashboard()">总览面板</button>
+    <button class="btn btn-secondary" onclick="shuffleAllAnswers()">🎲 洗牌选项</button>
+    <button class="btn btn-danger" onclick="resetAll()">重置全部</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard card" id="dashboard">
+    <div class="card-header">
+      <span class="card-type">总览</span>
+      <span class="card-number" id="dashCount">0 / 18</span>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterDash('all')">全部</button>
+      <button class="filter-btn" onclick="filterDash('correct')">正确</button>
+      <button class="filter-btn" onclick="filterDash('wrong')">错误</button>
+      <button class="filter-btn" onclick="filterDash('unanswered')">未答</button>
+    </div>
+    <div class="dashboard-grid" id="dashboardGrid"></div>
+    <div class="btn-row" style="margin-top: 8px;">
+      <button class="btn btn-primary" onclick="showResult()">查看结果</button>
+      <button class="btn btn-secondary" onclick="hideDashboard()">返回题目</button>
+    </div>
+  </div>
+
+  <!-- Result Panel -->
+  <div class="result-panel card" id="resultPanel">
+    <div class="card-header" style="justify-content: center;">
+      <span class="card-type">测验结果</span>
+    </div>
+    <div class="result-score" id="finalScore">0</div>
+    <div class="result-detail" id="resultDetail"></div>
+    <div class="btn-row" style="justify-content: center; margin-top: 8px;">
+      <button class="btn btn-secondary" onclick="showDashboard()">总览面板</button>
+      <button class="btn btn-primary" onclick="resetAll()">重新测验</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// =========================
+// 1. Question Data (inline)
+// =========================
+const dragQuestions = [
+  {
+    id: 1,
+    question: "FModelContextProtocolServer 绑定了 HTTP [___]、[___] 和 [___] 三种路由，分别处理 JSON-RPC 请求、SSE 流和 Session 销毁。",
+    answers: ["POST", "GET", "DELETE"],
+    pool: ["POST", "GET", "DELETE", "PUT", "PATCH"],
+    explanations: [
+      "POST 用于接收 JSON-RPC 方法调用（如 tools/call、initialize）。",
+      "GET 用于 SSE 流连接，但当前实现返回 BadMethod。",
+      "DELETE 用于销毁指定 Session（通过 Mcp-Session-Id Header）。"
+    ]
+  },
+  {
+    id: 2,
+    question: "ProcessToolCallJsonRpcCall 的核心流程：FindTool → 创建 [___] 存入 ActiveRequests → 发送初始 [___] 响应 → 调用 Tool->RunAsync → HandleToolResult 在 [___] 上执行。",
+    answers: ["ToolContext", "SSE", "GameThread"],
+    pool: ["ToolContext", "SSE", "GameThread", "WorkerThread", "JSON"],
+    explanations: [
+      "ToolContext（FModelContextProtocolToolContext）保存了工具指针、ProgressToken 和 SSE 写入回调。",
+      "SSE（text/event-stream）是 MCP Streamable HTTP 传输的核心，初始响应带 MultipleWriteStream 标志。",
+      "GameThread 是 UE 的硬约束——所有 UObject 操作和 HTTP 响应写入必须在主线程执行。"
+    ]
+  },
+  {
+    id: 3,
+    question: "工具注册的三种来源：BlueprintFunctionLibrary 通过 [___] 自动注册每个 Public UFUNCTION；AsyncAction 返回新的 [___] 实例；ToolsetRegistry 适配器在 [___] 模式下注册元工具。",
+    answers: ["反射", "AsyncAction", "Search"],
+    pool: ["反射", "AsyncAction", "Search", "Eager", "手动"],
+    explanations: [
+      "BlueprintFunctionLibrary 通过 TFieldIterator 遍历 UFUNCTION 反射信息，自动创建 FModelContextProtocolLibraryTool。",
+      "AsyncAction 工具 RunAsync 返回新的 UModelContextProtocolToolAsyncAction 实例，通过 OnAsyncToolComplete 委托异步完成。",
+      "Search 模式（bEnableToolSearch=true）只注册 list_toolsets/describe_toolset/call_tool 三个元工具，避免 LLM 上下文被淹没。"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    id: 4,
+    question: "MCP 插件默认的 HTTP 监听端口是多少？",
+    options: ["A. 8080", "B. 8000", "C. 3000", "D. 9000"],
+    correct: 1,
+    explanations: ["8080 是常见 Web 服务器端口，但 MCP 默认是 8000。", "✅ 正确：DefaultServerPort = 8000。", "3000 是 Node.js 常用端口。", "9000 不是 MCP 默认值。"]
+  },
+  {
+    id: 5,
+    question: "ValidateOriginHeader 允许哪些来源的请求？",
+    options: ["A. 任何来源", "B. 仅本地文件系统", "C. 仅 localhost / 127.0.0.1 / [::1]", "D. 任何 HTTP 请求"],
+    correct: 2,
+    explanations: ["❌ 错误：MCP 严格限制来源以防止 DNS Rebinding 攻击。", "❌ 错误：不是文件系统，而是网络来源限制。", "✅ 正确：仅允许 localhost 及其 IPv4/IPv6 变体；非浏览器客户端（无 Origin Header）也允许。", "❌ 错误：明确限制了非 localhost 来源。"]
+  },
+  {
+    id: 6,
+    question: "bEnableToolSearch 为 true 时，注册了哪几个元工具？",
+    options: ["A. list_toolsets, describe_toolset, call_tool", "B. list_tools, get_tool, run_tool", "C. find, search, execute", "D. query, describe, invoke"],
+    correct: 0,
+    explanations: ["✅ 正确：Search 模式注册 list_toolsets（发现）、describe_toolset（获取Schema）、call_tool（执行）。", "❌ 错误：不存在 list_tools 等工具。", "❌ 错误：不是这些名称。", "❌ 错误：不是这些名称。"]
+  },
+  {
+    id: 7,
+    question: "FModelContextProtocolLibraryTool 的 Run() 最终通过什么机制调用实际函数？",
+    options: ["A. 直接函数指针调用", "B. 虚拟函数分发", "C. 蓝图事件绑定", "D. UFunction::ProcessEvent"],
+    correct: 3,
+    explanations: ["❌ 错误：不是直接调用，而是通过 UE 的反射系统。", "❌ 错误：不是 C++ 虚函数机制。", "❌ 错误：虽然底层是蓝图，但调用入口是 ProcessEvent 而非事件绑定。", "✅ 正确：Run() 使用 UFunction::ProcessEvent() 执行蓝图函数库中的 UFUNCTION，支持反射和参数自动注入。"]
+  },
+  {
+    id: 8,
+    question: "AliveGuard 是什么类型的变量？",
+    options: ["A. TWeakPtr<bool>", "B. bool*", "C. TSharedPtr<bool>", "D. FSharedPtr<bool>"],
+    correct: 2,
+    explanations: ["❌ 错误：不是 WeakPtr，虽然工具回调捕获的是 TWeakPtr。", "❌ 错误：不是裸指针。", "✅ 正确：AliveGuard = MakeShared<bool>(true) 是 TSharedPtr<bool>，析构时 Reset() 使所有 WeakPtr 失效。", "❌ 错误：UE 中没有 FSharedPtr。"]
+  }
+];
+
+const multiQuestions = [
+  {
+    id: 9,
+    question: "MCP 插件包含哪些模块？（多选）",
+    options: ["A. ModelContextProtocol", "B. ModelContextProtocolEngine", "C. ModelContextProtocolEditor", "D. ModelContextProtocolTests"],
+    correct: [0, 1, 2, 3],
+    explanations: ["✅ ModelContextProtocol 是核心协议层。", "✅ ModelContextProtocolEngine 是 Runtime 集成层。", "✅ ModelContextProtocolEditor 是 Editor 集成层。", "✅ ModelContextProtocolTests 是测试模块（UncookedOnly）。"]
+  },
+  {
+    id: 10,
+    question: "FModelContextProtocolServer 中哪些方法需要 Session 验证？（多选）",
+    options: ["A. ping", "B. initialize", "C. tools/list", "D. tools/call", "E. resources/read"],
+    correct: [2, 3, 4],
+    explanations: ["❌ ping 不需要 Session，用于保活检测。", "❌ initialize 是创建 Session 的请求，自身不需要 Session。", "✅ tools/list 需要已初始化的 Session。", "✅ tools/call 需要已初始化的 Session。", "✅ resources/read 需要已初始化的 Session。"]
+  },
+  {
+    id: 11,
+    question: "哪些设计体现了安全或隐私保护？（多选）",
+    options: ["A. ValidateOriginHeader 限制 localhost", "B. AliveGuard 防止 use-after-free", "C. Blake3 哈希工具名上报 Analytics", "D. Analytics 可通过 CVar 禁用"],
+    correct: [0, 1, 2, 3],
+    explanations: ["✅ 防止 DNS Rebinding 攻击。", "✅ 防止服务器析构后异步回调访问已释放内存。", "✅ 原始工具名不离开本地，保护隐私。", "✅ ModelContextProtocol.EnableAnalytics=0 可完全禁用。"]
+  },
+  {
+    id: 12,
+    question: "ToolsetRegistry 适配器的 Search 模式相比 Eager 模式有哪些优势？（多选）",
+    options: ["A. 减少 tools/list 初始响应体积", "B. 避免 LLM 上下文窗口被工具定义淹没", "C. 工具可以按需发现", "D. 所有工具预注册为原生 MCP 工具"],
+    correct: [0, 1, 2],
+    explanations: ["✅ 只返回 3 个元工具而非数百个工具定义。", "✅ UE 编辑器可能有数百个工具，LLM 上下文有限。", "✅ 通过 list_toolsets → describe_toolset → call_tool 按需发现。", "❌ 这是 Eager 模式的特点，不是 Search 模式。"]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    id: 13,
+    question: "FModelContextProtocolServer 同时支持 HTTP 和 stdio 两种 MCP 传输模式。",
+    correct: false,
+    explanation: "❌ 错误。当前实现仅支持 HTTP 传输（Streamable HTTP），不支持 stdio 模式。VSCode 的 mcp.json 虽然支持两种传输，但 UE 插件内部没有 stdio 相关代码。"
+  },
+  {
+    id: 14,
+    question: "IModelContextProtocolModule::FindTool() 使用 TMap 进行 O(1) 查找。",
+    correct: false,
+    explanation: "❌ 错误。FindTool 在 TArray<Tools> 中线性遍历，时间复杂度 O(N)，且每次比较大小写不敏感。Eager 模式下工具数量多时可能成为瓶颈。"
+  },
+  {
+    id: 15,
+    question: "bEnableToolSearch 默认为 true，Search 模式只注册元工具而非全部工具。",
+    correct: true,
+    explanation: "✅ 正确。默认 Search 模式注册 list_toolsets、describe_toolset、call_tool 三个元工具，工具通过按需发现 + 动态调度执行，避免上下文窗口溢出。"
+  },
+  {
+    id: 16,
+    question: "ProgressToken 的进度值反映了工具执行的百分比完成度。",
+    correct: false,
+    explanation: "❌ 错误。LastProgressValue 仅作为自增心跳计数器，不反映实际百分比。Tick 中按 ProgressIntervalSeconds 间隔发送 notifications/progress，但 total 未知。"
+  },
+  {
+    id: 17,
+    question: "CancelAsync 对所有工具类型（LibraryTool、AsyncAction、ToolsetRegistry）都有完整实现。",
+    correct: false,
+    explanation: "❌ 错误。仅 FModelContextProtocolAsyncActionTool 有实际的 CancelAsync 实现（调用 Action->Cancel()）。LibraryTool 的同步 Run 和 ToolsetRegistry 适配器的 RunAsync 中 CancelAsync 为空实现，收到取消后结果会被丢弃但工具可能继续执行。"
+  },
+  {
+    id: 18,
+    question: "MCP 插件将原始工具名直接发送到 Analytics 服务器。",
+    correct: false,
+    explanation: "❌ 错误。工具名通过 FBlake3 哈希后上报，原始标识符不离开本地。符合 UE EULA 第 6(e) 条要求：用户负责确保 LLM 提供商不会将传输数据用作训练输入。"
+  }
+];
+
+// Merge all into a single array — declared once
+const allQuestions = [
+  ...dragQuestions.map(q => ({ ...q, type: 'drag' })),
+  ...singleQuestions.map(q => ({ ...q, type: 'single' })),
+  ...multiQuestions.map(q => ({ ...q, type: 'multi' })),
+  ...trueFalseQuestions.map(q => ({ ...q, type: 'tf' }))
+];
+
+// =========================
+// 2. State
+// =========================
+let currentIndex = 0;
+let userAnswers = {}; // { qid: answer }
+let checkedState = {}; // { qid: boolean }
+let currentFilter = 'all';
+
+// =========================
+// 3. Rendering
+// =========================
+function updateProgress() {
+  const total = allQuestions.length;
+  const answered = Object.keys(userAnswers).length;
+  const pct = ((currentIndex + 1) / total) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = (currentIndex + 1) + ' / ' + total;
+  document.getElementById('cardNumber').textContent = (currentIndex + 1) + ' / ' + total;
+  document.getElementById('scoreDisplay').textContent = '得分: ' + calculateScore() + ' / ' + total;
+  renderNavDots();
+}
+
+function renderNavDots() {
+  const container = document.getElementById('navDots');
+  container.innerHTML = '';
+  allQuestions.forEach((q, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot';
+    if (i === currentIndex) dot.classList.add('active');
+    else if (userAnswers[q.id] !== undefined) dot.classList.add('answered');
+    dot.onclick = () => { goToQuestion(i); };
+    container.appendChild(dot);
+  });
+}
+
+function renderQuestion() {
+  const q = allQuestions[currentIndex];
+  document.getElementById('questionCard').style.display = 'block';
+  document.getElementById('navBar').style.display = 'flex';
+  document.getElementById('scoreBar').style.display = 'flex';
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('resultPanel').style.display = 'none';
+
+  document.getElementById('cardType').textContent = typeLabel(q.type);
+  document.getElementById('explanationArea').innerHTML = '';
+  document.getElementById('checkBtn').disabled = false;
+  document.getElementById('checkBtn').style.display = 'inline-block';
+  document.getElementById('resetBtn').style.display = 'inline-block';
+
+  const content = document.getElementById('questionContent');
+  content.innerHTML = '';
+
+  if (q.type === 'drag') renderDrag(content, q);
+  else if (q.type === 'single') renderSingle(content, q);
+  else if (q.type === 'multi') renderMulti(content, q);
+  else if (q.type === 'tf') renderTrueFalse(content, q);
+
+  document.getElementById('questionText').textContent = q.type === 'drag' ? '' : q.question;
+
+  updateProgress();
+}
+
+function typeLabel(t) {
+  if (t === 'drag') return '拖拽填空';
+  if (t === 'single') return '单选题';
+  if (t === 'multi') return '多选题';
+  if (t === 'tf') return '判断题';
+  return '题目';
+}
+
+// =========================
+// 4. Drag & Drop
+// =========================
+function renderDrag(container, q) {
+  const saved = userAnswers[q.id] || [];
+  const parts = q.question.split(/\[___\]/g);
+  const filled = parts.map((part, i) => {
+    if (i < parts.length - 1) {
+      const val = saved[i] || '';
+      return part + `<span class="drop-zone ${val ? 'filled' : ''}" data-index="${i}" data-expected="${q.answers[i]}">${val}</span>`;
+    }
+    return part;
+  }).join('');
+
+  container.innerHTML = `<div style="line-height:2.2">${filled}</div>`;
+
+  const poolDiv = document.createElement('div');
+  poolDiv.className = 'draggable-pool';
+  q.pool.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'draggable-item';
+    el.textContent = item;
+    el.draggable = true;
+    el.dataset.value = item;
+    if (saved.includes(item)) el.classList.add('placed');
+    setupDragEvents(el);
+    poolDiv.appendChild(el);
+  });
+  container.appendChild(poolDiv);
+
+  container.querySelectorAll('.drop-zone').forEach(zone => {
+    setupDropEvents(zone);
+  });
+}
+
+let draggedEl = null;
+let touchGhost = null;
+
+function setupDragEvents(el) {
+  el.addEventListener('dragstart', e => {
+    draggedEl = el;
+    el.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', el.dataset.value);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  el.addEventListener('dragend', () => {
+    el.classList.remove('dragging');
+    draggedEl = null;
+  });
+}
+
+function setupDropEvents(zone) {
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const val = e.dataTransfer.getData('text/plain');
+    placeDragValue(zone, val);
+  });
+}
+
+function placeDragValue(zone, val) {
+  const old = zone.textContent.trim();
+  zone.textContent = val;
+  zone.classList.add('filled');
+
+  // Un-place old from pool if any
+  if (old) {
+    document.querySelectorAll('.draggable-item').forEach(el => {
+      if (el.dataset.value === old) el.classList.remove('placed');
+    });
+  }
+  // Place new in pool
+  document.querySelectorAll('.draggable-item').forEach(el => {
+    if (el.dataset.value === val) el.classList.add('placed');
+  });
+
+  saveDragAnswer();
+}
+
+function saveDragAnswer() {
+  const q = allQuestions[currentIndex];
+  const zones = document.querySelectorAll('.drop-zone');
+  const ans = Array.from(zones).map(z => z.textContent.trim());
+  userAnswers[q.id] = ans;
+  updateProgress();
+}
+
+// Global touch drag handler — registered once on init
+let touchDragState = null;
+
+function initTouchDrag() {
+  const container = document.querySelector('.container');
+
+  container.addEventListener('touchstart', e => {
+    const target = e.target.closest('.draggable-item');
+    if (!target) return;
+    const touch = e.touches[0];
+    touchDragState = {
+      el: target,
+      value: target.dataset.value
+    };
+
+    touchGhost = target.cloneNode(true);
+    touchGhost.classList.add('touch-ghost');
+    touchGhost.style.left = touch.clientX + 'px';
+    touchGhost.style.top = touch.clientY + 'px';
+    document.body.appendChild(touchGhost);
+    target.style.opacity = '0.4';
+  }, { passive: false });
+
+  container.addEventListener('touchmove', e => {
+    if (!touchGhost) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    touchGhost.style.left = touch.clientX + 'px';
+    touchGhost.style.top = touch.clientY + 'px';
+  }, { passive: false });
+
+  container.addEventListener('touchend', e => {
+    if (!touchDragState) return;
+    const touch = e.changedTouches[0];
+    touchGhost.remove();
+    touchGhost = null;
+    touchDragState.el.style.opacity = '';
+
+    const dropZones = document.querySelectorAll('.drop-zone');
+    dropZones.forEach(zone => {
+      const rect = zone.getBoundingClientRect();
+      if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+          touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+        placeDragValue(zone, touchDragState.value);
+      }
+    });
+
+    touchDragState = null;
+  }, { passive: true });
+}
+
+// =========================
+// 5. Single Choice
+// =========================
+function renderSingle(container, q) {
+  const saved = userAnswers[q.id];
+  const list = document.createElement('div');
+  list.className = 'options-list';
+  q.options.forEach((opt, i) => {
+    const el = document.createElement('div');
+    el.className = 'option-item' + (saved === i ? ' selected' : '');
+    el.innerHTML = `<div class="marker">${saved === i ? '✓' : ''}</div><div>${escapeHtml(opt)}</div>`;
+    el.onclick = () => {
+      userAnswers[q.id] = i;
+      renderQuestion();
+    };
+    list.appendChild(el);
+  });
+  container.appendChild(list);
+}
+
+// =========================
+// 6. Multi Choice
+// =========================
+function renderMulti(container, q) {
+  const saved = userAnswers[q.id] || [];
+  const list = document.createElement('div');
+  list.className = 'options-list';
+  q.options.forEach((opt, i) => {
+    const el = document.createElement('div');
+    const selected = saved.includes(i);
+    el.className = 'option-item' + (selected ? ' selected' : '');
+    el.innerHTML = `<div class="marker">${selected ? '✓' : ''}</div><div>${escapeHtml(opt)}</div>`;
+    el.onclick = () => {
+      const ans = userAnswers[q.id] ? [...userAnswers[q.id]] : [];
+      if (ans.includes(i)) ans.splice(ans.indexOf(i), 1);
+      else ans.push(i);
+      userAnswers[q.id] = ans;
+      renderQuestion();
+    };
+    list.appendChild(el);
+  });
+  container.appendChild(list);
+}
+
+// =========================
+// 7. True/False
+// =========================
+function renderTrueFalse(container, q) {
+  const saved = userAnswers[q.id];
+  const wrap = document.createElement('div');
+  wrap.className = 'tf-buttons';
+  const opts = [
+    { val: true, label: '是 / True' },
+    { val: false, label: '否 / False' }
+  ];
+  opts.forEach(o => {
+    const btn = document.createElement('button');
+    btn.className = 'tf-btn' + (saved === o.val ? ' selected' : '');
+    btn.textContent = o.label;
+    btn.onclick = () => {
+      userAnswers[q.id] = o.val;
+      renderQuestion();
+    };
+    wrap.appendChild(btn);
+  });
+  container.appendChild(wrap);
+}
+
+// =========================
+// 8. Check Answers
+// =========================
+function checkCurrent() {
+  const q = allQuestions[currentIndex];
+  const answer = userAnswers[q.id];
+  const expl = document.getElementById('explanationArea');
+  checkedState[q.id] = true;
+
+  if (q.type === 'drag') {
+    const zones = document.querySelectorAll('.drop-zone');
+    let allCorrect = true;
+    zones.forEach((z, i) => {
+      const val = z.textContent.trim();
+      const correct = val === q.answers[i];
+      z.classList.remove('correct', 'wrong');
+      z.classList.add(correct ? 'correct' : 'wrong');
+      if (!correct) allCorrect = false;
+    });
+    expl.innerHTML = buildExplanation(allCorrect, q.explanations.map((e, i) => {
+      const z = zones[i];
+      const val = z ? z.textContent.trim() : '';
+      return (val === q.answers[i] ? '✅ ' : '❌ ') + e;
+    }).join('<br>'));
+  }
+  else if (q.type === 'single') {
+    const correct = answer === q.correct;
+    const items = document.querySelectorAll('.option-item');
+    items.forEach((el, i) => {
+      el.classList.remove('correct', 'wrong', 'selected');
+      if (i === q.correct) el.classList.add('correct');
+      else if (i === answer) el.classList.add('wrong');
+      el.querySelector('.marker').textContent = i === q.correct ? '✓' : (i === answer ? '✗' : '');
+    });
+    expl.innerHTML = buildExplanation(correct, q.explanations.map((e, i) => e).join('<br>'));
+  }
+  else if (q.type === 'multi') {
+    const ans = answer || [];
+    const correctSet = new Set(q.correct);
+    const ansSet = new Set(ans);
+    const isCorrect = ans.length === q.correct.length && ans.every(a => correctSet.has(a));
+    const items = document.querySelectorAll('.option-item');
+    items.forEach((el, i) => {
+      el.classList.remove('correct', 'wrong', 'selected');
+      if (correctSet.has(i)) el.classList.add('correct');
+      else if (ansSet.has(i)) el.classList.add('wrong');
+      el.querySelector('.marker').textContent = correctSet.has(i) ? '✓' : (ansSet.has(i) ? '✗' : '');
+    });
+    expl.innerHTML = buildExplanation(isCorrect, q.explanations.map((e, i) => e).join('<br>'));
+  }
+  else if (q.type === 'tf') {
+    const correct = answer === q.correct;
+    const btns = document.querySelectorAll('.tf-btn');
+    btns.forEach((btn, i) => {
+      const val = i === 0; // first button is true
+      btn.classList.remove('correct', 'wrong', 'selected');
+      if (val === q.correct) btn.classList.add('correct');
+      else if (val === answer) btn.classList.add('wrong');
+    });
+    expl.innerHTML = buildExplanation(correct, q.explanation);
+  }
+
+  document.getElementById('checkBtn').disabled = true;
+  document.getElementById('scoreDisplay').textContent = '得分: ' + calculateScore() + ' / ' + allQuestions.length;
+  updateProgress();
+}
+
+function buildExplanation(correct, detail) {
+  const border = correct ? 'correct-border' : 'wrong-border';
+  const title = correct ? '回答正确' : '回答有误';
+  return `<div class="explanation ${border}">
+    <div class="explanation-title">${title}</div>
+    <div>${detail}</div>
+  </div>`;
+}
+
+function calculateScore() {
+  let score = 0;
+  allQuestions.forEach(q => {
+    const ans = userAnswers[q.id];
+    if (ans === undefined) return;
+    if (q.type === 'drag') {
+      const zones = q.answers;
+      const filled = Array.isArray(ans) ? ans : [];
+      if (filled.length === zones.length && filled.every((v, i) => v === zones[i])) score++;
+    }
+    else if (q.type === 'single') {
+      if (ans === q.correct) score++;
+    }
+    else if (q.type === 'multi') {
+      const arr = Array.isArray(ans) ? ans : [];
+      if (arr.length === q.correct.length && arr.every(a => q.correct.includes(a))) score++;
+    }
+    else if (q.type === 'tf') {
+      if (ans === q.correct) score++;
+    }
+  });
+  return score;
+}
+
+// =========================
+// 9. Reset
+// =========================
+function resetCurrent() {
+  const q = allQuestions[currentIndex];
+  delete userAnswers[q.id];
+  delete checkedState[q.id];
+  renderQuestion();
+}
+
+function resetAll() {
+  currentIndex = 0;
+  userAnswers = {};
+  checkedState = {};
+  currentFilter = 'all';
+  // Restore visibility of navigation and progress elements
+  document.getElementById('scoreBar').style.display = 'flex';
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('navBar').style.display = 'flex';
+  renderQuestion();
+}
+
+// =========================
+// 9.5 Shuffle Answers (Fisher-Yates)
+// =========================
+function shuffleAllAnswers() {
+  singleQuestions.forEach(q => {
+    const pairs = q.options.map((opt, i) => ({
+      opt,
+      expl: q.explanations[i]
+    }));
+    // Fisher-Yates shuffle
+    for (let i = pairs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+    }
+    q.options = pairs.map(p => p.opt);
+    q.explanations = pairs.map(p => p.expl);
+    q.correct = pairs.findIndex(p => p.expl.startsWith('✅'));
+  });
+
+  multiQuestions.forEach(q => {
+    const pairs = q.options.map((opt, i) => ({
+      opt,
+      expl: q.explanations[i],
+      isCorrect: q.correct.includes(i)
+    }));
+    for (let i = pairs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+    }
+    q.options = pairs.map(p => p.opt);
+    q.explanations = pairs.map(p => p.expl);
+    q.correct = [];
+    pairs.forEach((p, i) => { if (p.isCorrect) q.correct.push(i); });
+    q.correct.sort((a, b) => a - b);
+  });
+
+  // Clear all answers since option positions changed
+  userAnswers = {};
+  checkedState = {};
+  currentIndex = 0;
+  renderQuestion();
+}
+
+function checkAnswerDistribution() {
+  const counts = [0, 0, 0, 0];
+  singleQuestions.forEach(q => { if (q.correct >= 0 && q.correct < 4) counts[q.correct]++; });
+  const max = Math.max(...counts);
+  const total = singleQuestions.length;
+  if (max > total / 2) {
+    shuffleAllAnswers();
+  }
+}
+
+// =========================
+// 10. Navigation
+// =========================
+function prevQuestion() {
+  if (currentIndex > 0) { currentIndex--; renderQuestion(); }
+}
+function nextQuestion() {
+  if (currentIndex < allQuestions.length - 1) { currentIndex++; renderQuestion(); }
+}
+function goToQuestion(i) {
+  currentIndex = i;
+  renderQuestion();
+}
+
+// =========================
+// 11. Dashboard
+// =========================
+function showDashboard() {
+  document.getElementById('questionCard').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('scoreBar').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('resultPanel').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'flex';
+  renderDashboardGrid();
+}
+
+function hideDashboard() {
+  document.getElementById('dashboard').style.display = 'none';
+  renderQuestion();
+}
+
+function renderDashboardGrid() {
+  const grid = document.getElementById('dashboardGrid');
+  grid.innerHTML = '';
+  let shown = 0;
+  allQuestions.forEach((q, i) => {
+    const state = getQuestionState(q);
+    if (currentFilter !== 'all' && currentFilter !== state) return;
+    shown++;
+
+    const item = document.createElement('div');
+    item.className = 'dashboard-item';
+    if (state === 'correct') item.classList.add('correct');
+    else if (state === 'wrong') item.classList.add('wrong');
+    else if (state === 'answered') item.classList.add('answered');
+    if (i === currentIndex) item.classList.add('current');
+
+    let label = '';
+    if (q.type === 'drag') label = '填空';
+    else if (q.type === 'single') label = '单选';
+    else if (q.type === 'multi') label = '多选';
+    else if (q.type === 'tf') label = '判断';
+
+    item.innerHTML = `<div class="qnum">${q.id}</div><div class="qlabel">${label}</div>`;
+    item.onclick = () => { currentIndex = i; hideDashboard(); };
+    grid.appendChild(item);
+  });
+  document.getElementById('dashCount').textContent = shown + ' / ' + allQuestions.length;
+}
+
+function getQuestionState(q) {
+  if (userAnswers[q.id] === undefined) return 'unanswered';
+  let isCorrect = false;
+  const ans = userAnswers[q.id];
+  if (q.type === 'drag') {
+    isCorrect = ans.length === q.answers.length && ans.every((v, i) => v === q.answers[i]);
+  } else if (q.type === 'single') {
+    isCorrect = ans === q.correct;
+  } else if (q.type === 'multi') {
+    const arr = Array.isArray(ans) ? ans : [];
+    isCorrect = arr.length === q.correct.length && arr.every(a => q.correct.includes(a));
+  } else if (q.type === 'tf') {
+    isCorrect = ans === q.correct;
+  }
+  return isCorrect ? 'correct' : 'wrong';
+}
+
+function filterDash(type) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderDashboardGrid();
+}
+
+// =========================
+// 12. Result
+// =========================
+function showResult() {
+  document.getElementById('questionCard').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('scoreBar').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('resultPanel').style.display = 'flex';
+
+  const score = calculateScore();
+  const total = allQuestions.length;
+  document.getElementById('finalScore').textContent = score + ' / ' + total;
+
+  const counts = { drag: 0, single: 0, multi: 0, tf: 0 };
+  const totals = { drag: 0, single: 0, multi: 0, tf: 0 };
+  allQuestions.forEach(q => {
+    totals[q.type]++;
+    if (getQuestionState(q) === 'correct') counts[q.type]++;
+  });
+
+  const detail = document.getElementById('resultDetail');
+  detail.innerHTML = `
+    <div class="stat"><div class="stat-value">${counts.drag}/${totals.drag}</div><div class="stat-label">拖拽填空</div></div>
+    <div class="stat"><div class="stat-value">${counts.single}/${totals.single}</div><div class="stat-label">单选题</div></div>
+    <div class="stat"><div class="stat-value">${counts.multi}/${totals.multi}</div><div class="stat-label">多选题</div></div>
+    <div class="stat"><div class="stat-value">${counts.tf}/${totals.tf}</div><div class="stat-label">判断题</div></div>
+  `;
+}
+
+// =========================
+// 13. Utilities
+// =========================
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// =========================
+// 14. Init
+// =========================
+initTouchDrag();
+checkAnswerDistribution();
+renderQuestion();
+</script>
+
+</body>
+</html>

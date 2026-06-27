@@ -79,8 +79,7 @@ Career/
 **原则：** 源码级深度，面试追问能答到函数名和算法细节
 
 **每个章节必须包含：**
-- 源码文件路径（如 `Engineuilduilduild
-aniteRender.h`）
+- 源码文件路径（如 `Engine\Source\Runtime\Nanite\Public\NaniteRender.h`）
 - 代码片段 + 逐行注释
 - 追问的详细答案（"How?" 层面）
 - 与已掌握知识的关联（如 UE4→UE5 对比）
@@ -101,6 +100,7 @@ aniteRender.h`）
 | **判断题** | ✅ | 是/否，快速筛查概念盲区 |
 | 检查答案 | ✅ | 显示正确/错误 + 逐选项解析 |
 | 重置题目 | ✅ | 可重新答题 |
+| **随机打乱** | ✅ | 打乱题目顺序 + 单选/多选选项顺序，每次重新洗牌 |
 | 总览面板 | ✅ | 缩略图网格 + 筛选（正确/错误/未答） |
 | 打分系统 | ✅ | 实时显示总得分 |
 | 重置全部 | ✅ | 清空所有答题记录 |
@@ -243,6 +243,7 @@ aniteRender.h`）
 | 点击选项 | 选择单选/多选/判断 |
 | 点击 "检查答案" | 显示解析 + 追问链（Detail 卡牌） |
 | 点击 "重置" | 清空当前题 |
+| 点击 "🔄 随机打乱" | 重新洗牌题目顺序 + 选项顺序 |
 | 点击 "🔄 重置所有分数" | 清空全部记录 |
 
 ---
@@ -259,10 +260,66 @@ aniteRender.h`）
 | 无错题本（自动收集做错的题） | 待扩展 |
 | 判断题无" unsure "选项 | 待扩展（增加"不确定"按钮） |
 | Detail 卡牌追问链未实现交互式展开 | 待扩展 |
+| 拖拽填空选项池无法点击选择（仅支持拖拽） | 待扩展 |
 
 ---
 
 ## 十、模板复用指南
+
+### 随机打乱（Reshuffle）实现规范
+
+每个模块卡牌必须支持"随机打乱"功能：
+
+1. **打乱题目顺序**：拖拽填空、单选、多选、判断题各自的题目数组随机重排
+2. **打乱选项顺序**：单选题和多选题的 `options` 数组随机重排，同时更新 `correct` 索引以指向正确答案的新位置
+3. **重置分数**：打乱时自动清空所有答题记录，避免旧答案与新题序错位
+4. **UI 按钮**：在 header 区域放置 `🔄 随机打乱` 按钮，与 `📊 题目总览` 并列
+
+**实现要点：**
+```javascript
+// 1. 保存原始题目（只读常量）
+const _origDrag = JSON.parse(JSON.stringify(dragQuestions));
+
+// 2. 打乱数组的 Fisher-Yates 算法
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// 3. 打乱单选/多选选项（同时映射 correct 索引）
+function shuffleOptions(q) {
+  const indices = q.options.map((_, i) => i);
+  const shuffledIndices = shuffleArray(indices);
+  const newOptions = shuffledIndices.map(i => q.options[i]);
+  const newOptionExplanations = shuffledIndices.map(i => q.optionExplanations[i]);
+  const newCorrect = Array.isArray(q.correct)
+    ? q.correct.map(oldIdx => shuffledIndices.indexOf(oldIdx)).filter(i => i >= 0).sort((a,b)=>a-b)
+    : shuffledIndices.indexOf(q.correct);
+  return { ...q, options: newOptions, optionExplanations: newOptionExplanations, correct: newCorrect };
+}
+
+// 4. 全局打乱入口
+function reshuffleAll() {
+  // 重置所有分数
+  resetAll();
+  // 打乱题目顺序（深拷贝避免修改原始数据）
+  dragQuestions = shuffleArray(_origDrag);
+  singleQuestions = shuffleArray(_origSingle).map(shuffleOptions);
+  multiQuestions = shuffleArray(_origMulti).map(shuffleOptions);
+  trueFalseQuestions = shuffleArray(_origTF);
+  // 重建 allQuestions
+  rebuildAllQuestions();
+  // 重新渲染当前题型
+  if (currentMode === 'drag') renderDrag();
+  else if (currentMode === 'single') renderSingle();
+  else if (currentMode === 'multi') renderMulti();
+  else if (currentMode === 'tf') renderTrueFalse();
+}
+```
 
 ### 模块卡牌（nanite/lumen/vsm）
 复制 `html/nanite/index.html` 作为模板，修改以下部分：
@@ -272,7 +329,7 @@ aniteRender.h`）
 3. **总览面板统计**（更新 `allQuestions` 数组）
 4. 其他代码完全复用
 
-### 综合 Detail 卡牌（ue5-detail）
+### 综合 Detail 面试卡牌（ue5-detail）
 复制 `html/nanite/index.html` 作为模板，修改以下部分：
 
 1. **标题**（`<title>` 和 `<header>`）
@@ -289,6 +346,7 @@ aniteRender.h`）
   - `html/nanite/index.html` — Nanite 模块卡牌（10 题）
   - `html/lumen/index.html` — Lumen 模块卡牌（10 题）
   - `html/vsm/index.html` — VSM 模块卡牌（7 题）
+  - `html/volumetric-cloud/index.html` — 体积云 Shader 卡牌（14 题）
   - `html/ue5-detail/index.html` — 综合 Detail 面试卡牌（建设中）
 - 原始资料：
   - `UE5_Nanite_timlly.md` — timlly 源码分析 Part 1
@@ -301,4 +359,5 @@ aniteRender.h`）
 **Skill 创建时间:** 2026-06-20  
 **版本历史:**  
 - v1.0 (2026-06-20): 初始版本，基于 Nanite 模块实践总结
-- **v1.1 (2026-06-20): 新增判断题规范、综合 Detail 面试卡牌设计、追问链机制**
+- v1.1 (2026-06-20): 新增判断题规范、综合 Detail 面试卡牌设计、追问链机制
+- v1.2 (2026-06-24): 新增随机打乱（Reshuffle）功能：打乱题目顺序 + 选项顺序，重置分数
