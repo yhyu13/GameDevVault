@@ -64,9 +64,12 @@
 
 ## 当前分析目标
 
-| 目标 | 引擎 | 状态 | 截止日期 | 笔记 |
-|------|------|------|----------|------|
-| 虚拟纹理系统 | UE5 | ✅ 完成 | — | [[Unreal-Engine/UE5-VT-显存调度]] |
-| Lumen 调用链 | UE5 | ✅ 完成 | — | [[Unreal-Engine/UE5-Lumen-源码调用链]] |
-| ECS Job System | Unity | 待开始 | — | — |
-| 渲染器抽象层 | Godot | 待开始 | — | — |
+| 目标 | 引擎 | 状态 | 截止日期 | 笔记 | 卡牌 |
+|------|------|------|----------|------|------|
+| 虚拟纹理系统 | UE5 | ✅ 完成 | — | [[Unreal-Engine/UE5-VT-显存调度]] | — |
+| Lumen 调用链 | UE5 | ✅ 完成 | — | [[Unreal-Engine/UE5-Lumen-源码调用链]] | [[../../../Career/Kimi/html/lumen/callchain]] |
+| Nanite 虚拟几何管线 | UE5 (5.3) | ✅ 完成 | — | [[Unreal-Engine/UE5-Nanite-虚拟几何管线]] | [[../../../Career/Kimi/html/nanite/callchain]] · [精简版](./Unreal-Engine/Nanite-Card-Pack.html) |
+| **Mass 数据导向 AI（UE 5.8 实测）** | UE5.8 | ✅ 完成 | — | [[Unreal-Engine/UE5-Mass-AI-数据导向框架]] | [[../../../Career/Kimi/html/mass-58/callchain]] |
+| **NNE 神经网络引擎（UE 5.8 实测）** | UE5.8 | ✅ 完成 | — | [[Unreal-Engine/UE5-NNE-神经网络引擎]] | [[../../../Career/Kimi/html/nne-58/callchain]] |
+| ECS Job System | Unity | 待开始 | — | — | — |
+| 渲染器抽象层 | Godot | 待开始 | — | — | — |
