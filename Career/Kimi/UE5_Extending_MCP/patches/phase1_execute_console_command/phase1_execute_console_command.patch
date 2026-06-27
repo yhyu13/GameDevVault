@@ -1,0 +1,199 @@
+# Phase 1: execute_console_command Tool
+# UE5 MCP Extension — Easiest Feature First
+# 
+# This patch adds a built-in MCP tool that executes Unreal Engine console commands
+# via GEngine->Exec(), exposing the ~ console to LLM clients.
+#
+# Apply: cd Engine/Plugins/Experimental/ModelContextProtocol && patch -p5 < phase1_execute_console_command.patch
+
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp
+@@ -5,6 +5,7 @@
+ #include "ModelContextProtocol.h"
+ #include "ModelContextProtocolClientConfig.h"
+ #include "ModelContextProtocolSettings.h"
++#include "ModelContextProtocolConsoleTool.h"
+ 
+ #include "HAL/IConsoleManager.h"
+ #include "Misc/CoreDelegates.h"
+@@ -81,6 +82,9 @@
+ 		{
+ 			RegisterDefaultAnalyticsProvider();
+ 		});
++
++		// Register built-in engine tools (e.g., console command execution)
++		RegisterBuiltinTools();
+ 	}
+ 
+ 	virtual void ShutdownModule() override
+@@ -103,6 +107,8 @@
+ 			}
+ 			EngineAnalyticsProviderProxy.Reset();
+ 		}
++
++		DeregisterBuiltinTools();
+ 	}
+ 
+ private:
+@@ -128,8 +134,36 @@
+ 		UE_LOGF(LogModelContextProtocol, Log, "Registered FEngineAnalytics proxy as the default MCP analytics provider.");
+ 	}
+ 
++	void RegisterBuiltinTools()
++	{
++		IModelContextProtocolModule* Module = IModelContextProtocolModule::Get();
++		if (!Module)
++		{
++			return;
++		}
++
++		ConsoleTool = MakeShared<FModelContextProtocolConsoleTool>();
++		if (Module->AddTool(ConsoleTool.ToSharedRef()))
++		{
++			UE_LOGF(LogModelContextProtocol, Log, "Registered built-in tool: execute_console_command");
++		}
++	}
++
++	void DeregisterBuiltinTools()
++	{
++		if (IModelContextProtocolModule* Module = IModelContextProtocolModule::Get())
++		{
++			if (ConsoleTool.IsValid())
++			{
++				Module->RemoveTool(ConsoleTool.ToSharedRef());
++				ConsoleTool.Reset();
++			}
++		}
++	}
++
+ 	FDelegateHandle PostEngineInitHandle;
+ 	TSharedPtr<UE::ModelContextProtocol::Private::FEngineAnalyticsProviderProxy> EngineAnalyticsProviderProxy;
++	TSharedPtr<FModelContextProtocolConsoleTool> ConsoleTool;
+ };
+ 
+ IMPLEMENT_MODULE(FModelContextProtocolEngineModule, ModelContextProtocolEngine);
+
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolConsoleTool.h
+@@ -0,0 +1,24 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#pragma once
++
++#include "IModelContextProtocolTool.h"
++
++#define UE_API MODELCONTEXTPROTOCOLENGINE_API
++
++/**
++ * MCP tool that executes Unreal Engine console commands.
++ * Wraps GEngine->Exec() to expose the ~ console to LLM clients.
++ */
++struct FModelContextProtocolConsoleTool : public IModelContextProtocolTool
++{
++public:
++	//~ Begin IModelContextProtocolTool API
++	virtual FString GetName() const override;
++	virtual FString GetDescription() const override;
++	virtual TSharedPtr<FJsonObject> GetInputJsonSchema() const override;
++	virtual FModelContextProtocolToolResult Run(const TSharedPtr<FJsonObject>& Params) override;
++	//~ End IModelContextProtocolTool API
++};
++
++#undef UE_API
+
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolConsoleTool.cpp
+@@ -0,0 +1,93 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#include "ModelContextProtocolConsoleTool.h"
++#include "IModelContextProtocolModule.h"
++#include "ModelContextProtocol.h"
++#include "ModelContextProtocolToolResults.h"
++
++#include "Dom/JsonObject.h"
++#include "HAL/IConsoleManager.h"
++#include "Misc/OutputDeviceRedirector.h"
++
++FString FModelContextProtocolConsoleTool::GetName() const
++{
++	return TEXT("execute_console_command");
++}
++
++FString FModelContextProtocolConsoleTool::GetDescription() const
++{
++	return TEXT("Execute a console command (as if typed into the editor/PIE console). Commands prefixed with 'stat', 'show', 'r.' or similar are common.");
++}
++
++TSharedPtr<FJsonObject> FModelContextProtocolConsoleTool::GetInputJsonSchema() const
++{
++	TSharedPtr<FJsonObject> Schema = MakeShared<FJsonObject>();
++	Schema->SetStringField(TEXT("type"), TEXT("object"));
++
++	TSharedPtr<FJsonObject> Properties = MakeShared<FJsonObject>();
++
++	TSharedPtr<FJsonObject> CommandProp = MakeShared<FJsonObject>();
++	CommandProp->SetStringField(TEXT("type"), TEXT("string"));
++	CommandProp->SetStringField(TEXT("description"), TEXT("Console command string to execute. e.g., 'stat fps', 'show collision', 'r.ScreenPercentage 50'"));
++	Properties->SetObjectField(TEXT("command"), CommandProp);
++
++	Schema->SetObjectField(TEXT("properties"), Properties);
++
++	TArray<TSharedPtr<FJsonValue>> RequiredArray;
++	RequiredArray.Add(MakeShared<FJsonValueString>(TEXT("command")));
++	Schema->SetArrayField(TEXT("required"), RequiredArray);
++
++	return Schema;
++}
++
++FModelContextProtocolToolResult FModelContextProtocolConsoleTool::Run(const TSharedPtr<FJsonObject>& Params)
++{
++	if (!Params.IsValid())
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(TEXT("Missing parameters. Expected: {\"command\": \"...\"}"));
++	}
++
++	FString Command;
++	if (!Params->TryGetStringField(TEXT("command"), Command) || Command.IsEmpty())
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(TEXT("Missing or empty required parameter: command"));
++	}
++
++	// Capture log output while the command executes
++	FOutputDeviceArchiveWrapper* LogCapturer = nullptr;
++	FString CapturedLog;
++	LogCapturer = new FOutputDeviceArchiveWrapper(FArchive::CreateWriterFromBuffer(CapturedLog));
++	LogCapturer->AddToRoot();
++	GLog->AddOutputDevice(LogCapturer);
++
++	// Execute the command via the engine console
++	bool bExecuted = false;
++	if (GEngine)
++	{
++		UWorld* World = GEngine->GetCurrentPlayWorld();
++		if (!World)
++		{
++			// Fall back to editor world if not in PIE
++			World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
++		}
++		bExecuted = GEngine->Exec(World, *Command, *LogCapturer);
++	}
++
++	GLog->RemoveOutputDevice(LogCapturer);
++	LogCapturer->RemoveFromRoot();
++	delete LogCapturer;
++
++	if (!bExecuted)
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(FString::Printf(TEXT("Command '%s' was not recognized by the engine console."), *Command));
++	}
++
++	// Build result text
++	FString ResultText = FString::Printf(TEXT("Executed: %s"), *Command);
++	if (!CapturedLog.IsEmpty())
++	{
++		ResultText += TEXT("\n\nConsole Output:\n") + CapturedLog;
++	}
++
++	return UE::ModelContextProtocol::MakeTextResult(ResultText);
++}
