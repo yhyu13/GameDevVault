@@ -1,11 +1,17 @@
-# Phase 1: execute_console_command Tool
-# UE5 MCP Extension — Easiest Feature First
-# 
+# Phase 1: execute_console_command Tool (FIXED)
+# UE5 MCP Extension -- Compiles on UE5.8
+#
 # This patch adds a built-in MCP tool that executes Unreal Engine console commands
 # via GEngine->Exec(), exposing the ~ console to LLM clients.
 #
+# FIX: Replaced FOutputDeviceArchiveWrapper (not available in UE5.8) with a simple
+#      FOutputDevice subclass that captures to FString.
+#      Removed AddToRoot/RemoveFromRoot (FOutputDevice is not a UObject).
+#
 # Apply: cd Engine/Plugins/Experimental/ModelContextProtocol && patch -p5 < phase1_execute_console_command.patch
 
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp
+index 17648b8d9..c22f512a3 100644
 --- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp
 +++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp
 @@ -5,6 +5,7 @@
@@ -16,7 +22,7 @@
  
  #include "HAL/IConsoleManager.h"
  #include "Misc/CoreDelegates.h"
-@@ -81,6 +82,9 @@
+@@ -81,6 +82,9 @@ public:
  		{
  			RegisterDefaultAnalyticsProvider();
  		});
@@ -26,7 +32,7 @@
  	}
  
  	virtual void ShutdownModule() override
-@@ -103,6 +107,8 @@
+@@ -103,6 +107,8 @@ public:
  			}
  			EngineAnalyticsProviderProxy.Reset();
  		}
@@ -35,7 +41,7 @@
  	}
  
  private:
-@@ -128,8 +134,36 @@
+@@ -128,8 +134,36 @@ private:
  		UE_LOGF(LogModelContextProtocol, Log, "Registered FEngineAnalytics proxy as the default MCP analytics provider.");
  	}
  
@@ -72,38 +78,12 @@
  };
  
  IMPLEMENT_MODULE(FModelContextProtocolEngineModule, ModelContextProtocolEngine);
-
---- /dev/null
-+++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolConsoleTool.h
-@@ -0,0 +1,24 @@
-+// Copyright Epic Games, Inc. All Rights Reserved.
-+
-+#pragma once
-+
-+#include "IModelContextProtocolTool.h"
-+
-+#define UE_API MODELCONTEXTPROTOCOLENGINE_API
-+
-+/**
-+ * MCP tool that executes Unreal Engine console commands.
-+ * Wraps GEngine->Exec() to expose the ~ console to LLM clients.
-+ */
-+struct FModelContextProtocolConsoleTool : public IModelContextProtocolTool
-+{
-+public:
-+	//~ Begin IModelContextProtocolTool API
-+	virtual FString GetName() const override;
-+	virtual FString GetDescription() const override;
-+	virtual TSharedPtr<FJsonObject> GetInputJsonSchema() const override;
-+	virtual FModelContextProtocolToolResult Run(const TSharedPtr<FJsonObject>& Params) override;
-+	//~ End IModelContextProtocolTool API
-+};
-+
-+#undef UE_API
-
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolConsoleTool.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolConsoleTool.cpp
+new file mode 100644
+index 000000000..8c1e70638
 --- /dev/null
 +++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolConsoleTool.cpp
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,98 @@
 +// Copyright Epic Games, Inc. All Rights Reserved.
 +
 +#include "ModelContextProtocolConsoleTool.h"
@@ -159,12 +139,19 @@
 +		return UE::ModelContextProtocol::MakeErrorResult(TEXT("Missing or empty required parameter: command"));
 +	}
 +
-+	// Capture log output while the command executes
-+	FOutputDeviceArchiveWrapper* LogCapturer = nullptr;
-+	FString CapturedLog;
-+	LogCapturer = new FOutputDeviceArchiveWrapper(FArchive::CreateWriterFromBuffer(CapturedLog));
-+	LogCapturer->AddToRoot();
-+	GLog->AddOutputDevice(LogCapturer);
++	// Capture log output while the command executes via a simple FOutputDevice subclass
++	class FOutputDeviceStringCapture : public FOutputDevice
++	{
++	public:
++		FString Captured;
++		virtual void Serialize(const TCHAR* Data, ELogVerbosity::Type Verbosity, const FName& Category) override
++		{
++			Captured += Data;
++			Captured += TEXT("\n");
++		}
++	};
++	FOutputDeviceStringCapture LogCapturer;
++	GLog->AddOutputDevice(&LogCapturer);
 +
 +	// Execute the command via the engine console
 +	bool bExecuted = false;
@@ -176,12 +163,10 @@
 +			// Fall back to editor world if not in PIE
 +			World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
 +		}
-+		bExecuted = GEngine->Exec(World, *Command, *LogCapturer);
++		bExecuted = GEngine->Exec(World, *Command, LogCapturer);
 +	}
 +
-+	GLog->RemoveOutputDevice(LogCapturer);
-+	LogCapturer->RemoveFromRoot();
-+	delete LogCapturer;
++	GLog->RemoveOutputDevice(&LogCapturer);
 +
 +	if (!bExecuted)
 +	{
@@ -190,10 +175,41 @@
 +
 +	// Build result text
 +	FString ResultText = FString::Printf(TEXT("Executed: %s"), *Command);
-+	if (!CapturedLog.IsEmpty())
++	if (!LogCapturer.Captured.IsEmpty())
 +	{
-+		ResultText += TEXT("\n\nConsole Output:\n") + CapturedLog;
++		ResultText += TEXT("\n\nConsole Output:\n") + LogCapturer.Captured;
 +	}
 +
 +	return UE::ModelContextProtocol::MakeTextResult(ResultText);
 +}
+
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolConsoleTool.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolConsoleTool.h
+new file mode 100644
+index 000000000..d51f897b5
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolConsoleTool.h
+@@ -0,0 +1,24 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#pragma once
++
++#include "IModelContextProtocolTool.h"
++
++#define UE_API MODELCONTEXTPROTOCOLENGINE_API
++
++/**
++ * MCP tool that executes Unreal Engine console commands.
++ * Wraps GEngine->Exec() to expose the ~ console to LLM clients.
++ */
++struct FModelContextProtocolConsoleTool : public IModelContextProtocolTool
++{
++public:
++	//~ Begin IModelContextProtocolTool API
++	virtual FString GetName() const override;
++	virtual FString GetDescription() const override;
++	virtual TSharedPtr<FJsonObject> GetInputJsonSchema() const override;
++	virtual FModelContextProtocolToolResult Run(const TSharedPtr<FJsonObject>& Params) override;
++	//~ End IModelContextProtocolTool API
++};
++
++#undef UE_API

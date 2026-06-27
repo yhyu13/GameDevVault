@@ -7,6 +7,7 @@
 #include "Editor.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Selection.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 
@@ -82,16 +83,19 @@ FModelContextProtocolToolResult FModelContextProtocolEditorContextTool::Run(cons
 	// --- Selected actors ---
 	TArray<TSharedPtr<FJsonValue>> SelectedActors;
 	int32 SelectedCount = 0;
-	for (FSelectionIterator It(GEditor->GetSelectedActorIterator()); It; ++It)
+	if (USelection* SelectedSet = GEditor->GetSelectedActors())
 	{
-		AActor* Actor = Cast<AActor>(*It);
-		if (Actor)
+		for (int32 i = 0; i < SelectedSet->Num(); ++i)
 		{
-			TSharedPtr<FJsonObject> ActorObj = MakeShared<FJsonObject>();
-			ActorObj->SetStringField(TEXT("name"), Actor->GetName());
-			ActorObj->SetStringField(TEXT("class"), Actor->GetClass()->GetName());
-			SelectedActors.Add(MakeShared<FJsonValueObject>(ActorObj));
-			++SelectedCount;
+			AActor* Actor = Cast<AActor>(SelectedSet->GetSelectedObject(i));
+			if (Actor)
+			{
+				TSharedPtr<FJsonObject> ActorObj = MakeShared<FJsonObject>();
+				ActorObj->SetStringField(TEXT("name"), Actor->GetName());
+				ActorObj->SetStringField(TEXT("class"), Actor->GetClass()->GetName());
+				SelectedActors.Add(MakeShared<FJsonValueObject>(ActorObj));
+				++SelectedCount;
+			}
 		}
 	}
 	Result->SetArrayField(TEXT("selected_actors"), SelectedActors);

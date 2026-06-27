@@ -1,11 +1,16 @@
-# Phase 2: get_editor_context Tool
-# UE5 MCP Extension — Next Easiest Feature
+# Phase 2: get_editor_context Tool (FIXED)
+# UE5 MCP Extension -- Compiles on UE5.8
 #
 # This patch adds a built-in MCP tool that queries the current Unreal Editor state
 # (selected actors, current level, editor mode, world statistics) and returns structured JSON.
 #
+# FIX: Added #include "Selection.h" for USelection full definition.
+#      Replaced FSelectionIterator with USelection::Num() / GetSelectedObject() iteration.
+#
 # Apply: cd Engine/Plugins/Experimental/ModelContextProtocol && patch -p5 < phase2_get_editor_context.patch
 
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
+index 28b49968f..52a90d8b2 100644
 --- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
 +++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
 @@ -5,6 +5,7 @@
@@ -64,10 +69,38 @@
  #undef LOCTEXT_NAMESPACE
  
  IMPLEMENT_MODULE(FModelContextProtocolEditorModule, ModelContextProtocolEditor)
-
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
+index 8b9c33129..ab27c4444 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
+@@ -7,6 +7,8 @@
+ #include "Modules/ModuleManager.h"
+ #include "ToolsetRegistry/DelegateHandle.h"
+ 
++struct FModelContextProtocolEditorContextTool;
++
+ class FModelContextProtocolEditorModule : public IModuleInterface
+ {
+ public:
+@@ -17,9 +19,12 @@ public:
+ 
+ private:
+ 	void SetupEditorIntegration();
++	void RegisterBuiltinEditorTools();
++	void DeregisterBuiltinEditorTools();
+ 
+ 	FToolsetRegistryToolAdapterManager ToolsetRegistryAdapterManager;
+ 	UE::ToolsetRegistry::FDelegateHandleRaii PostEngineInitHandle;
+ 	FDelegateHandle OnRefreshToolsHandle;
+ 	FDelegateHandle OnToolsetRegisteredHandle;
++	TSharedPtr<FModelContextProtocolEditorContextTool> EditorContextTool;
+ };
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditorContextTool.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditorContextTool.cpp
+new file mode 100644
+index 000000000..8ebb43d5d
 --- /dev/null
 +++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditorContextTool.cpp
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,111 @@
 +// Copyright Epic Games, Inc. All Rights Reserved.
 +
 +#include "ModelContextProtocolEditorContextTool.h"
@@ -77,6 +110,7 @@
 +#include "Editor.h"
 +#include "Engine/World.h"
 +#include "EngineUtils.h"
++#include "Selection.h"
 +#include "Serialization/JsonSerializer.h"
 +#include "Serialization/JsonWriter.h"
 +
@@ -152,16 +186,19 @@
 +	// --- Selected actors ---
 +	TArray<TSharedPtr<FJsonValue>> SelectedActors;
 +	int32 SelectedCount = 0;
-+	for (FSelectionIterator It(GEditor->GetSelectedActorIterator()); It; ++It)
++	if (USelection* SelectedSet = GEditor->GetSelectedActors())
 +	{
-+		AActor* Actor = Cast<AActor>(*It);
-+		if (Actor)
++		for (int32 i = 0; i < SelectedSet->Num(); ++i)
 +		{
-+			TSharedPtr<FJsonObject> ActorObj = MakeShared<FJsonObject>();
-+			ActorObj->SetStringField(TEXT("name"), Actor->GetName());
-+			ActorObj->SetStringField(TEXT("class"), Actor->GetClass()->GetName());
-+			SelectedActors.Add(MakeShared<FJsonValueObject>(ActorObj));
-+			++SelectedCount;
++			AActor* Actor = Cast<AActor>(SelectedSet->GetSelectedObject(i));
++			if (Actor)
++			{
++				TSharedPtr<FJsonObject> ActorObj = MakeShared<FJsonObject>();
++				ActorObj->SetStringField(TEXT("name"), Actor->GetName());
++				ActorObj->SetStringField(TEXT("class"), Actor->GetClass()->GetName());
++				SelectedActors.Add(MakeShared<FJsonValueObject>(ActorObj));
++				++SelectedCount;
++			}
 +		}
 +	}
 +	Result->SetArrayField(TEXT("selected_actors"), SelectedActors);
@@ -176,6 +213,9 @@
 +	return UE::ModelContextProtocol::MakeTextResult(OutputString);
 +}
 
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditorContextTool.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditorContextTool.h
+new file mode 100644
+index 000000000..912f81f53
 --- /dev/null
 +++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditorContextTool.h
 @@ -0,0 +1,23 @@
@@ -202,28 +242,3 @@
 +private:
 +	static FString GetWorldTypeString(EWorldType::Type WorldType);
 +};
-
---- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
-+++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
-@@ -7,6 +7,8 @@
- #include "Modules/ModuleManager.h"
- #include "ToolsetRegistry/DelegateHandle.h"
- 
-+struct FModelContextProtocolEditorContextTool;
-+
- class FModelContextProtocolEditorModule : public IModuleInterface
- {
- public:
-@@ -17,9 +19,12 @@ public:
- 
- private:
- 	void SetupEditorIntegration();
-+	void RegisterBuiltinEditorTools();
-+	void DeregisterBuiltinEditorTools();
- 
- 	FToolsetRegistryToolAdapterManager ToolsetRegistryAdapterManager;
- 	UE::ToolsetRegistry::FDelegateHandleRaii PostEngineInitHandle;
- 	FDelegateHandle OnRefreshToolsHandle;
- 	FDelegateHandle OnToolsetRegisteredHandle;
-+	TSharedPtr<FModelContextProtocolEditorContextTool> EditorContextTool;
- };

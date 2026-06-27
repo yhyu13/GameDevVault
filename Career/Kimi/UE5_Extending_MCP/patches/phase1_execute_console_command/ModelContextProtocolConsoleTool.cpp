@@ -53,12 +53,19 @@ FModelContextProtocolToolResult FModelContextProtocolConsoleTool::Run(const TSha
 		return UE::ModelContextProtocol::MakeErrorResult(TEXT("Missing or empty required parameter: command"));
 	}
 
-	// Capture log output while the command executes
-	FOutputDeviceArchiveWrapper* LogCapturer = nullptr;
-	FString CapturedLog;
-	LogCapturer = new FOutputDeviceArchiveWrapper(FArchive::CreateWriterFromBuffer(CapturedLog));
-	LogCapturer->AddToRoot();
-	GLog->AddOutputDevice(LogCapturer);
+	// Capture log output while the command executes via a simple FOutputDevice subclass
+	class FOutputDeviceStringCapture : public FOutputDevice
+	{
+	public:
+		FString Captured;
+		virtual void Serialize(const TCHAR* Data, ELogVerbosity::Type Verbosity, const FName& Category) override
+		{
+			Captured += Data;
+			Captured += TEXT("\n");
+		}
+	};
+	FOutputDeviceStringCapture LogCapturer;
+	GLog->AddOutputDevice(&LogCapturer);
 
 	// Execute the command via the engine console
 	bool bExecuted = false;
@@ -70,12 +77,10 @@ FModelContextProtocolToolResult FModelContextProtocolConsoleTool::Run(const TSha
 			// Fall back to editor world if not in PIE
 			World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
 		}
-		bExecuted = GEngine->Exec(World, *Command, *LogCapturer);
+		bExecuted = GEngine->Exec(World, *Command, LogCapturer);
 	}
 
-	GLog->RemoveOutputDevice(LogCapturer);
-	LogCapturer->RemoveFromRoot();
-	delete LogCapturer;
+	GLog->RemoveOutputDevice(&LogCapturer);
 
 	if (!bExecuted)
 	{
@@ -84,9 +89,9 @@ FModelContextProtocolToolResult FModelContextProtocolConsoleTool::Run(const TSha
 
 	// Build result text
 	FString ResultText = FString::Printf(TEXT("Executed: %s"), *Command);
-	if (!CapturedLog.IsEmpty())
+	if (!LogCapturer.Captured.IsEmpty())
 	{
-		ResultText += TEXT("\n\nConsole Output:\n") + CapturedLog;
+		ResultText += TEXT("\n\nConsole Output:\n") + LogCapturer.Captured;
 	}
 
 	return UE::ModelContextProtocol::MakeTextResult(ResultText);

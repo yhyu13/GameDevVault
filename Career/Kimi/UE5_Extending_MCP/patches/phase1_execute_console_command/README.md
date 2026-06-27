@@ -76,9 +76,14 @@ patch -p5 < phase1_execute_console_command.patch
 
 - **No new module dependencies** — uses existing `Engine` module (already in `PrivateDependencyModuleNames`)
 - **No deprecated API usage** — implements `IModelContextProtocolTool` directly, not the deprecated `UModelContextProtocolToolLibrary`
-- **Log capture** — captures console output during execution via `FOutputDeviceArchiveWrapper` so the LLM sees results
+- **Log capture** — captures console output during execution via a simple `FOutputDevice` subclass (`FOutputDeviceStringCapture`) so the LLM sees results
 - **World context** — tries `GEngine->GetCurrentPlayWorld()` first, falls back to editor world if not in PIE
 - **Error handling** — returns MCP-compliant error if command is not recognized or parameters are missing
+
+### Build Fix Notes (v1.1)
+
+- **Original bug**: `FOutputDeviceArchiveWrapper` + `FArchive::CreateWriterFromBuffer()` do not exist in UE5.8.
+- **Fix**: Replaced with a local `FOutputDeviceStringCapture` subclass that appends log lines to an `FString`. Removed `AddToRoot()`/`RemoveFromRoot()` calls (FOutputDevice is not a UObject).
 
 ---
 

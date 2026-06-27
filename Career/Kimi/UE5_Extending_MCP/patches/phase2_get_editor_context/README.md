@@ -44,7 +44,7 @@ Adds an MCP tool `get_editor_context` that lets LLM clients query the current Un
 
 ## Key Design Decisions
 
-1. **Editor module, not Engine module** — `get_editor_context` needs `GEditor`, `FSelectionIterator`, and other editor-only APIs. It lives in `ModelContextProtocolEditor` and registers via the editor module's startup path.
+1. **Editor module, not Engine module** — `get_editor_context` needs `GEditor`, `USelection`, and other editor-only APIs. It lives in `ModelContextProtocolEditor` and registers via the editor module's startup path.
 
 2. **No parameters** — Pure read-only query. Returns everything the LLM might need in one call to minimize round-trips.
 
@@ -52,7 +52,12 @@ Adds an MCP tool `get_editor_context` that lets LLM clients query the current Un
 
 4. **Defensive null checks** — Guards `GEditor` and `EditorWorld` with graceful fallbacks (`"Unknown"`, `0`).
 
-5. **No new dependencies** — Uses headers already available in the Editor module (`Editor.h`, `Engine/World.h`, `EngineUtils.h`, `Serialization/JsonSerializer.h`).
+5. **No new dependencies** — Uses headers already available in the Editor module (`Editor.h`, `Engine/World.h`, `EngineUtils.h`, `Serialization/JsonSerializer.h`). Also pulls in `Selection.h` for `USelection` iteration.
+
+## Build Fix Notes (v1.1)
+
+- **Original bug**: `FSelectionIterator` requires the full class definition from `Selection.h`, but `Editor.h` only forward-declares it. Also, `USelection` is only forward-declared in `EditorEngine.h`.
+- **Fix**: Added explicit `#include "Selection.h"`. Replaced `FSelectionIterator` loop with `USelection::Num()` / `GetSelectedObject()` index-based iteration, which works with the forward-declared `USelection` pointer returned by `GEditor->GetSelectedActors()`.
 
 ## Apply
 
@@ -80,4 +85,4 @@ patch -p5 < phase2_get_editor_context.patch
 - Tool registration pattern: `IModelContextProtocolModule::AddTool()` / `RemoveTool()` — `Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolModule.h`
 - Editor module startup: `ModelContextProtocolEditor.cpp` lines 17–91
 - `GEditor` world context: `UnrealEd/Public/Editor.h`
-- `FSelectionIterator`: `UnrealEd/Public/Selection.h` (pulled in via `Editor.h`)
+- `USelection` iteration: `UnrealEd/Public/Selection.h` (`Num()`, `GetSelectedObject()`) — `GEditor->GetSelectedActors()`
