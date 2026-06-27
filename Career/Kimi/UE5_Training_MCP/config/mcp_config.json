@@ -1,0 +1,54 @@
+{
+  "mcp_server": {
+    "command": "unreal-mcp-server",
+    "args": [],
+    "env": {
+      "UE5_ENGINE_PATH": "C:\\Program Files\\Epic Games\\UE_5.4",
+      "UE5_PROJECT_PATH": "C:\\Projects\\MyUE5Project"
+    }
+  },
+  "fallback_mode": {
+    "enabled": true,
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514",
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+  "generation": {
+    "temperature": 0.8,
+    "max_tokens": 2048,
+    "top_p": 0.95,
+    "num_conversations_per_batch": 10,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 2
+  },
+  "topics": [
+    "Nanite GPU-Driven Pipeline",
+    "Nanite Cluster/Page/ClusterGroup",
+    "Lumen Surface Cache",
+    "Lumen Screen Probe Gather",
+    "Lumen Radiosity Iteration",
+    "VSM Virtual Shadow Maps",
+    "VSM vs CSM",
+    "UE5 Render Graph",
+    "GPUScene Architecture",
+    "Strata Material System",
+    "Temporal Super Resolution (TSR)",
+    "Virtual Texture",
+    "Chaos Physics",
+    "World Partition",
+    "PCG Procedural Content Generation",
+    "MetaHuman Pipeline",
+    "Niagara Particle System",
+    "Animation Blueprint Runtime",
+    "UMG Slate UI Framework",
+    "Editor Plugin Development"
+  ],
+  "conversation_templates": [
+    "interview_technical",
+    "code_explanation",
+    "architecture_deep_dive",
+    "performance_optimization",
+    "debugging_scenario",
+    "cross_module_integration"
+  ]
+}

@@ -1,0 +1,56 @@
+model_name: Qwen/Qwen2.5-Coder-3B-Instruct
+output_dir: ../outputs/models/qwen-3b-ue5-lora
+
+# Data
+# train_dataset, val_dataset, test_dataset are specified via CLI
+max_seq_length: 2048
+packing: false
+
+# QLoRA
+quantization:
+  load_in_4bit: true
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_compute_dtype: bfloat16
+
+lora:
+  r: 32
+  lora_alpha: 64
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  lora_dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM
+
+# Training
+training:
+  num_train_epochs: 3
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-4
+  warmup_ratio: 0.03
+  weight_decay: 0.01
+  lr_scheduler_type: cosine
+  logging_steps: 10
+  save_strategy: steps
+  save_steps: 100
+  save_total_limit: 3
+  evaluation_strategy: steps
+  eval_steps: 50
+  load_best_model_at_end: true
+  metric_for_best_model: eval_loss
+  greater_is_better: false
+  report_to: none
+  remove_unused_columns: false
+  group_by_length: true
+  optim: paged_adamw_8bit
+
+# Mixed precision
+bf16: true
+fp16: false
