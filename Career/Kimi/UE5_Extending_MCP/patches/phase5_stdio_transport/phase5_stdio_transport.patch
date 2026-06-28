@@ -1,0 +1,592 @@
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolModule.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolModule.cpp
+index 2204a50ae..2a513abd5 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolModule.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolModule.cpp
+@@ -1,4 +1,4 @@
+-﻿// Copyright Epic Games, Inc. All Rights Reserved.
++// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #include "ModelContextProtocolModule.h"
+ #include "IModelContextProtocolResourceProvider.h"
+@@ -240,8 +240,27 @@ void FModelContextProtocolModule::StartupModule()
+ 	check(ResourceProviders.IsEmpty());
+ }
+ 
++void FModelContextProtocolModule::StartStdioTransport()
++{
++	if (!Server)
++	{
++		Server = MakeUnique<FModelContextProtocolServer>();
++		OnRefreshToolsDelegateHandle = OnRefreshToolsDelegate.AddRaw(Server.Get(), &FModelContextProtocolServer::ScheduleToolsListChangedBroadcast);
++	}
++	Server->StartStdioTransport();
++}
++
++void FModelContextProtocolModule::StopStdioTransport()
++{
++	if (Server)
++	{
++		Server->StopStdioTransport();
++	}
++}
++
+ void FModelContextProtocolModule::ShutdownModule()
+ {
++	StopStdioTransport();
+ 	StopServer();
+ 	Tools.Reset();
+ 	ResourceProviders.Reset();
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolModule.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolModule.h
+index bad296159..0ec2a861c 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolModule.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolModule.h
+@@ -1,4 +1,4 @@
+-﻿// Copyright Epic Games, Inc. All Rights Reserved.
++// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #pragma once
+ 
+@@ -25,6 +25,8 @@ public:
+ 	[[nodiscard]] virtual FModelContextProtocolServer* GetServer() override;
+ 	virtual void StartServer(uint32 Port = UE::ModelContextProtocol::DefaultServerPort, const FString& UrlPath = UE::ModelContextProtocol::DefaultServerUrlPath) override;
+ 	virtual void StopServer() override;
++	virtual void StartStdioTransport() override;
++	virtual void StopStdioTransport() override;
+ 
+ 	virtual void SetAnalyticsProvider(const TSharedPtr<IAnalyticsProviderET>& InAnalyticsProvider) override;
+ 	[[nodiscard]] virtual TSharedPtr<IAnalyticsProviderET> GetAnalyticsProvider() const override;
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolServer.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolServer.cpp
+index e4b6db255..a9306eb75 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolServer.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolServer.cpp
+@@ -9,6 +9,7 @@
+ 
+ #include "Async/Async.h"
+ #include "Dom/JsonObject.h"
++#include "HAL/ThreadSafeBool.h"
+ #include "Misc/Base64.h"
+ #include "HttpServerModule.h"
+ #include "IHttpRouter.h"
+@@ -17,6 +18,8 @@
+ #include "Serialization/JsonReader.h"
+ #include "Serialization/JsonSerializer.h"
+ 
++#include <cstdio>
++
+ 
+ namespace UE::ModelContextProtocol::Private
+ {
+@@ -400,6 +403,7 @@ namespace UE::ModelContextProtocol::Private
+ 
+ FModelContextProtocolServer::~FModelContextProtocolServer()
+ {
++	StopStdioTransport();
+ 	AliveGuard.Reset();
+ 	StopServer();
+ }
+@@ -908,6 +912,17 @@ bool FModelContextProtocolServer::ProcessToolCallJsonRpcCall(const FHttpServerRe
+ 			{
+ 				HandleToolResult(Result);
+ 			});
++		},
++		[WeakAlive, ProgressToken, OnComplete](int32 Progress, TOptional<int32> Total)
++		{
++			if (!WeakAlive.IsValid())
++			{
++				return;
++			}
++			if (ProgressToken.IsValid())
++			{
++				UE::ModelContextProtocol::Private::SendProgressUpdate(OnComplete, ProgressToken.ToSharedRef(), Progress);
++			}
+ 		});
+ 
+ 	return true;
+@@ -1116,3 +1131,334 @@ bool FModelContextProtocolServer::ProcessDeleteRequest(const FHttpServerRequest&
+ 
+ 	return true;
+ }
++
++// === Stdio transport ===
++
++namespace UE::ModelContextProtocol::Private
++{
++	void WriteStdioJsonLine(const TSharedPtr<FJsonObject>& JsonObject)
++	{
++		FString JsonStr;
++		TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&JsonStr);
++		FJsonSerializer::Serialize(JsonObject, JsonWriter);
++
++		FTCHARToUTF8 UTF8Str(*JsonStr);
++		fwrite(UTF8Str.Get(), sizeof(ANSICHAR), UTF8Str.Length(), stdout);
++		fwrite("\n", sizeof(ANSICHAR), 1, stdout);
++		fflush(stdout);
++	}
++
++	void WriteStdioErrorResponse(const TSharedPtr<FJsonValue>& RequestId, int32 ErrorCode, const FString& ErrorMessage)
++	{
++		FJsonDomBuilder::FObject ErrorObject;
++		ErrorObject.Set(TEXT("code"), ErrorCode);
++		ErrorObject.Set(TEXT("message"), ErrorMessage);
++
++		FJsonDomBuilder::FObject ResponseObject;
++		ResponseObject.Set(TEXT("jsonrpc"), UE::ModelContextProtocol::JsonRpcVersion);
++		ResponseObject.Set(TEXT("id"), RequestId.IsValid() ? RequestId : MakeShared<FJsonValueNull>());
++		ResponseObject.Set(TEXT("error"), ErrorObject);
++
++		WriteStdioJsonLine(ResponseObject.AsJsonObject());
++	}
++
++	void WriteStdioResultResponse(const TSharedPtr<FJsonValue>& RequestId, const TSharedPtr<FJsonValue>& Result)
++	{
++		FJsonDomBuilder::FObject ResponseObject;
++		ResponseObject.Set(TEXT("jsonrpc"), UE::ModelContextProtocol::JsonRpcVersion);
++		ResponseObject.Set(TEXT("id"), RequestId);
++		ResponseObject.Set(TEXT("result"), Result);
++
++		WriteStdioJsonLine(ResponseObject.AsJsonObject());
++	}
++
++	FHttpResultCallback CreateStdioResultCallback()
++	{
++		return [](TUniquePtr<FHttpServerResponse> Response)
++		{
++			if (!Response.IsValid() || Response->Code == EHttpServerResponseCodes::Accepted)
++			{
++				return;
++			}
++
++			if (Response->Body.Num() == 0)
++			{
++				return;
++			}
++
++			const FString BodyStr = FString(FUTF8ToTCHAR(reinterpret_cast<const UTF8CHAR*>(Response->Body.GetData()), Response->Body.Num()));
++
++			// SSE-formatted response: extract the data: line
++			if (BodyStr.Contains(TEXT("event: message")))
++			{
++				TArray<FString> Lines;
++				BodyStr.ParseIntoArray(Lines, TEXT("\n"));
++				for (const FString& Line : Lines)
++				{
++					FString Trimmed = Line.TrimStartAndEnd();
++					if (Trimmed.StartsWith(TEXT("data: ")))
++					{
++						FString JsonData = Trimmed.RightChop(6);
++						FTCHARToUTF8 UTF8Data(*JsonData);
++						fwrite(UTF8Data.Get(), sizeof(ANSICHAR), UTF8Data.Length(), stdout);
++						fwrite("\n", sizeof(ANSICHAR), 1, stdout);
++						fflush(stdout);
++						break;
++					}
++				}
++			}
++			else
++			{
++				// Plain JSON response
++				FTCHARToUTF8 UTF8Body(*BodyStr);
++				fwrite(UTF8Body.Get(), sizeof(ANSICHAR), UTF8Body.Length(), stdout);
++				fwrite("\n", sizeof(ANSICHAR), 1, stdout);
++				fflush(stdout);
++			}
++		};
++	}
++}
++
++class FModelContextProtocolStdioRunnable : public FRunnable
++{
++public:
++	FModelContextProtocolStdioRunnable(FModelContextProtocolServer* InServer)
++		: Server(InServer)
++		, bRunning(true)
++	{}
++
++	virtual uint32 Run() override
++	{
++		while (bRunning)
++		{
++			constexpr int32 BufferSize = 65536;
++			char Buffer[BufferSize];
++			if (fgets(Buffer, BufferSize, stdin) == nullptr)
++			{
++				break;
++			}
++
++			// Strip trailing newline / carriage return
++			size_t Len = strlen(Buffer);
++			if (Len > 0 && Buffer[Len - 1] == '\n')
++			{
++				Buffer[Len - 1] = '\0';
++				--Len;
++			}
++			if (Len > 0 && Buffer[Len - 1] == '\r')
++			{
++				Buffer[Len - 1] = '\0';
++			}
++
++			FString Line = FString(FUTF8ToTCHAR(Buffer).Get());
++
++			// Parse JSON
++			TSharedPtr<FJsonObject> JsonObject = MakeShared<FJsonObject>();
++			TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(Line);
++			if (!FJsonSerializer::Deserialize(JsonReader, JsonObject) || !JsonObject.IsValid())
++			{
++				UE::ModelContextProtocol::Private::WriteStdioErrorResponse(
++					nullptr,
++					static_cast<int32>(UE::ModelContextProtocol::Private::EJsonRpcErrorCode::ParseError),
++					TEXT("Parse error"));
++				continue;
++			}
++
++			// jsonrpc
++			FString RequestJsonRpcVersion;
++			if (!JsonObject->TryGetStringField(TEXT("jsonrpc"), RequestJsonRpcVersion) || RequestJsonRpcVersion != UE::ModelContextProtocol::JsonRpcVersion)
++			{
++				UE::ModelContextProtocol::Private::WriteStdioErrorResponse(
++					nullptr,
++					static_cast<int32>(UE::ModelContextProtocol::Private::EJsonRpcErrorCode::InvalidRequest),
++					FString::Printf(TEXT("Unexpected jsonrpc version %s. Must be %s"), *RequestJsonRpcVersion, UE::ModelContextProtocol::JsonRpcVersion));
++				continue;
++			}
++
++			// id
++			TSharedPtr<FJsonValue> RequestId = JsonObject->TryGetField(TEXT("id"));
++
++			// method
++			FString Method;
++			if (!JsonObject->TryGetStringField(TEXT("method"), Method))
++			{
++				UE::ModelContextProtocol::Private::WriteStdioErrorResponse(
++					RequestId,
++					static_cast<int32>(UE::ModelContextProtocol::Private::EJsonRpcErrorCode::InvalidRequest),
++					TEXT("Missing required field \"method\""));
++				continue;
++			}
++
++			// params
++			const TSharedPtr<FJsonObject>* ParamsObject = nullptr;
++			JsonObject->TryGetObjectField(TEXT("params"), ParamsObject);
++
++			// Marshal to game thread
++			TWeakPtr<bool> WeakAlive = Server->AliveGuard;
++			TSharedPtr<FJsonObject> Params = ParamsObject ? *ParamsObject : nullptr;
++			AsyncTask(ENamedThreads::GameThread, [WeakAlive, Server = Server, RequestId, Method, Params]()
++			{
++				if (!WeakAlive.IsValid())
++				{
++					return;
++				}
++				Server->ProcessStdioJsonRpcCall(RequestId, Method, Params);
++			});
++		}
++
++		return 0;
++	}
++
++	virtual void Stop() override
++	{
++		bRunning = false;
++	}
++
++private:
++	FModelContextProtocolServer* Server;
++	FThreadSafeBool bRunning;
++};
++
++void FModelContextProtocolServer::StartStdioTransport()
++{
++	if (StdioThread != nullptr)
++	{
++		UE_LOGF(LogModelContextProtocol, Warning, "Stdio transport already running");
++		return;
++	}
++
++	UE_LOGF(LogModelContextProtocol, Log, "Starting MCP stdio transport");
++
++	StdioRunnable = MakeShared<FModelContextProtocolStdioRunnable>(this);
++	StdioThread = FRunnableThread::Create(StdioRunnable.Get(), TEXT("MCPStdioTransport"));
++}
++
++void FModelContextProtocolServer::StopStdioTransport()
++{
++	if (StdioRunnable.IsValid())
++	{
++		StdioRunnable->Stop();
++	}
++
++	if (StdioThread != nullptr)
++	{
++		StdioThread->Kill(true);
++		delete StdioThread;
++		StdioThread = nullptr;
++	}
++
++	StdioRunnable.Reset();
++
++	if (StdioSession.IsValid() && StdioSession->Status == EModelContextProtocolSessionStatus::Initialized)
++	{
++		UE::ModelContextProtocol::Analytics::RecordSessionEndEvent(StdioSession->ID);
++	}
++	StdioSession.Reset();
++
++	UE_LOGF(LogModelContextProtocol, Log, "Stopped MCP stdio transport");
++}
++
++bool FModelContextProtocolServer::ProcessStdioJsonRpcCall(const TSharedPtr<FJsonValue>& RequestId, const FString& Method, const TSharedPtr<FJsonObject>& Params)
++{
++	FHttpServerRequest DummyRequest{};
++	DummyRequest.PeerAddress = nullptr;
++
++	const FHttpResultCallback StdioOnComplete = UE::ModelContextProtocol::Private::CreateStdioResultCallback();
++
++	if (Method == UE::ModelContextProtocol::Private::Methods::Ping)
++	{
++		return ProcessPingJsonRpcCall(DummyRequest, RequestId, StdioOnComplete);
++	}
++
++	if (Method == UE::ModelContextProtocol::Private::Methods::Initialize)
++	{
++		// Handle initialize specially to track the stdio session
++		FModelContextProtocolInitializeParams InitializeParams;
++		if (!UE::ModelContextProtocol::Private::ParseParamsOrError(TEXT("initialize"), RequestId, StdioOnComplete, Params, InitializeParams))
++		{
++			return true;
++		}
++
++		const FString NegotiatedVersion = UE::ModelContextProtocol::NegotiateProtocolVersion(InitializeParams.ProtocolVersion);
++		UE_LOGF(LogModelContextProtocol, Display, "Client requested protocol version '%ls', negotiated '%ls' (stdio)", *InitializeParams.ProtocolVersion, *NegotiatedVersion);
++
++		// Create new stdio session
++		TSharedPtr<FModelContextProtocolSession> NewSession = MakeShared<FModelContextProtocolSession>();
++		NewSession->ID = FGuid::NewGuid().ToString(EGuidFormats::DigitsLower);
++		NewSession->Status = EModelContextProtocolSessionStatus::Initializing;
++		NewSession->NegotiatedProtocolVersion = NegotiatedVersion;
++		NewSession->ClientAddress = nullptr;
++		NewSession->ClientCapabilities = InitializeParams.Capabilities;
++		Sessions.Add(NewSession);
++		StdioSession = NewSession;
++		UE_LOGF(LogModelContextProtocol, Log, "Initializing new stdio session: %ls", *NewSession->ID);
++
++		FModelContextProtocolInitializeResult InitializeResult;
++		InitializeResult.ProtocolVersion = NegotiatedVersion;
++		FModelContextProtocolToolsCapability ToolsCapability;
++		ToolsCapability.ListChanged = true;
++		InitializeResult.Capabilities.Tools = ToolsCapability;
++		InitializeResult.Capabilities.Resources = FModelContextProtocolResourcesCapability();
++		UE::ModelContextProtocol::Private::CompleteWithResult(StdioOnComplete, RequestId, InitializeResult, &NewSession->ID);
++		return true;
++	}
++
++	// Validate session exists for all other methods
++	if (!StdioSession.IsValid())
++	{
++		UE::ModelContextProtocol::Private::WriteStdioErrorResponse(
++			RequestId,
++			static_cast<int32>(UE::ModelContextProtocol::Private::EJsonRpcErrorCode::InvalidRequest),
++			FString::Printf(TEXT("No active session for '%s'; call initialize first"), *Method));
++		return true;
++	}
++
++	if (!UE::ModelContextProtocol::Private::GetPostInitMethods().Contains(Method))
++	{
++		UE::ModelContextProtocol::Private::WriteStdioErrorResponse(
++			RequestId,
++			static_cast<int32>(UE::ModelContextProtocol::Private::EJsonRpcErrorCode::MethodNotFound),
++			FString::Printf(TEXT("Call to unknown method \"%s\""), *Method));
++		return true;
++	}
++
++	const TSharedRef<FModelContextProtocolSession> SessionRef = StdioSession.ToSharedRef();
++
++	if (Method == UE::ModelContextProtocol::Private::Methods::NotificationsInitialized)
++	{
++		return ProcessInitializedNotificationJsonRpcCall(DummyRequest, RequestId, Params, SessionRef, StdioOnComplete);
++	}
++
++	if (Method == UE::ModelContextProtocol::Private::Methods::NotificationsCancelled)
++	{
++		return ProcessNotificationCancelledJsonRpcCall(DummyRequest, RequestId, Params, SessionRef, StdioOnComplete);
++	}
++
++	if (Method == UE::ModelContextProtocol::Private::Methods::ToolsList)
++	{
++		return ProcessListToolsJsonRpcCall(DummyRequest, RequestId, Params, SessionRef, StdioOnComplete);
++	}
++
++	if (Method == UE::ModelContextProtocol::Private::Methods::ToolsCall)
++	{
++		return ProcessStdioToolCallJsonRpcCall(RequestId, Params, SessionRef);
++	}
++
++	if (Method == UE::ModelContextProtocol::Private::Methods::ResourcesList)
++	{
++		return ProcessListResourcesJsonRpcCall(DummyRequest, RequestId, Params, SessionRef, StdioOnComplete);
++	}
++
++	if (Method == UE::ModelContextProtocol::Private::Methods::ResourcesRead)
++	{
++		return ProcessReadResourceJsonRpcCall(DummyRequest, RequestId, Params, SessionRef, StdioOnComplete);
++	}
++
++	return true;
++}
++
++bool FModelContextProtocolServer::ProcessStdioToolCallJsonRpcCall(const TSharedPtr<FJsonValue>& RequestId, const TSharedPtr<FJsonObject>& Params, const TSharedRef<FModelContextProtocolSession>& Session)
++{
++	FHttpServerRequest DummyRequest{};
++	return ProcessToolCallJsonRpcCall(DummyRequest, RequestId, Params, Session, UE::ModelContextProtocol::Private::CreateStdioResultCallback());
++}
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolModule.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolModule.h
+index f9a0c591f..5b3df96d5 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolModule.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolModule.h
+@@ -68,6 +68,12 @@ public:
+ 	/** Stops and destroys the MCP HTTP server. */
+ 	virtual void StopServer() = 0;
+ 
++	/** Starts the MCP stdio transport (reads JSON-RPC from stdin, writes to stdout). */
++	virtual void StartStdioTransport() = 0;
++
++	/** Stops the MCP stdio transport. */
++	virtual void StopStdioTransport() = 0;
++
+ 	/**
+ 	 * Sets the analytics provider used to record MCP telemetry events.
+ 	 * A strong reference to the provider is held until a new or null provider is set.
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/ModelContextProtocolServer.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/ModelContextProtocolServer.h
+index 058549fdb..c04aaebab 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/ModelContextProtocolServer.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/ModelContextProtocolServer.h
+@@ -6,6 +6,7 @@
+ #include "ModelContextProtocolSession.h"
+ 
+ #include "Containers/Ticker.h"
++#include "HAL/RunnableThread.h"
+ #include "HttpResultCallback.h"
+ #include "HttpRouteHandle.h"
+ #include "Templates/SharedPointer.h"
+@@ -13,6 +14,8 @@
+ class IHttpRouter;
+ class FJsonValue;
+ class FJsonObject;
++class FRunnableThread;
++class FModelContextProtocolStdioRunnable;
+ 
+ namespace UE::ModelContextProtocol
+ {
+@@ -28,6 +31,7 @@ class FModelContextProtocolServer
+ {
+ 	// Expose this class to a test accessor object.
+ 	friend class UE::ModelContextProtocol::FServerAccessor;
++	friend class FModelContextProtocolStdioRunnable;
+ 
+ public:
+ 
+@@ -53,6 +57,16 @@ public:
+ 	/** Returns the port the server is currently listening on, or 0 if not running. */
+ 	MODELCONTEXTPROTOCOL_API uint32 GetServerPort() const;
+ 
++	/**
++	 * Starts the MCP stdio transport (reads JSON-RPC from stdin, writes to stdout).
++	 */
++	MODELCONTEXTPROTOCOL_API void StartStdioTransport();
++
++	/**
++	 * Stops the MCP stdio transport.
++	 */
++	MODELCONTEXTPROTOCOL_API void StopStdioTransport();
++
+ 	/** Schedules a notifications/tools/list_changed broadcast to all initialized sessions with active SSE streams on the next Tick. */
+ 	MODELCONTEXTPROTOCOL_API void ScheduleToolsListChangedBroadcast();
+ 
+@@ -94,4 +108,12 @@ private:
+ 	bool ProcessToolCallJsonRpcCall(const FHttpServerRequest& Request, const TSharedPtr<FJsonValue>& RequestId, const TSharedPtr<FJsonObject>& Params, const TSharedRef<FModelContextProtocolSession>& Session, const FHttpResultCallback& OnComplete);
+ 	bool ProcessListResourcesJsonRpcCall(const FHttpServerRequest& Request, const TSharedPtr<FJsonValue>& RequestId, const TSharedPtr<FJsonObject>& Params, const TSharedRef<FModelContextProtocolSession>& Session, const FHttpResultCallback& OnComplete);
+ 	bool ProcessReadResourceJsonRpcCall(const FHttpServerRequest& Request, const TSharedPtr<FJsonValue>& RequestId, const TSharedPtr<FJsonObject>& Params, const TSharedRef<FModelContextProtocolSession>& Session, const FHttpResultCallback& OnComplete);
++
++	// Stdio transport
++	bool ProcessStdioJsonRpcCall(const TSharedPtr<FJsonValue>& RequestId, const FString& Method, const TSharedPtr<FJsonObject>& Params);
++	bool ProcessStdioToolCallJsonRpcCall(const TSharedPtr<FJsonValue>& RequestId, const TSharedPtr<FJsonObject>& Params, const TSharedRef<FModelContextProtocolSession>& Session);
++
++	FRunnableThread* StdioThread = nullptr;
++	TSharedPtr<FModelContextProtocolStdioRunnable> StdioRunnable;
++	TSharedPtr<FModelContextProtocolSession> StdioSession;
+ };
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp
+index 17648b8d9..566497f16 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolEngineModule.cpp
+@@ -5,6 +5,7 @@
+ #include "ModelContextProtocol.h"
+ #include "ModelContextProtocolClientConfig.h"
+ #include "ModelContextProtocolSettings.h"
++#include "ModelContextProtocolConsoleTool.h"
+ 
+ #include "HAL/IConsoleManager.h"
+ #include "Misc/CoreDelegates.h"
+@@ -80,7 +81,18 @@ public:
+ 		PostEngineInitHandle = FCoreDelegates::GetOnPostEngineInit().AddLambda([this]()
+ 		{
+ 			RegisterDefaultAnalyticsProvider();
++
++			if (FParse::Param(FCommandLine::Get(), TEXT("ModelContextProtocolStdio")))
++			{
++				if (IModelContextProtocolModule* Module = IModelContextProtocolModule::Get())
++				{
++					Module->StartStdioTransport();
++				}
++			}
+ 		});
++
++		// Register built-in engine tools (e.g., console command execution)
++		RegisterBuiltinTools();
+ 	}
+ 
+ 	virtual void ShutdownModule() override
+@@ -103,6 +115,8 @@ public:
+ 			}
+ 			EngineAnalyticsProviderProxy.Reset();
+ 		}
++
++		DeregisterBuiltinTools();
+ 	}
+ 
+ private:
+@@ -128,8 +142,36 @@ private:
+ 		UE_LOGF(LogModelContextProtocol, Log, "Registered FEngineAnalytics proxy as the default MCP analytics provider.");
+ 	}
+ 
++	void RegisterBuiltinTools()
++	{
++		IModelContextProtocolModule* Module = IModelContextProtocolModule::Get();
++		if (!Module)
++		{
++			return;
++		}
++
++		ConsoleTool = MakeShared<FModelContextProtocolConsoleTool>();
++		if (Module->AddTool(ConsoleTool.ToSharedRef()))
++		{
++			UE_LOGF(LogModelContextProtocol, Log, "Registered built-in tool: execute_console_command");
++		}
++	}
++
++	void DeregisterBuiltinTools()
++	{
++		if (IModelContextProtocolModule* Module = IModelContextProtocolModule::Get())
++		{
++			if (ConsoleTool.IsValid())
++			{
++				Module->RemoveTool(ConsoleTool.ToSharedRef());
++				ConsoleTool.Reset();
++			}
++		}
++	}
++
+ 	FDelegateHandle PostEngineInitHandle;
+ 	TSharedPtr<UE::ModelContextProtocol::Private::FEngineAnalyticsProviderProxy> EngineAnalyticsProviderProxy;
++	TSharedPtr<FModelContextProtocolConsoleTool> ConsoleTool;
+ };
+ 
+ IMPLEMENT_MODULE(FModelContextProtocolEngineModule, ModelContextProtocolEngine);
