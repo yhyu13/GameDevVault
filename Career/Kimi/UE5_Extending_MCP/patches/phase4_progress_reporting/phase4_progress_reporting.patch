@@ -1,0 +1,196 @@
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolServer.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolServer.cpp
+index e4b6db255..6fd5e00b0 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolServer.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Private/ModelContextProtocolServer.cpp
+@@ -908,6 +908,17 @@ bool FModelContextProtocolServer::ProcessToolCallJsonRpcCall(const FHttpServerRe
+ 			{
+ 				HandleToolResult(Result);
+ 			});
++		},
++		[WeakAlive, ProgressToken, OnComplete](int32 Progress, TOptional<int32> Total)
++		{
++			if (!WeakAlive.IsValid())
++			{
++				return;
++			}
++			if (ProgressToken.IsValid())
++			{
++				UE::ModelContextProtocol::Private::SendProgressUpdate(OnComplete, ProgressToken.ToSharedRef(), Progress);
++			}
+ 		});
+ 
+ 	return true;
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolTool.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolTool.h
+index 608cde153..4db2d1318 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolTool.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocol/Public/IModelContextProtocolTool.h
+@@ -1,4 +1,4 @@
+-﻿// Copyright Epic Games, Inc. All Rights Reserved.
++// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #pragma once
+ 
+@@ -33,6 +33,13 @@ struct IModelContextProtocolTool : TSharedFromThis<IModelContextProtocolTool>
+ 	 */
+ 	typedef TFunction<void(const FModelContextProtocolToolResult& Result)> FResultCallback;
+ 
++	/**
++	 * Progress callback for reporting partial progress during async tool execution.
++	 * @param Progress Current progress value (absolute, not percentage).
++	 * @param Total Optional total value. When set, clients can compute a percentage.
++	 */
++	typedef TFunction<void(int32 Progress, TOptional<int32> Total)> FProgressCallback;
++
+ 	virtual ~IModelContextProtocolTool() = default;
+ 
+ 	/** Returns the identifier name for this tool e.g: select_object */ 
+@@ -94,6 +101,16 @@ struct IModelContextProtocolTool : TSharedFromThis<IModelContextProtocolTool>
+ 		OnComplete(Result);
+ 	}
+ 
++	/**
++	 * Overload that accepts a progress reporting callback.
++	 * The default implementation delegates to the 3-argument RunAsync, ignoring progress.
++	 * Tools that support progress reporting should override this overload.
++	 */
++	virtual void RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete, const FProgressCallback& OnProgress)
++	{
++		RunAsync(RequestId, Params, OnComplete);
++	}
++
+ 	virtual void CancelAsync(const FModelContextProtocolToolRequestId& RequestId) {}
+ 
+ 	/** Called by FModelContextProtocolToolCollection to allow tools to report UObject dependencies for reference tracking */
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolSearch.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolSearch.cpp
+index e208e3bf7..94e6fb90f 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolSearch.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolSearch.cpp
+@@ -121,7 +121,7 @@ TSharedPtr<FJsonObject> FCallTool::GetInputJsonSchema() const
+ 	return Schema;
+ }
+ 
+-void FCallTool::RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete)
++void FCallTool::RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete, const FProgressCallback& OnProgress)
+ {
+ 	if (!Params.IsValid())
+ 	{
+@@ -143,5 +143,5 @@ void FCallTool::RunAsync(const FModelContextProtocolToolRequestId& RequestId, co
+ 	Params->TryGetObjectField(TEXT("arguments"), ArgumentsObject);
+ 	TSharedPtr<FJsonObject> Arguments = (ArgumentsObject && ArgumentsObject->IsValid()) ? *ArgumentsObject : MakeShared<FJsonObject>();
+ 
+-	CallDelegate(ToolsetName, ToolName, Arguments, RequestId, OnComplete);
++	CallDelegate(ToolsetName, ToolName, Arguments, RequestId, OnComplete, OnProgress);
+ }
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolSearch.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolSearch.h
+index 99aacb495..0e61e3e2b 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolSearch.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolSearch.h
+@@ -19,7 +19,7 @@ using FListToolsetsDelegate = TFunction<FString()>;
+ using FDescribeToolsetDelegate = TFunction<TValueOrError<FString, FString>(const FString& ToolsetName)>;
+ 
+ /** Callback: dispatches a tool call. ToolsetName may be empty (top-level tool). Arguments may be null (interpreted as empty object). Result is delivered asynchronously via OnComplete. */
+-using FCallToolDelegate = TFunction<void(const FString& ToolsetName, const FString& ToolName, const TSharedPtr<FJsonObject>& Arguments, const FModelContextProtocolToolRequestId& RequestId, const IModelContextProtocolTool::FResultCallback& OnComplete)>;
++using FCallToolDelegate = TFunction<void(const FString& ToolsetName, const FString& ToolName, const TSharedPtr<FJsonObject>& Arguments, const FModelContextProtocolToolRequestId& RequestId, const IModelContextProtocolTool::FResultCallback& OnComplete, const IModelContextProtocolTool::FProgressCallback& OnProgress)>;
+ 
+ /**
+  * Lists all available toolsets with their names and descriptions.
+@@ -73,7 +73,7 @@ struct FCallTool : IModelContextProtocolTool
+ 		return TEXT("Call a tool by name. Provide toolset_name to call a toolset tool, or omit it to call a top-level MCP tool. Use list_toolsets and describe_toolset to discover available tools and their input schemas.");
+ 	}
+ 	virtual TSharedPtr<FJsonObject> GetInputJsonSchema() const override;
+-	virtual void RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete) override;
++	virtual void RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete, const FProgressCallback& OnProgress) override;
+ 
+ private:
+ 	FCallToolDelegate CallDelegate;
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolsetRegistryAdapter.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolsetRegistryAdapter.cpp
+index 1d7016f14..eeb43b75d 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolsetRegistryAdapter.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolsetRegistryAdapter.cpp
+@@ -33,7 +33,7 @@ FToolsetRegistryToolAdapter::FToolsetRegistryToolAdapter(const FString& InToolNa
+ {
+ }
+ 
+-void FToolsetRegistryToolAdapter::RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete)
++void FToolsetRegistryToolAdapter::RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete, const FProgressCallback& OnProgress)
+ {
+ 	UE::ToolsetRegistry::FToolsetRegistry* ToolsetRegistry = UE::ModelContextProtocol::Private::GetToolsetRegistry();
+ 	if (!ToolsetRegistry)
+@@ -175,9 +175,9 @@ void FToolsetRegistryToolAdapterManager::RegisterTools()
+ 		})));
+ 
+ 		RegisterMetaTool(MakeShared<FCallTool>(FCallToolDelegate(
+-			[this](const FString& ToolsetName, const FString& ToolName, const TSharedPtr<FJsonObject>& Arguments, const FModelContextProtocolToolRequestId& RequestId, const IModelContextProtocolTool::FResultCallback& OnComplete)
++			[this](const FString& ToolsetName, const FString& ToolName, const TSharedPtr<FJsonObject>& Arguments, const FModelContextProtocolToolRequestId& RequestId, const IModelContextProtocolTool::FResultCallback& OnComplete, const IModelContextProtocolTool::FProgressCallback& OnProgress)
+ 		{
+-			DispatchToolCall(ToolsetName, ToolName, Arguments, RequestId, OnComplete);
++			DispatchToolCall(ToolsetName, ToolName, Arguments, RequestId, OnComplete, OnProgress);
+ 		})));
+ 
+ 		int32 ToolsetCount = 0;
+@@ -230,7 +230,7 @@ void FToolsetRegistryToolAdapterManager::DeregisterTools(bool bBroadcast)
+ 	}
+ }
+ 
+-void FToolsetRegistryToolAdapterManager::DispatchToolCall(const FString& ToolsetName, const FString& ToolName, const TSharedPtr<FJsonObject>& Arguments, const FModelContextProtocolToolRequestId& RequestId, const IModelContextProtocolTool::FResultCallback& OnComplete) const
++void FToolsetRegistryToolAdapterManager::DispatchToolCall(const FString& ToolsetName, const FString& ToolName, const TSharedPtr<FJsonObject>& Arguments, const FModelContextProtocolToolRequestId& RequestId, const IModelContextProtocolTool::FResultCallback& OnComplete, const IModelContextProtocolTool::FProgressCallback& OnProgress) const
+ {
+ 	if (!ToolsetName.IsEmpty())
+ 	{
+@@ -294,7 +294,7 @@ void FToolsetRegistryToolAdapterManager::DispatchToolCall(const FString& Toolset
+ 
+ 	UE_LOGF(LogModelContextProtocol, Log, "Dispatching top-level tool: '%ls'", *ToolName);
+ 
+-	Tool->RunAsync(RequestId, Arguments, OnComplete);
++	Tool->RunAsync(RequestId, Arguments, OnComplete, OnProgress);
+ }
+ 
+ FString FToolsetRegistryToolAdapterManager::GetToolsetCatalogText() const
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolsetRegistryAdapter.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolsetRegistryAdapter.h
+index 89ee121d1..8de6c1187 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolsetRegistryAdapter.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolToolsetRegistryAdapter.h
+@@ -17,7 +17,7 @@ struct FToolsetRegistryToolAdapter : IModelContextProtocolTool
+ 	virtual FString GetName() const override { return ToolName; }
+ 	virtual FString GetDescription() const override { return Description; }
+ 	virtual TSharedPtr<FJsonObject> GetInputJsonSchema() const override { return InputSchema; }
+-	virtual void RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete) override;
++	virtual void RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete, const FProgressCallback& OnProgress) override;
+ 
+ private:
+ 	FString ToolName;
+@@ -57,7 +57,7 @@ private:
+ 	TValueOrError<FString, FString> GetToolsetSchemaText(const FString& ToolsetName) const;
+ 
+ 	/** Dispatches a tool call through ToolsetRegistry (when ToolsetName is non-empty) or through the MCP module's top-level tool table (otherwise). Result is delivered via OnComplete. */
+-	void DispatchToolCall(const FString& ToolsetName, const FString& ToolName, const TSharedPtr<FJsonObject>& Arguments, const FModelContextProtocolToolRequestId& RequestId, const IModelContextProtocolTool::FResultCallback& OnComplete) const;
++	void DispatchToolCall(const FString& ToolsetName, const FString& ToolName, const TSharedPtr<FJsonObject>& Arguments, const FModelContextProtocolToolRequestId& RequestId, const IModelContextProtocolTool::FResultCallback& OnComplete, const IModelContextProtocolTool::FProgressCallback& OnProgress) const;
+ 
+ 	TArray<TSharedRef<FToolsetRegistryToolAdapter>> RegisteredAdapters;
+ 	TArray<TSharedRef<IModelContextProtocolTool>> MetaTools;
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolToolAsyncAction.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolToolAsyncAction.cpp
+index 653f1f0fe..bd4bab360 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolToolAsyncAction.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Private/ModelContextProtocolToolAsyncAction.cpp
+@@ -244,7 +244,7 @@ TSharedPtr<FJsonObject> FModelContextProtocolAsyncActionTool::GetOutputJsonSchem
+ 	return OutputJsonSchema;
+ }
+ 
+-void FModelContextProtocolAsyncActionTool::RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete)
++void FModelContextProtocolAsyncActionTool::RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete, const FProgressCallback& OnProgress)
+ {
+ 	check(AsyncAction);
+ 	check(Function);
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolToolAsyncAction.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolToolAsyncAction.h
+index b0f28d3d1..cd7161c23 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolToolAsyncAction.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEngine/Public/ModelContextProtocolToolAsyncAction.h
+@@ -87,7 +87,7 @@ public:
+ 	virtual FString GetDescription() const override;
+ 	virtual TSharedPtr<FJsonObject> GetInputJsonSchema() const override;
+ 	virtual TSharedPtr<FJsonObject> GetOutputJsonSchema() const override;
+-	virtual void RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete) override;
++	virtual void RunAsync(const FModelContextProtocolToolRequestId& RequestId, const TSharedPtr<FJsonObject>& Params, const FResultCallback& OnComplete, const FProgressCallback& OnProgress) override;
+ 	virtual void CancelAsync(const FModelContextProtocolToolRequestId& RequestId) override;
+ 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+ 	//~ End IModelContextProtocolTool API
