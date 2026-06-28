@@ -17,3 +17,12 @@ GameEngine/
 *.temp
 .DS_Store
 Thumbs.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Large media
+*.mp4
+
