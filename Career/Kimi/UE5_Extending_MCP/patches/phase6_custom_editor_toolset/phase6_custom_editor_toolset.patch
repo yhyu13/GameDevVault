@@ -1,0 +1,514 @@
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/CustomMcpEditorToolLibrary.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/CustomMcpEditorToolLibrary.cpp
+new file mode 100644
+index 000000000..7d97c3620
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/CustomMcpEditorToolLibrary.cpp
+@@ -0,0 +1,152 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#include "CustomMcpEditorToolLibrary.h"
++
++#include "Editor.h"
++#include "Engine/World.h"
++#include "EngineUtils.h"
++#include "Selection.h"
++
++UCustomMcpEditorToolLibrary::UCustomMcpEditorToolLibrary()
++{
++	bAutoRegisterTools = true;
++}
++
++FActorListResult UCustomMcpEditorToolLibrary::ListActors()
++{
++	FActorListResult Result;
++	if (UWorld* World = GEditor->GetEditorWorldContext().World())
++	{
++		for (TActorIterator<AActor> It(World); It; ++It)
++		{
++			FActorListEntry Entry;
++			Entry.Name = It->GetName();
++			Entry.Class = It->GetClass()->GetName();
++			Entry.Location = It->GetActorLocation();
++			Result.Actors.Add(Entry);
++		}
++	}
++	return Result;
++}
++
++FActorDetailsResult UCustomMcpEditorToolLibrary::GetActorDetails(const FString& ActorName)
++{
++	FActorDetailsResult Result;
++	if (UWorld* World = GEditor->GetEditorWorldContext().World())
++	{
++		for (TActorIterator<AActor> It(World); It; ++It)
++		{
++			if (It->GetName() == ActorName)
++			{
++				Result.Name = It->GetName();
++				Result.Class = It->GetClass()->GetName();
++				Result.Location = It->GetActorLocation();
++				Result.Rotation = It->GetActorRotation();
++				Result.Scale = It->GetActorScale3D();
++				Result.bIsSelected = GEditor->GetSelectedActors()->IsSelected(*It);
++				break;
++			}
++		}
++	}
++	return Result;
++}
++
++FSpawnActorResult UCustomMcpEditorToolLibrary::SpawnActor(
++	const FString& ClassName,
++	const FVector& Location,
++	const FRotator& Rotation,
++	const FVector& Scale)
++{
++	FSpawnActorResult Result;
++	UClass* ActorClass = FindObject<UClass>(nullptr, *ClassName, EFindObjectFlags::ExactClass);
++	if (!ActorClass)
++	{
++		Result.ErrorMessage = FString::Printf(TEXT("Actor class not found: %s"), *ClassName);
++		return Result;
++	}
++
++	if (UWorld* World = GEditor->GetEditorWorldContext().World())
++	{
++		FActorSpawnParameters SpawnParams;
++		SpawnParams.bNoFail = false;
++		AActor* Actor = World->SpawnActor<AActor>(ActorClass, Location, Rotation, SpawnParams);
++		if (Actor)
++		{
++			Actor->SetActorScale3D(Scale);
++			Result.ActorName = Actor->GetName();
++			Result.bSuccess = true;
++		}
++		else
++		{
++			Result.ErrorMessage = TEXT("Failed to spawn actor at the specified location");
++		}
++	}
++	else
++	{
++		Result.ErrorMessage = TEXT("No editor world available");
++	}
++	return Result;
++}
++
++FDeleteActorResult UCustomMcpEditorToolLibrary::DeleteActor(const FString& ActorName)
++{
++	FDeleteActorResult Result;
++	if (UWorld* World = GEditor->GetEditorWorldContext().World())
++	{
++		TArray<AActor*> MatchingActors;
++		for (TActorIterator<AActor> It(World); It; ++It)
++		{
++			if (It->GetName() == ActorName)
++			{
++				MatchingActors.Add(*It);
++			}
++		}
++
++		if (MatchingActors.Num() == 0)
++		{
++			Result.ErrorMessage = FString::Printf(TEXT("Actor not found: %s"), *ActorName);
++		}
++		else if (MatchingActors.Num() > 1)
++		{
++			Result.ErrorMessage = FString::Printf(TEXT("Multiple actors found with name '%s' (%d total). Please use a unique name."), *ActorName, MatchingActors.Num());
++		}
++		else
++		{
++			MatchingActors[0]->Destroy();
++			Result.bSuccess = true;
++		}
++	}
++	else
++	{
++		Result.ErrorMessage = TEXT("No editor world available");
++	}
++	return Result;
++}
++
++FSetTransformResult UCustomMcpEditorToolLibrary::SetActorTransform(
++	const FString& ActorName,
++	const FVector& Location,
++	const FRotator& Rotation,
++	const FVector& Scale)
++{
++	FSetTransformResult Result;
++	if (UWorld* World = GEditor->GetEditorWorldContext().World())
++	{
++		for (TActorIterator<AActor> It(World); It; ++It)
++		{
++			if (It->GetName() == ActorName)
++			{
++				It->SetActorLocation(Location);
++				It->SetActorRotation(Rotation);
++				It->SetActorScale3D(Scale);
++				Result.bSuccess = true;
++				break;
++			}
++		}
++	}
++	if (!Result.bSuccess)
++	{
++		Result.ErrorMessage = FString::Printf(TEXT("Actor not found: %s"), *ActorName);
++	}
++	return Result;
++}
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
+index 28b49968f..1b2a58539 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
+@@ -1,10 +1,14 @@
+-﻿// Copyright Epic Games, Inc. All Rights Reserved.
++// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #include "ModelContextProtocolEditor.h"
+ #include "IModelContextProtocolModule.h"
+ #include "ModelContextProtocolEditorToolLibrary.h"
+ #include "ModelContextProtocolSettings.h"
+ #include "ModelContextProtocolToolLibrary.h"
++#include "ModelContextProtocolEditorContextTool.h"
++#include "ModelContextProtocolViewportTool.h"
++#include "ModelContextProtocolSaveLevelTool.h"
++#include "CustomMcpEditorToolLibrary.h"
+ 
+ #include "Editor.h"
+ #include "KismetCompilerModule.h"
+@@ -48,6 +52,9 @@ void FModelContextProtocolEditorModule::StartupModule()
+ 
+ void FModelContextProtocolEditorModule::SetupEditorIntegration()
+ {
++	// Force CDO creation for custom tool library so UFUNCTIONs auto-register as MCP tools
++	GetDefault<UCustomMcpEditorToolLibrary>();
++
+ 	// Subscribe to ToolsetRegistry changes so adapters are re-registered when toolsets are added
+ 	if (UToolsetRegistrySubsystem* ToolsetRegistrySubsystem = GEditor ? GEditor->GetEditorSubsystem<UToolsetRegistrySubsystem>() : nullptr)
+ 	{
+@@ -68,6 +75,9 @@ void FModelContextProtocolEditorModule::SetupEditorIntegration()
+ 			Module->StartServer(UE::ModelContextProtocol::GetServerPortNumber(), UE::ModelContextProtocol::GetServerUrlPath());
+ 		}
+ 	}
++
++	// Register built-in editor tools (e.g., get_editor_context, capture_viewport, save_current_level)
++	RegisterBuiltinEditorTools();
+ }
+ 
+ void FModelContextProtocolEditorModule::ShutdownModule()
+@@ -84,9 +94,59 @@ void FModelContextProtocolEditorModule::ShutdownModule()
+ 		ToolsetRegistrySubsystem->ToolsetRegistry.OnToolsetRegistered().Remove(OnToolsetRegisteredHandle);
+ 	}
+ 
++	DeregisterBuiltinEditorTools();
+ 	ToolsetRegistryAdapterManager.DeregisterTools();
+ }
+ 
++void FModelContextProtocolEditorModule::RegisterBuiltinEditorTools()
++{
++	IModelContextProtocolModule* Module = IModelContextProtocolModule::Get();
++	if (!Module)
++	{
++		return;
++	}
++
++	EditorContextTool = MakeShared<FModelContextProtocolEditorContextTool>();
++	if (Module->AddTool(EditorContextTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: get_editor_context");
++	}
++
++	ViewportTool = MakeShared<FModelContextProtocolViewportTool>();
++	if (Module->AddTool(ViewportTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: capture_viewport");
++	}
++
++	SaveLevelTool = MakeShared<FModelContextProtocolSaveLevelTool>();
++	if (Module->AddTool(SaveLevelTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: save_current_level");
++	}
++}
++
++void FModelContextProtocolEditorModule::DeregisterBuiltinEditorTools()
++{
++	if (IModelContextProtocolModule* Module = IModelContextProtocolModule::Get())
++	{
++		if (EditorContextTool.IsValid())
++		{
++			Module->RemoveTool(EditorContextTool.ToSharedRef());
++			EditorContextTool.Reset();
++		}
++		if (ViewportTool.IsValid())
++		{
++			Module->RemoveTool(ViewportTool.ToSharedRef());
++			ViewportTool.Reset();
++		}
++		if (SaveLevelTool.IsValid())
++		{
++			Module->RemoveTool(SaveLevelTool.ToSharedRef());
++			SaveLevelTool.Reset();
++		}
++	}
++}
++
+ #undef LOCTEXT_NAMESPACE
+ 
+ IMPLEMENT_MODULE(FModelContextProtocolEditorModule, ModelContextProtocolEditor)
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolSaveLevelTool.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolSaveLevelTool.cpp
+new file mode 100644
+index 000000000..1c46eaa12
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolSaveLevelTool.cpp
+@@ -0,0 +1,53 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#include "ModelContextProtocolSaveLevelTool.h"
++#include "ModelContextProtocolToolResults.h"
++
++#if WITH_EDITOR
++#include "Editor.h"
++#include "FileHelpers.h"
++#include "Engine/Level.h"
++#include "Engine/World.h"
++#endif
++
++FString FModelContextProtocolSaveLevelTool::GetName() const
++{
++	return TEXT("save_current_level");
++}
++
++FString FModelContextProtocolSaveLevelTool::GetDescription() const
++{
++	return TEXT("Save the current level to disk");
++}
++
++TSharedPtr<FJsonObject> FModelContextProtocolSaveLevelTool::GetInputJsonSchema() const
++{
++	return nullptr;
++}
++
++TSharedPtr<FJsonObject> FModelContextProtocolSaveLevelTool::GetOutputJsonSchema() const
++{
++	return nullptr;
++}
++
++FModelContextProtocolToolResult FModelContextProtocolSaveLevelTool::Run(const TSharedPtr<FJsonObject>& Params)
++{
++#if WITH_EDITOR
++	UWorld* World = GEditor->GetEditorWorldContext().World();
++	if (!World)
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(TEXT("No editor world available"));
++	}
++
++	ULevel* Level = World->GetCurrentLevel();
++	if (!Level)
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(TEXT("No current level"));
++	}
++
++	FEditorFileUtils::SaveLevel(Level);
++	return UE::ModelContextProtocol::MakeTextResult(TEXT("Level saved successfully"));
++#else
++	return UE::ModelContextProtocol::MakeErrorResult(TEXT("Save level is only available in editor"));
++#endif
++}
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/CustomMcpEditorToolLibrary.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/CustomMcpEditorToolLibrary.h
+new file mode 100644
+index 000000000..a5089cee4
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/CustomMcpEditorToolLibrary.h
+@@ -0,0 +1,135 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#pragma once
++
++#include "ModelContextProtocolEditorToolLibrary.h"
++
++#include "CustomMcpEditorToolLibrary.generated.h"
++
++USTRUCT(BlueprintType)
++struct FActorListEntry
++{
++	GENERATED_BODY()
++
++	UPROPERTY()
++	FString Name;
++
++	UPROPERTY()
++	FString Class;
++
++	UPROPERTY()
++	FVector Location = FVector::ZeroVector;
++};
++
++USTRUCT(BlueprintType)
++struct FActorListResult
++{
++	GENERATED_BODY()
++
++	UPROPERTY()
++	TArray<FActorListEntry> Actors;
++};
++
++USTRUCT(BlueprintType)
++struct FActorDetailsResult
++{
++	GENERATED_BODY()
++
++	UPROPERTY()
++	FString Name;
++
++	UPROPERTY()
++	FString Class;
++
++	UPROPERTY()
++	FVector Location = FVector::ZeroVector;
++
++	UPROPERTY()
++	FRotator Rotation = FRotator::ZeroRotator;
++
++	UPROPERTY()
++	FVector Scale = FVector::OneVector;
++
++	UPROPERTY()
++	bool bIsSelected = false;
++};
++
++USTRUCT(BlueprintType)
++struct FSpawnActorResult
++{
++	GENERATED_BODY()
++
++	UPROPERTY()
++	FString ActorName;
++
++	UPROPERTY()
++	bool bSuccess = false;
++
++	UPROPERTY()
++	FString ErrorMessage;
++};
++
++USTRUCT(BlueprintType)
++struct FDeleteActorResult
++{
++	GENERATED_BODY()
++
++	UPROPERTY()
++	bool bSuccess = false;
++
++	UPROPERTY()
++	FString ErrorMessage;
++};
++
++USTRUCT(BlueprintType)
++struct FSetTransformResult
++{
++	GENERATED_BODY()
++
++	UPROPERTY()
++	bool bSuccess = false;
++
++	UPROPERTY()
++	FString ErrorMessage;
++};
++
++/**
++ * Custom MCP editor tool library providing lightweight actor inspection and mutation tools.
++ * UFUNCTIONs are automatically registered as MCP tools on module load.
++ */
++UCLASS()
++class UCustomMcpEditorToolLibrary : public UModelContextProtocolEditorToolLibrary
++{
++	GENERATED_BODY()
++
++public:
++	UCustomMcpEditorToolLibrary();
++
++	/** List all actors in the current editor level */
++	UFUNCTION(BlueprintCallable, Category = "MCP Editor Tools", meta = (ToolTip = "List all actors in the current editor level with their names, classes, and locations"))
++	static FActorListResult ListActors();
++
++	/** Get detailed information about a specific actor by name */
++	UFUNCTION(BlueprintCallable, Category = "MCP Editor Tools", meta = (ToolTip = "Get detailed information about a specific actor by name, including transform and selection state"))
++	static FActorDetailsResult GetActorDetails(const FString& ActorName);
++
++	/** Spawn an actor of the specified class at the given location */
++	UFUNCTION(BlueprintCallable, Category = "MCP Editor Tools", meta = (ToolTip = "Spawn an actor of the specified class at the given location, rotation, and scale"))
++	static FSpawnActorResult SpawnActor(
++		const FString& ClassName,
++		const FVector& Location,
++		const FRotator& Rotation,
++		const FVector& Scale);
++
++	/** Delete an actor by name from the current level */
++	UFUNCTION(BlueprintCallable, Category = "MCP Editor Tools", meta = (ToolTip = "Delete an actor by name from the current level. Returns error if multiple actors share the name"))
++	static FDeleteActorResult DeleteActor(const FString& ActorName);
++
++	/** Set the transform (location, rotation, scale) of an actor by name */
++	UFUNCTION(BlueprintCallable, Category = "MCP Editor Tools", meta = (ToolTip = "Set the transform (location, rotation, scale) of an actor by name"))
++	static FSetTransformResult SetActorTransform(
++		const FString& ActorName,
++		const FVector& Location,
++		const FRotator& Rotation,
++		const FVector& Scale);
++};
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
+index 8b9c33129..29dcbbb53 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
+@@ -1,4 +1,4 @@
+-﻿// Copyright Epic Games, Inc. All Rights Reserved.
++// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #pragma once
+ 
+@@ -7,6 +7,10 @@
+ #include "Modules/ModuleManager.h"
+ #include "ToolsetRegistry/DelegateHandle.h"
+ 
++struct FModelContextProtocolEditorContextTool;
++struct FModelContextProtocolViewportTool;
++struct FModelContextProtocolSaveLevelTool;
++
+ class FModelContextProtocolEditorModule : public IModuleInterface
+ {
+ public:
+@@ -17,9 +21,14 @@ public:
+ 
+ private:
+ 	void SetupEditorIntegration();
++	void RegisterBuiltinEditorTools();
++	void DeregisterBuiltinEditorTools();
+ 
+ 	FToolsetRegistryToolAdapterManager ToolsetRegistryAdapterManager;
+ 	UE::ToolsetRegistry::FDelegateHandleRaii PostEngineInitHandle;
+ 	FDelegateHandle OnRefreshToolsHandle;
+ 	FDelegateHandle OnToolsetRegisteredHandle;
++	TSharedPtr<FModelContextProtocolEditorContextTool> EditorContextTool;
++	TSharedPtr<FModelContextProtocolViewportTool> ViewportTool;
++	TSharedPtr<FModelContextProtocolSaveLevelTool> SaveLevelTool;
+ };
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolSaveLevelTool.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolSaveLevelTool.h
+new file mode 100644
+index 000000000..fa4fcd410
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolSaveLevelTool.h
+@@ -0,0 +1,14 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#pragma once
++
++#include "IModelContextProtocolTool.h"
++
++struct FModelContextProtocolSaveLevelTool : public IModelContextProtocolTool
++{
++	virtual FString GetName() const override;
++	virtual FString GetDescription() const override;
++	virtual TSharedPtr<FJsonObject> GetInputJsonSchema() const override;
++	virtual TSharedPtr<FJsonObject> GetOutputJsonSchema() const override;
++	virtual FModelContextProtocolToolResult Run(const TSharedPtr<FJsonObject>& Params) override;
++};
