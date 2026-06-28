@@ -1,0 +1,4113 @@
+{
+  "calls": [
+    {
+      "method": "get_editor_context",
+      "ok": true,
+      "error": "",
+      "result": {
+        "current_level": "Lvl_IntroRoom",
+        "world_type": "Editor",
+        "actor_count": 391,
+        "is_pie": false,
+        "is_simulating": false,
+        "selected_actors": [],
+        "selected_actor_count": 0
+      }
+    },
+    {
+      "method": "list_actors_full",
+      "ok": true,
+      "error": "",
+      "result": [
+        {
+          "name": "WorldSettings_1",
+          "class": "WorldSettings",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "Brush_1",
+          "class": "Brush",
+          "location": {
+            "x": -90,
+            "y": 110,
+            "z": 20
+          }
+        },
+        {
+          "name": "WorldDataLayers",
+          "class": "WorldDataLayers",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "BuoyancyManager_0",
+          "class": "BuoyancyManager",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "DefaultPhysicsVolume_0",
+          "class": "DefaultPhysicsVolume",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "GameplayDebuggerPlayerManager_0",
+          "class": "GameplayDebuggerPlayerManager",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "ChaosDebugDrawActor",
+          "class": "Actor",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_2073097800",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 799.9999779999994,
+            "y": -2700.000023058083,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728D02_1933900470",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1500,
+            "y": 825,
+            "z": 1100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1938057796",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1100,
+            "y": -500,
+            "z": -200
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1914811066",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": -855.4464536816749,
+            "y": 263.23286338413465,
+            "z": 988.1251031429599
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A36C8B02_1746317294",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3200,
+            "y": -2800,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1892547235",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 2528.126281292035,
+            "y": 990.0000607423615,
+            "z": 790
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AF8D02_1292343215",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 400.00000039657823,
+            "y": -2510,
+            "z": -127.1491374832946
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1270453789",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4700,
+            "y": 100,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1559839981",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800.00001,
+            "y": 1399.999998,
+            "z": 1200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1599732749",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -450,
+            "y": -3250,
+            "z": 890
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3AE9302_1687850386",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 800,
+            "y": -1200,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1332257790",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": -3000,
+            "z": 900
+          }
+        },
+        {
+          "name": "PostProcessVolume_UAID_F4A475FF15A34A9402_1112770839",
+          "class": "PostProcessVolume",
+          "location": {
+            "x": 1190,
+            "y": -2290,
+            "z": 1130
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1461749798",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700,
+            "y": -3600,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1320872932",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 1047.1819169999999,
+            "y": -2186.476384,
+            "z": 988.125103
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3148902_1634023727",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": 900,
+            "z": 1200
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1387531690",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 399.99999488945554,
+            "y": -1770,
+            "z": -101.99990555273689
+          }
+        },
+        {
+          "name": "StaticMeshActor_18",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1200,
+            "y": -700,
+            "z": 0
+          }
+        },
+        {
+          "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1593838522",
+          "class": "BP_KeyboardKey_C",
+          "location": {
+            "x": 200.53782816622294,
+            "y": -2510,
+            "z": 1.8946519621420634
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3958902_1753923435",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1529.9999999999998,
+            "y": 820.0000036503893,
+            "z": 1160
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1294133920",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1800,
+            "y": -800,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3149402_2042499304",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3310.7646098902537,
+            "y": 1778.4401663673925,
+            "z": 1130.00001
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1296560800",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 2000,
+            "y": -3590.0000061394303,
+            "z": 1156.209961
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A33D9402_1164057519",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 4530,
+            "y": 990,
+            "z": 1106.209961
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3E68902_2027447665",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4000.000006083981,
+            "y": -1500,
+            "z": 850
+          }
+        },
+        {
+          "name": "BP_DoorFrame_C_UAID_F4A475FF15A3A99302_1719302483",
+          "class": "BP_DoorFrame_C",
+          "location": {
+            "x": 400,
+            "y": -1850,
+            "z": -199.74990000000253
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1862473794",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3300,
+            "y": 1400.000002433591,
+            "z": 800.0000000000002
+          }
+        },
+        {
+          "name": "SkyAtmosphere_0",
+          "class": "SkyAtmosphere",
+          "location": {
+            "x": -160,
+            "y": -1380,
+            "z": 1010
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3148902_1598923726",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1800,
+            "y": 1000,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A99302_1932733492",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1300,
+            "y": -1900,
+            "z": 700
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3F98802_2118993942",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1700,
+            "y": -1800,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A99302_1852969488",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -700,
+            "y": -1900,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3738B02_1861441552",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1750,
+            "y": 1150,
+            "z": 640
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A32F8B02_2053548560",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600.000103861485,
+            "y": -1900.0001148191707,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34B8902_1472968397",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1350,
+            "y": 250,
+            "z": 750
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_2019446597",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2599.999972,
+            "y": -200,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1798280923",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3800,
+            "y": -700,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1466782799",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -800,
+            "y": -3600,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3EA9302_1716748913",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2520,
+            "y": -130,
+            "z": 1200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3FA8802_1227347123",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": 300,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3AB9302_1914055847",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -700,
+            "y": -1900,
+            "z": 500
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728D02_1805098467",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -700,
+            "y": 825,
+            "z": 1100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1524113801",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -900,
+            "y": -2800,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_19",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1200,
+            "y": -700,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3978902_1219895803",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 172.5044516191607,
+            "y": -2907.293006,
+            "z": 1137.6945202701409
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A3409402_1911038054",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 3305.4893552737453,
+            "y": 1772.2032409173187,
+            "z": 950
+          }
+        },
+        {
+          "name": "StaticMeshActor_9",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -500,
+            "y": -1800,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3038902_1860360729",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": 100,
+            "z": 200
+          }
+        },
+        {
+          "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3AF9302_1344133566",
+          "class": "BP_KeyboardKey_C",
+          "location": {
+            "x": 144.1695747611393,
+            "y": -2510,
+            "z": 2.5219818393083138
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1858828992",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4700.000002,
+            "y": 1600,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3039402_1844138324",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300.0000151679649,
+            "y": 3.6880859255461315e-08,
+            "z": 699.9999999999999
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3768B02_1248892085",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2500.000028,
+            "y": -799.9999999999999,
+            "z": 900.0000157079634
+          }
+        },
+        {
+          "name": "BP_DoorFrame_C_UAID_F4A475FF15A32F8B02_2116560561",
+          "class": "BP_DoorFrame_Unlockable_C",
+          "location": {
+            "x": 4000,
+            "y": -1850,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_DoorTrigger_C_UAID_F4A475FF15A36F8B02_1477780827",
+          "class": "BP_DoorTrigger_C",
+          "location": {
+            "x": 4000,
+            "y": -2500,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3F98802_2071222937",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1700,
+            "y": -700,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A99302_1895128490",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -400,
+            "y": -3700,
+            "z": 700
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3978902_1214500802",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 156.2259058854694,
+            "y": -2999.1594323514005,
+            "z": 1000
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C08B02_1758566075",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700.000034,
+            "y": -1900.000007,
+            "z": 1400
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1534585587",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3200.000028,
+            "y": -1900.0000034906589,
+            "z": 800
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A3409402_1929182055",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 2957.2381227397273,
+            "y": 1607.0079270799072,
+            "z": 950
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1117160778",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800.0000280000004,
+            "y": 100,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1467436174",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 4882.80870017268,
+            "y": 1261.8460701880285,
+            "z": 1023.0932419999999
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3758B02_2144911906",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3.265241446115397e-05,
+            "y": -3300.0000193790593,
+            "z": 1399.9999912733533
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3149402_2126126305",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3655.6497199999994,
+            "y": 1605.649703,
+            "z": 1130.00001
+          }
+        },
+        {
+          "name": "LevelSequenceActor_UAID_F4A475FF15A32D8B02_1482945204",
+          "class": "LevelSequenceActor",
+          "location": {
+            "x": 2800,
+            "y": -3310,
+            "z": 980
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3439402_1106863599",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 2818.1265085663736,
+            "y": 1289.9999104178867,
+            "z": 1200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_2066066799",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3199.999971018682,
+            "y": -3700.0000069813177,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3BF8B02_2063828895",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3900,
+            "y": 1100,
+            "z": 1200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C29302_1775360938",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5600,
+            "y": 100,
+            "z": 1100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1161274914",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 500.0000012167965,
+            "y": 650,
+            "z": -100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1719427986",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5600.000002,
+            "y": 1500,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3688D02_1572658703",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5100,
+            "y": 600.000002,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3768B02_1248894086",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3700,
+            "y": -699.9999999999999,
+            "z": 1000.0000157079634
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3148902_1787687732",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1100,
+            "y": -1800,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3978902_1207268801",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 263.7821781453009,
+            "y": -2907.293006243039,
+            "z": 1000
+          }
+        },
+        {
+          "name": "PostProcessVolume_UAID_F4A475FF15A3AE9302_1744679387",
+          "class": "PostProcessVolume",
+          "location": {
+            "x": 420,
+            "y": -2850,
+            "z": -100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_2011144596",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2599.999972,
+            "y": 900,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34F8902_1518778165",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": 100,
+            "z": 200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3F98802_1938168935",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1100,
+            "y": -1800,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A89302_1217780298",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4700.000002433593,
+            "y": 1500.0000000000002,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1364325801",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 4589.999999650934,
+            "y": -2639.999999912313,
+            "z": 1096.5238302098364
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1467303746",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4199.999974052853,
+            "y": -800.0000319999699,
+            "z": 799.9999902656308
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3439402_1732074600",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 2650,
+            "y": 980,
+            "z": 641.227762
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A89302_1144364296",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5500,
+            "y": 200,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_GizmoDemo_C_UAID_F4A475FF15A30A8D02_1621641155",
+          "class": "BP_GizmoDemo_C",
+          "location": {
+            "x": 660.7163720263594,
+            "y": 772.981334,
+            "z": 100.92048942692176
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1321645744",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3600.0000104719766,
+            "y": -3000,
+            "z": 1400
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3149402_1163481303",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2955.64972,
+            "y": 1615.649703,
+            "z": 1130.00001
+          }
+        },
+        {
+          "name": "StaticMeshActor_41",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1100,
+            "y": 300,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3978902_1769516809",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1300,
+            "y": -300,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1974401593",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -999.9999720000001,
+            "y": 900,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C08B02_1746269074",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700.000034,
+            "y": -1900.000007,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C08B02_1687767073",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2900,
+            "y": -260,
+            "z": 40
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3AE9302_1687847384",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700,
+            "y": -1200,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3FD8802_1513845666",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1800,
+            "y": 1100,
+            "z": 0
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A3409402_1772723050",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 2944.5657874065046,
+            "y": 704.1241842833136,
+            "z": 950
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1936599069",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 3269.8266380140244,
+            "y": -2254.2055335033847,
+            "z": 988.125103
+          }
+        },
+        {
+          "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1610044525",
+          "class": "BP_KeyboardKey_C",
+          "location": {
+            "x": 145.53782816622294,
+            "y": -2510,
+            "z": -53.10534803785792
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1541149588",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4700.000028,
+            "y": -1900,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1469665175",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 4969.770226361499,
+            "y": 1215.8653082789224,
+            "z": 1203.093242
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1862218925",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700,
+            "y": -2400,
+            "z": 100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3688D02_1572663704",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5100,
+            "y": 1100.000002,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34B8902_1444380393",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 150.0000000000001,
+            "y": 249.99999999999994,
+            "z": 750
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1685036984",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5500.000028,
+            "y": 600,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3038902_1829060728",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": -1900,
+            "z": 0
+          }
+        },
+        {
+          "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1474794156",
+          "class": "BP_UI_Update_C",
+          "location": {
+            "x": 2000,
+            "y": 300,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_SequenceTrigger_C_UAID_F4A475FF15A32E8B02_1143428382",
+          "class": "BP_SequenceTrigger_C",
+          "location": {
+            "x": 2800,
+            "y": -3310,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1510422586",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1700.000028,
+            "y": -1900,
+            "z": 800
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A30A8D02_1590537152",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 980,
+            "y": 990,
+            "z": 200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3038902_1931910731",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": -700,
+            "z": 0
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1583708232",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 338.126304625459,
+            "y": 989.999998638722,
+            "z": 269.9999999616
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34B8902_1472965396",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1350,
+            "y": 250,
+            "z": 750
+          }
+        },
+        {
+          "name": "NiagaraActor_UAID_F4A475FF15A3958902_1292366428",
+          "class": "NiagaraActor",
+          "location": {
+            "x": -1500,
+            "y": -800,
+            "z": 1080
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1299961581",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -900.000022,
+            "y": -3600,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1310146743",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": -3000,
+            "z": 1400
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1666721982",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5100,
+            "y": 1100.000002,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_Light_C_UAID_F4A475FF15A36F8B02_1930181834",
+          "class": "BP_Light_C",
+          "location": {
+            "x": 4300,
+            "y": -1900,
+            "z": 990
+          }
+        },
+        {
+          "name": "BP_DoorFrame_C_UAID_F4A475FF15A34A8902_1868366204",
+          "class": "BP_DoorFrame_C",
+          "location": {
+            "x": -400,
+            "y": 250,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1141107154",
+          "class": "BP_UI_Update_C",
+          "location": {
+            "x": 2400,
+            "y": -1300,
+            "z": 200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3038902_1950064732",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": 200,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1422800790",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2350,
+            "y": -350,
+            "z": 500
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C28B02_1214738423",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 550,
+            "y": -3350,
+            "z": 970
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3039402_1914149327",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3799.999954113113,
+            "y": -700.0000419999999,
+            "z": 799.9999991986222
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1952088420",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 4568.126294518922,
+            "y": -2490.0001895712553,
+            "z": 1200
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A3E68902_1856736658",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 1300,
+            "y": 990,
+            "z": 200
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EA9302_2003937914",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": -1770,
+            "y": -1290,
+            "z": 1076.209961
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3FD8802_1635477669",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2400,
+            "y": -1800,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1885451995",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4700.000048,
+            "y": 1499.999982,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C38B02_2088718610",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -799.999975,
+            "y": -2800,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1271048741",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3599.999996562197,
+            "y": -3000.0000088864285,
+            "z": 1400
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A33D9402_1629156521",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 2810,
+            "y": 1440,
+            "z": 1186.209961
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3119402_2011353801",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2700.000009734372,
+            "y": 1400.0000000000005,
+            "z": 1200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A99302_1875955489",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1500,
+            "y": -3700,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A36F8B02_1602740829",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3999.999988652414,
+            "y": -2500,
+            "z": 850
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3978902_1576822806",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1900,
+            "y": -300,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3039402_2003510328",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800.0000519060764,
+            "y": 1900,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1844114591",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4700.000028,
+            "y": 200,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1215083787",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": 1000,
+            "z": 0
+          }
+        },
+        {
+          "name": "BP_MouseKey_C_UAID_F4A475FF15A3AF8D02_1670713220",
+          "class": "BP_MouseKey_C",
+          "location": {
+            "x": 340.5572733466821,
+            "y": -2506.5945110000002,
+            "z": -34.24240772893161
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3AB9302_2035814848",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1200,
+            "y": -1900,
+            "z": 500
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1886572592",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": -3000,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3EA9302_1715885912",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2520,
+            "y": -130,
+            "z": 1000
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1728857754",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -700.0000122173053,
+            "y": -3250.0000111216796,
+            "z": 889.9999998783204
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3958902_1753921434",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1699.3157029553533,
+            "y": 821.7000015225656,
+            "z": 1160.0000020845223
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A36F8B02_1570758828",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4099.999988599561,
+            "y": -2500.0000022546706,
+            "z": 850
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A89302_1254765300",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": 1900.0000243359282,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3978902_1201854800",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 134.33824867316275,
+            "y": -2848.280536759563,
+            "z": 1000
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1703601752",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -450,
+            "y": -3600.000001946884,
+            "z": 1050
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1977437237",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": -1651.873708,
+            "y": -1290.000012,
+            "z": 1190
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34A8902_1518957201",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1699.9999965586774,
+            "y": 500,
+            "z": 700
+          }
+        },
+        {
+          "name": "BP_DangleBlocks_C_UAID_F4A475FF15A3968902_1387668616",
+          "class": "BP_DangleBlocks_C",
+          "location": {
+            "x": 199.99999954804002,
+            "y": -3400.000000140309,
+            "z": 1400
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1387488792",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1700,
+            "y": 1000,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_2089946752",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1200,
+            "y": -1300,
+            "z": 1300
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3E68902_2027441661",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4000.000026609792,
+            "y": -200.0000000000016,
+            "z": 850
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3378F02_1272651190",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 237.3806347899806,
+            "y": -2510,
+            "z": 53.447046748549695
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3119402_2011349800",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800.0000097343705,
+            "y": 1499.9999975664068,
+            "z": 1100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3E68902_2027443662",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4000.000026609792,
+            "y": -200.0000000000016,
+            "z": 850
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_1566774748",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1449.999999,
+            "y": 866.72328,
+            "z": 1008.5813069999999
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728D02_1939978471",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2700,
+            "y": 825,
+            "z": 1100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1703598751",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -450,
+            "y": -3600.000001946884,
+            "z": 1050
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1565510060",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5170.170194196825,
+            "y": 346.4213275586839,
+            "z": 982.2281255013893
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A89302_1459247303",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1700,
+            "y": 300,
+            "z": 880
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A36A8B02_1420592935",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2300.000046509341,
+            "y": -3100.0000697821943,
+            "z": 1100.0000418879013
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3148902_2002478734",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1100,
+            "y": -300,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1181584786",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": 100,
+            "z": 200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3968902_2080935622",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2599.999972,
+            "y": 800,
+            "z": 1300
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3039402_2135342332",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800.000048340686,
+            "y": 1899.999999999999,
+            "z": 600
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1930232068",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": -442.8180825938782,
+            "y": -2146.4763841400595,
+            "z": 988.125103
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728B02_1662931369",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1500,
+            "y": -800,
+            "z": 880
+          }
+        },
+        {
+          "name": "StaticMeshActor_11",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": 1100,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C29302_1655588935",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": 200,
+            "z": 600
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3FA8802_2006604127",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 400.00000002646175,
+            "y": -2510,
+            "z": 134.60308101606614
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34A9402_1850576842",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700.000033,
+            "y": -3700.000019,
+            "z": 1399.999991
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C38B02_1910564608",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1900,
+            "y": -700,
+            "z": 700
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1883599926",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 100,
+            "y": -2400,
+            "z": 100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1256568788",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4500,
+            "y": 100,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_2114344754",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1800,
+            "y": 800,
+            "z": 1300
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1318374688",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 4300,
+            "y": -700,
+            "z": 288.250086
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A99302_1705111482",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": -1800,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3348F02_1798982659",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -99.99997199999996,
+            "y": -1900,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3768B02_1584147087",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1599.9999779999991,
+            "y": -3700.000027872414,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3348F02_1648223656",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": -700,
+            "z": 900
+          }
+        },
+        {
+          "name": "PostProcessVolume_UAID_F4A475FF15A34E8902_2138563979",
+          "class": "PostProcessVolume",
+          "location": {
+            "x": 1600,
+            "y": -300,
+            "z": 100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3BF8B02_2084248896",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4500,
+            "y": 1000,
+            "z": 1200
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1102677091",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 690,
+            "y": -3360,
+            "z": 1156.209961
+          }
+        },
+        {
+          "name": "BP_Light_C_UAID_F4A475FF15A36F8B02_1928291833",
+          "class": "BP_Light_C",
+          "location": {
+            "x": 3700,
+            "y": -1900,
+            "z": 990
+          }
+        },
+        {
+          "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1602257523",
+          "class": "BP_KeyboardKey_C",
+          "location": {
+            "x": 200.53782816622294,
+            "y": -2510,
+            "z": -53.10534803785792
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34F8902_1264960158",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700,
+            "y": -1900,
+            "z": 1400
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3908902_1672628511",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 440,
+            "y": 90,
+            "z": 32.88926724241901
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A30A8D02_1464182151",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 1590,
+            "y": -1380,
+            "z": 288.25010334374747
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_2070748421",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 3608.126433077622,
+            "y": 89.99985911750761,
+            "z": 1000
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3958902_1660215432",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1449.9999999999998,
+            "y": 820.0000036503893,
+            "z": 1010
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A32F8B02_2147221562",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3700.000104000003,
+            "y": -1900.0000366187448,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3378F02_1361906191",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 299.7870533504391,
+            "y": -2510,
+            "z": -35.8678235212257
+          }
+        },
+        {
+          "name": "BP_Metasound_C_UAID_F4A475FF15A3DD8A02_1390193150",
+          "class": "BP_Metasound_C",
+          "location": {
+            "x": -449.9999998970458,
+            "y": -3250,
+            "z": 861.4216892322407
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1699690750",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -450,
+            "y": -3250,
+            "z": 890
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34B8902_1444384395",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 150,
+            "y": 100,
+            "z": 750
+          }
+        },
+        {
+          "name": "BP_ConfettiTrigger_C_UAID_F4A475FF15A3119402_1298410799",
+          "class": "BP_ConfettiTrigger_C",
+          "location": {
+            "x": 4000,
+            "y": -750,
+            "z": 910
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3AB9302_1887032846",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -700,
+            "y": -1800,
+            "z": -200
+          }
+        },
+        {
+          "name": "WorldPartitionMiniMap_0",
+          "class": "WorldPartitionMiniMap",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A99302_1797145485",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -400,
+            "y": -1800,
+            "z": -400
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3FD8802_1623252668",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2400,
+            "y": -1800,
+            "z": -200
+          }
+        },
+        {
+          "name": "BP_UI_Update_C_UAID_F4A475FF15A34B9402_1504655983",
+          "class": "BP_UI_Update_C",
+          "location": {
+            "x": 690,
+            "y": 440,
+            "z": 130
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1323843203",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 449.9999999057404,
+            "y": 979.9999999999999,
+            "z": 210.66281436558828
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1798829988",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3300,
+            "y": 1400.000002,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3039402_1914146326",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4199.999957603772,
+            "y": 99.99996799999974,
+            "z": 800.0000057079637
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34A9402_1888497843",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 699.999978,
+            "y": -3700,
+            "z": 1400
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A36F8B02_1632608831",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4000.0000074717855,
+            "y": -2000,
+            "z": 850
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1606014208",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 1917.501227,
+            "y": -1788.2980374165288,
+            "z": 327.1874221629601
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728D02_1939981472",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2300,
+            "y": 825,
+            "z": 1100
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1463210173",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5072.17403571379,
+            "y": 1169.8364527809222,
+            "z": 1023.0932419999999
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3119402_2011354802",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2700,
+            "y": 900,
+            "z": 1200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1168887781",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3700,
+            "y": 200,
+            "z": 1000
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A3409402_1890618053",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 3658.743636729757,
+            "y": 1616.2919316876257,
+            "z": 950
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A89302_1481007304",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1700,
+            "y": 300.000004,
+            "z": 950
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1266992580",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": -1800,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_1448725740",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1699.9999994959458,
+            "y": 866.7232797325737,
+            "z": 1158.5813073318016
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1299964583",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 800.0000279999999,
+            "y": -1900,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1134750913",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 500,
+            "y": 500,
+            "z": -100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1170004915",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 500.0000000737605,
+            "y": 650,
+            "z": -100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A36F8B02_1632610832",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4000.0000074717855,
+            "y": -2000,
+            "z": 850
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1755476987",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3800,
+            "y": 1900,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3148902_1676132729",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": -1400,
+            "z": 900
+          }
+        },
+        {
+          "name": "VolumetricCloud_0",
+          "class": "VolumetricCloud",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 700
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1255918799",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 2799.999997726138,
+            "y": -3589.9999940142006,
+            "z": 1106.209961
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_2018369797",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 699.999978,
+            "y": -3600,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1074964776",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -500,
+            "y": 900,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3039402_2140811333",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3800.000048,
+            "y": 1899.9999820181747,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1466784800",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -100,
+            "y": -3600,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1082629739",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3700.0001139434635,
+            "y": -1800.0000370000002,
+            "z": 1100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1701865985",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5100.000028,
+            "y": 200,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3FB8802_1529875306",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1800,
+            "y": -1800,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1087123912",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1300,
+            "y": 500,
+            "z": -100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1422797789",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2350,
+            "y": -350,
+            "z": 500
+          }
+        },
+        {
+          "name": "PlayerStart_0",
+          "class": "PlayerStart",
+          "location": {
+            "x": 400,
+            "y": -3160,
+            "z": -97.99992207031755
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_2106376753",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1800,
+            "y": -200,
+            "z": 1300
+          }
+        },
+        {
+          "name": "BP_Anim_C_UAID_F4A475FF15A3238B02_2033533439",
+          "class": "BP_Anim_C",
+          "location": {
+            "x": 2020,
+            "y": -3400,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AE9302_1838398388",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 400.0000000350359,
+            "y": -1209.9999999999995,
+            "z": 2.5583821462468137
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1635761065",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5354.723761937163,
+            "y": 840.5344885443787,
+            "z": 1005.8098660713775
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_2032092598",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1100,
+            "y": -1500,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3958902_1645667431",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1619.9999999999995,
+            "y": 820.0000073007785,
+            "z": 1010
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1340321689",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 2400,
+            "y": -200,
+            "z": 693.1313505507787
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1461746797",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 0,
+            "y": -3600,
+            "z": 900
+          }
+        },
+        {
+          "name": "DecalActor_UAID_F4A475FF15A3978902_1337249804",
+          "class": "DecalActor",
+          "location": {
+            "x": -2590.611277228989,
+            "y": 518.2940325996956,
+            "z": 1106.7030751306877
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3268B02_2053294968",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2299.999978000002,
+            "y": -3599.9999441494647,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34F8902_1620880167",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -500,
+            "y": 500,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728B02_1596090368",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1799.9999995132812,
+            "y": -800.0000004867188,
+            "z": 700
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_2001858595",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1999.999972,
+            "y": -1300,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3CB8A02_1250533973",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -500,
+            "y": 0,
+            "z": 1300
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1871454993",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3900.0000019999998,
+            "y": 1900,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C28B02_1382127425",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": 200,
+            "z": 890
+          }
+        },
+        {
+          "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1607016524",
+          "class": "BP_KeyboardKey_C",
+          "location": {
+            "x": 255.537828166223,
+            "y": -2510,
+            "z": -53.10534803785792
+          }
+        },
+        {
+          "name": "DirectionalLight_0",
+          "class": "DirectionalLight",
+          "location": {
+            "x": 10,
+            "y": -1500,
+            "z": 1000
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1412597786",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2200,
+            "y": 649.9999951328145,
+            "z": 500
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1298776742",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4700.000041052805,
+            "y": -2100.0000550409864,
+            "z": 1400.0000000000007
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1910408417",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 1388.1263432246626,
+            "y": -1910.0000645717207,
+            "z": 1210
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34A8902_1358949198",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": 500,
+            "z": 700
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1879533994",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5500.000048,
+            "y": 1499.9999819999998,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3B18D02_1097780576",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": -1900,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3148902_1856086733",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 800,
+            "y": -2500,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3978902_1640556808",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1900,
+            "y": -300,
+            "z": 1300
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1199412783",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -299.99997200000007,
+            "y": 1000,
+            "z": 700
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3958902_1753924436",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1360,
+            "y": 820,
+            "z": 1160
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C29302_1623697934",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800.000028,
+            "y": 200,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A36A8B02_1436001936",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2300.0000129065847,
+            "y": -3099.999944000001,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3C29302_1446208933",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 403.75061400000004,
+            "y": -1208.298037,
+            "z": -92.81257799999997
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1578018791",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3400,
+            "y": -1800,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3BE9302_1919559211",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 399.9999831182706,
+            "y": -3148.5002475231336,
+            "z": -230.00000000000296
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1669729983",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5500,
+            "y": 1500,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1507158204",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 1917.501227,
+            "y": -1786.5960746505084,
+            "z": 456.209961
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3B18D02_1084618575",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3300,
+            "y": -3000,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1552812207",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 4350.000000158178,
+            "y": 89.99999999999989,
+            "z": 311.22776202141034
+          }
+        },
+        {
+          "name": "BP_MouseKey_C_UAID_F4A475FF15A3AF8D02_1514909217",
+          "class": "BP_MouseKey_C",
+          "location": {
+            "x": 565.606728694518,
+            "y": -2506.5945106057893,
+            "z": -34.24240825470464
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1873662416",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 688.1262959343924,
+            "y": -3240.0000359380215,
+            "z": 1210
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1632759064",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5244.529753597846,
+            "y": 1018.3653110331202,
+            "z": 1023.0932419289204
+          }
+        },
+        {
+          "name": "ExponentialHeightFog_0",
+          "class": "ExponentialHeightFog",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": -1700
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_1566772746",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1619.999999,
+            "y": 866.72328,
+            "z": 1008.5813069999999
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A3409402_1820822052",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 3312.261312467599,
+            "y": 336.4286581924536,
+            "z": 950
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1850724793",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": 1000,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1561823589",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4200.000028,
+            "y": 100,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3968902_1977649620",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -99.99997200000007,
+            "y": -3600,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A89302_1095412295",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4700,
+            "y": 1500,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728B02_1573624366",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1800,
+            "y": -699.9999982546707,
+            "z": 700
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3AE9302_1687845383",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700,
+            "y": -1100,
+            "z": 0
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_2118126422",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 4378.126495778999,
+            "y": 989.9998052438572,
+            "z": 1200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1412600787",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2350,
+            "y": 650,
+            "z": 500
+          }
+        },
+        {
+          "name": "BP_GizmoDemo_C_UAID_F4A475FF15A3478902_1828996667",
+          "class": "BP_GizmoDemo_C",
+          "location": {
+            "x": 1290.7163721133218,
+            "y": 772.9813336324975,
+            "z": 99.99999999999997
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3958902_1661263433",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1280,
+            "y": 820,
+            "z": 1010
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3978902_1616960807",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -999.999972,
+            "y": -300,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1827563415",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": -571.8737078262088,
+            "y": -3580.000011513282,
+            "z": 1318.8964742759977
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1601088063",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5189.39384916248,
+            "y": 530.4441252620866,
+            "z": 1328.962164244926
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3968902_1977647619",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -99.99995009766565,
+            "y": -3100.000028,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34C8902_1299963582",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -899.9999754906585,
+            "y": -1500,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3039402_1898849325",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3799.9999740000076,
+            "y": -1800.0000417343717,
+            "z": 799.9999800565521
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728D02_2139871474",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2699.999972,
+            "y": 1000,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1480659176",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5185.116324137825,
+            "y": 1108.855691082571,
+            "z": 1188.093242
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_2094457801",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3299.9999884719764,
+            "y": -3000,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_2035544798",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1700,
+            "y": 1099.9999982546706,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3148902_1770915731",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -400,
+            "y": -1800,
+            "z": -200
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1864456234",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 4228.126296671559,
+            "y": 90.00009010776074,
+            "z": 470
+          }
+        },
+        {
+          "name": "NewEditorUtilityBlueprint_C_UAID_F4A475FF15A3B08D02_1445677397",
+          "class": "BP_StartupLocation_C",
+          "location": {
+            "x": 395.27677399054016,
+            "y": -3169.005905959725,
+            "z": -16.08292378911524
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C08B02_1960055078",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1700,
+            "y": -2700,
+            "z": 1400
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34A8902_1310193197",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1600,
+            "y": 500,
+            "z": 700
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1594690062",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5174.244195309834,
+            "y": 444.526142945271,
+            "z": 1149.6269900032178
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3348F02_1732116658",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2400.000028,
+            "y": -1900,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1915759795",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1200,
+            "y": -500,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34A9402_1821674841",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 699.999978,
+            "y": -3400,
+            "z": 1400
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1804406233",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 2038.1263600699485,
+            "y": -1789.9999786301826,
+            "z": 550
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3FB8802_1500060305",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3500,
+            "y": -1800,
+            "z": 0
+          }
+        },
+        {
+          "name": "SkyLight_0",
+          "class": "SkyLight",
+          "location": {
+            "x": 160,
+            "y": -1690,
+            "z": 990
+          }
+        },
+        {
+          "name": "StaticMeshActor_34",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": -1800,
+            "z": -400
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1180887917",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1450,
+            "y": 99.99999939160178,
+            "z": -100
+          }
+        },
+        {
+          "name": "BP_DoorFrame_C_UAID_F4A475FF15A3038902_1806122727",
+          "class": "BP_DoorFrame_C",
+          "location": {
+            "x": 4200,
+            "y": -750,
+            "z": 200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3768B02_1248889083",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2600,
+            "y": -699.9999999999999,
+            "z": 1000.0000157079634
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3C19302_1689069751",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": -1890,
+            "y": -190,
+            "z": 1106.209961
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3E68902_2027445663",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4150.000006083983,
+            "y": -1500.0000036503895,
+            "z": 850
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1734467209",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 448.586895396095,
+            "y": 980.5376919296319,
+            "z": 106.2348671488304
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EE9302_2001758622",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 1530,
+            "y": -1910,
+            "z": 1106.209961
+          }
+        },
+        {
+          "name": "BP_DoorFrame_C_UAID_F4A475FF15A3C08B02_1790421076",
+          "class": "BP_DoorFrame_C",
+          "location": {
+            "x": 750,
+            "y": -2300,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1180884916",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1599.9999999999998,
+            "y": 99.99999513281438,
+            "z": -100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34F8902_1185010157",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4199.999996878143,
+            "y": -700,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728D02_1930223468",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1100,
+            "y": 825,
+            "z": 1100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A89302_1228925299",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 5200,
+            "y": 100,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_SplinePath_C_UAID_F4A475FF15A3DD9402_1282200680",
+          "class": "BP_SplinePath_C",
+          "location": {
+            "x": 400,
+            "y": -3150,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3348F02_1678255657",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3500,
+            "y": -700,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A99302_1827188487",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1200,
+            "y": -1900,
+            "z": -200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3148902_1684471730",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -500,
+            "y": -1400,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1897330996",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600.000048,
+            "y": 1099.999982,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_59",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 400,
+            "y": -1200,
+            "z": -230
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3AA8D02_1198673334",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2399.999978,
+            "y": -3600.000016,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3688D02_1620328705",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4500,
+            "y": 1100,
+            "z": 1200
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3368F02_1077176012",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 557.6090710345215,
+            "y": -2510,
+            "z": 44.588912905163994
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1823798206",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 2650,
+            "y": 980,
+            "z": 736.209961
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A39D8902_2038401800",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2699.999972,
+            "y": 900,
+            "z": 1300
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1747309093",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": -290,
+            "y": -1130,
+            "z": 1026.209961
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_1566777750",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1279.999999,
+            "y": 866.72328,
+            "z": 1008.5813069999999
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_1523369744",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1359.999999,
+            "y": 866.72328,
+            "z": 1158.581307
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34F8902_1613705166",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -300,
+            "y": 500,
+            "z": 800
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C29302_1755423937",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3700.000028,
+            "y": 100,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3768B02_1248891084",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2600.000028,
+            "y": -799.9999999999999,
+            "z": 1000.0000157079634
+          }
+        },
+        {
+          "name": "StaticMeshActor_0",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3EA9302_1715185911",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -2520,
+            "y": -130,
+            "z": 1000
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C19302_1521695742",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1529.999999,
+            "y": 866.72328,
+            "z": 1158.581307
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C49302_1360641300",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 400,
+            "y": -1200,
+            "z": -230
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1948914419",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 2708.126256,
+            "y": -3590.0001226932204,
+            "z": 1210
+          }
+        },
+        {
+          "name": "BP_DoorFrame_C_UAID_F4A475FF15A3C08B02_1833558077",
+          "class": "BP_DoorFrame_C",
+          "location": {
+            "x": 1650,
+            "y": -2300,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1926085236",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": -1771.87370765536,
+            "y": -190.000012129295,
+            "z": 1200
+          }
+        },
+        {
+          "name": "DecalActor_UAID_F4A475FF15A3978902_1454185805",
+          "class": "DecalActor",
+          "location": {
+            "x": -310.2532510266278,
+            "y": -720.3843548745074,
+            "z": 707.0367511855503
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A30A8D02_1597314153",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 620,
+            "y": 990,
+            "z": 200
+          }
+        },
+        {
+          "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1465393155",
+          "class": "BP_UI_Update_C",
+          "location": {
+            "x": 3600,
+            "y": -300,
+            "z": 200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3038902_1887829730",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1800,
+            "y": -700,
+            "z": 0
+          }
+        },
+        {
+          "name": "BP_Light_C_UAID_F4A475FF15A3708B02_1854429013",
+          "class": "BP_Light_C",
+          "location": {
+            "x": 4000,
+            "y": -1900,
+            "z": 1360
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C28B02_1329549424",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": -1800,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3E78902_2126738842",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3075.649719748403,
+            "y": 495.64970340070863,
+            "z": 1150.0000102210931
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3C29302_1668949936",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": 200,
+            "z": 600
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1945456070",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 4000,
+            "y": 100,
+            "z": 988.125103
+          }
+        },
+        {
+          "name": "TextRenderActor_UAID_F4A475FF15A3409402_1814267051",
+          "class": "TextRenderActor",
+          "location": {
+            "x": 3114.2714142804793,
+            "y": 534.4185567969653,
+            "z": 950
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1925360067",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": -882.3751089796211,
+            "y": -930.022806812304,
+            "z": 988.125103
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1938201418",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": 1908.1262558183364,
+            "y": -3590.000095337953,
+            "z": 1210
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1567172061",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5202.7382916646075,
+            "y": 621.1242421167867,
+            "z": 1143.9277075485295
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3AE9302_1687849385",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 100,
+            "y": -1100,
+            "z": 0
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A36F8B02_1602742830",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3999.999988652414,
+            "y": -2500,
+            "z": 850
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3728D02_1933898469",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -1900,
+            "y": 825,
+            "z": 1100
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1722158205",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": 4349.999999818323,
+            "y": 90.00000000000011,
+            "z": 411.5863978806807
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3308B02_1716219753",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -699.9999999999999,
+            "y": -3600.0000107266474,
+            "z": 900
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34B8902_1518592398",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -500,
+            "y": 900,
+            "z": 800
+          }
+        },
+        {
+          "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1790097414",
+          "class": "BP_Titles_C",
+          "location": {
+            "x": -291.8737080000001,
+            "y": -1250.000012,
+            "z": 1120
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1852928924",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 700,
+            "y": -2500,
+            "z": 100
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34D8902_1412601788",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2350,
+            "y": 650,
+            "z": 500
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3E68902_2003666660",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1699.9999779999998,
+            "y": -3600.000015707965,
+            "z": 900
+          }
+        },
+        {
+          "name": "BP_GizmoDemo_C_UAID_F4A475FF15A30A8D02_1618273154",
+          "class": "BP_GizmoDemo_C",
+          "location": {
+            "x": 980.716371797092,
+            "y": 772.9813340000018,
+            "z": 111.89354865914044
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34A9402_2083150844",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 2800,
+            "y": -3300,
+            "z": 890
+          }
+        },
+        {
+          "name": "BP_DoorFrame_C_UAID_F4A475FF15A3FB8802_1557440307",
+          "class": "BP_DoorFrame_C",
+          "location": {
+            "x": 1750,
+            "y": -1300,
+            "z": 200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A99302_1915153491",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1200,
+            "y": -1900,
+            "z": 700
+          }
+        },
+        {
+          "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1132042931",
+          "class": "BP_SpawnPoint_C",
+          "location": {
+            "x": 400,
+            "y": -3160,
+            "z": -101.999906
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34B8902_1444383394",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 150,
+            "y": 250,
+            "z": 750
+          }
+        },
+        {
+          "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1326648092",
+          "class": "BP_TextSwitcher_C",
+          "location": {
+            "x": -450.00000019124735,
+            "y": -3580,
+            "z": 1215.1064352759977
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3A78D02_1155149785",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4600,
+            "y": -1800,
+            "z": 200
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3129402_1826528991",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 3800.000028,
+            "y": 1100,
+            "z": 600
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3158902_1180889918",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 1450,
+            "y": 99.99999851893712,
+            "z": -100
+          }
+        },
+        {
+          "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1560925059",
+          "class": "BP_TemplateCube_C",
+          "location": {
+            "x": 5214.313503197263,
+            "y": 716.7705485620154,
+            "z": 982.2281268475191
+          }
+        },
+        {
+          "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3AF9302_1338918565",
+          "class": "BP_KeyboardKey_C",
+          "location": {
+            "x": 256.8244703254563,
+            "y": -2510,
+            "z": 2.5219818267451757
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A3E68902_2027446664",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": 4000.000006083981,
+            "y": -1500,
+            "z": 850
+          }
+        },
+        {
+          "name": "StaticMeshActor_UAID_F4A475FF15A34A8902_1430888199",
+          "class": "StaticMeshActor",
+          "location": {
+            "x": -500,
+            "y": 500,
+            "z": 800
+          }
+        },
+        {
+          "name": "AbstractNavData-Default",
+          "class": "AbstractNavData",
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      ]
+    },
+    {
+      "method": "list_toolsets",
+      "ok": true,
+      "error": "",
+      "result": [
+        {
+          "name": "ToolsetRegistry.AgentSkillToolset",
+          "description": "提供用于列出、读取和创建/更新技能的工具。"
+        },
+        {
+          "name": "AIAssistant.AIAssistantToolset",
+          "description": "这些函数有助于AI助手检查其自身状态，即该状态与更大范围的虚幻编辑器之间的关联。"
+        }
+      ]
+    },
+    {
+      "method": "describe_toolset:ToolsetRegistry.AgentSkillToolset",
+      "ok": true,
+      "error": "",
+      "result": {
+        "name": "ToolsetRegistry.AgentSkillToolset",
+        "version": "1.0",
+        "description": "提供用于列出、读取和创建/更新技能的工具。",
+        "tools": [
+          {
+            "description": "更新现有AgentSkill。\n这应该只在获得用户的明确指示或许可后才调用。",
+            "name": "ToolsetRegistry.AgentSkillToolset.UpdateSkill",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "skillPath": {
+                  "type": "string",
+                  "description": "要修改的技能的完整路径，即/Game/Skills/MySkill.MySkill_C。"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "技能的简要描述。"
+                },
+                "details": {
+                  "title": "AgentSkillDetails",
+                  "description": "关于如何使用技能的详细信息。",
+                  "type": "object",
+                  "properties": {
+                    "instructions": {
+                      "type": "string",
+                      "description": "有关如何使用该技能的详细信息。"
+                    }
+                  },
+                  "required": [
+                    "instructions"
+                  ]
+                }
+              },
+              "required": [
+                "skillPath",
+                "description",
+                "details"
+              ]
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "returnValue": {
+                  "type": "boolean",
+                  "description": "如果技能已更新，则返回true。"
+                }
+              },
+              "required": [
+                "returnValue"
+              ]
+            }
+          },
+          {
+            "description": "获取项目中所有AgentSkills的摘要。",
+            "name": "ToolsetRegistry.AgentSkillToolset.ListSkills",
+            "inputSchema": {
+              "type": "object"
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "returnValue": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "返回一个字典，其中键是技能路径，值是描述。"
+                }
+              },
+              "required": [
+                "returnValue"
+              ]
+            }
+          },
+          {
+            "description": "返回关于特定AgentSkills集的详细信息。",
+            "name": "ToolsetRegistry.AgentSkillToolset.GetSkills",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "skillPaths": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "要检索的AgentSkills的路径列表。"
+                }
+              },
+              "required": [
+                "skillPaths"
+              ]
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "returnValue": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "title": "AgentSkillDetails",
+                    "type": "object",
+                    "properties": {
+                      "instructions": {
+                        "type": "string",
+                        "description": "有关如何使用该技能的详细信息。"
+                      }
+                    },
+                    "required": [
+                      "instructions"
+                    ]
+                  },
+                  "description": "字典，其中键是技能路径，值是详细信息。"
+                }
+              },
+              "required": [
+                "returnValue"
+              ]
+            }
+          },
+          {
+            "description": "创建一个新的AgentSkill。\n这应该只在获得用户的明确指示或许可后才调用。",
+            "name": "ToolsetRegistry.AgentSkillToolset.CreateSkill",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "folderPath": {
+                  "type": "string",
+                  "description": "在其中创建技能的文件夹。即/Game/Skills/。"
+                },
+                "assetName": {
+                  "type": "string",
+                  "description": "要创建的技能的名称，即MySkill。"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "技能的简要描述。"
+                },
+                "details": {
+                  "title": "AgentSkillDetails",
+                  "description": "关于如何使用技能的详细信息。",
+                  "type": "object",
+                  "properties": {
+                    "instructions": {
+                      "type": "string",
+                      "description": "有关如何使用该技能的详细信息。"
+                    }
+                  },
+                  "required": [
+                    "instructions"
+                  ]
+                }
+              },
+              "required": [
+                "folderPath",
+                "assetName",
+                "description",
+                "details"
+              ]
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "returnValue": {
+                  "type": "string",
+                  "description": "创建的技能类的路径。如果不成功，则为空。"
+                }
+              },
+              "required": [
+                "returnValue"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "method": "describe_toolset:AIAssistant.AIAssistantToolset",
+      "ok": true,
+      "error": "",
+      "result": {
+        "name": "AIAssistant.AIAssistantToolset",
+        "version": "1.0",
+        "description": "这些函数有助于AI助手检查其自身状态，即该状态与更大范围的虚幻编辑器之间的关联。",
+        "tools": [
+          {
+            "description": "返回关于当前项目和/或当前用户的重要信息。",
+            "name": "AIAssistant.AIAssistantToolset.GetProjectContext",
+            "inputSchema": {
+              "type": "object"
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "returnValue": {
+                  "title": "AIAssistantContext",
+                  "type": "object",
+                  "properties": {
+                    "unrealContext": {
+                      "type": "string",
+                      "description": "描述关于如何使用虚幻引擎的重要背景信息。"
+                    },
+                    "projectContext": {
+                      "type": "string",
+                      "description": "描述关于当前活跃的虚幻项目的重要上下文信息。"
+                    },
+                    "userContext": {
+                      "type": "string",
+                      "description": "描述关于当前活跃的UnrealEd用户的重要上下文。"
+                    }
+                  },
+                  "required": [
+                    "unrealContext",
+                    "projectContext",
+                    "userContext"
+                  ]
+                }
+              },
+              "required": [
+                "returnValue"
+              ]
+            }
+          },
+          {
+            "description": "返回助手所停靠的虚幻UI部分的信息。\n举例而言，如果助手停靠在蓝图资产编辑器中，这将返回\n正在编辑的蓝图资产、处于焦点的图表等。如果助手\n已关闭或未停靠到资产编辑器，此信息将为空。",
+            "name": "AIAssistant.AIAssistantToolset.GetDockedContext",
+            "inputSchema": {
+              "type": "object"
+            },
+            "outputSchema": {
+              "type": "object",
+              "properties": {
+                "returnValue": {
+                  "title": "AIAssistantDockContext",
+                  "type": "object",
+                  "properties": {
+                    "asset": {
+                      "type": "object",
+                      "title": "/Script/CoreUObject.Object",
+                      "description": "正在编辑的资产实例（如有）",
+                      "properties": {
+                        "refPath": {
+                          "type": "string",
+                          "description": "存储为软路径字符串的引用。"
+                        }
+                      },
+                      "required": [
+                        "refPath"
+                      ]
+                    },
+                    "graph": {
+                      "type": "object",
+                      "title": "/Script/Engine.EdGraph",
+                      "description": "当前正在编辑的图表实例（如有）。",
+                      "properties": {
+                        "refPath": {
+                          "type": "string",
+                          "description": "存储为软路径字符串的引用。"
+                        }
+                      },
+                      "required": [
+                        "refPath"
+                      ]
+                    },
+                    "selectedNodes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "/Script/Engine.EdGraphNode",
+                        "properties": {
+                          "refPath": {
+                            "type": "string",
+                            "description": "存储为软路径字符串的引用。"
+                          }
+                        },
+                        "required": [
+                          "refPath"
+                        ]
+                      },
+                      "description": "已编辑的选定图表节点列表（如有）。"
+                    }
+                  },
+                  "required": [
+                    "asset",
+                    "graph",
+                    "selectedNodes"
+                  ]
+                }
+              },
+              "required": [
+                "returnValue"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "method": "ai_project_context",
+      "ok": true,
+      "error": "",
+      "result": "unrealContext: \nprojectContext: \nuserContext: "
+    },
+    {
+      "method": "get_actor_details:WorldSettings_1",
+      "ok": true,
+      "error": "",
+      "result": {
+        "name": "WorldSettings_1",
+        "class": "WorldSettings",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "pitch": 0,
+          "yaw": 0,
+          "roll": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "bIsSelected": false
+      }
+    },
+    {
+      "method": "get_actor_details:BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1914811066",
+      "ok": true,
+      "error": "",
+      "result": {
+        "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1914811066",
+        "class": "BP_SpawnPoint_C",
+        "location": {
+          "x": -855.4464536816749,
+          "y": 263.23286338413465,
+          "z": 988.1251031429599
+        },
+        "rotation": {
+          "pitch": 0,
+          "yaw": 179.99999861268174,
+          "roll": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "bIsSelected": false
+      }
+    },
+    {
+      "method": "get_actor_details:BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1320872932",
+      "ok": true,
+      "error": "",
+      "result": {
+        "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1320872932",
+        "class": "BP_SpawnPoint_C",
+        "location": {
+          "x": 1047.1819169999999,
+          "y": -2186.476384,
+          "z": 988.125103
+        },
+        "rotation": {
+          "pitch": 0,
+          "yaw": 0,
+          "roll": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "bIsSelected": false
+      }
+    },
+    {
+      "method": "get_actor_details:BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1387531690",
+      "ok": true,
+      "error": "",
+      "result": {
+        "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1387531690",
+        "class": "BP_SpawnPoint_C",
+        "location": {
+          "x": 399.99999488945554,
+          "y": -1770,
+          "z": -101.99990555273689
+        },
+        "rotation": {
+          "pitch": 0,
+          "yaw": 89.99999930282709,
+          "roll": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "bIsSelected": false
+      }
+    },
+    {
+      "method": "get_actor_details:BP_DoorFrame_C_UAID_F4A475FF15A3A99302_1719302483",
+      "ok": true,
+      "error": "",
+      "result": {
+        "name": "BP_DoorFrame_C_UAID_F4A475FF15A3A99302_1719302483",
+        "class": "BP_DoorFrame_C",
+        "location": {
+          "x": 400,
+          "y": -1850,
+          "z": -199.74990000000253
+        },
+        "rotation": {
+          "pitch": 0,
+          "yaw": -179.9999983028269,
+          "roll": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "bIsSelected": false
+      }
+    },
+    {
+      "method": "get_actor_details:BP_DoorFrame_C_UAID_F4A475FF15A32F8B02_2116560561",
+      "ok": true,
+      "error": "",
+      "result": {
+        "name": "BP_DoorFrame_C_UAID_F4A475FF15A32F8B02_2116560561",
+        "class": "BP_DoorFrame_Unlockable_C",
+        "location": {
+          "x": 4000,
+          "y": -1850,
+          "z": 900
+        },
+        "rotation": {
+          "pitch": 0,
+          "yaw": 0,
+          "roll": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "bIsSelected": false
+      }
+    },
+    {
+      "method": "console:stat fps",
+      "ok": true,
+      "error": "",
+      "result": "Executed: stat fps\n\nConsole Output:\nstat fps\n"
+    }
+  ],
+  "class_distribution_top20": [
+    [
+      "StaticMeshActor",
+      262
+    ],
+    [
+      "BP_TextSwitcher_C",
+      26
+    ],
+    [
+      "BP_Titles_C",
+      16
+    ],
+    [
+      "BP_SpawnPoint_C",
+      12
+    ],
+    [
+      "BP_TemplateCube_C",
+      11
+    ],
+    [
+      "TextRenderActor",
+      9
+    ],
+    [
+      "BP_KeyboardKey_C",
+      6
+    ],
+    [
+      "BP_DoorFrame_C",
+      6
+    ],
+    [
+      "BP_UI_Update_C",
+      4
+    ],
+    [
+      "PostProcessVolume",
+      3
+    ],
+    [
+      "BP_GizmoDemo_C",
+      3
+    ],
+    [
+      "BP_Light_C",
+      3
+    ],
+    [
+      "BP_MouseKey_C",
+      2
+    ],
+    [
+      "DecalActor",
+      2
+    ],
+    [
+      "WorldSettings",
+      1
+    ],
+    [
+      "Brush",
+      1
+    ],
+    [
+      "WorldDataLayers",
+      1
+    ],
+    [
+      "BuoyancyManager",
+      1
+    ],
+    [
+      "DefaultPhysicsVolume",
+      1
+    ],
+    [
+      "GameplayDebuggerPlayerManager",
+      1
+    ]
+  ],
+  "key_actors": [
+    "WorldSettings_1",
+    "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1914811066",
+    "BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1320872932",
+    "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1387531690",
+    "BP_DoorFrame_C_UAID_F4A475FF15A3A99302_1719302483",
+    "BP_DoorFrame_C_UAID_F4A475FF15A32F8B02_2116560561"
+  ],
+  "total_calls": 13,
+  "elapsed_total_s": 208.4
+}

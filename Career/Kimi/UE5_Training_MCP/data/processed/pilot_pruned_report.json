@@ -1,0 +1,63 @@
+{
+  "input_count": 12,
+  "length_filter": {
+    "passed": 10,
+    "removed": 2,
+    "details": [
+      {
+        "index": 0,
+        "reason": "too_short (90 tokens < 100)"
+      },
+      {
+        "index": 2,
+        "reason": "too_short (89 tokens < 100)"
+      }
+    ]
+  },
+  "factuality_filter": {
+    "passed": 9,
+    "removed": 1,
+    "details": [
+      {
+        "index": 4,
+        "reason": "score=2 (v1=0, v2=2, v2:config(2), v2:cmds(2)) - too few facts"
+      }
+    ]
+  },
+  "quality_filter": {
+    "passed": 5,
+    "removed": 4,
+    "details": [
+      {
+        "index": 1,
+        "reason": "score=0.40 < 0.5"
+      },
+      {
+        "index": 2,
+        "reason": "score=0.40 < 0.5"
+      },
+      {
+        "index": 3,
+        "reason": "score=0.40 < 0.5"
+      },
+      {
+        "index": 8,
+        "reason": "score=0.20 < 0.5"
+      }
+    ]
+  },
+  "dedup_filter": {
+    "passed": 5,
+    "removed": 0,
+    "details": []
+  },
+  "output_count": 5,
+  "retention_rate": 0.4166666666666667,
+  "quality_distribution": {
+    "0.6000000000000001": 1,
+    "1.1": 1,
+    "1.4": 1,
+    "1.2": 1,
+    "2.3": 1
+  }
+}

@@ -1,0 +1,229 @@
+[
+  {
+    "example_id": "pilot_002",
+    "report": {
+      "example_id": "pilot_002",
+      "claims_checked": 4,
+      "claims_passed": 3,
+      "claims_failed": 1,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "class_name",
+          "claim": "BP_FirstPersonGameMode_C",
+          "status": "fail",
+          "detail": "not present in live level (have 40 classes)"
+        },
+        {
+          "category": "position",
+          "claim": "(0.0,0.0,0.0)",
+          "status": "pass",
+          "detail": "matches actor 'WorldSettings_1'"
+        },
+        {
+          "category": "tool_name",
+          "claim": "GetActorDetails",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        },
+        {
+          "category": "tool_name",
+          "claim": "ListActors",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        }
+      ],
+      "tool_calls_issued": 2,
+      "tool_calls_valid": 2,
+      "tool_call_results": [
+        {
+          "name": "ListActors",
+          "arguments": {},
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        },
+        {
+          "name": "GetActorDetails",
+          "arguments": {
+            "actorName": "BP_FirstPersonGameMode_C_UAID_..."
+          },
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "mechanical_pass=False, failed_claims=1, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "pilot_007",
+    "report": {
+      "example_id": "pilot_007",
+      "claims_checked": 2,
+      "claims_passed": 0,
+      "claims_failed": 2,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "tool_name",
+          "claim": "Trigger",
+          "status": "fail",
+          "detail": "not in the live MCP tool inventory"
+        },
+        {
+          "category": "console_cmd",
+          "claim": "Trigger",
+          "status": "fail",
+          "detail": "not on the allow-list"
+        }
+      ],
+      "tool_calls_issued": 0,
+      "tool_calls_valid": 0,
+      "tool_call_results": [],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "mechanical_pass=False, failed_claims=2, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "pilot_010",
+    "report": {
+      "example_id": "pilot_010",
+      "claims_checked": 3,
+      "claims_passed": 2,
+      "claims_failed": 1,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "class_name",
+          "claim": "BP_FirstPersonGameMode_C",
+          "status": "fail",
+          "detail": "not present in live level (have 40 classes)"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_SpawnPoint_C",
+          "status": "pass",
+          "detail": "12 instances in live level"
+        },
+        {
+          "category": "tool_name",
+          "claim": "ListActors",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        }
+      ],
+      "tool_calls_issued": 1,
+      "tool_calls_valid": 1,
+      "tool_call_results": [
+        {
+          "name": "ListActors",
+          "arguments": {},
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "mechanical_pass=False, failed_claims=1, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "pilot_011",
+    "report": {
+      "example_id": "pilot_011",
+      "claims_checked": 3,
+      "claims_passed": 2,
+      "claims_failed": 1,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "tool_name",
+          "claim": "execute_console_command",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        },
+        {
+          "category": "tool_name",
+          "claim": "stat fps",
+          "status": "fail",
+          "detail": "not in the live MCP tool inventory"
+        },
+        {
+          "category": "console_cmd",
+          "claim": "stat fps",
+          "status": "pass",
+          "detail": "on the allow-list"
+        }
+      ],
+      "tool_calls_issued": 1,
+      "tool_calls_valid": 1,
+      "tool_call_results": [
+        {
+          "name": "execute_console_command",
+          "arguments": {
+            "command": "stat fps"
+          },
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "mechanical_pass=False, failed_claims=1, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "pilot_012",
+    "report": {
+      "example_id": "pilot_012",
+      "claims_checked": 5,
+      "claims_passed": 4,
+      "claims_failed": 1,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "class_name",
+          "claim": "BP_DoorFrame_C",
+          "status": "pass",
+          "detail": "6 instances in live level"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_SpawnPoint_C",
+          "status": "pass",
+          "detail": "12 instances in live level"
+        },
+        {
+          "category": "tool_name",
+          "claim": "show collision",
+          "status": "fail",
+          "detail": "not in the live MCP tool inventory"
+        },
+        {
+          "category": "console_cmd",
+          "claim": "show collision",
+          "status": "pass",
+          "detail": "on the allow-list"
+        },
+        {
+          "category": "console_cmd",
+          "claim": "show collision",
+          "status": "pass",
+          "detail": "on the allow-list"
+        }
+      ],
+      "tool_calls_issued": 0,
+      "tool_calls_valid": 0,
+      "tool_call_results": [],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "mechanical_pass=False, failed_claims=1, failed_tools=0"
+    }
+  }
+]

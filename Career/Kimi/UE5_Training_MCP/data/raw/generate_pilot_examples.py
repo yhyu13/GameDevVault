@@ -1,0 +1,415 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Pilot example generator (in-session, single-shot).
+
+Composes 12 hand-built examples grounded in the live MCP state we just
+cached in ../data/raw/grounding.json. Each example is shaped per
+DESIGN.md §4. The teacher is MiniMax-M3, the conversation content is
+authored by hand in this script (the LLM's "thinking" output).
+
+After this script writes data/raw/pilot_raw.jsonl, run:
+    python ../../scripts_mcp_grounded/run_pilot.py ingest \
+        --in ../data/raw/pilot_raw.jsonl \
+        --out ../data/raw/pilot_verified.jsonl
+    python ../../scripts_mcp_grounded/format_adapter.py \
+        --in ../data/raw/pilot_verified.jsonl \
+        --out ../data/raw/pilot_v1.jsonl
+    python ../../scripts_mcp_grounded/run_pilot.py report \
+        --in ../data/raw/pilot_v1.jsonl \
+        --out ../data/processed/pilot_pruned.jsonl
+"""
+
+import io
+import sys
+# Force UTF-8 stdout/stderr on Windows where the default is GBK.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
+import json
+import time
+from pathlib import Path
+
+OUT = Path(__file__).parent / "pilot_raw.jsonl"
+TS = time.strftime("%Y-%m-%dT%H:%M:%S")
+
+# --- Reference facts from the live MCP cache ---
+# (so the author of each example can pick correct names + values)
+LIVE_FACTS = {
+    "level": "Lvl_IntroRoom",
+    "actor_count": 391,
+    "is_pie": False,
+    "top_classes": [
+        ("StaticMeshActor", 262),
+        ("BP_TextSwitcher_C", 26),
+        ("BP_Titles_C", 16),
+        ("BP_SpawnPoint_C", 12),
+        ("BP_TemplateCube_C", 11),
+        ("TextRenderActor", 9),
+        ("BP_KeyboardKey_C", 6),
+        ("BP_DoorFrame_C", 6),
+        ("BP_UI_Update_C", 4),
+        ("PostProcessVolume", 3),
+    ],
+    "toolsets": [
+        "ToolsetRegistry.AgentSkillToolset",
+        "AIAssistant.AIAssistantToolset",
+    ],
+    "mcp_tools": [
+        "ListActors", "GetActorDetails", "SetActorTransform", "SpawnActor",
+        "DeleteActor", "execute_console_command", "capture_viewport",
+        "save_current_level", "get_editor_context", "list_toolsets",
+        "describe_toolset", "call_tool",
+    ],
+}
+
+
+def base_ex(example_id, data_type, topic, conversation, license_refs):
+    return {
+        "id": example_id,
+        "data_type": data_type,
+        "topic": topic,
+        "conversation": conversation,
+        "source": "mcp_grounded_v2",
+        "mcp_grounded": True,
+        "verified": False,  # filled in by ingest
+        "grounding_provenance": {
+            "scene_snapshot": {
+                "level": LIVE_FACTS["level"],
+                "actor_count": LIVE_FACTS["actor_count"],
+                "is_pie": LIVE_FACTS["is_pie"],
+            },
+        },
+        "license": {
+            "engine_refs": [],
+            "project_refs": license_refs,
+        },
+        "timestamp": TS,
+    }
+
+
+EXAMPLES = []
+
+# ---------- 1. tool_use: Inventorying actors by class ----------
+EXAMPLES.append(base_ex(
+    "pilot_001", "tool_use", "Inventorying actors by class",
+    [
+        {"role": "user", "content": "How many static mesh actors are in Lvl_IntroRoom, and what other classes dominate the level?"},
+        {"role": "assistant", "content": "I'll list all actors and group by class.",
+         "tool_calls": [{"name": "ListActors", "arguments": {}}]},
+        {"role": "tool", "name": "ListActors",
+         "content": "[{\"name\":\"StaticMeshActor_UAID_...\",\"class\":\"StaticMeshActor\",\"location\":{...}}, ...]"},
+        {"role": "assistant",
+         "content": (
+             "The level contains 391 actors in total. The dominant class is StaticMeshActor with 262 instances, "
+             "followed by BP_TextSwitcher_C (26), BP_Titles_C (16), BP_SpawnPoint_C (12), and BP_TemplateCube_C (11). "
+             "The class distribution is heavily weighted toward visual content (StaticMeshActor) and templated UI "
+             "elements (TextSwitcher, Titles, TemplateCube), which is consistent with an intro / showcase level."
+         )},
+    ],
+    license_refs=["StaticMeshActor", "BP_TextSwitcher_C", "BP_Titles_C",
+                  "BP_SpawnPoint_C", "BP_TemplateCube_C", "Lvl_IntroRoom"],
+))
+
+# ---------- 2. tool_use: GetActorDetails on the player character ----------
+EXAMPLES.append(base_ex(
+    "pilot_002", "tool_use", "Getting details of a specific actor",
+    [
+        {"role": "user", "content": "Where is the BP_FirstPersonGameMode placed in the level? I need its transform."},
+        {"role": "assistant", "content": "Let me find the actor and get its full transform.",
+         "tool_calls": [{"name": "ListActors", "arguments": {}}]},
+        {"role": "tool", "name": "ListActors",
+         "content": "[{\"name\":\"BP_FirstPersonGameMode_C_UAID_...\",\"class\":\"BP_FirstPersonGameMode_C\",\"location\":{...}}, ...]"},
+        {"role": "assistant", "content": "Found the GameMode. Now let me get its details.",
+         "tool_calls": [{"name": "GetActorDetails",
+                         "arguments": {"actorName": "BP_FirstPersonGameMode_C_UAID_..."}}]},
+        {"role": "tool", "name": "GetActorDetails",
+         "content": "{\"name\":\"BP_FirstPersonGameMode_C_UAID_...\",\"class\":\"BP_FirstPersonGameMode_C\",\"location\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"rotation\":{\"pitch\":0,\"yaw\":0,\"roll\":0},\"scale\":{\"x\":1,\"y\":1,\"z\":1}}"},
+        {"role": "assistant",
+         "content": (
+             "BP_FirstPersonGameMode_C is at the world origin (X=0, Y=0, Z=0), with zero rotation and unit scale. "
+             "GameMode actors are typically placed at origin in a first-person template since they're not physically "
+             "rendered; their role is to control the game's rules, not to occupy space."
+         )},
+    ],
+    license_refs=["BP_FirstPersonGameMode_C", "Lvl_IntroRoom"],
+))
+
+# ---------- 3. tool_use: error recovery (GetActorDetails on missing actor) ----------
+EXAMPLES.append(base_ex(
+    "pilot_003", "tool_use", "Error recovery: GetActorDetails on a non-existent actor",
+    [
+        {"role": "user", "content": "Get the details of BP_PlayerCube_0 for me."},
+        {"role": "assistant", "content": "Sure, let me fetch it.",
+         "tool_calls": [{"name": "GetActorDetails",
+                         "arguments": {"actorName": "BP_PlayerCube_0"}}]},
+        {"role": "tool", "name": "GetActorDetails",
+         "content": "{\"error\":\"actor not found\"}"},
+        {"role": "assistant",
+         "content": (
+             "The actor BP_PlayerCube_0 doesn't exist in Lvl_IntroRoom. Let me list the actors to find the closest match.",
+         ),
+         "tool_calls": [{"name": "ListActors", "arguments": {}}]},
+        {"role": "tool", "name": "ListActors",
+         "content": "[{\"name\":\"BP_TemplateCube_C_UAID_...\",\"class\":\"BP_TemplateCube_C\"}, ...]"},
+        {"role": "assistant",
+         "content": (
+             "There's no BP_PlayerCube_0; the closest match is the BP_TemplateCube_C class with 11 instances. "
+             "If you meant a template cube, I can fetch details for one of them. Otherwise please double-check the name."
+         )},
+    ],
+    license_refs=["BP_TemplateCube_C", "Lvl_IntroRoom"],
+))
+
+# ---------- 4. tool_use: describe_toolset discovery ----------
+EXAMPLES.append(base_ex(
+    "pilot_004", "tool_use", "Discovering the available MCP toolsets",
+    [
+        {"role": "user", "content": "What toolsets does the MCP server expose in this editor session?"},
+        {"role": "assistant", "content": "Let me list them.",
+         "tool_calls": [{"name": "list_toolsets", "arguments": {}}]},
+        {"role": "tool", "name": "list_toolsets",
+         "content": "[\"ToolsetRegistry.AgentSkillToolset\",\"AIAssistant.AIAssistantToolset\"]"},
+        {"role": "assistant", "content": "Two toolsets. Let me describe each.",
+         "tool_calls": [
+             {"name": "describe_toolset", "arguments": {"toolset_name": "ToolsetRegistry.AgentSkillToolset"}},
+             {"name": "describe_toolset", "arguments": {"toolset_name": "AIAssistant.AIAssistantToolset"}},
+         ]},
+        {"role": "tool", "name": "describe_toolset",
+         "content": "{\"name\":\"ToolsetRegistry.AgentSkillToolset\",\"version\":\"1.0\",\"tools\":[...ListSkills,GetSkills,CreateSkill,UpdateSkill...]}"},
+        {"role": "tool", "name": "describe_toolset",
+         "content": "{\"name\":\"AIAssistant.AIAssistantToolset\",\"version\":\"1.0\",\"tools\":[...GetProjectContext,GetDockedContext...]}"},
+        {"role": "assistant",
+         "content": (
+             "Two toolsets are exposed: ToolsetRegistry.AgentSkillToolset (4 tools for managing AgentSkills: "
+             "ListSkills, GetSkills, CreateSkill, UpdateSkill) and AIAssistant.AIAssistantToolset (2 tools: "
+             "GetProjectContext, GetDockedContext). Neither provides Blueprint editing or PIE control in this "
+             "configuration; those would need a separate toolset plugin."
+         )},
+    ],
+    license_refs=["ToolsetRegistry.AgentSkillToolset", "AIAssistant.AIAssistantToolset"],
+))
+
+# ---------- 5. tool_use: ai_project_context ----------
+EXAMPLES.append(base_ex(
+    "pilot_005", "tool_use", "Reading the project context the AI Assistant sees",
+    [
+        {"role": "user", "content": "What does the in-editor AI Assistant think the project is?"},
+        {"role": "assistant", "content": "I'll call GetProjectContext from the AIAssistant toolset.",
+         "tool_calls": [{
+             "name": "call_tool",
+             "arguments": {
+                 "toolset_name": "AIAssistant.AIAssistantToolset",
+                 "tool_name": "GetProjectContext",
+                 "arguments": {},
+             },
+         }]},
+        {"role": "tool", "name": "call_tool",
+         "content": "{\"unrealContext\":\"\",\"projectContext\":\"\",\"userContext\":\"\"}"},
+        {"role": "assistant",
+         "content": (
+             "In this session the AI Assistant's GetProjectContext returned empty strings for all three fields "
+             "(unrealContext, projectContext, userContext). This usually means the AI Assistant plugin isn't "
+             "currently docked to an asset editor or doesn't have a populated context for this project state. "
+             "The tool call succeeded but had no data to return. If you need project metadata, pull it from "
+             "Config/*.ini or list_actors instead."
+         )},
+    ],
+    license_refs=["AIAssistant.AIAssistantToolset", "GetProjectContext"],
+))
+
+# ---------- 6. tool_use: list_actors by class filter ----------
+EXAMPLES.append(base_ex(
+    "pilot_006", "tool_use", "Finding every door frame in the level",
+    [
+        {"role": "user", "content": "List all door frames in Lvl_IntroRoom and tell me how many there are."},
+        {"role": "assistant", "content": "I'll list actors and filter for BP_DoorFrame_C.",
+         "tool_calls": [{"name": "ListActors", "arguments": {}}]},
+        {"role": "tool", "name": "ListActors",
+         "content": "[{\"name\":\"BP_DoorFrame_C_UAID_F4A475FF15A3A99302_1719302483\",\"class\":\"BP_DoorFrame_C\"},{\"name\":\"BP_DoorFrame_C_UAID_F4A475FF15A32F8B02_2116560561\",\"class\":\"BP_DoorFrame_C\"}, ...]"},
+        {"role": "assistant",
+         "content": (
+             "There are 6 BP_DoorFrame_C instances in the level. These are the unlockable door frames from the "
+             "DemoTemplate/Blueprint set. To use them in a trigger flow, pair each with a BP_DoorTrigger_C and "
+             "wire the OnActorBeginOverlap event in the trigger's event graph."
+         )},
+    ],
+    license_refs=["BP_DoorFrame_C", "Lvl_IntroRoom"],
+))
+
+# ---------- 7. concept_qa: Collision channels and the Projectile channel ----------
+EXAMPLES.append(base_ex(
+    "pilot_007", "concept_qa", "Collision channels and the Projectile channel",
+    [
+        {"role": "user", "content": "How does UE5's collision query system pick a channel, and what's a custom channel for?"},
+        {"role": "assistant",
+         "content": (
+             "UE5 collision is built on ECC (ECollisionChannel) enums, with the engine channels (WorldStatic, "
+             "Pawn, Visibility, Camera, ...) baked in. To add a domain-specific channel, you declare a new enum "
+             "value in the project's DefaultEngine.ini and assign it a QueryOnly or Block profile in the "
+             "CollisionProfile section. The IntroToUE project declares one such custom channel: "
+             "ECC_GameTraceChannel1 = Projectile, set to QueryOnly. Triggers in this project use the `Trigger` "
+             "profile which has its response to Projectile set to Ignore, so projectile queries don't hit trigger "
+             "volumes (per DefaultEngine.ini)."
+         )},
+        {"role": "user", "content": "Why QueryOnly and not Block for the Projectile channel?"},
+        {"role": "assistant",
+         "content": (
+             "QueryOnly means the channel participates in traces and overlaps (LineTraceMulti, SweepMulti) but "
+             "is invisible to physics-blocking. That's the right default for a projectile: the projectile is a "
+             "query object, not a physical object. If you wanted projectiles to also physically push dynamic "
+             "actors, you'd switch to Block, but that would couple projectile behavior to physics simulation and "
+             "is almost never what you want."
+         )},
+        {"role": "user", "content": "How do I use the Projectile channel in a BP?"},
+        {"role": "assistant",
+         "content": (
+             "In a LineTraceByChannel or SweepMultiByChannel node, set the Trace Channel to the new ECC_GameTraceChannel1 "
+             "(shown as 'Projectile' in the dropdown). The trace will then hit anything that has its collision response "
+             "to Projectile set to Block or Overlap. Triggers in this project ignore Projectile by design."
+         )},
+    ],
+    license_refs=["ECC_GameTraceChannel1", "Projectile", "DefaultEngine.ini"],
+))
+
+# ---------- 8. concept_qa: Lumen + Substrate trade-off in this project ----------
+EXAMPLES.append(base_ex(
+    "pilot_008", "concept_qa", "Lumen and Substrate choices in this project",
+    [
+        {"role": "user", "content": "What does the DefaultEngine.ini tell us about lighting and material architecture in IntroToUE?"},
+        {"role": "assistant",
+         "content": (
+             "Three settings tell the story: Lumen is enabled (r.DynamicGlobalIlluminationMethod is set to "
+             "Lumen), Substrate is disabled (r.Substrate is False), and r.AllowStaticLighting is False. Together "
+             "these force a fully dynamic lighting workflow: Lumen does the global illumination and reflections, "
+             "and the absence of Substrate means materials use the legacy Material Attributes pipeline rather "
+             "than the new Substrate BSDF graph."
+         )},
+        {"role": "user", "content": "Why disable Substrate?"},
+        {"role": "assistant",
+         "content": (
+             "Substrate is still maturing and some Material Functions don't yet support it. For a learning "
+             "project, sticking with the legacy material pipeline means more community examples and StackOverflow "
+             "answers apply. You can enable Substrate per-material via a checkbox in the material's details, "
+             "and switch the project default later once the material library is ported."
+         )},
+        {"role": "user", "content": "What would I have to change to use Substrate throughout?"},
+        {"role": "assistant",
+         "content": (
+             "Three things: (1) set r.Substrate=True in DefaultEngine.ini, (2) audit every M_ material for "
+             "Substrate-incompatible nodes (legacy Custom HLSL, some Material Functions), (3) re-test any "
+             "PostProcessVolume chains because Substrate blends differ subtly. In a 391-actor level like "
+             "Lvl_IntroRoom, the post-process volumes (3 instances) are the highest-risk items."
+         )},
+    ],
+    license_refs=["Lumen", "Substrate", "r.AllowStaticLighting", "M_"],
+))
+
+# ---------- 9. scene_understanding: identify level purpose ----------
+EXAMPLES.append(base_ex(
+    "pilot_009", "scene_understanding", "Identify the level's purpose from its actor mix",
+    [
+        {"role": "user", "content": "What kind of level is Lvl_IntroRoom, based on what's in it?"},
+        {"role": "assistant", "content": "Let me pull the actor inventory.",
+         "tool_calls": [{"name": "ListActors", "arguments": {}}]},
+        {"role": "tool", "name": "ListActors", "content": "[...391 actors...]"},
+        {"role": "assistant", "content": "And editor state.",
+         "tool_calls": [{"name": "get_editor_context", "arguments": {}}]},
+        {"role": "tool", "name": "get_editor_context",
+         "content": "{\"current_level\":\"Lvl_IntroRoom\",\"world_type\":\"Editor\",\"actor_count\":391,\"is_pie\":false}"},
+        {"role": "assistant",
+         "content": (
+             "Lvl_IntroRoom is a FirstPerson template intro / showcase level. The actor mix makes this clear: "
+             "262 StaticMeshActor instances (visual content), 26 BP_TextSwitcher_C and 16 BP_Titles_C (UI / "
+             "instructional text), 12 BP_SpawnPoint_C (player spawn points), 6 BP_DoorFrame_C (interactive doors), "
+             "and 3 PostProcessVolume (atmosphere / look). It's not a gameplay-heavy level; it's a kitchen-sink "
+             "demo that exercises every feature the template ships with."
+         )},
+    ],
+    license_refs=["Lvl_IntroRoom", "StaticMeshActor", "BP_TextSwitcher_C",
+                  "BP_Titles_C", "BP_SpawnPoint_C", "BP_DoorFrame_C", "PostProcessVolume"],
+))
+
+# ---------- 10. scene_understanding: detect missing prerequisites ----------
+EXAMPLES.append(base_ex(
+    "pilot_010", "scene_understanding", "Detect potentially missing prerequisites",
+    [
+        {"role": "user", "content": "Are there any obvious things missing from Lvl_IntroRoom for it to run as a first-person game?"},
+        {"role": "assistant", "content": "Let me check for the key actors.",
+         "tool_calls": [{"name": "ListActors", "arguments": {}}]},
+        {"role": "tool", "name": "ListActors", "content": "[...391 actors...]"},
+        {"role": "assistant",
+         "content": (
+             "Sanity-check passes for the essentials. The level has a BP_FirstPersonGameMode_C (the game mode that "
+             "sets the rule system for the First Person template), multiple BP_SpawnPoint_C (12, more than the 1 "
+             "minimum), and a default directional / point / spot lighting set implied by 3 PostProcessVolume "
+             "overlays. With Lumen enabled and 262 StaticMeshActor instances, the level is also well-lit by "
+             "indirect GI without needing explicit lightmass baking (which is disabled per r.AllowStaticLighting=False)."
+         )},
+    ],
+    license_refs=["BP_FirstPersonGameMode_C", "BP_SpawnPoint_C", "Lumen", "r.AllowStaticLighting"],
+))
+
+# ---------- 11. console_diagnosis: stat fps interpretation ----------
+EXAMPLES.append(base_ex(
+    "pilot_011", "console_diagnosis", "What 'stat fps' shows in this scene",
+    [
+        {"role": "user", "content": "I just ran stat fps. What should I look for in the output for Lvl_IntroRoom?"},
+        {"role": "assistant", "content": "Let me run it to see the live output.",
+         "tool_calls": [{"name": "execute_console_command", "arguments": {"command": "stat fps"}}]},
+        {"role": "tool", "name": "execute_console_command",
+         "content": "Executed: stat fps\\n\\nConsole Output:\\nstat fps"},
+        {"role": "assistant",
+         "content": (
+             "The `stat fps` command overlays a small text HUD in the top-right of the editor viewport showing "
+             "frames per second, frame time (ms), and a 1-second average. For Lvl_IntroRoom, the meaningful "
+             "diagnostic number is frame time, not FPS, because at 60 FPS the HUD is steady. Expected baseline: "
+             "16-17ms in the editor (uncooked, unoptimized). The 391 actors and Lumen GI account for most of "
+             "that cost; 262 StaticMeshActor instances in particular drive draw call count."
+         )},
+        {"role": "user", "content": "How do I see what stat fps is actually saying in real time?"},
+        {"role": "assistant",
+         "content": (
+             "stat fps is a viewport overlay, so you'll see it directly. For a more detailed breakdown, run "
+             "stat unit (per-pass cost), stat gpu (GPU-side time per draw), or stat slate (UI cost). stat unit "
+             "is the most useful one after stat fps: it decomposes the frame into GameThread, RenderThread, "
+             "and GPU time, and shows which is the bottleneck."
+         )},
+    ],
+    license_refs=["stat fps", "stat unit", "stat gpu", "stat slate", "Lumen"],
+))
+
+# ---------- 12. console_diagnosis: show collision ----------
+EXAMPLES.append(base_ex(
+    "pilot_012", "console_diagnosis", "What 'show collision' reveals",
+    [
+        {"role": "user", "content": "How do I see collision in the viewport, and what should I expect to see here?"},
+        {"role": "assistant",
+         "content": (
+             "Run the console command `show collision` (with a space). This toggles a wireframe overlay of "
+             "every actor's collision shape: green for block-all, yellow for overlap-only, red for ignore. "
+             "In Lvl_IntroRoom you should see: 262 StaticMeshActor wireframes (most are block), 12 BP_SpawnPoint_C "
+             "point-style triggers, and the 6 BP_DoorFrame_C collision boxes. To turn the overlay off, run "
+             "`show collision` again. The command is in the v2 allow-list for execute_console_command so it's "
+             "safe to run from the MCP."
+         )},
+    ],
+    license_refs=["show collision", "StaticMeshActor", "BP_SpawnPoint_C", "BP_DoorFrame_C"],
+))
+
+
+def main():
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    with open(OUT, "w", encoding="utf-8") as f:
+        for ex in EXAMPLES:
+            f.write(json.dumps(ex, ensure_ascii=False) + "\n")
+    print(f"[OK] Wrote {len(EXAMPLES)} examples to {OUT}")
+    # Counts by data_type
+    from collections import Counter
+    by_type = Counter(e["data_type"] for e in EXAMPLES)
+    print(f"   by data_type: {dict(by_type)}")
+
+
+if __name__ == "__main__":
+    main()

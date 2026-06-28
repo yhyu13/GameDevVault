@@ -1,0 +1,326 @@
+[
+  {
+    "example_id": "c200_c50_006_v0",
+    "report": {
+      "example_id": "c200_c50_006_v0",
+      "claims_checked": 5,
+      "claims_passed": 3,
+      "claims_failed": 2,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "actor_name",
+          "claim": "BP_Light_C_UAID_F4A475FF15A32F8B02_2116560561",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "actor_name",
+          "claim": "BP_Light_C_UAID_F4A475FF15A3A99302_1719302483",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_DoorTrigger_C",
+          "status": "pass",
+          "detail": "1 instances in live level"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_Light_C",
+          "status": "pass",
+          "detail": "3 instances in live level"
+        },
+        {
+          "category": "tool_name",
+          "claim": "ListActors",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        }
+      ],
+      "tool_calls_issued": 1,
+      "tool_calls_valid": 1,
+      "tool_call_results": [
+        {
+          "name": "ListActors",
+          "arguments": {},
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "failed_claims=2, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "c200_c50_006_v1",
+    "report": {
+      "example_id": "c200_c50_006_v1",
+      "claims_checked": 5,
+      "claims_passed": 3,
+      "claims_failed": 2,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "actor_name",
+          "claim": "BP_MouseKey_C_UAID_F4A475FF15A32F8B02_2116560561",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "actor_name",
+          "claim": "BP_MouseKey_C_UAID_F4A475FF15A3A99302_1719302483",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_DoorTrigger_C",
+          "status": "pass",
+          "detail": "1 instances in live level"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_MouseKey_C",
+          "status": "pass",
+          "detail": "2 instances in live level"
+        },
+        {
+          "category": "tool_name",
+          "claim": "ListActors",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        }
+      ],
+      "tool_calls_issued": 1,
+      "tool_calls_valid": 1,
+      "tool_call_results": [
+        {
+          "name": "ListActors",
+          "arguments": {},
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "failed_claims=2, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "c200_c50_006_v2",
+    "report": {
+      "example_id": "c200_c50_006_v2",
+      "claims_checked": 6,
+      "claims_passed": 4,
+      "claims_failed": 2,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "actor_name",
+          "claim": "BP_GizmoDemo_C_UAID_F4A475FF15A32F8B02_2116560561",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "actor_name",
+          "claim": "BP_GizmoDemo_C_UAID_F4A475FF15A3A99302_1719302483",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_DoorTrigger_C",
+          "status": "pass",
+          "detail": "1 instances in live level"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_GizmoDemo_C",
+          "status": "pass",
+          "detail": "3 instances in live level"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_SpawnPoint_C",
+          "status": "pass",
+          "detail": "12 instances in live level"
+        },
+        {
+          "category": "tool_name",
+          "claim": "ListActors",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        }
+      ],
+      "tool_calls_issued": 1,
+      "tool_calls_valid": 1,
+      "tool_call_results": [
+        {
+          "name": "ListActors",
+          "arguments": {},
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "failed_claims=2, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "c200_c50_037_v0",
+    "report": {
+      "example_id": "c200_c50_037_v0",
+      "claims_checked": 4,
+      "claims_passed": 3,
+      "claims_failed": 1,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "actor_name",
+          "claim": "BP_TemplateCube_C_UAID_F4A475FF15A3A99302_1719302483",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_DoorTrigger_C",
+          "status": "pass",
+          "detail": "1 instances in live level"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_TemplateCube_C",
+          "status": "pass",
+          "detail": "11 instances in live level"
+        },
+        {
+          "category": "tool_name",
+          "claim": "ListActors",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        }
+      ],
+      "tool_calls_issued": 1,
+      "tool_calls_valid": 1,
+      "tool_call_results": [
+        {
+          "name": "ListActors",
+          "arguments": {},
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "failed_claims=1, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "c200_c50_037_v1",
+    "report": {
+      "example_id": "c200_c50_037_v1",
+      "claims_checked": 4,
+      "claims_passed": 3,
+      "claims_failed": 1,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "actor_name",
+          "claim": "BP_KeyboardKey_C_UAID_F4A475FF15A3A99302_1719302483",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_DoorTrigger_C",
+          "status": "pass",
+          "detail": "1 instances in live level"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_KeyboardKey_C",
+          "status": "pass",
+          "detail": "6 instances in live level"
+        },
+        {
+          "category": "tool_name",
+          "claim": "ListActors",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        }
+      ],
+      "tool_calls_issued": 1,
+      "tool_calls_valid": 1,
+      "tool_call_results": [
+        {
+          "name": "ListActors",
+          "arguments": {},
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "failed_claims=1, failed_tools=0"
+    }
+  },
+  {
+    "example_id": "c200_c50_037_v2",
+    "report": {
+      "example_id": "c200_c50_037_v2",
+      "claims_checked": 4,
+      "claims_passed": 3,
+      "claims_failed": 1,
+      "claims_unverifiable": 0,
+      "claim_results": [
+        {
+          "category": "actor_name",
+          "claim": "BP_UI_Update_C_UAID_F4A475FF15A3A99302_1719302483",
+          "status": "fail",
+          "detail": "not in live level (have 391 actors)"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_DoorTrigger_C",
+          "status": "pass",
+          "detail": "1 instances in live level"
+        },
+        {
+          "category": "class_name",
+          "claim": "BP_UI_Update_C",
+          "status": "pass",
+          "detail": "4 instances in live level"
+        },
+        {
+          "category": "tool_name",
+          "claim": "ListActors",
+          "status": "pass",
+          "detail": "top-level MCP tool"
+        }
+      ],
+      "tool_calls_issued": 1,
+      "tool_calls_valid": 1,
+      "tool_call_results": [
+        {
+          "name": "ListActors",
+          "arguments": {},
+          "valid_name": true,
+          "valid_arguments": true,
+          "detail": "valid tool name and dict arguments"
+        }
+      ],
+      "mechanical_pass": false,
+      "judgment": "rejected",
+      "judgment_notes": "failed_claims=1, failed_tools=0"
+    }
+  }
+]

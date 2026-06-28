@@ -1,0 +1,243 @@
+{
+  "version": 2,
+  "description": "Topic catalog for the MCP-grounded UE5 SFT pipeline. Each topic is a prompt seed for one data_type. Topics are organized so that every claim in the generated example can be grounded in MCP-observable state from the live IntroToUE project.",
+
+  "data_types": {
+    "concept_qa": {
+      "description": "Multi-turn Q&A about a UE5 concept, with concrete examples drawn from the live project.",
+      "min_turns": 4,
+      "max_turns": 6,
+      "topics": [
+        {
+          "topic": "Collision channels and the Projectile channel",
+          "description": "Why custom channels exist, how they're declared, how profiles reference them.",
+          "grounding_sources": ["DefaultEngine.ini", "ListActors(filter=Trigger)"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext", "ListActors"]
+        },
+        {
+          "topic": "GameMode vs PlayerController vs Pawn in this project",
+          "description": "How the three roles split responsibility in a first-person template.",
+          "grounding_sources": ["ListActors(filter=BP_...GameMode)", "ListActors(filter=BP_...PlayerController)", "ListActors(filter=BP_...Character)"],
+          "mcp_calls_planned": ["ListActors", "GetActorDetails"]
+        },
+        {
+          "topic": "Lumen and Substrate choices in DefaultEngine.ini",
+          "description": "Why Lumen is on, Substrate is off, and what that implies for materials.",
+          "grounding_sources": ["AIAssistant.GetProjectContext", "DefaultEngine.ini (read-only via project context)"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext"]
+        },
+        {
+          "topic": "Virtual Shadow Maps in a Lumen-enabled level",
+          "description": "How VSM interacts with Lumen and Nanite in this project's graphics config.",
+          "grounding_sources": ["AIAssistant.GetProjectContext"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext"]
+        },
+        {
+          "topic": "Input mapping contexts (IMC_Default vs IMC_MouseLook)",
+          "description": "Why two IMCs and what each binds, based on this project's Input/ folder.",
+          "grounding_sources": ["AIAssistant.GetProjectContext"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext", "ListActors"]
+        },
+        {
+          "topic": "SaveGame subsystem and BP_SaveData",
+          "description": "How the project's SaveData class is intended to be used.",
+          "grounding_sources": ["AIAssistant.GetProjectContext"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext"]
+        },
+        {
+          "topic": "Plugin loading order and what gets enabled in IntroToUE",
+          "description": "ModelingToolsEditorMode, Landmass, InEditorDocumentation, AIAssistant, MCPClientToolset, ModelContextProtocol.",
+          "grounding_sources": ["AIAssistant.GetProjectContext"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext"]
+        },
+        {
+          "topic": "World Partition vs single-level in Lvl_IntroRoom",
+          "description": "Whether this level uses World Partition, how to tell, and what changes if you switch.",
+          "grounding_sources": ["get_editor_context", "ListActors"],
+          "mcp_calls_planned": ["get_editor_context", "ListActors"]
+        },
+        {
+          "topic": "First Person template: BP_FirstPersonCharacter and its components",
+          "description": "Walk through what this character is composed of and how it drives the player.",
+          "grounding_sources": ["ListActors(filter=BP_FirstPersonCharacter)", "GetActorDetails"],
+          "mcp_calls_planned": ["ListActors", "GetActorDetails"]
+        },
+        {
+          "topic": "Asset naming conventions in this project (BP_, M_, MI_, NS_, ...)",
+          "description": "Why the prefixes exist and how they help with Content Browser searching.",
+          "grounding_sources": ["AIAssistant.GetProjectContext"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext", "ListActors"]
+        },
+        {
+          "topic": "r.AllowStaticLighting=False and what that forces on the project",
+          "description": "Why dynamic-only lighting means Lumen is non-optional, and what lighting workflow shifts.",
+          "grounding_sources": ["AIAssistant.GetProjectContext"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext"]
+        },
+        {
+          "topic": "Trigger volumes in DemoTemplate (BP_DoorTrigger, BP_DoorFrame_Unlockable)",
+          "description": "How the door-unlock pattern is set up across two BPs that pair together.",
+          "grounding_sources": ["ListActors(filter=BP_DoorTrigger)", "ListActors(filter=BP_DoorFrame)"],
+          "mcp_calls_planned": ["ListActors", "GetActorDetails"]
+        }
+      ]
+    },
+
+    "tool_use": {
+      "description": "Real MCP tool-call chains. User asks, assistant calls tools, observes, optionally retries. Includes error-recovery examples driven by the live MCP's natural error states.",
+      "min_turns": 2,
+      "max_turns": 5,
+      "error_recovery_rate_min": 0.20,
+      "topics": [
+        {
+          "topic": "Inventorying actors by class",
+          "description": "List every actor of a given class, summarize counts.",
+          "grounding_sources": ["ListActors"],
+          "mcp_calls_planned": ["ListActors"]
+        },
+        {
+          "topic": "Getting details of a specific actor",
+          "description": "Find an actor by name pattern, fetch its full transform.",
+          "grounding_sources": ["ListActors", "GetActorDetails"],
+          "mcp_calls_planned": ["ListActors", "GetActorDetails"]
+        },
+        {
+          "topic": "Discovering the available MCP toolsets",
+          "description": "List toolsets, describe each, summarize capabilities for the assistant.",
+          "grounding_sources": ["list_toolsets", "describe_toolset"],
+          "mcp_calls_planned": ["list_toolsets", "describe_toolset"]
+        },
+        {
+          "topic": "Reading the project context the AI Assistant sees",
+          "description": "Pull GetProjectContext, parse the engine / project / user fields.",
+          "grounding_sources": ["AIAssistant.GetProjectContext"],
+          "mcp_calls_planned": ["AIAssistant.GetProjectContext"]
+        },
+        {
+          "topic": "Locating the player character and its game mode",
+          "description": "Find the BP_FirstPersonGameMode and BP_FirstPersonCharacter actors.",
+          "grounding_sources": ["ListActors", "GetActorDetails"],
+          "mcp_calls_planned": ["ListActors", "GetActorDetails"]
+        },
+        {
+          "topic": "Error recovery: GetActorDetails on a non-existent actor",
+          "description": "Tool returns an error; the assistant recognizes, lists actors, and tries a real name.",
+          "grounding_sources": ["GetActorDetails(error)", "ListActors"],
+          "mcp_calls_planned": ["GetActorDetails", "ListActors"]
+        },
+        {
+          "topic": "Error recovery: execute_console_command typo (blocked vs wrong)",
+          "description": "A typo'd console command is rejected by the safety allow-list. The assistant recognizes and uses a working alternative.",
+          "grounding_sources": ["run_console(error: UnsafeCommandError)"],
+          "mcp_calls_planned": ["run_console"]
+        },
+        {
+          "topic": "Saving the level after a series of inspection calls",
+          "description": "User asks for a 'no-op' save; the assistant calls save_current_level to confirm persistence.",
+          "grounding_sources": ["save_current_level"],
+          "mcp_calls_planned": ["save_current_level"]
+        },
+        {
+          "topic": "Identifying the most numerous actor class in the level",
+          "description": "ListActors → group by class → report top N.",
+          "grounding_sources": ["ListActors"],
+          "mcp_calls_planned": ["ListActors"]
+        }
+      ]
+    },
+
+    "scene_understanding": {
+      "description": "Read-and-explain the level. Detect issues, identify game-mode actors, summarize the scene.",
+      "min_turns": 3,
+      "max_turns": 5,
+      "topics": [
+        {
+          "topic": "Identify the level's purpose from its actor mix",
+          "description": "From the 391 actors, infer the level is an intro room for the FirstPerson template.",
+          "grounding_sources": ["ListActors", "get_editor_context"],
+          "mcp_calls_planned": ["get_editor_context", "ListActors"]
+        },
+        {
+          "topic": "Detect potentially missing prerequisites (PlayerStart, GameMode)",
+          "description": "Confirm both BP_FirstPersonGameMode and a PlayerStart exist; flag if not.",
+          "grounding_sources": ["ListActors"],
+          "mcp_calls_planned": ["ListActors"]
+        },
+        {
+          "topic": "Find actor class outliers (single-instance classes)",
+          "description": "Which classes have only one instance? Often the level's unique actors (game mode, lighting, post-process).",
+          "grounding_sources": ["ListActors"],
+          "mcp_calls_planned": ["ListActors"]
+        },
+        {
+          "topic": "Map class distribution to level complexity",
+          "description": "Top-N actor classes, what they imply about the scene's complexity.",
+          "grounding_sources": ["ListActors"],
+          "mcp_calls_planned": ["ListActors"]
+        },
+        {
+          "topic": "Identify static vs dynamic lighting actors by class name",
+          "description": "DirectionalLight, PointLight, SpotLight, RectLight — and whether any are missing in a Lumen-enabled level.",
+          "grounding_sources": ["ListActors(filter=Light)"],
+          "mcp_calls_planned": ["ListActors"]
+        },
+        {
+          "topic": "Sanity-check the level: actors at origin (0,0,0)",
+          "description": "Find any actor whose location is exactly (0,0,0) — could indicate a forgotten default placement.",
+          "grounding_sources": ["ListActors", "GetActorDetails"],
+          "mcp_calls_planned": ["ListActors", "GetActorDetails"]
+        }
+      ]
+    },
+
+    "console_diagnosis": {
+      "description": "Console commands and their meaning in the context of this scene. Read-mostly with auto-restored overrides.",
+      "min_turns": 2,
+      "max_turns": 4,
+      "topics": [
+        {
+          "topic": "What 'stat fps' shows in this scene",
+          "description": "Predict the output structure; the scene has 391 actors so GPU work is moderate.",
+          "grounding_sources": ["run_console('stat fps')"],
+          "mcp_calls_planned": ["run_console"]
+        },
+        {
+          "topic": "What 'show collision' reveals",
+          "description": "Toggles the debug collision overlay; pair with a ListActors call to know what to expect.",
+          "grounding_sources": ["run_console('show collision')", "ListActors(filter=...)"],
+          "mcp_calls_planned": ["run_console", "ListActors"]
+        },
+        {
+          "topic": "r.ScreenPercentage trade-offs in a Lumen level",
+          "description": "What halving ScreenPercentage does to a Lumen-enabled scene; pair with actor count to estimate cost.",
+          "grounding_sources": ["run_console('r.ScreenPercentage 50')", "get_editor_context"],
+          "mcp_calls_planned": ["run_console", "get_editor_context"]
+        },
+        {
+          "topic": "obj list class=Light for asset audit",
+          "description": "List every loaded Light asset to see what's compiled in.",
+          "grounding_sources": ["run_console('obj list class=Light')"],
+          "mcp_calls_planned": ["run_console"]
+        },
+        {
+          "topic": "MemReport interpretation for this level",
+          "description": "What a MemReport dump contains and how to read the top-N section.",
+          "grounding_sources": ["run_console('MemReport')"],
+          "mcp_calls_planned": ["run_console"]
+        },
+        {
+          "topic": "ke * for kismet event dump on this scene",
+          "description": "Walk through what kismet events are live.",
+          "grounding_sources": ["run_console('ke *')"],
+          "mcp_calls_planned": ["run_console"]
+        },
+        {
+          "topic": "r.Lumen.DiffuseIndirect.Allow toggle and its visual effect",
+          "description": "Predict what the level looks like with indirect GI disabled; restore after.",
+          "grounding_sources": ["run_console('r.Lumen.DiffuseIndirect.Allow 0')", "restore"],
+          "mcp_calls_planned": ["run_console"]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,449 @@
+{
+  "input_count": 200,
+  "length_filter": {
+    "passed": 200,
+    "removed": 0,
+    "details": []
+  },
+  "factuality_filter": {
+    "passed": 168,
+    "removed": 32,
+    "details": [
+      {
+        "index": 6,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(3), v2:cmds(1)) - too few facts"
+      },
+      {
+        "index": 8,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(1)) - too few facts"
+      },
+      {
+        "index": 13,
+        "reason": "score=2 (v1=1, v2=2, v1:number(6), v2:tools(1), v2:classes(1)) - too few facts"
+      },
+      {
+        "index": 15,
+        "reason": "score=1 (v1=1, v2=1, v1:number(6), v2:tools(2)) - too few facts"
+      },
+      {
+        "index": 16,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(2), v2:classes(1)) - too few facts"
+      },
+      {
+        "index": 17,
+        "reason": "score=1 (v1=0, v2=1, v2:tools(1)) - too few facts"
+      },
+      {
+        "index": 20,
+        "reason": "score=2 (v1=0, v2=2, v2:config(2), v2:cmds(2)) - too few facts"
+      },
+      {
+        "index": 28,
+        "reason": "score=2 (v1=1, v2=2, v1:number(6), v2:config(2), v2:cmds(2)) - too few facts"
+      },
+      {
+        "index": 29,
+        "reason": "score=1 (v1=0, v2=1, v2:cmds(1)) - too few facts"
+      },
+      {
+        "index": 38,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(2)) - too few facts"
+      },
+      {
+        "index": 47,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(4)) - too few facts"
+      },
+      {
+        "index": 68,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(3), v2:cmds(1)) - too few facts"
+      },
+      {
+        "index": 69,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(3), v2:cmds(1)) - too few facts"
+      },
+      {
+        "index": 74,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(1)) - too few facts"
+      },
+      {
+        "index": 75,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(1)) - too few facts"
+      },
+      {
+        "index": 89,
+        "reason": "score=2 (v1=1, v2=2, v1:number(6), v2:tools(1), v2:classes(1)) - too few facts"
+      },
+      {
+        "index": 90,
+        "reason": "score=2 (v1=1, v2=2, v1:number(6), v2:tools(1), v2:classes(1)) - too few facts"
+      },
+      {
+        "index": 95,
+        "reason": "score=1 (v1=1, v2=1, v1:number(6), v2:tools(2)) - too few facts"
+      },
+      {
+        "index": 97,
+        "reason": "score=2 (v1=1, v2=2, v1:number(6), v2:tools(2), v2:config(1)) - too few facts"
+      },
+      {
+        "index": 98,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(2), v2:classes(1)) - too few facts"
+      },
+      {
+        "index": 101,
+        "reason": "score=1 (v1=0, v2=1, v2:tools(1)) - too few facts"
+      },
+      {
+        "index": 102,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:config(1)) - too few facts"
+      },
+      {
+        "index": 103,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:config(1)) - too few facts"
+      },
+      {
+        "index": 110,
+        "reason": "score=2 (v1=0, v2=2, v2:config(2), v2:cmds(2)) - too few facts"
+      },
+      {
+        "index": 111,
+        "reason": "score=2 (v1=0, v2=2, v2:config(3), v2:cmds(2)) - too few facts"
+      },
+      {
+        "index": 134,
+        "reason": "score=2 (v1=1, v2=2, v1:number(6), v2:config(2), v2:cmds(2)) - too few facts"
+      },
+      {
+        "index": 135,
+        "reason": "score=2 (v1=1, v2=2, v1:number(6), v2:config(2), v2:cmds(2)) - too few facts"
+      },
+      {
+        "index": 137,
+        "reason": "score=1 (v1=0, v2=1, v2:cmds(1)) - too few facts"
+      },
+      {
+        "index": 164,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(2)) - too few facts"
+      },
+      {
+        "index": 191,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(4)) - too few facts"
+      },
+      {
+        "index": 192,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(4)) - too few facts"
+      },
+      {
+        "index": 193,
+        "reason": "score=2 (v1=0, v2=2, v2:tools(1), v2:cmds(4)) - too few facts"
+      }
+    ]
+  },
+  "quality_filter": {
+    "passed": 168,
+    "removed": 0,
+    "details": []
+  },
+  "dedup_filter": {
+    "passed": 107,
+    "removed": 61,
+    "details": [
+      {
+        "index": 39,
+        "reason": "duplicate(similarity=0.96)"
+      },
+      {
+        "index": 42,
+        "reason": "duplicate(similarity=0.93)"
+      },
+      {
+        "index": 45,
+        "reason": "duplicate(similarity=0.93)"
+      },
+      {
+        "index": 48,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 51,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 54,
+        "reason": "duplicate(similarity=0.88)"
+      },
+      {
+        "index": 58,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 62,
+        "reason": "duplicate(similarity=0.96)"
+      },
+      {
+        "index": 65,
+        "reason": "duplicate(similarity=0.93)"
+      },
+      {
+        "index": 68,
+        "reason": "duplicate(similarity=0.96)"
+      },
+      {
+        "index": 71,
+        "reason": "duplicate(similarity=0.96)"
+      },
+      {
+        "index": 75,
+        "reason": "duplicate(similarity=0.97)"
+      },
+      {
+        "index": 77,
+        "reason": "duplicate(similarity=0.88)"
+      },
+      {
+        "index": 81,
+        "reason": "duplicate(similarity=0.96)"
+      },
+      {
+        "index": 84,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 86,
+        "reason": "duplicate(similarity=0.88)"
+      },
+      {
+        "index": 88,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 89,
+        "reason": "duplicate(similarity=0.72)"
+      },
+      {
+        "index": 90,
+        "reason": "duplicate(similarity=0.75)"
+      },
+      {
+        "index": 91,
+        "reason": "duplicate(similarity=0.98)"
+      },
+      {
+        "index": 92,
+        "reason": "duplicate(similarity=0.73)"
+      },
+      {
+        "index": 93,
+        "reason": "duplicate(similarity=0.73)"
+      },
+      {
+        "index": 94,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 97,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 98,
+        "reason": "duplicate(similarity=0.72)"
+      },
+      {
+        "index": 100,
+        "reason": "duplicate(similarity=0.98)"
+      },
+      {
+        "index": 101,
+        "reason": "duplicate(similarity=0.72)"
+      },
+      {
+        "index": 103,
+        "reason": "duplicate(similarity=0.98)"
+      },
+      {
+        "index": 106,
+        "reason": "duplicate(similarity=0.98)"
+      },
+      {
+        "index": 112,
+        "reason": "duplicate(similarity=0.97)"
+      },
+      {
+        "index": 114,
+        "reason": "duplicate(similarity=0.88)"
+      },
+      {
+        "index": 115,
+        "reason": "duplicate(similarity=0.98)"
+      },
+      {
+        "index": 117,
+        "reason": "duplicate(similarity=0.91)"
+      },
+      {
+        "index": 118,
+        "reason": "duplicate(similarity=0.97)"
+      },
+      {
+        "index": 121,
+        "reason": "duplicate(similarity=0.97)"
+      },
+      {
+        "index": 123,
+        "reason": "duplicate(similarity=0.86)"
+      },
+      {
+        "index": 124,
+        "reason": "duplicate(similarity=0.97)"
+      },
+      {
+        "index": 126,
+        "reason": "duplicate(similarity=0.88)"
+      },
+      {
+        "index": 127,
+        "reason": "duplicate(similarity=0.93)"
+      },
+      {
+        "index": 129,
+        "reason": "duplicate(similarity=0.83)"
+      },
+      {
+        "index": 130,
+        "reason": "duplicate(similarity=0.94)"
+      },
+      {
+        "index": 132,
+        "reason": "duplicate(similarity=0.85)"
+      },
+      {
+        "index": 133,
+        "reason": "duplicate(similarity=0.90)"
+      },
+      {
+        "index": 138,
+        "reason": "duplicate(similarity=0.94)"
+      },
+      {
+        "index": 141,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 142,
+        "reason": "duplicate(similarity=0.74)"
+      },
+      {
+        "index": 144,
+        "reason": "duplicate(similarity=0.97)"
+      },
+      {
+        "index": 147,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 148,
+        "reason": "duplicate(similarity=0.72)"
+      },
+      {
+        "index": 149,
+        "reason": "duplicate(similarity=0.71)"
+      },
+      {
+        "index": 150,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 153,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 154,
+        "reason": "duplicate(similarity=0.72)"
+      },
+      {
+        "index": 156,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 159,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 160,
+        "reason": "duplicate(similarity=0.76)"
+      },
+      {
+        "index": 161,
+        "reason": "duplicate(similarity=0.73)"
+      },
+      {
+        "index": 162,
+        "reason": "duplicate(similarity=1.00)"
+      },
+      {
+        "index": 163,
+        "reason": "duplicate(similarity=0.73)"
+      },
+      {
+        "index": 164,
+        "reason": "duplicate(similarity=0.76)"
+      },
+      {
+        "index": 165,
+        "reason": "duplicate(similarity=1.00)"
+      }
+    ]
+  },
+  "rebalance": {
+    "added": 29,
+    "by_type": {
+      "tool_use": 46,
+      "concept_qa": 30,
+      "scene_understanding": 30,
+      "console_diagnosis": 30
+    }
+  },
+  "output_count": 136,
+  "retention_rate": 0.68,
+  "quality_distribution": {
+    "2.2": 7,
+    "1.6": 2,
+    "2.5": 12,
+    "1.5999999999999999": 1,
+    "0.7999999999999999": 2,
+    "1.2": 1,
+    "1.8": 5,
+    "2.0": 7,
+    "0.8999999999999999": 2,
+    "1.1": 6,
+    "2.1": 6,
+    "1.2000000000000002": 2,
+    "1.4000000000000001": 1,
+    "3.0": 6,
+    "1.3000000000000003": 1,
+    "2.6999999999999997": 7,
+    "0.6000000000000001": 1,
+    "2.4": 3,
+    "1.5000000000000002": 1,
+    "2.9": 8,
+    "3.4": 7,
+    "3.6000000000000005": 2,
+    "2.3": 4,
+    "1.7000000000000002": 6,
+    "2.8": 2,
+    "2.8999999999999995": 4,
+    "3.3": 1,
+    "2.7": 3,
+    "3.0999999999999996": 1,
+    "3.1999999999999997": 2,
+    "3.2": 4,
+    "1.3": 3,
+    "1.9000000000000001": 5,
+    "1.7999999999999998": 1,
+    "2.6": 5,
+    "3.5": 2,
+    "3.6999999999999997": 1,
+    "3.8": 1,
+    "3.1": 1
+  }
+}
