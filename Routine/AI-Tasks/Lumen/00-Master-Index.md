@@ -77,7 +77,7 @@ graph TD
 - [[../../../99-Templates/论文笔记]] — 论文笔记模板
 - [[../../../99-Templates/源码分析]] — 源码分析模板
 - [[../../../Lumen-Quiz-Demo.html]] — Lumen 交互测验（HTML）
-- [[../../../01-论文笔记库/Lumen-SIGGRAPH-2021]] — Lumen 论文笔记（示例）
+- [[Lumen-SIGGRAPH-2021]] — Lumen 论文笔记（示例）
 - [[../../../02-引擎源码分析库/Unreal-Engine/UE5-VT-显存调度]] — VT 源码分析（示例）
 
 ---

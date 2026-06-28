@@ -1,0 +1,302 @@
+
+===== lumen_chunk0_out.txt =====
+In this video we're going to go over Lumen. We're going to demystify and break down how it actually works. We'll cover the core concepts behind global illumination, reflections, screen traces, distance fields, surface caching, and ray tracing. We'll also separate those marketing buzzwords you tend to hear a lot and actually go over what really happens under the hood when we are using Lumen in our scenes. We'll also go over kind of some general common artifacts as we demo through our scene. We'll also talk about how there's some practical ways we can actually use to optimize Lumen where we can. And by the end of this we're going to try and have a better solid understanding of what Lumen is and how we can actually use it to light our scenes. So with that being said, let's get started.
+
+So what exactly is Lumen? Now Lumen is this real-time system that came with Unreal Engine 5 along with a few others like Nanite and I believe Chaos or whatever they call it now for the for the particle physics. But Lumen is their approach to use real-time global illumination and reflections. Essentially we'll be able to actually modify our scenes in real-time without having to calculate or do any sort of simulations for where the shadows and highlights from reflections are actually going to end up being. We will actually be able to see what the scene actually looks like in real-time. So that's kind of a big benefit because now that we have much more dynamic games and we have a lot more kind of movement and other things that kind of go on on-screen, it allows us to actually have a lighting system that can be as dynamic as the games that we're actually making.
+
+So what exactly is global illumination? You might have heard this term before. So global illumination is essentially the simulation of indirect lighting throughout a scene. The indirect lighting in this case is you know we have right here your primary lighting source. But inside of this scene we have this red wall, this green wall, and this light gray color everywhere. Now if we've seen kind of how it looks in the real world, when we put up something like like a white card or white computer screen or something like that, the light that comes from these you know surfaces that don't generate their own light typically, like you know we have a a poster board that's just fully white, the light's going to hit that white color and actually bounce off a second time. Light is at this point so reflective that it's just going to take whatever light source it is and just kind of bounce it right back off. If it was per say like a darker color like a black then it would actually absorb that color because there's an absence of light with that color essentially. So what's going on is when we actually use global illumination calculations, that light's going to hit here, here, here, here, like at every single source and bounce bit of that red onto the shadows here and a bit of that green onto the surfaces here, even somewhere here where it might actually touch just a tiny bit. It's trying to calculate more of that. You'll see that it's somewhat more accurate because you're never really going to see shadows this dark in like a real accurate environment. It's going to look more closer to this. Now don't worry about this, this is just an offline path tracer that we are using as an example, but ideally it's very similar in concept to just understanding how global illumination actually works.
+
+Now another term you might actually hear is final gather. And that's the process of kind of refining and smoothing all the I don't know how many other umpteen amounts of bounce light that you can have on there. It'll calculate, collect, and blend that data together. Lumen takes the global illumination and the final gather part to help actually reduce the noises and flickering of this real-time global illumination calculation. So it will actually help make sure that your scenes like your interiors and exteriors don't have too much flicker as you might expect for some game that renders 60 frames per a single second. It's a lot, but it will do its best to try and fill in the gaps without it being too noisy.
+
+So how does it actually all work? Because you know when you think about something that's a dynamic lighting system, there has to be some sort of catch in some way. And of course there is. There, you know, we, one, we have consoles and we have hardware that is a little bit more powerful than, you know, the previous generations of course. But even with having higher powerful hardware, we can't just go crazy with it. So there has to be a way to approximate this stuff a lot better and a lot more accurately. So how Lumen works is it actually takes a couple different types of calculations and it will depend on the type of uh if you're using a hardware solution or a software solution from your console or your PC essentially. If you're using something that can control software-based ray tracing, then it will use a couple other types of methods to try to simulate, you know, the Lumen calculations. Hardware will actually use others as well, but somewhat more accurate because hardware ray tracing will be a lot more expensive to use. But essentially what happens is that it's going to simulate the light bounce and what Lumen's going to do is it's going to gather all the information from every single light source within the scene. Again, it's all dynamically lit. So it's going to calculate that light directly onto every single object, material. Um as it's going to the camera is going to move, and it's going to try and calculate and save that information into much smaller pockets of cache uh data that you can then save onto the hard drives of your game. Like you know essentially you're offloading it. But having that cache lighting data and kind of accumulation overall will actually help reduce the calculation, but it's something that again it is cheaper but not just finitely cheap. So this is kind of where you have to understand that there is always going to be a performance catch somewhere.
+
+And let's break down what we actually have to use for Lumen. Now the first is one that is actually an optional thing to do, but it's actually really good to have. Screen space traces, that's the also another term you might hear a lot, screen space. What screen space essentially is is it's the frame of the camera, whether it's the player's camera or your POV itself or just even the camera that you're rendering. That is the space at which the camera renders the data through. That camera of course is going to move or change frames, so the data will actually change with that movement. So it's never going to be always exactly the same, and that's where that's always where a problem with Lumen is, is that the calculations are never just locked into the surfaces themselves. It's locked into the framing that you're giving it. So if there's something that's not in frame, then it will not render that data because it cannot see it. So with the traces part, not just the screen space part, what it's doing is it's going to take information that's already visible on the screen, calculate your lighting, your reflections, and instead of just leaving it to these cache data, it's going to try and actually use that data in a way to move it as like a first pass solution to Lumen when other tracing solutions like hardware or software ray tracing fail. It injects this data directly into the uh secondary pass. So in rendering we have a couple different types of passes, especially because with our system it's, you know, with Unreal Engine, it's uh deferred rendering. So the lighting pass happens kind of after the main rendering pass, so the rendering of color, normal, all the geometrical data and then the lighting will pass will happen after the fact. So because of that it the lighting information is not going to be as up to date as the information that comes before it. But what screen space traces will do is it will try to actually inject part of that into the kind of final pass that that lighting kind of happens with the uh lighting at the end. And it'll try and inject that into the actual screen color, essentially the final render of that frame. It's going to actually try to inject it into there and help kind of fix all these little accumulations and kind of errors that we might actually see with Lumen. These are kind of part of those things that you will see. You'll see kind of these little kind of flickers, you might see noise, you might see ghosting. They are kind of general small things that might happen depending on the types of other rendering components, like if you use a certain type of like temporal AA or anti-aliasing, if you do temporal super resolution, if you do um fast, you know, approximated anti-aliasing like there's always other rendering options that we're going to be using. But we can always try and change some settings here and there to try and help make things a little bit easier. Screen space traces will actually help with that. It will help inject the global illumination and reflections before the Lumen pass can happen. So if there ever is that kind of noise thing, it's going to help get filtered down because that information's already there. So here in this example the scene's already fairly dark and because it doesn't have a lot of lighting information, it's getting all these little speckles because it's trying to accumulate information from a frame that doesn't have a lot of lighting data. And so with the traces part, it's going to actually inject it into here to actually brighten the scene up in a way so that these little kind of flickers and shadows aren't going to be as noticeable. So that's one kind of fallback that we can actually use to help make it a little bit better looking on the frame itself.
+
+Next actually we will rely on um other things. So distance fields is actually something that came
+
+===== lumen_chunk1_out.txt =====
+...with Unreal Engine 4.26, I believe, and it was an optional thing at first. But, with Unreal 5, everything that you actually import into Unreal will actually generate a distance field. And what it is, it's just a volumetric representation of the mesh. Um, it use- Lumen uses it to help calculate, you know, what type of details are going to help shadow, um, how the ambient occlusion is supposed to calculate on it, how the shadows will actually effectively render on this geometry. 
+
+By referencing a cheaper version of the mesh, it can actually help effectively understand how that light might actually interact with those meshes using the cheaper version instead of the more expensive mesh. 
+
+Now, there comes some problems with it. One, if you have a lot of detail, you're going to lose a lot of that kind of, you know, ornate detail because distance fields are kind of almost like a, like in ZBrush, if you've decimate a mesh too much, you get like weird kind of slig- like thin-looking meshes that don't really connect very well. That's what these meshes are going to essentially look like. They're very thin. You can even see here in this example there's like car does not have a fully thick um kind of thing to hold the hood up. But, it's just something to help approximate that data. Even here, you'll see you're starting to lose like little bits of information where, if you can, possible. And that's where we start to run into another issue that you might see with Lumen-based lighting is that sometimes you might see either light leaks, essentially light leaking through a wall or surface, and that's because the object either is too thin or the skylight itself that tries to calculate this stuff trying to it it essentially leaks through these objects. So, typically when you are kind of modeling and setting up your scene with modular kits, it's best to try and do at least 20 to 25 cm of thickness for your modular kits, or even just, you know, in general, your objects, if you can. Never try to do thin objects because they're going to have really bad distance fields, which will then imply bad lighting on there. But, again, this is only for software ray tracing, which is the cheaper of the two types of ray tracing. One of the reasons why it's cheaper is because it's using distance fields, a mesh-based approach. Mesh geometry is a lot cheaper versus most other kind of rendering effects that we can use. You know, say if you have a 50,000 triangle asset, that probably equates to maybe 2 MB of data, maybe even a little bit less depending on how the um vertices are ordered. Also, could be maybe a little bit more because of other things, like how many UVs you might have, how many um UV sets you might have. If you have vertex paint, all that data does get saved within the um megabytes themselves. But, just to note that with distance fields, it's used for the software ray tracing portion and not the hardware ray tracing support. And you'll actually see the difference between the two in an upcoming slide.
+
+And, actually, this is where we start to see that because the distance fields help make up this part right here, surface caching. And what surface caching is is it's going to use the approximated distance field mesh, that's why these meshes here look kind of almost decimated because they're a decimated version of this, and what's happening is is that it's also taking a kind of cheap pass on the material using a very kind of mipped-out version of the material surface that's been applied to the mesh and kind of giving you a general idea of like what kind of color information might be injected into the distance uh from the distance fields to the global illumination of your scene. Now, again, surface caching will store store that information for the surfaces so that Lumen doesn't actually have to calculate the indirect portions of the frames every single time. But, what's going to happen is is that as it updates dynamically, sometimes the updates might be a little slow, and because of that, if there's a lot of bright colors in your scene, you actual will get this kind of flickering or ghosting or even kind of like glinting that might happen because of how bright the pixels are from the material and from the surface itself. And because the scene can't catch up quick enough with the, you know, FPS of your scene, you'll get that sparkling on there. So, again, surface caching is only because it's a cheaper version for kind of low-end hardware. So, something that, you know, might be lower like say like the Nintendo Switch or Switch 2, maybe, um those ones might actually use something like this versus the next options that we can use.
+
+So, again, here's an example of the two different types of ray tracing kind of solutions that we'll actually be able to see inside of Unreal Engine. So, the left is going to be your software ray tracing, the cheaper version, and the right is your hardware ray tracing. Now, again, hardware ray tracing will actually use the cores of, um, your GPUs that actually if they are, uh, if like the actual, sorry, if the GPU of your like console or your computer is enabled to use ray tracing, then you can actually use this form of it. But, if you have like cheaper GPUs that may not necessarily have the ability to use ray tracing, then you would use something more like this. Now, again, software ray tracing will use distance fields and surface caching to help approximate that information. With hardware ray tracing, what it's going to use is kind of what we call hit reflections or hit surfacing, and it will actually kind of save a cached plane of the information while still keeping the actual geometry on there. It will be a much higher performance cost because it's one, using the actual geometry still, but it's also trying to use multiple planes of cached information to help give you a much more accurate version of what the scene might require.
+
+Now, with all of this, what are our kind of pros and cons of using Lumen? Now, of course, one pro is it's fully dynamic. I can light a scene, see how that scene actually looks without having to press a button to bake your lights. But, that comes at a cost. Having a continuously runtime environment of lighting will have a performance cost, of course. And that's why we have to understand that there might be limitations that we might have to have. Either using smaller, more dynamic scenes or scenes with less lighting, and maybe even trying to use less other effects, like other like less particle effects or less um extreme like uniquely made materials. Those are things that we have to think about. Another pro would be that, again, it's a faster iteration time for artists and level designers. We can actually see this stuff happen. And, you know, to continue on with it, you can actually have scenes now that actually have full night and day cycles for gameplay events, for destruction. You'll see all this stuff happen without there need to be a recalculation of shadows. But, with all of these big kind of changes and dynamic movements and stuff, can introduce noise, flicker, ghosting, and sparkles, depending on how the surfaces are cached themselves. And, that lies a huge problem. You know, another thing is also reflections. Because everything's kind of running in real time as you make these big dynamic changes, your reflections, which originally were calculated with a kind of baked approach using these kind of probes that you would place, you know, wherever you can, and it will just kind of render a cheap version of the reflections. By trying to do it in real time now, if something changes and there might be some sort of, you know, runtime issue of like how fast the update has to be, that's where the problem kind of lies. So, that's another thing to think about for a con. So, maybe in this case, we would probably use less reflective surfaces and have more kind of somewhat shiny, but you know, more rougher appearances so that there wouldn't be as many reflections.
+
+Now, with the other aspect of the pros, we can have things like more natural bounced lighting, actual colors bleeding in from our materials, and actual indirect uh illumination. It also cuts back on the need for comp- uh, complex light map UVs. We actually used to have to set up a secondary set of UVs for all meshes to use uh these secondary UV maps for baking down our shadows and highlights, the light maps that we would actually use. And, of course, bake times. There are times where, if I'm working on a very complex scene, and depending on how strong the scene has to be, it would take maybe an hour or two. And, in a actual real-time environment, we actually had to spend days sometimes having to calculate all the lighting information for scenes to make sure that everything was running in real time, and that can be a bit of a problem.
+
+Now, going back, of course, to the cons. Interior scenes can be very expensive and require a lot more tuning. You can, of course, have a lot more instability because, and this is something we haven't really talked about, but we'll go over in the demo, is that emissive materials actually do play a uh part inside of uh Lumen. You can actually have the emissive material, kind of what we showed in the demo in the previous video, the emissive material actually will affect the world around it, which is really good to have because you don't need a light in that case. But, because these materials are being injected, they're not calculating information that like a light would. So, it's just trying to approximate the light information and the shadow information, but it's not going to be as good. So, it's going to be a lot more noisy. So, you might get more injections of noise because of having these emissive materials, you know, being um effective in the world itself.
+
+And, you know, the last bit is Lumen is great for cinematics and immersive environments because it's reactive and...
+
+===== lumen_chunk2_out.txt =====
+...move really well. You can actually create really great cinematics with something like this. But again, now the problem with Lumen is: it's expensive. You cannot use it for mobile, it's very hard for VR, and again, it's very performance-sensitive. So you have to make sure that you know what you're using with something like this. So, it's kind of best to think about a lot of these pros and cons for Lumen.
+
+Now, some tips that we can actually use are, of course, avoiding very bright emissive materials for scenes, especially if they're really small, because they create more noise. So, let's try and use more lights where we can. Just like we talked about, keep the geometry thickness reasonable, especially for your modular pieces like walls and ceilings. Thin meshes will actually have light leaks, which is not good. Be very careful鈥攋ust like we talked about in the previous video鈥攄on't use too many lights in your scene, because that will lead to a problem. Too many dynamic lights, too many overlapping ones, can be very, very expensive very quickly. One other good thing is that you can also lower down reflection quality, because reflections sometimes don't have to always be perfectly one-to-one shiny. They could be a little lower resolution, because you can apply some sort of noise or roughness to the surface to kind of assume like they can't really tell the difference. We used to do that a lot with the reflection captures that we would do for scenes. Sometimes you actually would look and you don't see real-time reflections, but you would just see like a general, blurry approximation of what the surface looks like from before. We would do that a lot. I would actually even take photos from鈥攍ike if I'm doing an interior of a scene, I would just make a blurry version of our office on the inside. So, little things like that. Of course, reduce unnecessary material complexity. Heavy, layered shaders, translucency, overdraw can compound a lot of lighting for Lumen, so just kind of things to think about in your scenes. If you're using a lot of Lumen, then it might not be good to have a lot of particles, or VFX, or even, again, high-end materials. So, there's always going to be some sort of give-and-take no matter what. Yeah, I think a lot of these are pretty standard stuff to think about. Just the little things to know about like the thickness and thinness for light leaks, understanding that, you know, having emissives in your scene鈥攂ecause we haven't really talked too much about emissive materials, but knowing that especially if they are able to be injecting information into the scenes, that might be good to think about as we're working on this stuff. But with that, we can now hop into Unreal Engine and quickly demo a little bit more about Lumen and to make sure how we're using Lumen effectively.
+
+OK, so now that we're inside of Unreal Engine, let's actually go over kind of what Lumen is and how we can actually use it to make the changes that we need to get our scenes to look just as good. So first off, let's quickly go over the settings we need to make sure of to know that we're using Lumen.
+
+So, if we go into our project settings, and if you go鈥攆irst off, just also one thing to make sure of, let's type in SM6. And the one thing you need to make sure of is you need to have, for DirectX 12-based shader formats, you need to make sure you have SM6 or shader model 6 turned on; we need that necessarily. If you're using Vulkan as your graphics processing, then of course enable these guys, though if I click on them, most likely it will say, "Hey, you need to recompile your shaders." So, let's not worry about that.
+
+But besides that, let's go into the rendering section. And all we need to go to first off is, of course, right here: Global Illumination. What is our option? Lumen. You can go in here, you can change it to anything else, like Screen Space, which is cheaper to use. It will use the screen space, which, you know, I think we've talked a little bit already what screen space is. Again, it is what is in frame of the camera that we are using to render鈥攚hether it's the POV of the player, or the third-person camera, or even one of these static rendered cameras that we're using for our environment. That is the screen space that we're using. So you can use that, or Screen Space. Again, Screen Space is going to be cheaper. Or plugin-based global illumination calculation鈥攕ome people have actually created their own, you can actually use as a plugin that you can install later on鈥攐r you can just have it turned off. Again, just make sure Lumen is your base. Same thing with your reflection, we set it to Lumen as well.
+
+Then, of course, here are some of the Lumen settings that we can actually use鈥攚hich, do not worry, we can actually change these later on. These are just the defaults that we're working with. So, right here is, of course, using ray trace hardware when available, have that checked on. That allows us to actually use hardware-ray-traced Lumen global illumination captures. So, have that turned on if we want to. And then the ray lighting mode is again basing off of what are we using for the global illumination and reflection aspect. Surface Cache is going to be for the software one, which is going to be cheaper, and then the hit lighting is going to be for your hardware ray tracing. Now, this one will only use for the reflections, and not for the actual global illumination part. So this will be cheaper than this one, but it will still be more expensive than this one. And then if you want both for reflections and global illumination, then you use this one right here.
+
+Next is, of course, turning on software ray tracing mode, which of course we want to have because we need it. And also, what type to use, because there's two types: there's global tracing, and there's detail tracing for our software ray tracing mode. What global is, is that the basis of using software ray tracing is distance fields. Well, you can have an approximated distance field for the entirety of the scene that's been kind of essentially atlas-ed together as one. That would be a lot cheaper; that's what global tracing does. But in our case, maybe we want more detail work to use. We would probably want to use the individual assets' distance fields. So you would use detail tracing instead. This will give you a lot more accuracy, but will be a little bit more costly overall. Then of course, screen tracing will tell us how we want to calculate the information: scene color or anti-aliased scene color with translucency鈥攚hich, in this case, is like if you have subsurface scattering calculations as well, those would be brought up with translucency, also glass, too. Outside of that, you can also have ray-traced translucent reflections. And then, the last thing is just making sure that again, we're using Lumen, so we don't need static lighting. We'll make sure we turn off allow static lighting. That makes it a lot easier to use. And outside of that, I think that should be it.
+
+So let's close this, and now we can actually go into our scene and take a look. So my scene's actually pretty straightforward. It's a directional light, which is what we have right here. That's what casts these primary lights and shadows. And then, the color that we see here is using rectangle lights. Now, all together, there's 11 lights in the scene, which, you know, can be a little expensive, especially if it's like a singular hallway. So, I might want to think about a different type of solution to use for something like this. Now, the most accurate method would be using forward rendering methods, where in this case, we can't use that because we're using Unreal Engine. But a forward renderer will allow you to use鈥攅ssentially, how the difference between the two is, deferred renderer has the lighting pass separate from the main kind of rendering pass of like your color, normal, ambient occlusion鈥攍ike all those render passes are separate from the lighting pass itself. They're calculated separately. Forward has them together; lighting is rendered at the same time as these rendering passes are. Because of that, you can actually calculate color through the lighting pass. But in this case, we can't, because in this example scene in the hallway, how the lighting color comes from typically in the real-world version of this is, the windows are colored. And because they're colored, the light casts through the colored glass and gives you this projection of color, almost like a stained-glass window. But with deferred renderers, we can't use that because the light that's going to pass through the glass will not gain that color because it's separated from the passes themselves. So, we can't use that. In my case, I'm using these rectangle lights that will allow me to generate the color without the need for the use of like a glass medium, essentially. So, in our case, you know, we could use this. But if I want to remove these guys鈥攚hich, hey, let's turn them off. Hey, Lumen, guess what? Dynamic turns it all off, and it's all accurate. With this gone, how do I get those colors back? Well, you could probably easily do a change to like the material itself, maybe have something more of like a vertex color type of thing to mimic these cast color shadows and stuff. So, we...
+
+===== lumen_chunk3_out.txt =====
+You can use something kind of like that in order to cheat the look, if I if I need to make this look like it is in the game. And then still have like the single light in here, which is good to have. But again, ideally you don't want to have too many overlapping lights in your scene. That's one thing I'll say. So outside of this, you know, this is our scene.
+
+And one thing you want to also note about your scene when it comes to Lumen is sometimes depending on your viewport settings, you may not see Lumen acting proper. And it's because Lumen is based on your viewport scalability, aka like the low, medium, high, epic, cinematic quality of things. If you do not have high in at least the global illumination and the reflections portion, you will not see Lumen. Like if I turn this to medium or even like low, well probably medium, you'll see this. And this is not casting any global illumination at all. That's why the shadows are dark. But if I, you know, want to, I can keep everything here medium, and then go to this and this, that will allow me to actually have global illumination and reflections from Lumen calculated for me, which is really nice to have.
+
+Now, one thing I do want to note is Unreal 5.1, I believe it's in beta technically, but when 5.1 does come out, they've actually added a medium quality version of Lumen to use. So you can actually use a much more lower quality version of this, and still get somewhat accurate dynamic lighting. You can, you know, think of it almost like, hey, if they're trying to do Lumen from Unreal Engine 5 for like Nintendo Switch, you probably can get away with that for that. Or even maybe for some high-end mobile phones, like maybe like an iPhone Pro or something, you could probably get away with something like that. But in our case, we can only go up to the high-end of things. So, just bring it back, or you can go up to epic quality. So having that on at least high will give you the Lumen stuff. But let's actually see how this stuff looks in action in our scene. And let's turn back on my lights. And as you can see, the way things are reflecting and stuff, it's definitely not calculating how we would probably want.
+
+So let's go to the post-process volume and see what's happening, cuz I've also kind of changed some things. So first off, let me turn all of this down just so you can kind of see how all of this works, which again, which is really cool. Cuz in the post-process volume, you would think that it's only just like simple filters and stuff. But no, you can actually change the way your scenes actually look just from the post-process volumes themselves. So in here, you can override those settings that we had set up originally here in the project settings. You can go in here, and you can of course change one, if you're going to use Lumen, or if you're going to use, say, a screen space based effect, which will give you a cheaper kind of version of the scene, but it will still give you something to work with nonetheless. So we can also go back here and see Lumen. You can also, of course, inject screen traces, which is that thing that takes the depth and color from those passes and actually injects them into the global illumination calculation, which will kind of help with, you know, hiding a lot of the little issues and errors that we might see in the scene. And you see that as I inject it, you can see that the color does change, giving a much more accurate reflection. Same thing like if I do it here, you'll see that it will actually help add just a little bit more injection of lighting from the scene color and data, which is really nice to have. Gets rid of any like weird shadows that might pop up.
+
+Now, I could even also go into here and change from Surface Cache to those other methods. Here, to actually visualize this, just like how we had looked at in those slides, you can see the difference between the hardware ray tracing versus the software ray tracing with those two looks, you can actually view that here as well. So if we go to your Lit mode, which you can see other kind of view modes in your viewport, if you go down to Lumen, you can see Lumen Scene. And as you can see, this is kind of what the Lumen data is going to look like. You can even take a look also here and see like the Surface Cache of everything. Like, what the color and lighting actually is going to be. So all of this information is being calculated using like the cheap distance field geometry and the very rough version of the lighting itself. It's flickering a ton, which is, again, understandable. It's trying to, in real time, calculate 60 frames every single second. So it's a lot of like flickering of dynamic data. If we go back to here, let's go back to Lumen Scene.
+
+And if I change this guy from Surface Cache to first, Hit Lighting and Reflections, it still is, you know, you know, using a different a distance field now. But it's still trying to calculate the reflections a little bit differently from the lighting. Then if I just use the actual lighting, then it's using both data. It's not going to be as harsh. So this is the most expensive. This is actually now using, not software ray tracing, but hardware ray tracing. That's what happens when we use this. That's why you see it looks a lot more accurate geometry-wise, because we're using something like that. So this controls the difference between software to hardware. And that will make a difference performance-wise, because software, of course, is the cheaper version versus the hardware ray tracing part.
+
+Going back to the software aspect of it. To see what it's going to be using for information, like this tells us kind of generally what it will look like. But to kind of see even what the like distance field part of it. This actually you can view here. So if you go to visualize, you can actually visualize the Mesh Distance Fields of your scene. Here, if I go outside of this, you'll be able to see this is the like the very rough version of the distance fields. Like, this is the data that they're using to calculate all of this information. It's coloring it and giving it a randomized color. But this is how they're going to try to use the data for for your software ray tracing. So let's go back to default. And let's go back into the Lumen stuff.
+
+So you can, of course, make those changes as you want. Like if we go into here, change that, or change it to Hit Lighting. It's totally up to you on that one. And of course, there are other things that we can also do to help with our scene. Because if we go back to our scene, you know, you see there's just, you know, a bunch of randomized little speckles here and there. You know, there's a couple of things that we can try to do to help get rid of these speckles. But no matter what, they're there. Um, you know, again, one thing to note, my scene does not actually have like full like a full material. Like these are just like flat materials. Like if I were to go somewhere into here and give like this surface, like a material that actually has like rough shapes to it, like a cobblestone or pebble stone or something like that, it's not going to be as noticeable because there's already a, you know, normal map, there's color data, there's information to it. It's going to hide a lot of that speckling and noise that might be happening on here. But if you have flat planar surfaces, it's going to be a lot more noticeable. So that's kind of like one thing you can do to help with this, is just making sure that you don't have too many of these like flickering and shimmers and stuff.
+
+The other thing you can do is, outside of that, there are settings that you can change in here as well. So for like if you're having issues with the global illumination part, like these guys, if you want to help make sure that you have like higher quality, not as much blotchiness or things like that, we can actually make changes to the scene by messing around with the Lumen Scene High Quality Level. So if you want to bump this up to like a two or even a four, this will help with like trying to soften the splotches, like if you have like dark splotches because there's not a lot of light information, that could help. You can also go to your reflections, if your reflections are too noisy and too sparkly, then you can go down here, of course change this to High Quality Translucent Reflections if you have glass, but you can go down to Quality and change this to maybe a two or a four as well. Again, the higher these numbers go, the more expensive the scene is going to be to render. So just, you know, you want to make note of that. If you're having issues with some of the geometry itself, say for like global illumination, you can actually adjust the quality of Lumen as well by using this other detail right here, Lumen Scene Detail. So, the higher this number goes, it will actually control if there's any flickering or GI because of how small some of the geometric details are. So, this guy can also be brought up to like a higher number as well to fix those things. Then of course, screen traces, that's going to help fill in a lot of the gaps too just to make sure you don't have any weird issues. But ideally, you just need to make sure, you know, you not have like issues like, hey, I don't want to have thin surfaces, again, like I mentioned.
+
+===== lumen_chunk4_out.txt =====
+tioned, when you're working on the geometry 
+aspect of your scenes, you don't want to 
+have anything less than like 20 to 25 centimeters 
+of thickness for even like your surfaces. Um, 
+maybe try to not use super glossy looking surfaces. 
+So, anything that's like almost like a mirror 
+may not be best to have like a super duper 
+shiny like material surface. Like this guy is I 
+think .25 to .30, and even he can have like 
+a little bit of noise going on there. But 
+having texture, whether it's not even just a 
+flat value, but like just a little bit of 
+roughness, noise, or grunge, will definitely help hide 
+a lot of that noise that can be happening 
+on your surfaces as well, too.
+
+Now, the kind of last little things I wanted 
+to talk about, of course, is, you know, 
+with Lumen, it allows us access to actually using 
+your materials for properties of light, as well. Like 
+if I were to go in here, grab a 
+plane, and I actually, you know, made a 
+material before this, it's uh, something I got 
+I like from Destiny. It's uh, I remade 
+a banner from, I believe it's Titan, the 
+the moon from Saturn. But I love this like 
+kind of weir kind of, you know, psychedelic 
+in a weird way, but it's also just 
+like really cool. Also, you know, for any 
+of you Guardians out there, and yeah, it's 
+a sad day because Destiny, you know, they're 
+not uh continuing the service for Destiny 2. 
+I know it's a sad time for all 
+of us. But this allows you to see the 
+light actually being calculated for your scene, as well. 
+
+So this is one thing you want to make 
+note of is that, you can use this, 
+but don't try and use like too powerful 
+of a material. Like use emissive when you need 
+to, but don't use it too much. 
+Um, looks like I had a little bit of 
+a detail issue here. Like right now he's 
+set to like 5. But if I set 
+him to like 50, he's going to 
+be probably too bright. And like that's just 
+a lot of lighting to use on here. Which, 
+which is really good is that, even though he's 
+off-screen right now, the screen space steps built 
+pretty well, so that you can actually see that 
+it's actually affecting everything else around it. 
+
+But 
+another little fun trick is, hey, this is a 
+plane that's using um double-sided. So do you 
+see how it's like not rendering anything here? 
+It's because it doesn't render anything like this. 
+And because now that it's not rendering technically, 
+the lighting has changed because from this angle, we 
+don't see anything actually render. Though even though 
+you get a little close, it does look a 
+little different. It's just technically we're very 
+close to this material. So, little thing to 
+kind of show you the whole screen space effect 
+actually at work.
+
+But, use it just enough 
+to create a simple emissive surface, but don't 
+try and use it for small surfaces. Don't 
+do tiny little spots. Like try and use large 
+emissive surfaces, nothing too tiny. But, you know, 
+just to note also, because of how like planar 
+and flat my surfaces are, you can actually notice 
+the accumulation that's happening on Lumen trying to 
+update. And again, it's still having its work 
+being done. But, this is one thing you 
+want to make note of that, if you have 
+flat surfaces like this, it's going to be 
+very noticeable. But, if we try to swap 
+out for like a different kind of material that 
+has a little bit more surface to it, 
+it may not be as noticeable to see. So, 
+always try and actually have some texture on your 
+surfaces if you can, because Lumen, you'll notice 
+that stuff, especially when you're moving or testing 
+something in frame. So, these are things that 
+you want to make note of as you're 
+working on your scenes.
+
+But, for the most 
+part, this is Lumen. Um, just kind of 
+reiterate some things, again. There's two types 
+of Lumen. There is the um software-based and 
+the hardware-based. Software is the cheaper method that 
+relies on things like distance fields to help with 
+the calculation. Hardware ray tracing, which uses more of 
+a cached planar surface of information that's saved 
+on the mesh, and doesn't use the 
+distance field, but uses the actual mesh itself to 
+handle the calculations. That's a little bit more 
+expensive and only works if you have ray tracing 
+enabled graphics cards. And if you don't have 
+one of those, then you can't really use 
+the hardware aspect of it anyways. You have to 
+use at least high quality in your viewport to 
+use any of these really cool and interesting kind 
+of effects.
+
+Also, to note that, besides the 
+distance fields and the surface caching, um you just 
+want to understand that Lumen calculates not just for 
+lighting, but for reflections themselves. Um, try to 
+use less lights themselves, just because the more lights 
+you have, the more things have to be 
+calculated. With this dynamic system, you don't really 
+need much to light the scene. Like right now, 
+I just have the directional light and just this 
+plane. I don't even have a skylight in 
+the scene. So in the previous video when I 
+showed how to do a skylight to fill in 
+the gaps, I'm not even using even that. 
+So, you don't really need much to work 
+with. Just use what's necessary for your scene. 
+And don't be like me who has 10 
+rectangle lights just to kind of fill in this 
+extra kind of lighting information on top. It's 
+definitely not needed on here.
+
+But, you know, 
+again, this is just because I was trying to 
+render a specific type of effect. So, only use 
+small lights where you can. Um, you know, 
+if you have to use certain lights, try and 
+use the more cheaper ones. Uh, spot lights 
+are really cheap. Point lights are a little more 
+expensive. Those technically render, you know, six spot 
+lights if you want to think about it. And 
+of course, rectangle lights are like area lights, so 
+they're essentially almost like three to four spot lights 
+technically because of how they render, so they can 
+be a little expensive. Um, and then directional 
+lights are a lot cheaper, too. They're technically 
+like a single directional light, they don't really 
+move in omnidirectional, it's just singular distance. So, 
+if you can try and get away with using 
+a directional light where you can, and then use 
+spot lights, that's probably your best bet to 
+get something like this. But, if you need 
+to use a point light, then try and use, 
+you know, as minimal as you can.
+
+Also, 
+try not to just only light with emissive materials. 
+Even though the cost is covered with Lumen, and 
+not calculated technically as a light, it's still 
+a material calculation, so the draw call itself will 
+be a, a cast on there, and there 
+will be some information being brought on there. And 
+it's not a lot of information, so you 
+might get kind of shadow speckling because of how 
+Lumen's trying to understand. Because materials alone will 
+not give you enough information for your light to 
+render, because it doesn't render exactly like how 
+a light actor should. So, it's not going 
+to really understand very well. So, use a 
+light actor with emissive materials if you can, like 
+this. Though you will still see some flickering like 
+what's going on here. Again, try and use 
+some texture on your walls, like actual materials, and 
+not just like flat planar colors that have no 
+normal information, no roughness information, no nothing. Try 
+and use something like that. But, yeah, this 
+is kind of some basic information that you want 
+to have.
+
+Also, just a good small little 
+thing before we go. Um, if you feel 
+like maybe your scene requires or needs a little 
+of ambient occlusion that's missing, it's mostly because 
+with Lumen, Lumen calculates ambient occlusion through their global 
+illumination system, as well. But sometimes theirs doesn't 
+really calculate anything. So, if you want to 
+try screen space ambient occlusion, you can enable screen 
+space ambient occlusion by doing two things. And I'll 
+put it in the description, as well. If 
+you want to use SSAO, which is screen 
+space ambient occlusion, you go right here, and you'll 
+set it in the cvar command to 1. 
+
+That turns on SSAO, but we need to 
+turn off the Final Gather component of our global 
+illumination ambient occlusion. So, if we type in 
+short range, and you go to ScreenProbeGather ShortRangeAO, 
+and we set this guy to 0, this 
+turns on screen space ambient occlusion. If you feel 
+like you like having this kind of shadow information 
+on here, it's good. And also, you 
+can control it through here. So, if you 
+go down to ambient occlusion now, you can click 
+on intensity, and you can actually control the intensity. 
+You can change the radius values to use more 
+of a world space calculation versus just trying to 
+screen space calculate it. And you can bump up 
+things like the quality, if you feel like you 
+need to, you know, blend it a little 
+bit better, control the power a little bit more 
+or less, you can control it a lot more 
+with this post-process value.
+
+Now, one thing 
+to note, because it's a cvar, it 
+will only work in the current scene. When you 
+close out the scene or you go to a 
+different scene, it will not work. If you 
+want to make it permanent, you have to actually 
+go into the Engine.ini file of your project, 
+and actually add the two cvars themselves into the 
+DefaultEngine.ini file. So, these are little things 
+you want to think about. Just want to add 
+that little tiny thing in here since we're 
+talking about Lumen, anyways.
+
+But, in the 
+next video, we're going to go over the 
+last bit of lighting, which is baked lighting. So, 
+we'll go over how this system works against 
+baked lighting, but also how baked lighting is also 
+good against Lumen, as well. So, let me 
+know um how you feel about this in the 
+comments. But, yeah, thank you guys so much.
