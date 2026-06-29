@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5 Cook 流水线源码分析 — 互动式面试卡牌</title>
+<style>
+  :root {
+    --bg:#f5f5f0; --card-bg:#fff; --primary:#3a5a7c; --accent:#6b9e75; --accent-wrong:#c45c5c;
+    --text:#2c3e50; --text-light:#5d6d7e; --border:#d0d5dd; --shadow:rgba(0,0,0,0.08);
+    --drop-zone:#eef2f7; --draggable:#f0f4f8;
+    --status-correct:#e8f5e9; --status-wrong:#fce8e8; --status-unanswered:#f8f9fa;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+  header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.8rem}
+  header h1{margin:0;font-size:1.3rem;font-weight:500}
+  header p{margin:0.2rem 0 0;opacity:0.85;font-size:0.85rem}
+  .header-left{flex:1;min-width:260px}
+  .header-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
+  .header-btn{padding:0.5rem 1rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.2s;font-size:0.88rem;text-decoration:none;display:inline-block}
+  .header-btn:hover{background:rgba(255,255,255,0.25)}
+  .container{max-width:820px;margin:0 auto;padding:1.5rem}
+  .nav-tabs{display:flex;gap:0.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+  .nav-tab{flex:1;min-width:90px;padding:0.6rem 0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.85rem;transition:all 0.2s;color:var(--text-light)}
+  .nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+  .nav-tab:hover:not(.active){background:var(--drop-zone)}
+  .score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.6rem;flex-wrap:wrap}
+  .score-mini{font-size:0.85rem;color:var(--text-light);white-space:nowrap}
+  .score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+  .progress-text{text-align:right;font-size:0.8rem;color:var(--text-light);margin-bottom:0.3rem}
+  .progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+  .card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:26px;font-size:0.8rem;font-weight:600;margin-right:0.5rem}
+  .card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5}
+  .q-type{font-size:0.75rem;color:var(--text-light);background:#eef2f7;padding:2px 8px;border-radius:4px;margin-left:0.4rem}
+  .drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem}
+  .drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all 0.2s;padding:0 6px;font-size:0.95rem}
+  .drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+  .drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8;cursor:pointer}
+  .drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+  .drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+  .drop-zone.correct .dropped-text{color:var(--accent)}
+  .drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+  .drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.8rem;background:var(--drop-zone);border-radius:8px}
+  .draggable{padding:0.4rem 0.9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all 0.15s;font-size:0.92rem}
+  .draggable:hover{background:#dbe4ee;border-color:var(--primary);transform:translateY(-1px)}
+  .draggable.used{opacity:0.35;cursor:default;pointer-events:none}
+  .options-list{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.0rem}
+  .option{padding:0.7rem 1.0rem;background:var(--card-bg);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.6rem;font-size:0.95rem;line-height:1.45}
+  .option:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .option.selected{border-color:var(--primary);background:#e8f0f8}
+  .option.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .option.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:600;flex-shrink:0;background:#fff}
+  .option.selected .opt-marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .option.correct-mark .opt-marker{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+  .tf-options{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.0rem}
+  .tf-btn{padding:0.9rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;transition:all 0.15s;font-size:0.95rem;text-align:center}
+  .tf-btn:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .tf-btn.selected{border-color:var(--primary);background:#e8f0f8}
+  .tf-btn.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .tf-btn.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .feedback{margin-top:1.0rem;padding:0.9rem 1.1rem;border-radius:8px;background:#f0f4f8;border-left:3px solid var(--primary);font-size:0.92rem;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback.feedback-correct{border-left-color:var(--accent);background:#e8f5e9}
+  .feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:#fce8e8}
+  .feedback-title{font-weight:600;margin-bottom:0.3rem;display:block}
+  .feedback ul{margin:0.4rem 0 0 0;padding-left:1.2rem}
+  .feedback li{margin-bottom:0.3rem}
+  .action-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1.0rem}
+  .btn{padding:0.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:0.9rem;transition:all 0.15s}
+  .btn:hover{background:var(--drop-zone);border-color:var(--primary)}
+  .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn-primary:hover{background:#2c4661;border-color:#2c4661;color:#fff}
+  .btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn-accent:hover{filter:brightness(0.95)}
+  .nav-row{display:flex;justify-content:space-between;margin-top:0.8rem;gap:0.6rem}
+  .overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .overview-panel.show{display:block}
+  .overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:0.5rem}
+  .overview-header h2{margin:0;font-size:1.15rem;font-weight:500}
+  .overview-stats{display:flex;gap:0.5rem;flex-wrap:wrap}
+  .filter-btn{padding:0.4rem 0.8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.82rem;transition:all 0.15s}
+  .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .filter-btn:hover:not(.active){background:#dbe4ee}
+  .overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem}
+  .overview-item{aspect-ratio:1;border-radius:8px;background:var(--status-unanswered);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;font-size:0.78rem;text-align:center;padding:0.2rem}
+  .overview-item.correct{background:var(--status-correct);border-color:var(--accent)}
+  .overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong)}
+  .overview-item:hover{transform:scale(1.04);box-shadow:0 2px 8px var(--shadow)}
+  .overview-item .ov-num{font-weight:700;font-size:1.0rem;margin-bottom:0.1rem}
+  .overview-item .ov-type{font-size:0.65rem;opacity:0.75;text-transform:uppercase;letter-spacing:0.5px}
+  .hidden{display:none}
+  @media (max-width:600px){
+    .container{padding:1rem}
+    .card{padding:1.2rem 1.0rem}
+    header{padding:1rem}
+    header h1{font-size:1.1rem}
+    .nav-tab{font-size:0.78rem;padding:0.5rem 0.3rem}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>UE5 Cook 流水线源码分析 — 互动式面试卡牌</h1>
+    <p>UE 5.3/5.4/5.5 · 共 12 题（拖拽 3 + 单选 3 + 多选 3 + 判断 3）· 配套笔记：<a class="header-btn" href="UE5-Cook-流水线源码分析.md" target="_blank">打开分析笔记</a></p>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" id="btn-overview">📊 题目总览</button>
+    <button class="header-btn" id="btn-reshuffle">🔀 随机打乱</button>
+    <button class="header-btn" id="btn-reset-all">🔄 重置全部</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-type="all">全部</div>
+    <div class="nav-tab" data-type="drag">拖拽填空</div>
+    <div class="nav-tab" data-type="single">单选题</div>
+    <div class="nav-tab" data-type="multi">多选题</div>
+    <div class="nav-tab" data-type="tf">判断题</div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-mini">已答 <span class="score-num" id="answered-num">0</span> / <span id="total-num">12</span></div>
+    <div class="score-mini">正确 <span class="score-num" id="correct-num" style="color:var(--accent)">0</span></div>
+    <div class="score-mini">错误 <span class="score-num" id="wrong-num" style="color:var(--accent-wrong)">0</span></div>
+    <div class="score-mini">得分率 <span class="score-num" id="score-pct">0%</span></div>
+  </div>
+
+  <div class="progress-text" id="progress-text">第 1 题 / 共 12 题</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:8.3%"></div></div>
+
+  <div id="overview-panel" class="overview-panel">
+    <div class="overview-header">
+      <h2>题目总览</h2>
+      <div class="overview-stats">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="unanswered">未答</button>
+        <button class="filter-btn" data-filter="correct">正确</button>
+        <button class="filter-btn" data-filter="wrong">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <div id="q-container"></div>
+
+  <div class="nav-row">
+    <button class="btn" id="btn-prev">← 上一题</button>
+    <button class="btn" id="btn-next">下一题 →</button>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// UE5 Cook 流水线源码分析 — 12 题
+// 拖拽填空 × 3 + 单选 × 3 + 多选 × 3 + 判断 × 3
+// ============================================================
+
+// ---- 原始数据（深拷贝到 _orig，供 reshuffle 复用）----
+const _origDrag = [
+  {
+    sentence: "CookSinglePackage 的 4 个核心子阶段：① {0}（加载 Package）；② BeginCacheForCookedPlatformData（{1}）；③ {2}（★ 核心：触发 Shader 编译 + 纹理压缩）；④ SerializePackage（按目标平台写出）。",
+    answers: ["PreLoadPackage", "通知 UObject 进入 Cook 状态", "GenerateCachedPlatformData"],
+    pool: ["PreLoadPackage", "通知 UObject 进入 Cook 状态", "GenerateCachedPlatformData", "PostLoadPackage", "BeginDestroy", "SavePackage"],
+    perSlotAnalysis: [
+      "PreLoadPackage = 加载 Package 到内存（LoadPackage），但只加载不修改；为后续 BeginCache 准备。",
+      "BeginCacheForCookedPlatformData = 通知所有 UObject 进入 Cook 状态，触发派生数据准备（DDC 查询 / Shader Job 排队 / Texture 压缩）。",
+      "GenerateCachedPlatformData = ★ 核心 ★ — 调用 FShaderCompileManager::SubmitJobs（Shader 编译）和 FTextureCompressorModule::CompressImage（纹理压缩），把结果写回 PlatformData。"
+    ]
+  },
+  {
+    sentence: "Shader 编译调用链：UMaterial::CacheShadersForCooking → FHLSLMaterialTranslator::{0}（生成 HLSL） → FShaderCompileManager::{1}（提交 Job） → FShaderJobCache::{2}（去重） → DXC/FXC 实际编译 → FinishAllCompilation（阻塞等待）。",
+    answers: ["Translate", "SubmitJobs", "AddJob"],
+    pool: ["Translate", "SubmitJobs", "AddJob", "CompileSync", "CacheShader", "ProcessQueue"],
+    perSlotAnalysis: [
+      "FHLSLMaterialTranslator::Translate = 材质节点图 → HLSL 表达式树 → 每个 VertexFactory 派生的 Shader 频率组合，输出 FMaterialShaderMap。",
+      "FShaderCompileManager::SubmitJobs = 提交 Shader Job 到编译线程池（FShaderCompileThreadRunnable），不阻塞主线程。",
+      "FShaderJobCache::AddJob = 去重：相同输入（同 Shader Code + Defines）只编译一次，命中 DDC 直接返回。"
+    ]
+  },
+  {
+    sentence: "纹理压缩调用链：UTexture::BeginCacheForCookedPlatformData → UTexture::CompressSourceImage → FTextureCompressorModule::{0} → ITextureCompressor::{1}（选格式 BC/ASTC/ETC2 + 块压缩） → 写回 UTexture::{2}。",
+    answers: ["CompressImage", "CompressImage", "PlatformData"],
+    pool: ["CompressImage", "CompressImage", "PlatformData", "TextureSource", "LODGroup", "Resource"],
+    perSlotAnalysis: [
+      "FTextureCompressorModule::CompressImage = 纹理压缩模块主入口；选平台格式 + 调度压缩任务。",
+      "ITextureCompressor::CompressImage = 单 Compressor 实现（BC1/BC3/BC5/BC7/ASTC/ETC2），Mip 链生成 + 块压缩 + Z-order 排列。",
+      "UTexture::PlatformData = 存 Cook 后纹理数据的容器（FTexturePlatformData，包含 Mip 数组 + PixelFormat），序列化时写回 .uasset/.ubulk。"
+    ]
+  }
+];
+
+const _origSingle = [
+  {
+    question: "UE5 Cook 默认走哪种 I/O 后端写出 .pak？",
+    options: [
+      "A. 默认 PakFile（基于 FPakFile），5.3+ 仍为默认",
+      "B. 默认 IoStore（Zen Store），基于 FIoDispatcher + .utoc/.ucas",
+      "C. 默认裸文件系统（开发期）",
+      "D. 默认 HTTP 上传到 CDN"
+    ],
+    correct: 1,
+    analysis: [
+      "❌ 错误：PakFile 在 5.3 之前是默认；5.3+ 推荐 Zen Store 但不是默认。",
+      "✅ 正确：UE5 默认走 IoStore（Zen Store），写出 .utoc + .ucas + .pak；I/O 由 FIoDispatcher 异步调度，Cook 速度比旧 PakFile 快 30-50%。可通过 -io.store 命令行显式启用。",
+      "❌ 错误：-filehost 才是不写 Pak 直接 host 文件系统；默认是写出。",
+      "❌ 错误：Cook 不负责上传，仅写出本地 .pak/.utoc/.ucas。"
+    ]
+  },
+  {
+    question: "FShaderCompileManager 默认的线程数是多少？",
+    options: [
+      "A. 1（单线程，避免 GPU 驱动崩溃）",
+      "B. numCores / 2（保留一半核给其他任务）",
+      "C. numCores（占满所有核）",
+      "D. 自动检测 GPU 驱动决定"
+    ],
+    correct: 1,
+    analysis: [
+      "❌ 错误：ShaderCompile 默认是多线程的，不是单线程。",
+      "✅ 正确：默认 numCores / 2，保留一半核给 GameThread / Cook 主线程 / I/O。可通过 r.ShaderCompiler.MaxShaderJobBatchSize 调批大小，或直接编译期修改 Source/Runtime/Engine/Private/ShaderCompiler.cpp 的 GShaderCompilerThreadCount。",
+      "❌ 错误：占满所有核会让 Cook 主线程饿死，反而更慢。",
+      "❌ 错误：驱动不会动态调 ShaderCompile 线程数。"
+    ]
+  },
+  {
+    question: "Cook 速度瓶颈的 Top 1 是什么？",
+    options: [
+      "A. 纹理压缩（ASTC/BC7）",
+      "B. Shader 编译（FShaderCompileManager 排队 + DXC 编译）",
+      "C. AssetRegistry 全量生成",
+      "D. Pak 写出 I/O"
+    ],
+    correct: 1,
+    analysis: [
+      "❌ 错误：纹理压缩是 Top 2（20-40%），但不是 Top 1。",
+      "✅ 正确：Shader 编译是 Top 1（30-50%），因为每个 Material × 多个 VertexFactory × 多个 Quality Switch × 多个 Shader Platform 都生成独立 Shader Job；DXC 编译每个 Job 几十到几百毫秒，5000+ Asset 项目轻松累积几千 Job。解药 = DDC 命中 + 减少 Quality Switch + ShaderJobCache 去重。",
+      "❌ 错误：AssetRegistry 只在 BuildAssetRegistry 阶段跑一次（5-15%），不是 Top 1。",
+      "❌ 错误：Pak 写出是 I/O bound，Zen Store 后只占 5-10%。"
+    ]
+  }
+];
+
+const _origMulti = [
+  {
+    question: "Cook 命令的关键参数包括以下哪些？（多选）",
+    options: [
+      "A. -targetplatform=Windows/Android/iOS/...",
+      "B. -cookbythebook / -cookonthefly",
+      "C. -NumCookers=N（Worker 进程数）",
+      "D. -unversioned / -compressed / -zenstore",
+      "E. -MaxFPS=60（最大帧率）",
+      "F. -fastcook（牺牲质量的快速 Cook）"
+    ],
+    correct: [0, 1, 2, 3, 5],
+    analysis: [
+      "✅ A 正确：-targetplatform 必填，指定 Cook 目标平台（Windows/Android/iOS/Mac/Linux/PS5/XSX...）。",
+      "✅ B 正确：-cookbythebook（默认，离线 Cook 写 Pak）或 -cookonthefly（PIE 实时 Cook）二选一。",
+      "✅ C 正确：-NumCookers=N 启动 N 个 CookWorker 子进程，推荐 = 物理核数 - 2。",
+      "✅ D 正确：-unversioned（不带引擎版本）/ -compressed（Pak 压缩）/ -zenstore（IoStore 后端）都是 Cook 的常用旗标。",
+      "❌ E 错误：-MaxFPS 是 PIE 运行期的帧率上限，不是 Cook 参数。",
+      "✅ F 正确：-fastcook 是 UE 5.4+ 新增的快速 Cook 模式（牺牲质量换速度，适合迭代期）。"
+    ]
+  },
+  {
+    question: "Cook 流水线的关键瓶颈包括以下哪些？（多选）",
+    options: [
+      "A. Shader 编译（30-50%）：FShaderCompileManager::SubmitJobs + DXC 编译",
+      "B. 纹理压缩（20-40%）：FTextureCompressorModule::CompressImage（ASTC/BC7）",
+      "C. Nanite Build + Mesh Card（10-20%）：Nanite.Build + Lumen.BuildMeshCards",
+      "D. AssetRegistry 全量生成（5-15%）：FFullAssetRegistryGenerator::Build",
+      "E. Pak 写出 I/O（5-10%）：FPackageHarvester::WritePackage",
+      "F. PIE Tick + 帧渲染（>50%）：运行时开销"
+    ],
+    correct: [0, 1, 2, 3, 4],
+    analysis: [
+      "✅ A 正确：Shader 编译是 Top 1 瓶颈，每个 Material × VertexFactory × Quality Switch × Shader Platform 都生成独立 Shader Job。",
+      "✅ B 正确：纹理压缩是 Top 2，BC7/ASTC 单张 4K 纹理压缩几秒到几十秒；优化 = 改 BC3/BC1 + 减分辨率。",
+      "✅ C 正确：Nanite Build + Mesh Card 是 Top 3，对复杂 Mesh 是 10-20% 耗时（高精度 DAG + Encode + Mesh Card 描述生成）。",
+      "✅ D 正确：AssetRegistry 全量生成是 Top 4，主要在 BuildAssetRegistry 阶段跑一次。",
+      "✅ E 正确：Pak 写出是 Top 5，Zen Store 异步 I/O 把这部分降到 5-10%。",
+      "❌ F 错误：PIE Tick 是 Editor 运行期开销，不是 Cook 阶段；Cook 不渲染游戏帧。"
+    ]
+  },
+  {
+    question: "纹理压缩的平台格式映射正确包括哪些？（多选）",
+    options: [
+      "A. Windows（PC）→ BC1/BC3/BC5/BC7（INTEL ISPC TextureCompressor）",
+      "B. Android → ASTC_4x4/ASTC_6x6（ARM astcenc 库）",
+      "C. iOS → ASTC_4x4/ASTC_6x6（Metal 不支持 BC 格式）",
+      "D. WebGL → ETC2_RGBA/ETC2_RGB（WebGL2 强制要求 ETC2）",
+      "E. PS5 → BC7（统一格式，跨平台）",
+      "F. Switch → BC7（统一格式，跨平台）"
+    ],
+    correct: [0, 1, 2, 3],
+    analysis: [
+      "✅ A 正确：Windows PC 默认走 BC 系列（DX11/12 支持 BC1-BC7），由 INTEL ISPC TextureCompressor 库编码。",
+      "✅ B 正确：Android 默认 ASTC（ARM GPU 通用），由 ARM astcenc 库编码；Mobile Vulkan 也支持。",
+      "✅ C 正确：iOS 默认 ASTC（Apple GPU 自 A9 起原生支持 ASTC），BC 格式不被 Metal 支持。",
+      "✅ D 正确：WebGL2 强制要求 ETC2（WebGL1 不支持纹理压缩），由 Khronos etc2comp 编码。",
+      "❌ E 错误：PS5 不走 BC7（PS5 GPU 优化 BCn 但默认 ASTC 更高效），实际平台默认是 BC1-BC7 的子集。",
+      "❌ F 错误：Switch（NVN / Tegra X1）默认 BC 系列，不是 BC7。"
+    ]
+  }
+];
+
+const _origTF = [
+  {
+    question: "DDC（Derived DataCache）命中后，二次 Cook 可以提速 50-90%。",
+    answer: true,
+    analysis: "✅ 正确理解：DDC 缓存了 Shader/Texture/Mesh 的派生数据；命中后直接跳过 DXC/FXC 编译和 TextureCompressor 压缩，只做 AssetRegistry + Package Serialize。实测命中后二次 Cook 时间从 1-3 小时降到 5-15 分钟，提速 50-90%。❌ 常见误解：以为 Cook 慢就加 Worker，但 DDC 没命中时加 Worker 也会卡在 ShaderJobCache 的排队。\n\n**追问**：『那 CI 机器怎么保证 DDC 命中？』\n→ 配置 SharedDDCPath 指向 S3 / HTTP / NFS，团队共享同一份 DDC；首次构建冷 Cook 拉一次，二次构建直接命中。"
+  },
+  {
+    question: "CookByTheBook 和 CookOnTheFly 是同一个 Pipeline，只是参数不同。",
+    answer: false,
+    analysis: "✅ 正确理解：两者调用链不一样 — CookByTheBook 走完整流程（BuildAssetRegistry → CookSinglePackage 循环 → FinalizeAssetsAndPackages 写出 Pak/IoStore），CookOnTheFly 是 Live Server 模式（PIE 实时 Cook 单 Package），不写 Pak、不 Finalize。CookOnTheFly 用 FCookOnTheFlyServer 类，CookByTheBook 用 FCookByTheBookCoordinator。❌ 常见误解：以为只是参数不同。\n\n**追问**：『那 CookOnTheFly 在什么场景用？』\n→ 主要是 PIE（Play In Editor）实时 Cook + 部署到设备的 Live Cooking（设备连上 Editor 后实时拉取 Cooked 资产），不用等完整 Cook 完成。"
+  },
+  {
+    question: "NumCookers 越大 Cook 越快，所以推荐设为物理核数 × 2。",
+    answer: false,
+    analysis: "✅ 正确理解：NumCookers 不是越大越好 — 推荐值是物理核数 - 2（或 numCores / 2）。原因是每个 CookWorker 是独立 UE 进程，有自己的 ShaderCompile / TextureCompressor / RHI / DDC 客户端，太多 Worker 会触发：① DDC Server 连接数限制；② 共享 DDC 网络带宽饱和；③ 物理核抢占反而更慢。❌ 常见误解：以为并行度越高越快。\n\n**追问**：『那最佳配置怎么定？』\n→ 经验值：物理核数 - 2（如 32 核 → 30 Worker）；高 DDC 命中率时 Worker 可减少（4-8 个），低命中率时反而加 Worker（并行 IO + ShaderCompile）；建议先跑默认 + Insights，看主进程和 Worker 各自 CPU 占比再调。"
+  }
+];
+
+// ---- 当前可打乱的数据（运行时数组，会被 reshuffle 修改）----
+let dragQuestions = JSON.parse(JSON.stringify(_origDrag));
+let singleQuestions = JSON.parse(JSON.stringify(_origSingle));
+let multiQuestions = JSON.parse(JSON.stringify(_origMulti));
+let trueFalseQuestions = JSON.parse(JSON.stringify(_origTF));
+
+const allQuestions = [
+  ...dragQuestions.map((q,i)=>({type:'drag', index:i})),
+  ...singleQuestions.map((q,i)=>({type:'single', index:i})),
+  ...multiQuestions.map((q,i)=>({type:'multi', index:i})),
+  ...trueFalseQuestions.map((q,i)=>({type:'tf', index:i}))
+];
+
+let currentQ = 0;
+let currentType = 'all';
+let overviewOpen = false;
+let overviewFilter = 'all';
+let answeredSet = new Map();
+
+function qKey(type, idx) { return type + '_' + idx; }
+function getTotal() { return allQuestions.length; }
+function getFilteredIndices() {
+  if (currentType === 'all') return allQuestions.map((_,i)=>i);
+  return allQuestions.map((q,i)=>q.type===currentType?i:-1).filter(i=>i>=0);
+}
+
+function getCurrentQDef() {
+  const def = allQuestions[currentQ];
+  if (def.type === 'drag') return { def: dragQuestions[def.index], type: 'drag', num: def.index+1, typeLabel: '拖拽填空' };
+  if (def.type === 'single') return { def: singleQuestions[def.index], type: 'single', num: def.index+1, typeLabel: '单选题' };
+  if (def.type === 'multi') return { def: multiQuestions[def.index], type: 'multi', num: def.index+1, typeLabel: '多选题' };
+  return { def: trueFalseQuestions[def.index], type: 'tf', num: def.index+1, typeLabel: '判断题' };
+}
+
+function setAnswered(type, idx, result) {
+  answeredSet.set(qKey(type, idx), result);
+  updateScoreBar();
+  updateOverviewGrid();
+}
+
+function updateScoreBar() {
+  const total = getTotal();
+  let correct = 0, wrong = 0;
+  for (const v of answeredSet.values()) {
+    if (v === 'correct') correct++;
+    else if (v === 'wrong') wrong++;
+  }
+  const answered = correct + wrong;
+  document.getElementById('answered-num').textContent = answered;
+  document.getElementById('correct-num').textContent = correct;
+  document.getElementById('wrong-num').textContent = wrong;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  document.getElementById('score-pct').textContent = pct + '%';
+}
+
+function updateProgress() {
+  const filtered = getFilteredIndices();
+  const pos = filtered.indexOf(currentQ);
+  const total = filtered.length;
+  document.getElementById('progress-text').textContent = `第 ${pos+1} 题 / 共 ${total} 题`;
+  document.getElementById('progress-fill').style.width = (total > 0 ? ((pos+1)/total)*100 : 0) + '%';
+  document.getElementById('total-num').textContent = total;
+}
+
+function updateOverviewGrid() {
+  const grid = document.getElementById('overview-grid');
+  grid.innerHTML = '';
+  allQuestions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'overview-item';
+    const status = answeredSet.get(qKey(q.type, q.index));
+    if (status === 'correct') div.classList.add('correct');
+    else if (status === 'wrong') div.classList.add('wrong');
+    if (i === currentQ) div.style.outline = '3px solid var(--primary)';
+
+    if (overviewFilter === 'unanswered' && status) { div.style.display = 'none'; return; }
+    if (overviewFilter === 'correct' && status !== 'correct') { div.style.display = 'none'; return; }
+    if (overviewFilter === 'wrong' && status !== 'wrong') { div.style.display = 'none'; return; }
+
+    const typeMap = { drag: '拖', single: '单', multi: '多', tf: '判' };
+    div.innerHTML = `<div class="ov-num">${i+1}</div><div class="ov-type">${typeMap[q.type]}</div>`;
+    div.onclick = () => {
+      currentQ = i;
+      renderQuestion();
+      toggleOverview(false);
+    };
+    grid.appendChild(div);
+  });
+}
+
+function toggleOverview(force) {
+  const panel = document.getElementById('overview-panel');
+  if (typeof force === 'boolean') {
+    overviewOpen = force;
+    panel.classList.toggle('show', force);
+  } else {
+    overviewOpen = !overviewOpen;
+    panel.classList.toggle('show', overviewOpen);
+  }
+  if (overviewOpen) updateOverviewGrid();
+}
+
+function renderDrag(def) {
+  const container = document.getElementById('q-container');
+  const parts = def.sentence.split(/(\{\d+\})/g);
+  let slotsHTML = '';
+  let slotIdx = 0;
+  for (const p of parts) {
+    const m = p.match(/^\{(\d+)\}$/);
+    if (m) {
+      slotsHTML += `<span class="drop-zone" data-slot="${slotIdx}" data-empty="true">　</span>`;
+      slotIdx++;
+    } else {
+      slotsHTML += p;
+    }
+  }
+
+  const shuffled = [...def.pool].sort(()=>Math.random()-0.5);
+  let poolHTML = '<div class="drag-pool">';
+  for (const term of shuffled) {
+    poolHTML += `<div class="draggable" draggable="true" data-term="${term}">${term}</div>`;
+  }
+  poolHTML += '</div>';
+
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.sentence.replace(/[{}]/g,'').substring(0,40)}…<span class="q-type">拖拽填空</span></h3>
+      <div class="drag-sentence">${slotsHTML}</div>
+      ${poolHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+
+  const fillState = Array(def.answers.length).fill(null);
+  const draggables = container.querySelectorAll('.draggable');
+  const dropZones = container.querySelectorAll('.drop-zone');
+
+  draggables.forEach(d => {
+    d.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', d.dataset.term);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+
+  dropZones.forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const term = e.dataTransfer.getData('text/plain');
+      const slot = parseInt(zone.dataset.slot);
+
+      const sourceDraggable = Array.from(draggables).find(d => d.dataset.term === term);
+      const existingSlot = fillState.indexOf(term);
+      if (existingSlot >= 0 && existingSlot !== slot) {
+        fillState[existingSlot] = null;
+        const oldZone = container.querySelector(`[data-slot="${existingSlot}"]`);
+        oldZone.textContent = '　';
+        oldZone.dataset.empty = 'true';
+        oldZone.classList.remove('filled', 'correct', 'wrong');
+      }
+      fillState[slot] = term;
+      zone.innerHTML = `<span class="dropped-text">${term}</span>`;
+      zone.dataset.empty = 'false';
+      zone.classList.add('filled');
+      zone.classList.remove('correct', 'wrong');
+      if (sourceDraggable) sourceDraggable.classList.add('used');
+
+      hideFeedback();
+    });
+
+    zone.addEventListener('click', () => {
+      if (zone.dataset.empty === 'true' || !fillState[parseInt(zone.dataset.slot)]) return;
+      const slot = parseInt(zone.dataset.slot);
+      const term = fillState[slot];
+      fillState[slot] = null;
+      zone.textContent = '　';
+      zone.dataset.empty = 'true';
+      zone.classList.remove('filled', 'correct', 'wrong');
+      const sourceDraggable = Array.from(draggables).find(d => d.dataset.term === term);
+      if (sourceDraggable) sourceDraggable.classList.remove('used');
+      hideFeedback();
+    });
+  });
+
+  document.getElementById('btn-check').onclick = () => {
+    let allCorrect = true;
+    fillState.forEach((term, i) => {
+      const zone = container.querySelector(`[data-slot="${i}"]`);
+      zone.classList.remove('correct', 'wrong');
+      if (term === def.answers[i]) {
+        zone.classList.add('correct');
+      } else {
+        zone.classList.add('wrong');
+        allCorrect = false;
+      }
+    });
+    const isFull = fillState.every(t => t !== null);
+    if (!isFull) {
+      showFeedback(false, '<b>未填完</b><br>请把所有空位都填上后再检查。');
+      return;
+    }
+    let html = '<span class="feedback-title">' + (allCorrect ? '✅ 完全正确！' : '❌ 有错误') + '</span>';
+    html += '<ul>';
+    fillState.forEach((term, i) => {
+      const ok = term === def.answers[i];
+      html += `<li>第 ${i+1} 空：<b>${ok?'✅ 正确':'❌ 错误'}</b> —— 你的答案：<code>${term}</code>；正确答案：<code>${def.answers[i]}</code>。${def.perSlotAnalysis[i]}</li>`;
+    });
+    html += '</ul>';
+    showFeedback(allCorrect, html);
+    setAnswered('drag', dragQuestions.indexOf(def), allCorrect ? 'correct' : 'wrong');
+  };
+
+  document.getElementById('btn-reset').onclick = () => renderDrag(def);
+}
+
+function renderSingle(def) {
+  const container = document.getElementById('q-container');
+  let optsHTML = '<div class="options-list">';
+  def.options.forEach((opt, i) => {
+    optsHTML += `<div class="option" data-opt="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${opt.substring(2)}</span></div>`;
+  });
+  optsHTML += '</div>';
+
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">单选题</span></h3>
+      ${optsHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+
+  let selected = null;
+  const opts = container.querySelectorAll('.option');
+  opts.forEach(o => {
+    o.onclick = () => {
+      if (selected !== null) return;
+      selected = parseInt(o.dataset.opt);
+      o.classList.add('selected');
+      hideFeedback();
+    };
+  });
+
+  document.getElementById('btn-check').onclick = () => {
+    if (selected === null) {
+      showFeedback(false, '<b>未选择</b><br>请先选一个选项。');
+      return;
+    }
+    const ok = selected === def.correct;
+    opts.forEach((o, i) => {
+      if (i === def.correct) o.classList.add('correct-mark');
+      if (i === selected && i !== def.correct) o.classList.add('wrong-mark');
+    });
+    let html = '<span class="feedback-title">' + (ok ? '✅ 回答正确！' : '❌ 回答错误') + '</span>';
+    html += '<ul>';
+    def.analysis.forEach((a, i) => html += `<li>${a}</li>`);
+    html += '</ul>';
+    showFeedback(ok, html);
+    setAnswered('single', singleQuestions.indexOf(def), ok ? 'correct' : 'wrong');
+  };
+
+  document.getElementById('btn-reset').onclick = () => renderSingle(def);
+}
+
+function renderMulti(def) {
+  const container = document.getElementById('q-container');
+  let optsHTML = '<div class="options-list">';
+  def.options.forEach((opt, i) => {
+    optsHTML += `<div class="option" data-opt="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${opt.substring(2)}</span></div>`;
+  });
+  optsHTML += '</div>';
+
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">多选题</span></h3>
+      ${optsHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+
+  const selected = new Set();
+  const opts = container.querySelectorAll('.option');
+  opts.forEach(o => {
+    o.onclick = () => {
+      const i = parseInt(o.dataset.opt);
+      if (selected.has(i)) {
+        selected.delete(i);
+        o.classList.remove('selected');
+      } else {
+        selected.add(i);
+        o.classList.add('selected');
+      }
+      hideFeedback();
+    };
+  });
+
+  document.getElementById('btn-check').onclick = () => {
+    if (selected.size === 0) {
+      showFeedback(false, '<b>未选择</b><br>多选题必须至少选 1 项。');
+      return;
+    }
+    const correctSet = new Set(def.correct);
+    const isExactMatch = selected.size === correctSet.size && [...selected].every(i => correctSet.has(i));
+    opts.forEach((o, i) => {
+      if (correctSet.has(i)) o.classList.add('correct-mark');
+      if (selected.has(i) && !correctSet.has(i)) o.classList.add('wrong-mark');
+    });
+    let html = '<span class="feedback-title">' + (isExactMatch ? '✅ 完全正确！' : '❌ 有错误 / 漏选') + '</span>';
+    html += '<ul>';
+    def.analysis.forEach((a, i) => html += `<li>${a}</li>`);
+    html += '</ul>';
+    showFeedback(isExactMatch, html);
+    setAnswered('multi', multiQuestions.indexOf(def), isExactMatch ? 'correct' : 'wrong');
+  };
+
+  document.getElementById('btn-reset').onclick = () => renderMulti(def);
+}
+
+function renderTF(def) {
+  const container = document.getElementById('q-container');
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">判断题</span></h3>
+      <div class="tf-options">
+        <div class="tf-btn" data-tf="true">✅ 正确（True）</div>
+        <div class="tf-btn" data-tf="false">❌ 错误（False）</div>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+
+  let selected = null;
+  const btns = container.querySelectorAll('.tf-btn');
+  btns.forEach(b => {
+    b.onclick = () => {
+      btns.forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      selected = b.dataset.tf === 'true';
+      hideFeedback();
+    };
+  });
+
+  document.getElementById('btn-check').onclick = () => {
+    if (selected === null) {
+      showFeedback(false, '<b>未选择</b><br>请先选 True 或 False。');
+      return;
+    }
+    const ok = selected === def.answer;
+    btns.forEach(b => {
+      const v = b.dataset.tf === 'true';
+      if (v === def.answer) b.classList.add('correct-mark');
+      if (v === selected && v !== def.answer) b.classList.add('wrong-mark');
+    });
+    const analysisParts = def.analysis.split('\n\n');
+    let html = '<span class="feedback-title">' + (ok ? '✅ 判断正确！' : '❌ 判断错误') + '</span>';
+    html += '<div style="white-space:pre-line;margin-top:0.3rem">' + analysisParts[0] + '</div>';
+    if (analysisParts.length > 1) {
+      html += '<div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px dashed var(--border);white-space:pre-line;color:var(--text-light)">' + analysisParts.slice(1).join('\n\n') + '</div>';
+    }
+    showFeedback(ok, html);
+    setAnswered('tf', trueFalseQuestions.indexOf(def), ok ? 'correct' : 'wrong');
+  };
+
+  document.getElementById('btn-reset').onclick = () => renderTF(def);
+}
+
+function renderQuestion() {
+  const { def, type } = getCurrentQDef();
+  if (type === 'drag') renderDrag(def);
+  else if (type === 'single') renderSingle(def);
+  else if (type === 'multi') renderMulti(def);
+  else if (type === 'tf') renderTF(def);
+  updateProgress();
+  updateOverviewGrid();
+}
+
+function showFeedback(ok, html) {
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = html;
+  fb.classList.add('show');
+  fb.classList.toggle('feedback-correct', ok);
+  fb.classList.toggle('feedback-wrong', !ok);
+}
+
+function hideFeedback() {
+  const fb = document.getElementById('feedback');
+  if (fb) {
+    fb.classList.remove('show');
+    fb.innerHTML = '';
+  }
+}
+
+function navTo(direction) {
+  const filtered = getFilteredIndices();
+  if (filtered.length === 0) return;
+  const pos = filtered.indexOf(currentQ);
+  let newPos = pos + direction;
+  if (newPos < 0) newPos = filtered.length - 1;
+  if (newPos >= filtered.length) newPos = 0;
+  currentQ = filtered[newPos];
+  renderQuestion();
+}
+
+// ---- 随机打乱（Fisher-Yates + 选项重映射）----
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleOptions(q) {
+  const indices = q.options.map((_, i) => i);
+  const shuffledIndices = shuffleArray(indices);
+  const newOptions = shuffledIndices.map(i => q.options[i]);
+  const newAnalysis = shuffledIndices.map(i => q.analysis[i]);
+  const newCorrect = Array.isArray(q.correct)
+    ? q.correct.map(oldIdx => shuffledIndices.indexOf(oldIdx)).filter(i => i >= 0).sort((a,b)=>a-b)
+    : shuffledIndices.indexOf(q.correct);
+  return { ...q, options: newOptions, analysis: newAnalysis, correct: newCorrect };
+}
+
+function rebuildAllQuestions() {
+  allQuestions.length = 0;
+  allQuestions.push(
+    ...dragQuestions.map((q,i)=>({type:'drag', index:i})),
+    ...singleQuestions.map((q,i)=>({type:'single', index:i})),
+    ...multiQuestions.map((q,i)=>({type:'multi', index:i})),
+    ...trueFalseQuestions.map((q,i)=>({type:'tf', index:i}))
+  );
+}
+
+function reshuffleAll() {
+  if (!confirm('随机打乱会重置所有答题记录，确认继续？')) return;
+  answeredSet.clear();
+  dragQuestions = shuffleArray(JSON.parse(JSON.stringify(_origDrag)));
+  singleQuestions = shuffleArray(JSON.parse(JSON.stringify(_origSingle))).map(shuffleOptions);
+  multiQuestions = shuffleArray(JSON.parse(JSON.stringify(_origMulti))).map(shuffleOptions);
+  trueFalseQuestions = shuffleArray(JSON.parse(JSON.stringify(_origTF)));
+  rebuildAllQuestions();
+  currentQ = 0;
+  renderQuestion();
+  updateScoreBar();
+  updateOverviewGrid();
+}
+
+document.getElementById('btn-prev').onclick = () => navTo(-1);
+document.getElementById('btn-next').onclick = () => navTo(1);
+document.getElementById('btn-overview').onclick = () => toggleOverview();
+document.getElementById('btn-reshuffle').onclick = () => reshuffleAll();
+document.getElementById('btn-reset-all').onclick = () => {
+  if (!confirm('确认重置全部答题记录？')) return;
+  answeredSet.clear();
+  updateScoreBar();
+  updateOverviewGrid();
+  currentQ = 0;
+  renderQuestion();
+};
+
+document.querySelectorAll('.nav-tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentType = t.dataset.type;
+    const filtered = getFilteredIndices();
+    if (filtered.length > 0) currentQ = filtered[0];
+    renderQuestion();
+  };
+});
+
+document.querySelectorAll('.filter-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    overviewFilter = b.dataset.filter;
+    updateOverviewGrid();
+  };
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') navTo(-1);
+  else if (e.key === 'ArrowRight') navTo(1);
+  else if (e.key === 'o' || e.key === 'O') toggleOverview();
+  else if (e.key === 'r' || e.key === 'R') reshuffleAll();
+});
+
+updateScoreBar();
+renderQuestion();
+updateOverviewGrid();
+</script>
+
+</body>
+</html>
