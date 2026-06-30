@@ -14,7 +14,7 @@
 | 序 | 主题 | 优先级 | 状态 | 完成 | 文件路径 | 备注 |
 |----|------|--------|------|------|----------|------|
 | A | **Lumen 反射降级** (SSR → Screen Probe → Surface Cache → HW RT) | P0 | ☑ 完成 | 2026-07-01 | `后处理效果/Lumen-反射降级.md` | 接 W2 SSR；演进链路 |
-| B | **Lumen GI 漫反射** (Surface Cache + Voxel Cone Tracing) | P0 | ☐ 待做 | — | `后处理效果/Lumen-GI-漫反射.md` | 户外 / 室内两套参数 |
+| B | **Lumen GI 漫反射** (Surface Cache + Voxel Cone Tracing) | P0 | ☑ 完成 | 2026-07-01 | `后处理效果/Lumen-GI-漫反射.md` | 户外 / 室内两套参数 |
 | C | **Nanite 材质管线** (虚拟几何 + Material AtributeId + Persistent Buffer) | P0 | ☐ 待做 | — | `材质系统/Nanite-材质管线.md` | 独立专题 |
 | D | **VSM Virtual Shadow Map** (页表 + Moments + Moment Bias) | P0 | ☐ 待做 | — | `后处理效果/VSM-Virtual-Shadow-Map.md` | 与 CSM 对照 |
 | E | **Mass / NNE / PCG** (UE5 AI 系统) | P1 | ☐ 待做 | — | `计算着色器/` | 集群专题 |
@@ -31,6 +31,7 @@
 | W1 | 体积云 Volumetric Cloud | 2025-01-07 | `后处理效果/体积云-Volumetric-Cloud.md` |
 | W2 | 屏幕空间反射 SSR | 2026-07-01 | `后处理效果/屏幕空间反射-SSR.md` |
 | A | Lumen 反射降级 | 2026-07-01 | `后处理效果/Lumen-反射降级.md` |
+| B | Lumen GI 漫反射 | 2026-07-01 | `后处理效果/Lumen-GI-漫反射.md` |
 
 ---
 
