@@ -72,5 +72,6 @@
 | **Mass 数据导向 AI（UE 5.8 实测）** | UE5.8 | ✅ 完成 | — | [[Unreal-Engine/UE5-Mass-AI-数据导向框架]] | [卡牌](./Unreal-Engine/UE5-Mass-AI-数据导向框架.html) |
 | **NNE 神经网络引擎（UE 5.8 实测）** | UE5.8 | ✅ 完成 | — | [[Unreal-Engine/UE5-NNE-神经网络引擎]] | [卡牌](./Unreal-Engine/UE5-NNE-神经网络引擎.html) |
 | **Cook 流水线（Shader 编译 + 纹理压缩 + 速度 + 配置 + 并行度）** | UE5.3/5.4/5.5 | ✅ 完成 | — | [[Unreal-Engine/UE5-Cook-流水线源码分析]] | [卡牌](./Unreal-Engine/UE5-Cook-流水线源码分析.html) |
+| **Godot Jolt Physics 模块（AI 集成点：custom integrator / integration callback / state sync callback）** | Godot 4.8-dev | ✅ 完成 | — | [[Godot/Godot-Jolt-Physics-AI集成点源码分析]] | — |
 | ECS Job System | Unity | 待开始 | — | — | — |
-| 渲染器抽象层 | Godot | 待开始 | — | — | — |
+| Godot 渲染器抽象层（RenderingServer / RendererCompositor） | Godot | 待开始 | — | — | — |
