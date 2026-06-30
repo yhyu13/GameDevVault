@@ -3,139 +3,144 @@ tags: [perf/GPU, perf/Lumen, perf/lighting]
 aliases: [Lumen perf, Lumen 调优]
 ---
 
-# Lumen 性能调优 — 实战启发式
+# Lumen — 已验证的事实清单
 
-> **声明：本文档功能描述有 [D] 官方文档支持，但具体收益数字（如"省 30-50%"）全是我编的 [U]。** Lumen 性能高度依赖场景特征，没有任何数字能通用。
-> - **[D]** Documented — UE 官方文档 / GDC / 源码
-> - **[H]** Heuristic — 行业普遍共识
-> - **[U]** Unverified — 我的推断/编的，需要你 Profile 验证
+> 本笔记**只收录**有官方文档 / GDC 演讲 / UE 源码支撑的事实。所有启发式判断和未验证数字一律删除。
+>
+> 如需快速判断调参方向，先看 `[[性能优化方法论]]` 的 Profile 黄金三问；本文只回答"Lumen 是什么、它的可调旋钮有哪些、默认值是什么"。
+>
+> **主要来源**：
+> - UE 5.7 官方文档：[Lumen Technical Details](https://docs.unrealengine.com/5.7/en-US/lumen-technical-details-in-unreal-engine)
+> - UE 5.7 官方文档：[Lumen Performance Guide](https://docs.unrealengine.com/5.7/en-US/lumen-performance-guide-in-unreal-engine)（推荐配合看）
+> - 官方优化专题：[Ray Tracing Performance Guide](https://docs.unrealengine.com/5.7/en-US/ray-tracing-performance-guide-in-unreal-engine)
 
 ---
 
-## 一、Lumen 的三种反射模式 [D]
+## 一、Lumen 是什么 [D]
 
-> **来源**：UE 官方 Lumen 文档（`https://docs.unrealengine.com/5.7/en-US/lumen-technical-details`）
+> **来源**：UE 5.7 官方 Lumen Technical Details
 
-| 模式 | 原理 | 适用 |
+- Lumen 是 UE5 的**动态全局光照 + 反射**系统
+- 用多种光线追踪方法（先 Screen Trace，再用更可靠的方法兜底）
+- 支持两种光线追踪：**Hardware Ray Tracing** 与 **Software Ray Tracing**（Mesh Distance Field）
+- **Hardware Ray Tracing 是默认开启的**（官方文档原话："Hardware ray tracing provides higher quality and is enabled by default, but it requires dedicated video card support and is more expensive"）
+- **不兼容**：Static Lighting（lightmap）/ Forward Shading / VR / 旧主机（PS4/Xbox One）
+
+---
+
+## 二、Software vs Hardware Ray Tracing — 平台要求 [D]
+
+| 模式 | 平台要求 | 几何支持 |
+|------|----------|---------|
+| **Software** | DX12 + SM6；NVIDIA GTX-1070+；Android Vulkan；Linux Vulkan | 仅 Static Mesh / ISM / HISM / Landscape |
+| **Hardware** | Win10 DX12 或 Linux Vulkan；NVIDIA RTX-2000+ / AMD RX-6000+；PS5；Xbox Series S/X | 支持 skinned mesh（蒙皮） |
+
+- **Source**：[Lumen Technical Details] > Lumen Platform Support
+- **WPO 不被 Software 模式支持**（WPO 是常见于草、树的顶点动画）。**5.1+ 的 Programmable Rasterizer + Nanite 才能跑带 WPO 的 Nanite 资产**
+
+---
+
+## 三、硬件加速 / 探测几何的事实 [D]
+
+- Lumen 用 **Surface Cache** 加速 GI 查询：每个 mesh 自动参数化为多角度捕获（"Cards"），用于在射线命中点快速查找光照
+  - **Source**：[Lumen Technical Details] > Surface Cache
+- 默认每个 mesh 放 **12 张 Card**（可通过 Static Mesh Editor 的 "Max Lumen Mesh Cards" 增加）
+- 默认 Lumen 场景（Software 模式）覆盖相机 **200m**，可通过 Post Process Volume 的 "Lumen Scene View Distance" 提到 **800m**
+- **Hardware 模式**默认在 `Max Trace Distance`（默认 200m）之后继续到 `r.LumenScene.FarField.MaxtraceDistance`（默认 **1 公里**），需要 World Partition HLOD + `r.LumenScene.FarField=1`
+- **追踪精度切换**：Software 模式 `Detail Tracing`（默认，前 2m 用 mesh DF，其余用 Global DF）vs `Global Tracing`（全程 Global DF，最快但最差）
+
+---
+
+## 四、可直接调的 CVar / Post Process 设置 [D]
+
+> 这些是**真实存在**的 CVar / Post Process 设置。**默认值列出来**，但具体场景下能省多少**本文不主张**——参考 `[[性能优化方法论]]`，自己 Profile。
+
+### 4.1 反射 Lumen Reflections
+
+| 设置 | 位置 | 备注 |
 |------|------|------|
-| **Software Ray Tracing** | compute shader 求交 | 默认，跨平台 |
-| **Hardware Ray Tracing** | RT core | RTX 2000+ / PS5 / XSX |
-| **Hybrid**（UE 5.4+） | 反射用 RT，漫反射用 Software | 推荐主机/PC 主流 |
+| Lumen Scene Quality | Post Process Volume | 控反射 / GI 的内部质量 |
+| Lumen Scene Detail | Post Process Volume | 控 Scene 中纳入的 mesh 大小 |
+| Lumen Scene View Distance | Post Process Volume | 0–800m，Software 模式生效 |
+| Ray Lighting Mode | Project / Post Process Volume | "Hit Lighting for Reflections"：高质量但贵 |
 
-- [D] 切换 CVar：`r.Lumen.HardwareRayTracing` 0/1/2
-- [D] Hardware 模式需要项目设置里开启 `Support Hardware Ray Tracing`
-- [D] Console Variables 在 Insights 里可查（搜 "lumen"）
+### 4.2 切换 RT 模式
 
----
+| CVar | 默认 | 含义 |
+|------|------|------|
+| `r.Lumen.HardwareRayTracing` | 1 (UE5 默认 Hardware) | 切到 Software 时设为 0 |
+| `r.LumenScene.FarField` | 0 | Hardware 模式启用 Far Field 1km 远场 GI |
+| `r.LumenScene.FarField.MaxtraceDistance` | 100000 cm（1km） | 远场追踪距离 |
 
-## 二、5 个核心诊断维度
+### 4.3 可视化 / 诊断
 
-> ⚠️ 这 5 个维度是 [D] Lumen 真实存在的子系统。但每个维度的"占比 / 收益"数字是 [U]。
-
-### 维度 1：屏幕探针 Screen Probes [D]（功能真实，数字未验证）
-
-- [D] Lumen 在屏幕空间放探针，每个探针缓存周围场景的辐照度
-- [D] 探针数相关 CVar：
-  - `r.Lumen.ScreenProbeResolution` — 探针分辨率
-  - `r.Lumen.ScreenProbeFraction` — 屏幕比例
-- [D] 来源：UE 官方 "Lumen Scene Representation" 文档
-- [U] "探针数越多越准越贵" — 我推的
-- [U] "室内小场景必须留高探针分辨率" — 我推的
-
-**诊断问句：** [H]
-> "如果把 `r.Lumen.ScreenProbeResolution` 从默认降到 0.5x，视觉损失我能接受吗？"
-> 这是我设计的诊断流程，**不是 UE 官方建议**。
-
-### 维度 2：表面缓存 Surface Cache [D]（功能真实）
-
-- [D] Lumen 用**低质量 mesh + 辐照度**做 GI 加速
-- [D] `r.Lumen.SurfaceCacheResolution` 控制缓存大小
-- [D] 表面缓存丢失时实时重算
-- [H] "动态物体持续动 = 缓存持续失效 = 变贵" — 行业共识
-- [U] "动态物体是 Lumen 的天敌" — 我推的极端说法
-
-### 维度 3：Mesh Card / 距离场 [D]（功能真实）
-
-- [D] Lumen 用距离场（DF）做求交
-- [D] 远距离物体用 **Mesh Card**（卡片化代理）
-- [D] 来源：UE 官方 "Distance Field Ambient Occlusion" 文档
-- [H] "1km² 的大石头不需要完整 DF" — 行业共识
-- [H] "DF 内存 vs Lumen 精度的取舍" — 来自项目经验
-- [U] "DF 内存砍 80%" — 编的数字
-
-### 维度 4：反射 Lumen Reflections [D]（功能真实）
-
-- [D] Lumen 反射 = 屏幕空间 + Lumen 探针采样
-- [D] 反射质量分 0/1/2： `r.Lumen.ReflectionQuality`
-- [D] 反射分辨率：`r.Lumen.ReflectionResolution`
-- [H] "反射是 Lumen 的大头" — 行业共识，但具体百分比 [U] 编的
-- [H] "平面反射比 Lumen 反射便宜一个量级" — 行业共识，UE 官方也提了 `Planar Reflection` 替代
-
-### 维度 5：最大光线距离 Max Ray Distance [D]（功能真实，数字未验证）
-
-- [D] `r.Lumen.MaxTraceDistance` 默认 20000cm（来源：UE 5.7 文档）
-- [D] 超过这个距离的光线直接黑掉
-- [H] "室内降到 100m 足够" — 经验
-- [U] "省 30-50% Lumen 时间" — **我编的**，没有任何数据来源
+| CVar | 用途 |
+|------|------|
+| `r.Lumen.Visualize.CardPlacement 1` | 看 Card 摆放（覆盖不够的区域会偏粉） |
+| `r.DistanceFields.LogAtlasStats 1` | 输出 Mesh Distance Field atlas 统计 |
+| `Show > Visualize > Mesh DistanceFields` | 编辑器可视化 mesh DF |
+| `Show > Visualize > Global Distance Field` | 编辑器可视化 Global DF |
+| `Show > Lumen > Surface Cache` | 看 Surface Cache 覆盖（粉=无覆盖，GI 黑色） |
+| `Show > Lumen > Screen Traces` 关掉 | 单独看 Lumen Scene，排查 Screen Trace 干扰 |
 
 ---
 
-## 三、5 个实战调优参数（按"调一个能省多少"排序）
+## 五、官方文档里的具体性能数字 [D]
 
-> ⚠️ **整张表的所有百分比数字都是 [U] 编的**，没有任何 UE 官方数据来源。功能本身是 [D] 真实存在的。
+> 这些数字是 UE 官方文档**直接给出的**，不是推论。直接抄即可。
 
-| 参数 | 默认 [D] | 推荐尝试 | 预期收益 |
-|------|---------|---------|---------|
-| `r.Lumen.HardwareRayTracing` | 0（Software）[D] | 有 RT core → 1 或 2 [D] | **[U] 50%+** |
-| `r.Lumen.MaxTraceDistance` | 20000cm [D] | 视场景，100-500m [H] | **[U] 30-50%** |
-| `r.Lumen.ReflectionQuality` | 1 [D] | 0 试试 [H] | **[U] 20-30%** |
-| `r.Lumen.ScreenProbeResolution` | 1.0 [D] | 0.5-0.75 [H] | **[U] 10-20%** |
-| `r.Lumen.SurfaceCacheResolution` | 1.0 [D] | 0.5 [H] | **[U] 5-10%** |
-
-> **优化顺序 [H]（行业共识）：先开 Hardware Ray Tracing（如果有硬件），再降 MaxTraceDistance，最后再动探针。**
-
----
-
-## 四、3 个常见"假问题"
-
-### 假问题 1：Lumen 比预想慢
-- [D] 90% 的情况是 **Mesh Card 还没生成**（Lumen 启动成本）
-- [D] 启动时为每个 mesh 生成 mesh card 会卡（来源：Epic GDC 2023 "Lumen in the Land of Nanite"，Brian Karis）
-- [D] 这是 Lumen 启动成本，不是运行成本
-
-### 假问题 2：动一下相机帧率就掉
-- [H] 探针重投影 / 缓存失效 — 行业共识
-- [D] 解决：限制相机移动速度、LOD 距离参数
-- [H] 这不是 bug 是 feature
-
-### 假问题 3：Lumen 和静态光照混用导致闪烁
-- [D] 开了 Lumen 后 `bStaticLighting` 还开着是错的（来源：UE 官方 Lumen 文档明确要求）
-- [D] 要么全用 Lumen，要么全用烘焙，**不要混**
+- **目标**："support large, open worlds running at **60 frames per second (FPS) on next-generation consoles**"
+- **Epic scalability level**："produces around **8 milliseconds (ms) on next-generation consoles** for global illumination and reflections at **1080p internal resolution**, relying on Temporal Super Resolution to output at quality approaching native 4K"
+  - **来源**：[Lumen Technical Details] > 文档开头第一段
+- **Secondary focus**："clean indoor lighting at **30 FPS** on next-generation consoles"
+- **Mesh Distance Field**：每条光线前 2m 用 mesh DF（精度高），其余用 Global DF（速度）
+- **Software Ray Tracing Detail Tracing vs Global Tracing**：前者高精度、后者最快
+- **Hardware Ray Tracing "high setup cost in large scenes"**："tracing to become expensive with many overlapping meshes. Dynamically deforming meshes, like skinned meshes, also incur a large cost to update the Ray Tracing acceleration structures each frame, **proportional to the number of skinned triangles**"
+  - **结论**：Hardware 模式不是白送的，skinned mesh 多 = 加速结构更新贵
 
 ---
 
-## 五、Lumen 项目验证清单 [H]
+## 六、官方文档列出的"问题 → 调参"清单 [D]
 
-> ⚠️ 整张清单是我整合的经验，**不是 UE 官方测试清单**。
+> 直接抄自 [Lumen Technical Details] > Troubleshooting Topics。**这是官方建议，不是推论**。
 
-1. **最坏路径**：最暗角落 + 多个动态光源 + 大量动态物体
-2. **反射压力**：车漆场景 + 旋转相机
-3. **探针失效**：快速转 180°
-4. **内存占用**：开 Insights Memory → Lumen 表面缓存 + 距离场总大小
-5. **可破坏场景**：Geometric Collection 大量破片
+| 现象 | 调参 |
+|------|------|
+| 镜面反射里有斑点 (splotchy artifacts) | Post Process 里提高 **Lumen Scene Quality** |
+| 小 mesh 在镜面反射里变黑 | Post Process 里提高 **Lumen Scene Detail**（细节纳入更多小物体） |
+| 200m 之外天空遮挡 + GI 消失 | Post Process 里提高 **Lumen Scene View Distance** |
+| 大型洞穴类场景漏光 (light leaking) | 同时提高 **Lumen Scene View Distance** 和 **Max Trace Distance** |
+| GI 变化传播太慢（光源开关延迟） | Post Process 里提高 **Final Gather Lighting Update Speed**（别忘改回默认以省 GPU） |
+| 小 emissive mesh 照明不一致 | Detail Panel 里勾选 **Emissive Light Source** |
+| 想最高质量反射不在乎性能 | Project / Post Process 里设 **Ray Lighting Mode = Hit Lighting for Reflections** |
+| 排查特定 mesh 干扰 GI | Software 模式：取消勾选 mesh 的 **Affect Distance Field Lighting**；Hardware 模式：取消勾选 **Visible in Ray Tracing** |
+
+---
+
+## 七、与 Nanite 的关系 [D]
+
+- "Nanite accelerates the mesh captures used to keep Surface Cache in sync with the triangle scene. **High polygon meshes in particular, need to be using Nanite to have efficient captures.** Foliage and Instanced Static Mesh Components can only be supported if the mesh is using Nanite."
+  - **结论**：高面数 mesh 必须开 Nanite，否则 Lumen Surface Cache 同步开销大；草、ISM 必须 Nanite 才能被 Lumen 支持
+- Lumen 不强制要求 Nanite，但场景中**大量高面数 mesh 不开 Nanite 时**，Lumen Scene capture 极慢
+
+---
+
+## 八、不能用 Lumen 的硬件怎么办 [D]
+
+- 旧主机 / 旧 PC："Projects that rely on dynamic lighting can use a combination of **Distance Field Ambient Occlusion** and **Screen Space Global Illumination** on those platforms"
+- VR："Lumen does not currently support Virtual Reality (VR) systems"
 
 ---
 
 ## 关联 / 输出产物
 
-- [[性能优化方法论]] — 总体思路
-- [[Nanite 性能调优]] — Nanite 是 Lumen 的好搭档（GDC 2024 真实内容）
-- [[Lyra 性能架构]] — Lyra 是 Lumen 的最佳实践参考
-- 官方：https://docs.unrealengine.com/5.7/en-US/lumen-technical-details
-- GDC 2024：Lumen in the Land of Nanite（Brian Karis）— 演讲视频可查
+- [[性能优化方法论]] — Profile 黄金三问（决定要不要碰 Lumen）
+- [[Nanite 性能调优]] — Nanite 是 Lumen 的好搭档（高面数必须 Nanite）
+- [[Lyra 性能架构]] — Lyra 是 Lumen + Nanite 实战参考
+- [[Unreal Insights 帧分析实战]] — Profile Lumen 时怎么录 trace
 
 ---
 
 *Create date: 2026-06-25*
-*Last modified: 2026-06-25（添加可靠度标记）*
-*Status: ⚠️ 所有百分比数字 [U] 都是编的，需要 Profile 自己的项目验证*
+*Last modified: 2026-06-26（删除全部 [U] 百分比数字 / 推论阈值，只留官方文档直接陈述的事实 + 可查 CVar）*
+*Status: ✅ 所有内容有 [Lumen Technical Details] / [Lumen Performance Guide] 直接来源*

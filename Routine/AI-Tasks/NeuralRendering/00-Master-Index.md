@@ -80,6 +80,7 @@ Neural Rendering 是 **桥梁型主题** 而非独立渲染特性：
 
 - [[../References/AI-Augmentation-Reference]] — AI 辅助学习完整参考手册
 - [[../UE58-Topic-Exploration-Report]] — UE58 主题探索完整报告（优先级评分）
+- [[../01-AI-GameDev-Resources/00-AI-GameDev-Resource-Index]] — AI 游戏开发资源总索引（2026-06 刷新）
 - [[../ChaosPhysics/00-Master-Index]] — Chaos 物理模拟是 ML Deformer 训练数据的主要来源
 - [[../UnrealMCP/00-Master-Index]] — 可用 MCP 查询 Neural Rendering 状态
 - [[../../01-论文笔记库]] — ML Deformer / Neural Animation 论文笔记

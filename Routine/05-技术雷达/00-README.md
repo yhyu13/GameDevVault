@@ -25,17 +25,19 @@
 
 ---
 
-## 当前雷达（2026-06-25 更新 — 本批次聚焦 AI 游戏开发）
+## 当前雷达（2026-06-26 更新 — 本批次聚焦 AI 游戏开发）
 
 ### P0-立即学习
 
 | 技术 | 简介 | 关联工作 | 截止日期 |
 |------|------|----------|----------|
 | [[Rust-GameDev]] | Rust 在游戏引擎开发中的应用 | 自研引擎模块语言选型 | — |
-| [[DLSS-FSR-AI超分辨率]] | DLSS 4.5 / FSR 4 / XeSS — 神经超分 + 帧生成 | Lyra + Lumen 4K 路径追踪 | — |
-| [[NVIDIA-ACE-AI-NPC]] | NVIDIA ACE 微服务 — 长期记忆 + 情绪 NPC | 引擎集成 + AI 队友原型 | — |
-| [[AI-Code-Assistant-Cursor-ClaudeCode]] | Cursor / Claude Code / Copilot — 直接吃产能 | 读项目代码 + 写工具 | — |
-| [[3DGS-Gaussian-Splatting]] | 3DGS 神经渲染 — Luma / Hunyuan3D 已进生产 | 资产管线 + 扫描场景 | — |
+| [[DLSS-FSR-AI超分辨率]] | DLSS 4.5 / FSR 4 / XeSS — 神经超分 + 帧生成（6 月 1 日 Computex 新增 Ray Reconstruction） | Lyra + Lumen 4K 路径追踪 | — |
+| [[NVIDIA-ACE-AI-NPC]] | NVIDIA ACE 微服务 — 长期记忆 + 情绪 NPC（PUBG Ally / Total War: Pharaoh 已上生产） | 引擎集成 + AI 队友原型 | — |
+| [[AI-Code-Assistant-Cursor-ClaudeCode]] | Cursor / Claude Code / Copilot / TRAE / MAI-Code — 直接吃产能 | 读项目代码 + 写工具 | — |
+| [[3DGS-Gaussian-Splatting]] | 3DGS 神经渲染 — ZipSplat 33x 压缩 / World Labs Marble | 资产管线 + 扫描场景 | — |
+| [[UnrealMCP-N1UnrealMCP]] | MCP 协议让 AI Agent 直接操控 UE Editor — 100+ 命令 11 类 | day-job "读 + 改 + 验证" 闭环 | — |
+| [[UE-NNE-TensorRT-Plugin]] | UE NNE + NVIDIA TensorRT for RTX — 引擎里挂自定义神经网络的官方入口 | 自定义降噪 / 超分 / 神经压缩 / NPC 决策 | — |
 
 ### P1-持续关注
 
@@ -102,7 +104,16 @@
 ## 当前聚焦主题：AI 游戏开发(2026-06 起)
 
 本批次只收录 **AI 相关** 的游戏开发技术与技能。后续批次会逐步覆盖：
-- 渲染管线扩展(UE 5.7+ NNE / 自研 RHI)
+- 渲染管线扩展(自研 RHI / NNE 深度集成)
 - 物理与动画(ML Deformer / Motion Synthesis)
 - 工具链与引擎架构(GameFeature / Lyra 衍生)
 - 多玩家与网络(Prediction / Replication 与 AI)
+
+## 2026 H1 关键事件(给 1 个月后回顾参考)
+
+- **CES 2026**(1 月):DLSS 4.5 发布、RTX Remix Logic、ACE 在 Total War Pharaoh / PUBG Ally 上生产
+- **Microsoft Build 2026**(6 月 2 日):从"消费前沿模型"转向"智能体时代",MAI-Thinking-1 / MAI-Code-1-Flash / Majorana 2 量子芯片
+- **NVIDIA Computex 2026**(6 月 1 日):DLSS 4.5 Ray Reconstruction 8 月推送、RTX 游戏破 1000 款、NVIDIA + Microsoft 推 Personal AI Agents + MCP 协议
+- **ZipSplat 论文**(6 月 3 日,ETH + Microsoft):3DGS 33x 压缩,24 视角 0.8s 推理,3.3MB 存储 685 FPS
+- **UnrealMCP / N1UnrealMCP**:UE 5.7 官方 MCP 插件,AI Agent 100+ 命令控制 Editor
+- **NVIDIA TensorRT for RTX Plugin for UE NNE**:引擎里挂自定义神经网络的官方入口

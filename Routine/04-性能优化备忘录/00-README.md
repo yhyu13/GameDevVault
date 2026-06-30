@@ -1,6 +1,8 @@
 # ⚡ 性能优化与 Profile 备忘录
 
 > **对应周计划：周四晚 — 工程化与工具链（效率）**
+>
+> **本次重写（2026-06-26）**：删除了所有"未验证百分比 / 阈值 / 编的数字"。每条结论必须有 UE 官方文档 / GDC 演讲 / Lyra 公开源码支撑。
 
 ---
 
@@ -14,29 +16,34 @@
 
 目标是：下次看到同样的现象，不用重新 Profile 就知道查哪里。
 
+**重要**：具体瓶颈案例必须自己 Profile 后写。[[知识参考/]] 下的笔记**只收录有官方/GDC/源码支撑的事实**，不收录推测。
+
 ---
 
 ## 文件夹结构
 
-- **[[瓶颈案例]]** — 按现象分类（DrawCall 过高、GC 卡顿、纹理带宽等）
+- **[[瓶颈案例]]** — 按现象分类（DrawCall 过高、GC 卡顿、纹理带宽等）— **自己 Profile 后写**
 - **[[Profile 记录]]** — 具体项目的 Profile 数据截图与分析
-- **[[知识参考]]** — 从在线资源整理的方法论 / 工具 / 专项调优笔记（持续扩充）
+- **[[知识参考]]** — 从在线资源整理的方法论 / 工具 / 专项调优笔记
+  - **本次重写后**：每条结论都附官方/GDC/源码链接，**无任何 [U] 编内容**
 
 ---
 
-## 现象速查表
+## 现象速查表 → 工具 → 知识参考
 
-| 现象 | 首选工具 | 常见根因 | 解决方案 | 知识参考 |
-|------|----------|----------|----------|----------|
-| DrawCall 过高 | RenderDoc / Pix | 材质未合批 | GPU Instancing / SRP Batcher | [[Lumen 性能调优]] |
-| 卡顿 spikes | Unity Profiler / UE Insights | GC / 同步加载 | 对象池 / 异步加载 | [[Lyra 性能架构]] |
-| 纹理带宽高 | RenderDoc Texture Viewer | 纹理过大/未压缩 | ASTC/BC7 压缩、Mipmap | — |
-| 顶点处理瓶颈 | GPU Profiler | 模型面数过高 | Nanite / LOD | [[Nanite 性能调优]] |
-| Lumen 反射卡 | profilegpu | 反射 Pass 太多 | 降反射质量 / 平面反射替代 | [[Lumen 性能调优]] |
-| RT 等 GT 同步 | Insights Timing | RT Pass 慢 | 优化最长的 RT 阶段 | [[渲染线程瓶颈诊断]] |
-| 物理卡顿 | Insights + Chaos Visual | 同步物理 | 异步物理 / LOD 碰撞 | — |
-| 移动端发烫 | 厂商 SDK (PerfHUD) | GPU 持续满 | 降分辨率 / 简化材质 | [[渲染线程瓶颈诊断]] |
-| 加载卡顿 | Insights LoadTime | 同步加载 / Shader 编译 | AsyncLoad / 预流送 | [[Lyra 性能架构]] |
+| 现象 | 首选工具 | 知识参考（按主题） |
+|------|----------|---------------------|
+| DrawCall 过高 | RenderDoc / Insights | [[知识参考/Unreal Insights 帧分析实战]] |
+| 卡顿 spikes | Insights | [[知识参考/Unreal Insights 帧分析实战]] + [[知识参考/Lyra 性能架构]]（加载流程） |
+| 纹理带宽高 | RenderDoc Texture Viewer | [[知识参考/Unreal Insights 帧分析实战]] |
+| 顶点处理瓶颈 | GPU Profiler | [[知识参考/Nanite 性能调优]] |
+| Lumen GI / 反射卡 | profilegpu | [[知识参考/Lumen 性能调优]] |
+| GT/RT/RHI 同步 | Insights Timing | [[知识参考/渲染线程瓶颈诊断]] |
+| 物理卡顿 | Insights + Chaos Visual | — （待补 Chaos 笔记） |
+| 移动端发烫 | 厂商 SDK (PerfHUD) | [[知识参考/渲染线程瓶颈诊断]] > 移动端 |
+| 加载卡顿 | Insights LoadTime | [[知识参考/Lyra 性能架构]]（5 阶段加载流程） |
+
+> **速查表本身不写"百分比数字"**——具体场景下能省多少必须自己 Profile。
 
 ---
 
@@ -52,39 +59,34 @@
 | `#perf/culling` | 遮挡剔除/视锥剔除 |
 | `#perf/shader` | Shader 复杂度 |
 | `#perf/loading` | 加载/流送 |
-| `#perf/已验证` | 方案已验证有效 |
-| `#perf/待验证` | 方案仅为假设 |
+| `#perf/已验证` | 方案已验证有效（必须 Profile 后用） |
+| `#perf/待验证` | 方案仅为假设（Profile 验证前不主张） |
 
 ---
 
-## 工具链备忘
+## 工具链备忘（仅工具名，详见 `[[知识参考/Unreal Insights 帧分析实战]]`）
 
-| 工具 | 场景 | 快捷键/技巧 |
-|------|------|-------------|
-| RenderDoc | 帧捕获分析 | Ctrl+Shift+Print 捕获 |
-| Pix | DirectX 12 调试 | GPU 时间线分析 |
-| UE Insights | Unreal 性能分析 | stat unit / stat gpu |
-| Unity Profiler | Unity 全链路 | Deep Profile 慎用 |
-| Tracy | C++ 手动插桩 | ZoneScoped |
-| Superluminal | Windows 采样 | 无侵入式分析 |
+| 工具 | 场景 |
+|------|------|
+| RenderDoc | 帧捕获分析（Ctrl+Shift+Print 捕获） |
+| Pix | DirectX 12 调试（GPU 时间线分析） |
+| Unreal Insights | Unreal 性能分析（`stat unit` / `-trace=`） |
+| Unity Profiler | Unity 全链路（Deep Profile 慎用） |
+| Tracy | C++ 手动插桩（`ZoneScoped`） |
+| Superluminal | Windows 采样（无侵入式分析） |
 
 ---
 
-## 知识参考索引
+## 知识参考索引（每条有官方/GDC/源码支撑）
 
-从在线资源（官方文档、GDC 演讲、Lyra 源码、团队博客）整理的方法论与实战笔记：
-
-- **方法论**：
-  - [[性能优化方法论]] — Profile 思维框架、黄金三问、诊断流程图
-  - [[Unreal Insights 帧分析实战]] — 工具实操（5 步上手 + 5 个高频场景）
-
-- **专项调优**：
-  - [[Lumen 性能调优]] — Lumen 三种反射模式 + 5 个诊断维度
-  - [[Nanite 性能调优]] — Nanite 5 维度 + GDC 2024 material binning
-  - [[渲染线程瓶颈诊断]] — GT/RT/RHI 三线程 + 4 个最常见多线程坑
-
-- **架构参考**：
-  - [[Lyra 性能架构]] — Lyra 的性能设计哲学 + 5 大支柱
+| 笔记 | 主要来源 | 一句话 |
+|------|---------|-------|
+| [[知识参考/性能优化方法论]] | UE 官方文档 | UE 官方对 Profile / 优化流程的明确说法 |
+| [[知识参考/Unreal Insights 帧分析实战]] | UE 官方文档 | 通道 / 面板 / CVar / API 全部 [D] |
+| [[知识参考/Lumen 性能调优]] | UE 5.7 Lumen 文档 + Performance Guide | 可调 CVar / 默认值 / 平台要求 / 官方 troubleshooting |
+| [[知识参考/Nanite 性能调优]] | GDC 2024 Wihlidal + SIGGRAPH 2021 | 三版本时间线 + 真实测量数据 |
+| [[知识参考/Lyra 性能架构]] | Lyra 公开源码（GitHub） | 类名 / 状态机 / 函数签名 / API |
+| [[知识参考/渲染线程瓶颈诊断]] | UE 官方文档 + UE 源码 | 三线程模型 + stat 命令 + CVar |
 
 ---
 
@@ -97,6 +99,29 @@
 
 ## 本月 Profile 目标
 
-- [ ] 完成至少 1 次完整的帧分析（RenderDoc）
-- [ ] 记录至少 3 个可复用的优化方案
-- [ ] M5 专项：跑 Lyra 默认 map 录 30 秒 utrace，按 [[Lumen 性能调优]] 流程做一遍诊断
+- [ ] 完成至少 1 次完整的帧分析（Unreal Insights）
+- [ ] 记录至少 3 个可复用的优化方案（写 [[瓶颈案例/]] ）
+- [ ] M5 专项：跑 Lyra 默认 map 录 30 秒 utrace，按 [[知识参考/Unreal Insights 帧分析实战]] 流程做一遍诊断
+
+---
+
+## 本次重写对照（2026-06-26）
+
+### 删除
+- 所有"X% 性能数字"（Lumen "30-50%", Nanite "5-30%", "200k cluster 阈值" 等）
+- "Lyra 在 RTX 3060 60fps / GPU 8-10ms"
+- "25ms P0 / 33ms P1 / 50ms P2 bug"
+- 我推的"诊断决策树"
+- "卡顿形态速查表" 的具体阈值
+
+### 升级为官方原文
+- Lumen "Epic scalability produces around 8 ms on next-gen consoles"（[Lumen Technical Details] 文档首段）
+- Lumen "Hardware Ray Tracing is enabled by default"（同上）
+- Nanite GDC 2024 真实数据：**4015 bins / 3675 empty / 4.92ms → 3.05ms**（Graham Wihlidal 演讲原话）
+- Nanite 三版本时间线：**5.0 初始 / 5.1 可编程光栅器 / 5.4 新材质管线**
+- Lyra 全部类名 + 文件路径 + 函数签名 + 状态机（公开源码可查）
+- UE 官方对 Shipping vs Development 的明确说法
+
+### 新增的"诚实声明"
+- 任何具体性能数字必须自己 Profile
+- 所有 CVar 默认值以 UE 源码为准（本文不主张推论）

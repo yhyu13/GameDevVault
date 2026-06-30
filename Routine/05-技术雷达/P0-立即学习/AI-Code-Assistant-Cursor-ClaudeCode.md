@@ -11,7 +11,7 @@ aliases: [Cursor, Claude Code, GitHub Copilot, AI 编程助手, 配对编程]
 | **类别** | 工具链 / 编程生产力 |
 | **当前优先级** | P0 |
 | **发现日期** | 2026-06-25 |
-| **最后评估日期** | 2026-06-25 |
+| **最后评估日期** | 2026-06-26 |
 
 ---
 
@@ -31,13 +31,23 @@ aliases: [Cursor, Claude Code, GitHub Copilot, AI 编程助手, 配对编程]
 | 学习资源 | 4 | B 站 / YouTube 一大堆"我用 Cursor 写 UE C++"教程 |
 | 与现有栈兼容性 | 5 | 通用 IDE,VSCode 派生,UE 调试链直连 |
 
-**2026 年 6 月三家横向对比:**
+**2026 年 6 月主流工具横向对比:**
 
 | 工具 | 形态 | 优势场景 | 短板 |
 |------|------|----------|------|
 | **Cursor** | IDE(VSCode fork) | 跨文件编辑、Composer 模式、多文件重构 | 重,资源占用大 |
 | **Claude Code** | 终端 Agent | 读大工程、批量改文件、跑命令、写测试 | 需要明确的"做什么"指令 |
 | **GitHub Copilot** | IDE 插件 | 行内补全、轻量集成 | 上下文理解弱于 Cursor/Claude Code |
+| **TRAE**(字节,2026 Q2 国内首选) | AI-native IDE(VSCode 架构) | 中文场景 98% 准确率、免费版覆盖 90% 个人场景、SOLO 模式自然语言出项目 | 海外生态弱 |
+| **Windsurf**(Codeium) | AI IDE + Flow 模式 | 多步骤流程引导、中型项目拆解 | 国内服务器延迟,免费额度小 |
+| **通义灵码**(阿里) | IDE 插件 | 中文友好、企业合规、Java/Go 强 | Agent 能力弱 |
+| **CodeBuddy**(腾讯) | 编辑器/插件 | 氛围编程、MCP 生态 | 产品成熟度待提升 |
+| **MAI-Code-1-Flash**(Microsoft Build 2026,6 月发布) | GitHub Copilot 编程模型 | 基于 GitHub Copilot 生产环境训练,直接推到所有 Copilot 计划用户 | 刚发布,效果待观察 |
+
+**Microsoft Build 2026(6 月 2 日)关键信号:**
+- 微软从"消费前沿模型"转向"全方位参与到前沿生态" — 全面进入"智能体时代"
+- **MAI-Thinking-1**(35B 激活 / 1T 总参数 / 256K 上下文):编码基准与 Claude Opus 4.6 相当,SWE-bench Pro 53%
+- **MAI-Code-1-Flash** 编程模型已在 GitHub Copilot 全计划用户推 — **未来 6 个月 Copilot 会显著变强**,不要只看 Claude Code
 
 **对于 UE C++ 工程的实际表现:**
 - `UCLASS/UPROPERTY/UFUNCTION` 宏 + 头文件互相引用 → Cursor 表现最好
@@ -86,6 +96,7 @@ aliases: [Cursor, Claude Code, GitHub Copilot, AI 编程助手, 配对编程]
 | 日期 | 评估人 | 结论 | 下次回顾 |
 |------|--------|------|----------|
 | 2026-06-25 | 我 | P0 立即学习 — 已经是行业基线,不用就落后 | 1个月后 |
+| 2026-06-26 | 我 | 复核 — TRAE(中文首选)+ MAI-Code-1-Flash(Copilot 升级)补全国内/微软阵营 | 2周后 |
 
 ---
 
@@ -121,4 +132,4 @@ aliases: [Cursor, Claude Code, GitHub Copilot, AI 编程助手, 配对编程]
 ---
 
 *Create date: 2026-06-25*  
-*Last modified: 2026-06-25*
+*Last modified: 2026-06-26*

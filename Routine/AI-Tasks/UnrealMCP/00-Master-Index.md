@@ -74,6 +74,7 @@ MCP 是 **增强器** 而非 **竞争者**：
 
 - [[../References/AI-Augmentation-Reference]] — AI 辅助学习完整参考手册
 - [[../UE58-Topic-Exploration-Report]] — UE58 主题探索完整报告（优先级评分）
+- [[../01-AI-GameDev-Resources/00-AI-GameDev-Resource-Index]] — AI 游戏开发资源总索引（2026-06 刷新）
 - [[../Lumen/00-Master-Index]] — 可用 MCP 查询 Lumen 场景
 - [[../../01-论文笔记库]] — MCP 规范笔记
 - [[../../02-引擎源码分析库]] — Unreal MCP 源码分析

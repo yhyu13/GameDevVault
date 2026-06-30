@@ -3,181 +3,208 @@ tags: [perf/architecture, perf/Lyra, perf/loading]
 aliases: [Lyra 架构, Lyra 性能设计]
 ---
 
-# Lyra 性能架构 — 设计与启发
+# Lyra — 已验证的事实清单（公开源码）
 
-> **声明：Lyra 架构描述 [D] 可查 Epic 公开源码（GitHub `EpicGames/LyraSampleGame`），但 M5 实战的"RTX 3060 60fps 数据"是 [U] 我编的。**
-> - **[D]** Documented — UE 官方 / 公开源码
-> - **[H]** Heuristic — 行业普遍共识
-> - **[U]** Unverified — 我的推断/编的
-
----
-
-## 一、Lyra 的设计哲学（高层）[D]
-
-> **来源**：Lyra 公开源码（`https://github.com/EpicGames/LyraSampleGame`） + 官方文档 + Epic GDC 2023 演讲
-
-Lyra 解决的核心问题不是"做一个射击游戏"，而是"**让一个 Pawn 类不变成 10000 行的屎山**"。
-
-### 三大支柱 [D]
-
-```
-1. Modular Gameplay（模块化角色）
-   → Character / Pawn 用 Component 组合，不用继承
-2. Gameplay Experience（玩法体验系统）
-   → Pawn / 关卡 / 加载流程都由数据资产驱动
-3. Game Features（玩法特性）
-   → 把"装弹系统""血条 UI""死亡逻辑"做成可热插拔的模块
-```
-
-- [D] 这些概念在 Lyra 源码 `Source/LyraGame/...` 里都有具体类
-- [H] **性能意义**：模块可裁剪 → 发布包可删功能 → 直接省内存
+> 本笔记**只收录**Lyra 公开源码 / Epic 官方文档可查的类名、文件路径、状态机、API。所有"RTX 3060 60fps"、"25ms P0 bug" 等编的数字一律删除。
+>
+> **Lyra 仓库**：[EpicGames/LyraStarterGame](https://github.com/EpicGames/LyraStarterGame)（GitHub 公开，需 Epic 账号）
+>
+> **主要来源**：
+> - UE 官方 [Lyra Sample Game 文档](https://docs.unrealengine.com/5.7/en-US/lyra-sample-game-in-unreal-engine)
+> - 知乎/掘金系列 Lyra 源码解析（已交叉验证类名和调用顺序）
 
 ---
 
-## 二、Performance 视角：Lyra 的关键架构选择
+## 一、Lyra 的定位 [D]
 
-### 1. Game Features 插件化 [D]
+> **来源**：UE 官方 Lyra 文档
 
-- [D] 源码位置：`Plugins/GameFeatures/...` + `Source/LyraGame/GameFeatures/`
-- [D] 一个 GameFeature = 一个独立 Plugin
-- [D] `UGameFeatureAction` 是基类（`Plugins/GameFeatures/Source/GameFeatures/Public/GameFeatureAction.h`）
-- [D] 生命周期：`OnGameFeatureRegistering` → `OnGameFeatureLoading` → `OnGameFeatureActivating` → `OnGameFeatureDeactivating`
-
-**性能启发：** [H]
-- [H] 按需加载 — 玩家没在战斗就不加载战斗 UI
-- [H] 热插拔 — 比赛开始时注入，结束时卸载
-- [H] 独立测试 — 每个 GameFeature 可以单独 Profile
-
-**诊断问句：** [H]
-> "我项目的功能模块能不能像 Lyra 这样解耦？"
-
-### 2. Lyra Pawn 组件化 [D]（行数有据，启发式推论）
-
-- [D] `ALyraCharacter::Tick` 在源码里**重写为空**（一行 `Super::Tick(...)`），所有逻辑在 `ULyraPawnComponent_xxx` 里
-- [D] `ULyraPawnExtensionComponent` 是核心协调组件（`Source/LyraGame/Character/LyraPawnExtensionComponent.h`）
-- [D] `ALyraCharacter` 类大约 500 行（我目测源码，不精确）
-- [H] **性能意义**：Pawn 启动时间极短，不像传统 Character 在 BeginPlay 加载一堆东西
-
-**诊断问句：** [H]
-> "我的 Character / Pawn 继承链有多深？3 层以上 = 你该组件化了。"
-
-### 3. Experience System — 数据驱动加载 [D]
-
-- [D] 核心类：
-  - `ULyraExperienceDefinition`（数据资产）— `Source/LyraGame/GameModes/LyraExperienceDefinition.h`
-  - `ULyraExperienceManagerComponent` — 挂在 GameState 上
-  - `ULyraUserFacingExperienceDefinition` — 关卡切换入口
-- [D] 加载阶段枚举（`Source/LyraGame/.../LyraExperienceManagerComponent.h`）:
-  ```
-  ELyraExperienceLoadState: Unloaded → Loading → LoadingGameFeatures → 
-  ExecutingActions → Loaded
-  ```
-
-**加载流程（异步、可中断）：** [D]
-
-```
-GameMode 启动
-    ↓
-ULyraExperienceManagerComponent 异步加载 ExperienceDefinition
-    ↓
-OnExperienceLoaded 委托
-    ↓
-加载 Pawn / 注入 GameFeature
-```
-
-- [D] Lyra 提供 `LyraExperienceLoadingDelay` CVar 模拟加载延迟
-  ```bash
-  # 故意加 5 秒延迟测试 Loading 流程的健壮性
-  ```
-- [H] 性能启发：每个阶段都可以 Profile，**能精确定位 Loading 卡在哪**
-
-### 4. GAS（Gameplay Ability System）[D]（集成方式有据，性能取舍是经验）
-
-- [D] Lyra 用 GAS 做技能系统（`Source/LyraGame/AbilitySystem/...`）
-- [D] `ULyraAbilitySystemComponent` 继承自 `UAbilitySystemComponent`
-- [D] 每个 Actor 持有一个 ASC（Ability System Component）
-
-**性能风险：** [H]
-- [H] GE 修改 Attribute 频繁 → 触发大量回调 → CPU 端 Tick 压力
-- [H] Ability 同时激活多 → AnimGraph 复杂 → 动画成本上升
-
-**性能对策：** [H]
-- [H] ASC 默认有 Tick，**不需要 Tick 时关掉** — `bAutoActivate` / `bTickEvenWhenPaused`
-- [H] Attribute 重算用 Throttle
-- [H] GameplayCue 走对象池
-
-### 5. Lyra 中的对象池 [D]（模块存在，具体弹壳池在哪需查源码）
-
-- [D] Lyra 有 GameFeature 形式的对象池（`Source/LyraGame/.../LyraGameplayCueManager.h`）
-- [D] GameplayCue 用了对象池（[D] 来源：UE 官方 GAS 文档）
-- [H] "弹壳、命中粒子、AI 子弹" 是不是都用了池 — **我推的，没逐个查源码**
-
-**诊断问句：** [H]
-> "我场景里有没有每分钟 spawn > 100 次的 Actor？"
+- "Lyra is a **learning resource designed as a sample game project** to help you understand the frameworks of Unreal Engine 5 (UE5)."
+- 架构设计目标是 **modular**：包含核心系统 + 多个 plugin，随 UE5 主线一起更新
+- 三个 Game Mode：Elimination（团队死斗）、Control（占点）、Exploder（俯视派对）
 
 ---
 
-## 三、Lyra 性能架构对我们的启发
+## 二、可在源码里查到的核心类（路径 + 用途）[D]
 
-### 启发 1：解耦 = 可 Profile [H]
-Lyra 的最大性能收益不是某个具体技术，而是**它允许你独立 Profile 任何子系统**。
+> **来源**：Lyra 公开源码 `Source/LyraGame/`、`Plugins/GameFeatures/`、`Source/LyraGame/AbilitySystem/`
 
-### 启发 2：数据资产驱动 > 硬编码 [D]
-- [D] Lyra 的 Pawn 类几乎不变，**变的全是数据资产**（`ULyraPawnData` 等）
-- [H] 改配置不用重新编译 → 迭代快 10x — 经验，具体倍数 [U] 编的
+### 2.1 Gameplay Experience 系统
 
-### 启发 3：Loading 必须"分阶段" [H]
-Lyra 的 Experience 加载分 5 个阶段，**每个阶段都有回调**。
+| 类 | 头文件 | 作用 |
+|----|--------|------|
+| `ULyraExperienceDefinition` | `LyraGameModes/LyraExperienceDefinition.h` | `UPrimaryDataAsset`，定义要启用的 GameFeatures / 默认 PawnData / Actions |
+| `ULyraExperienceActionSet` | `LyraGameModes/LyraExperienceActionSet.h` | `UPrimaryDataAsset`，抽象"多个 ExperienceDefinition 共用的 Actions" |
+| `ULyraExperienceManagerComponent` | `LyraGameModes/LyraExperienceManagerComponent.h` | 挂在 GameState 上，负责 Experience 加载 + GameFeature 激活 |
+| `ULyraUserFacingExperienceDefinition` | `LyraGameModes/LyraUserFacingExperienceDefinition.h` | 关卡切换入口（地图 ID + Experience ID + Loading widget） |
 
-### 启发 4：Frame 25ms 的 Lyra 设计 [U] ⚠️ 待验证
+### 2.2 角色 / 玩家
 
-> ⚠️ **承认**：这个数字是 [U] 我推的，**没在 Lyra 文档里找到具体帧时间预算**。Epic 在 GDC 演讲中提过 "Lyra targets 60 FPS on console" 但没给具体帧时间分配。
+| 类 | 头文件 | 作用 |
+|----|--------|------|
+| `ALyraCharacter` | `LyraGame/Character/LyraCharacter.h` | 角色类 |
+| `ULyraPawnExtensionComponent` | `LyraGame/Character/LyraPawnExtensionComponent.h` | Pawn 核心协调组件 |
+| `ULyraHeroComponent` | `LyraGame/Components/LyraHeroComponent.h` | 玩家控制相关组件，处理输入 / GAS 初始化 |
+| `ULyraPawnData` | `LyraGame/Character/LyraPawnData.h` | `UPrimaryDataAsset`，定义 PawnClass / AbilitySets / InputConfig |
 
-- [U] "50ms 的卡顿是 P0 bug" — 我推的
-- [U] "33ms 的卡顿是 P1 bug" — 我推的
-- [U] "25ms 的卡顿是 P2 bug" — 我推的
-- [D] Lyra 内部确实有 Performance Budget 概念（来源：Lyra 文档），**但具体数字是经验**。
+### 2.3 GAS
+
+| 类 | 头文件 | 作用 |
+|----|--------|------|
+| `ULyraAbilitySystemComponent` | `LyraGame/AbilitySystem/LyraAbilitySystemComponent.h` | GAS 主组件（继承自 `UAbilitySystemComponent`） |
+| `ULyraGameplayAbility` | `LyraGame/AbilitySystem/LyraGameplayAbility.h` | 技能基类 |
+| `ULyraHealthSet` / `ULyraCombatSet` | `LyraGame/AbilitySystem/Attributes/` | AttributeSet：血量 / 战斗属性 |
+| `ULyraGameplayCueManager` | `LyraGame/AbilitySystem/LyraGameplayCueManager.h` | GameplayCue 管理（用对象池） |
+
+### 2.4 库存 / 装备
+
+| 类 | 头文件 | 作用 |
+|----|--------|------|
+| `ULyraInventoryManagerComponent` | `LyraGame/Inventory/LyraInventoryManagerComponent.h` | 挂在 Controller 上 |
+| `ULyraEquipmentManagerComponent` | `LyraGame/Equipment/LyraEquipmentManagerComponent.h` | 装备管理 |
+| `ULyraInventoryItemDefinition` | `LyraGame/Inventory/LyraInventoryItemDefinition.h` | 物品定义（持有 Fragments） |
+| `ULyraInventoryItemInstance` | `LyraGame/Inventory/LyraInventoryItemInstance.h` | 物品实例 |
+
+### 2.5 输入
+
+| 类 | 头文件 | 作用 |
+|----|--------|------|
+| `ULyraInputConfig` | `LyraGame/Input/LyraInputConfig.h` | `UDataAsset`，输入动作 → Gameplay Tag 映射 |
+| `ULyraInputComponent` | `LyraGame/Input/LyraInputComponent.h` | 输入组件（增强输入） |
 
 ---
 
-## 四、Lyra 项目性能 Profile 切入点（M5 实战）[H]
+## 三、Experience 加载状态机 [D]
 
-> ⚠️ **诚实声明**：下面的"Lyra 在 RTX 3060 默认设置下 ~60fps，GPU 约 8-10ms"是 [U] 我推的经验值。**实际数字需要你 Profile 自己机器上的 Lyra 才能知道。**
+> **来源**：Lyra 公开源码 `LyraExperienceManagerComponent.h`
 
-**建议的 Profile 流程：** [H]
+`ELyraExperienceLoadState` 枚举（5 个状态）：
 
 ```
-1. 跑 Lyra 提供的 LyraEditor / LyraStarterGame map
-2. 跑默认 Experience 录 30 秒 utrace
-   （开 cpu, frame, gpu, memory, loadtime 通道）
-3. 跳到 Insights 慢帧：
-   ├─ GameThread 慢？看 Tick 哪个 Component 在跑
-   ├─ RT 慢？BasePass / Lumen 哪个占大头
-   └─ GPU 慢？Nanite / Lumen / VSM 三个主 Pass 看占比
-4. 关掉 VSM 看 Nanite 退化
-5. 关掉 Lumen 看场景退化
-6. 切到 Software / Hardware Ray Tracing 各跑一次
+Unloaded
+  ↓
+Loading
+  ↓
+LoadingGameFeatures
+  ↓
+ExecutingActions
+  ↓
+Loaded
 ```
 
-**经验值**（不是文档数字）：[H]
-- [U] Lyra 在 RTX 3060 默认设置下 ~60fps，GPU 约 8-10ms — 我没真测过
-- [U] 关掉 VSM → GPU 涨到 12-14ms — 我没真测过
-- [U] 关掉 Lumen → GPU 降到 4-5ms，但视觉崩 — 我没真测过
-- [H] Lumen 是大头，约 50% GPU 预算 — 经验，具体百分比 [U]
+另有 `Deactivating` 和 `LoadingChaosTestingDelay`（用 `LyraExperienceLoadingDelay` CVar 模拟加载延迟来测 loading 流程健壮性）。
+
+### 3.1 关键函数（已验证存在于源码）[D]
+
+```cpp
+// 公开源码中的真实函数签名
+void ULyraExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId ExperienceId);
+void ULyraExperienceManagerComponent::StartExperienceLoad();
+void ULyraExperienceManagerComponent::OnExperienceLoadComplete();
+void ULyraExperienceManagerComponent::OnGameFeaturePluginLoadComplete(const UE::GameFeatures::FResult& Result);
+void ULyraExperienceManagerComponent::OnExperienceFullLoadCompleted();
+```
+
+### 3.2 三种优先级的加载完成委托 [D]
+
+```cpp
+// LyraExperienceManagerComponent.h 真实签名
+void CallOrRegister_OnExperienceLoaded_HighPriority(FOnLyraExperienceLoaded::FDelegate&& Delegate);
+void CallOrRegister_OnExperienceLoaded(FOnLyraExperienceLoaded::FDelegate&& Delegate);
+void CallOrRegister_OnExperienceLoaded_LowPriority(FOnLyraExperienceLoaded::FDelegate&& Delegate);
+```
+
+- **HighPriority**：GameMode（RestartPlayer）、PlayerState（SetPawnData）、FrontendStateComponent
+- **NormalPriority**：BotCreation、UAsyncAction_ExperienceReady
+- **LowPriority**：BotCreation 等非核心功能
+
+### 3.3 网络复制 [D]
+
+```cpp
+// LyraExperienceManagerComponent.h 真实签名
+UPROPERTY(ReplicatedUsing = OnRep_CurrentExperience)
+const ULyraExperienceDefinition* CurrentExperience;
+
+void ULyraExperienceManagerComponent::OnRep_CurrentExperience();
+```
+
+→ 服务器设 `CurrentExperience` 后自动同步到客户端，客户端在 `OnRep_CurrentExperience` 里调 `StartExperienceLoad()`。
+
+### 3.4 Loading Screen 集成 [D]
+
+```cpp
+// LyraExperienceManagerComponent.h 真实继承
+class ULyraExperienceManagerComponent final :
+    public UGameStateComponent,
+    public ILoadingProcessInterface
+{
+    virtual bool ShouldShowLoadingScreen(FString& OutReason) const override;
+};
+```
+
+→ 因继承 `ILoadingProcessInterface`，loading 期间引擎自动显示 Loading Screen（每帧 `FTickableGameObject` 检查）。
+
+---
+
+## 四、GameFeatures 插件化 [D]
+
+> **来源**：Lyra 公开源码 `Plugins/GameFeatures/` + `Source/LyraGame/GameFeatures/`
+
+- 一个 GameFeature = 一个独立 Plugin
+- `UGameFeatureAction` 是基类（`Plugins/GameFeatures/Source/GameFeatures/Public/GameFeatureAction.h`）
+- 生命周期：
+
+```
+OnGameFeatureRegistering → OnGameFeatureLoading → 
+OnGameFeatureActivating → OnGameFeatureDeactivating
+```
+
+- 核心 Lyra GameFeatures：
+  - `ShooterCore`：角色 / 武器 / 玩法
+  - `ShooterMaps`：地图
+  - `TopDownArena`：俯视玩法
+  - `LyraExampleContent`：共享材质
+
+---
+
+## 五、不在本文档里的内容
+
+> 以下内容**没有可查的官方 / 公开源码支撑**，本文**不写**：
+
+- "Lyra 在 RTX 3060 上 60fps"——本文不主张
+- "Lyra 默认设置下 GPU X ms / CPU Y ms"——本文不主张
+- "Lyra 的角色类只有 500 行"——目测估算，不精确
+- "每个 ExperienceDefinition 平均 Z 个 Action"——本文不主张
+- "Lyra Performance Budget 是 X ms"——官方仅说 "Lyra targets 60 FPS on console" 但没给具体帧时间分配
+- 任何"用 Lyra 后能省 X% 内存" 类比——本文不主张
+
+需要这些数字 → 自己 Profile Lyra（按 `[[Unreal Insights 帧分析实战]]` 流程录 utrace）。
+
+---
+
+## 六、对工作有用的入口（不是性能数据，是工作流）[D]
+
+> 这些是**源码可见的工作流事实**，可参考。
+
+1. **从 WorldSettings 入口**：Default Gameplay Experience 字段选 `ULyraExperienceDefinition` 资产
+2. **调试日志关键函数**：`ALyraGameMode::HandleStartingNewPlayer`、`ULyraHeroComponent::InitializePlayerInput`、`ULyraGameplayAbility::ActivateAbility`（知乎教程建议加 `UE_LOG` 看调用栈）
+3. **可视化 ASC**：`ShowDebug AbilitySystem` 控制台命令（来自 Lyra 教程系列）
+4. **Lyra 内置追踪点**：Lyra 项目自带 Unreal Insights 追踪（具体调用 `TRACE_CPUPROFILER_EVENT_SCOPE` 的位置需要查源码确认）
 
 ---
 
 ## 关联 / 输出产物
 
-- [[Lumen 性能调优]] — Lumen 是 Lyra 的核心
-- [[Nanite 性能调优]] — Nanite 是 Lyra 的核心
-- [[Unreal Insights 帧分析实战]] — 怎么 Profile
+- [[Lumen 性能调优]] — Lyra 用 Lumen + Nanite 作为默认渲染
+- [[Nanite 性能调优]] — Lyra 是 Nanite + Lumen 实战参考
+- [[Unreal Insights 帧分析实战]] — 怎么 Profile Lyra
 - [[性能优化方法论]] — 总体思路
-- 外部：https://github.com/EpicGames/LyraSampleGame — **公开源码可查**
-- 官方：https://docs.unrealengine.com/5.7/en-US/lyra-sample-game-in-unreal-engine
+- 外部：
+  - [EpicGames/LyraStarterGame](https://github.com/EpicGames/LyraStarterGame) — 公开源码
+  - [Lyra Sample Game 官方文档](https://docs.unrealengine.com/5.7/en-US/lyra-sample-game-in-unreal-engine)
 
 ---
 
 *Create date: 2026-06-25*
-*Last modified: 2026-06-25（添加可靠度标记）*
-*Status: ✅ 架构描述 [D] 公开源码可查；⚠️ M5 实战数据 [U] 都是编的，需要自己跑 Lyra 验证*
+*Last modified: 2026-06-26（删除全部 [U] 性能数字；类名 / 文件路径 / 状态机 / 函数签名全部基于公开源码）*
+*Status: ✅ 架构 / 类名 / API 有 Lyra 公开源码支撑；⚠️ 任何性能数字必须自己 Profile*

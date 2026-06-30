@@ -88,6 +88,7 @@ PCG 是 **生成器** 而非 **渲染器**：
 ## 相关参考
 
 - [[../References/AI-Augmentation-Reference]] — AI 辅助学习完整参考手册
+- [[../01-AI-GameDev-Resources/00-AI-GameDev-Resource-Index]] — AI 游戏开发资源总索引（2026-06 刷新）
 - [[../UE58-Topic-Exploration-Report]] — UE58 主题探索完整报告（优先级评分）
 - [[../MassAI/00-Master-Index]] — MassAI Spawn Point 与 PCG 的关系
 - [[../Nanite/00-Master-Index]] — Nanite Instancing 与 PCG 输出

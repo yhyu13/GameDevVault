@@ -88,6 +88,7 @@ MassAI 是 **消费者** 而非 **独立系统**：
 
 - [[../References/AI-Augmentation-Reference]] — AI 辅助学习完整参考手册
 - [[../UE58-Topic-Exploration-Report]] — UE58 主题探索完整报告（优先级评分）
+- [[../01-AI-GameDev-Resources/00-AI-GameDev-Resource-Index]] — AI 游戏开发资源总索引（2026-06 刷新）
 - [[../ChaosPhysics/00-Master-Index]] — MassAI 的物理基础
 - [[../VGM/00-Master-Index]] — MassAI 的渲染基础
 - [[../../01-论文笔记库]] — ECS / Data-Oriented Design 论文笔记
