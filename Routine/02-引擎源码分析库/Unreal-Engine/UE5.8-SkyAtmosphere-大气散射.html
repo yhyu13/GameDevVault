@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5.8 SkyAtmosphere 大气散射 · 互动式面试卡牌</title>
+<style>
+:root{--bg:#f5f5f0;--card-bg:#fff;--primary:#3a5a7c;--accent:#6b9e75;--accent-wrong:#c45c5c;--text:#2c3e50;--text-light:#5d6d7e;--border:#d0d5dd;--shadow:rgba(0,0,0,.08);--drop-zone:#eef2f7;--draggable:#f0f4f8;--status-correct:#e8f5e9;--status-wrong:#fce8e8;--status-unanswered:#f8f9fa}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem}
+header h1{margin:0;font-size:1.3rem;font-weight:500}
+header p{margin:.2rem 0 0;opacity:.85;font-size:.85rem}
+.header-left{flex:1;min-width:260px}
+.header-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.header-btn{padding:.5rem 1rem;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;cursor:pointer;transition:all .2s;font-size:.88rem;text-decoration:none;display:inline-block}
+.header-btn:hover{background:rgba(255,255,255,.25)}
+.container{max-width:820px;margin:0 auto;padding:1.5rem}
+.nav-tabs{display:flex;gap:.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+.nav-tab{flex:1;min-width:90px;padding:.6rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:.85rem;transition:all .2s;color:var(--text-light)}
+.nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,.25)}
+.nav-tab:hover:not(.active){background:var(--drop-zone)}
+.score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:.6rem;flex-wrap:wrap}
+.score-mini{font-size:.85rem;color:var(--text-light);white-space:nowrap}
+.score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+.progress-text{text-align:right;font-size:.8rem;color:var(--text-light);margin-bottom:.3rem}
+.progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s ease}
+.card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+.card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:26px;font-size:.8rem;font-weight:600;margin-right:.5rem}
+.card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5}
+.q-type{font-size:.75rem;color:var(--text-light);background:#eef2f7;padding:2px 8px;border-radius:4px;margin-left:.4rem}
+.drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem}
+.drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all .2s;padding:0 6px;font-size:.95rem}
+.drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+.drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8;cursor:pointer}
+.drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+.drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+.drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+.drop-zone.correct .dropped-text{color:var(--accent)}
+.drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+.drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:.5rem;padding:.8rem;background:var(--drop-zone);border-radius:8px}
+.draggable{padding:.4rem .9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all .15s;font-size:.92rem}
+.draggable:hover{background:#dbe4ee;border-color:var(--primary);transform:translateY(-1px)}
+.draggable.used{opacity:.35;cursor:default;pointer-events:none}
+.options-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.0rem}
+.option{padding:.7rem 1.0rem;background:var(--card-bg);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.6rem;font-size:.95rem;line-height:1.45}
+.option:hover{border-color:var(--primary);background:var(--drop-zone)}
+.option.selected{border-color:var(--primary);background:#e8f0f8}
+.option.correct-mark{border-color:var(--accent);background:#e8f5e9}
+.option.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+.option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;flex-shrink:0;background:#fff}
+.option.selected .opt-marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+.option.correct-mark .opt-marker{background:var(--accent);color:#fff;border-color:var(--accent)}
+.option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+.tf-options{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.0rem}
+.tf-btn{padding:.9rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;transition:all .15s;font-size:.95rem;text-align:center}
+.tf-btn:hover{border-color:var(--primary);background:var(--drop-zone)}
+.tf-btn.selected{border-color:var(--primary);background:#e8f0f8}
+.tf-btn.correct-mark{border-color:var(--accent);background:#e8f5e9}
+.tf-btn.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+.feedback{margin-top:1.0rem;padding:.9rem 1.1rem;border-radius:8px;background:#f0f4f8;border-left:3px solid var(--primary);font-size:.92rem;line-height:1.6;display:none}
+.feedback.show{display:block}
+.feedback.feedback-correct{border-left-color:var(--accent);background:#e8f5e9}
+.feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:#fce8e8}
+.feedback-title{font-weight:600;margin-bottom:.3rem;display:block}
+.feedback ul{margin:.4rem 0 0 0;padding-left:1.2rem}
+.feedback li{margin-bottom:.3rem}
+.action-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.0rem}
+.btn{padding:.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.9rem;transition:all .15s}
+.btn:hover{background:var(--drop-zone);border-color:var(--primary)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2c4661;border-color:#2c4661;color:#fff}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{filter:brightness(.95)}
+.nav-row{display:flex;justify-content:space-between;margin-top:.8rem;gap:.6rem}
+.overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+.overview-panel.show{display:block}
+.overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:.5rem}
+.overview-header h2{margin:0;font-size:1.15rem;font-weight:500}
+.overview-stats{display:flex;gap:.5rem;flex-wrap:wrap}
+.filter-btn{padding:.4rem .8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .15s}
+.filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filter-btn:hover:not(.active){background:#dbe4ee}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:.5rem}
+.overview-item{aspect-ratio:1;border-radius:8px;background:var(--status-unanswered);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:.78rem;text-align:center;padding:.2rem}
+.overview-item.correct{background:var(--status-correct);border-color:var(--accent)}
+.overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong)}
+.overview-item:hover{transform:scale(1.04);box-shadow:0 2px 8px var(--shadow)}
+.overview-item .ov-num{font-weight:700;font-size:1.0rem;margin-bottom:.1rem}
+.overview-item .ov-type{font-size:.65rem;opacity:.75;text-transform:uppercase;letter-spacing:.5px}
+.hidden{display:none}
+@media (max-width:600px){.container{padding:1rem}.card{padding:1.2rem 1.0rem}header{padding:1rem}header h1{font-size:1.1rem}.nav-tab{font-size:.78rem;padding:.5rem .3rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>UE5.8 SkyAtmosphere 大气散射 · 互动式面试卡牌</h1>
+    <p>UE 5.8 · 共 18 题（拖拽 4 + 单选 5 + 多选 4 + 判断 5）· 配套笔记：<a class="header-btn" href="UE5.8-SkyAtmosphere-大气散射.md" target="_blank">打开分析笔记</a></p>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" id="btn-overview">📊 题目总览</button>
+    <button class="header-btn" id="btn-reshuffle">🔄 随机打乱</button>
+    <button class="header-btn" id="btn-reset-all">🔄 重置全部</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-type="all">全部</div>
+    <div class="nav-tab" data-type="drag">拖拽填空</div>
+    <div class="nav-tab" data-type="single">单选题</div>
+    <div class="nav-tab" data-type="multi">多选题</div>
+    <div class="nav-tab" data-type="tf">判断题</div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-mini">已答 <span class="score-num" id="answered-num">0</span> / <span id="total-num">18</span></div>
+    <div class="score-mini">正确 <span class="score-num" id="correct-num" style="color:var(--accent)">0</span></div>
+    <div class="score-mini">错误 <span class="score-num" id="wrong-num" style="color:var(--accent-wrong)">0</span></div>
+    <div class="score-mini">得分率 <span class="score-num" id="score-pct">0%</span></div>
+  </div>
+
+  <div class="progress-text" id="progress-text">第 1 题 / 共 18 题</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:5%"></div></div>
+
+  <div id="overview-panel" class="overview-panel">
+    <div class="overview-header">
+      <h2>题目总览</h2>
+      <div class="overview-stats">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="unanswered">未答</button>
+        <button class="filter-btn" data-filter="correct">正确</button>
+        <button class="filter-btn" data-filter="wrong">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <div id="questions-container"></div>
+
+</div>
+
+<script>
+const _origDrag = [
+  {
+    text: "SkyAtmosphere 大气散射基于 <span class='drop-zone' data-idx='0'></span> 模型，5 个 LUT 中 root 是 <span class='drop-zone' data-idx='1'></span>（仅依赖 h vs viewZenith），其余 LUT 都依赖它。",
+    answers: ["Bruneton multi-scattering", "TransmittanceLut"],
+    pool: ["Bruneton multi-scattering", "TransmittanceLut", "Hosek-Wilkie", "Preetham", "MultiScatteredLuminanceLut", "Decima"],
+    explanations: [
+      "Bruneton multi-scattering 是 UE5.8 SkyAtmosphere 的理论基础,支持 Rayleigh + Mie + 多阶散射",
+      "TransmittanceLut (256x64) 是唯一不依赖其他 LUT 的 root,存的是 (h vs viewZenith) 的透射率"
+    ]
+  },
+  {
+    text: "5 个 LUT 流水线顺序：先算 <span class='drop-zone' data-idx='0'></span>，再算 MultiScatteredLuminanceLut，然后并行算 Sky-ViewLut + <span class='drop-zone' data-idx='1'></span> + DistantSkyLightLut，最后通过 <span class='drop-zone' data-idx='2'></span> 延迟 commit 到 ViewUB。",
+    answers: ["TransmittanceLut", "CameraAerialPerspectiveVolume", "FSkyAtmospherePendingRDGResources"],
+    pool: ["TransmittanceLut", "CameraAerialPerspectiveVolume", "FSkyAtmospherePendingRDGResources", "SceneTextures", "VolumetricCloudShadow", "FRenderSkyViewLutCS"],
+    explanations: [
+      "Transmittance 是 root LUT,所有其他 LUT 都依赖它",
+      "Camera Aerial Perspective Volume (3D 32x32x32) 是 per-view 的体积散射查表",
+      "FSkyAtmospherePendingRDGResources 让 LUT compute 跟 nanite raster overlap,延后 commit"
+    ]
+  },
+  {
+    text: "State Versioning 机制通过 <span class='drop-zone' data-idx='0'></span> 拿到版本号,跟 <span class='drop-zone' data-idx='1'></span> 比较,不同才重算 Transmittance + MultiScattered。Sky-View 和 AP 因为 view-dependent,<span class='drop-zone' data-idx='2'></span>。",
+    answers: ["AtmosphereSetup.GetTransmittanceAndMultiScatteringLUTsVersion()", "Scene->CachedVersion", "不缓存,每帧重算"],
+    pool: ["AtmosphereSetup.GetTransmittanceAndMultiScatteringLUTsVersion()", "Scene->CachedVersion", "不缓存,每帧重算", "VolumetricCloudState", "缓存 60 帧", "每 16 帧重算"],
+    explanations: [
+      "FAtmosphereSetup 提供 version hash,SkyAtmosphereRendering.cpp:1511",
+      "Scene 持有 CachedVersion,首次或不同才重算(line 1513)",
+      "Sky-View 和 AP volume 跟 view 相关,无法跨帧缓存"
+    ]
+  },
+  {
+    text: "DistantSkyLightLut 编码 <span class='drop-zone' data-idx='0'></span> → sky radiance 的查找表,给 SkyLight 实时捕获喂数据,代价是 <span class='drop-zone' data-idx='1'></span>。配套 CVar 是 <span class='drop-zone' data-idx='2'></span>。",
+    answers: ["(light dir)", "O(1) per fragment", "r.SkyAtmosphere.DistantSkyLightLUT"],
+    pool: ["(light dir)", "O(1) per fragment", "r.SkyAtmosphere.DistantSkyLightLUT", "SkyLight LUT", "O(N) raymarch", "r.Atmosphere.DistantSkyLight"],
+    explanations: [
+      "DistantSkyLightLut 编码的是方向到天空辐射率的映射,buffer A32B32G32R32F",
+      "SkyLight 查表代替 ray-march,O(1) 替代 O(N) 大幅节省",
+      "r.SkyAtmosphere.DistantSkyLightLUT 控制是否启用"
+    ]
+  }
+];
+
+const _origSingle = [
+  {
+    q: "TransmittanceLut 的分辨率和格式是?",
+    options: ["256x64 R11G11B10F", "32x32 R16G16B16A16F", "128x128 R8G8B8A8", "512x512 RGBA16F"],
+    correct: 0,
+    explanations: [
+      "✅ 256x64 R11G11B10F,UE 标配,紧凑够用",
+      "❌ 这是 MultiScatteredLuminanceLut 的格式",
+      "❌ 这不是 TransmittanceLut 格式",
+      "❌ 远大于实际值"
+    ]
+  },
+  {
+    q: "FSkyAtmosphereInternalCommonParameters 和 FSkyAtmosphereViewSharedUniformShaderParameters 各自更新频率是?",
+    options: [
+      "两个都是每帧更新",
+      "Internal 每帧,ViewShared 每帧",
+      "Internal 每帧重建,ViewShared 由 cvar 动态改变",
+      "ViewShared 每帧重建,Internal 静态"
+    ],
+    correct: 2,
+    explanations: [
+      "❌ 不准确",
+      "❌ Internal 不每帧重建",
+      "✅ Internal 在 RenderSkyAtmosphereLookUpTables 里重新计算(line 1500),ViewShared 由 cvar 控制如 r.SkyAtmosphere.AerialPerspectiveStartDepthKm",
+      "❌ 反了"
+    ]
+  },
+  {
+    q: "FAtmosphereUniformShaderParameters 有多少个参数?",
+    options: ["10", "13", "17", "25"],
+    correct: 2,
+    explanations: [
+      "❌ 偏少",
+      "❌ 偏少",
+      "✅ 17 个,SkyAtmosphereRendering.h:40-58 完整列出",
+      "❌ 偏多"
+    ]
+  },
+  {
+    q: "MultiScatteringFactor 这个参数的最大坑是?",
+    options: [
+      "无物理对应,纯校准常数,文档稀薄",
+      "必须设成 1.0",
+      "只能为正整数",
+      "对所有波长影响相同"
+    ],
+    correct: 0,
+    explanations: [
+      "✅ 本质是 Bruneton 多阶散射近似的校准常数,没有物理对应,>2 会爆光",
+      "❌ 范围 0~2 通常,1.0 是常用值但不是必须",
+      "❌ 是 float 不是 int",
+      "❌ 是 FLinearColor 之前定义的总倍率"
+    ]
+  },
+  {
+    q: "CameraAerialPerspectiveVolume 的分辨率是?",
+    options: ["32x32x32", "64x64x64", "256x256x1", "960x540x16"],
+    correct: 0,
+    explanations: [
+      "✅ 32x32x32,per-view 分配,显存 ~256KB/view",
+      "❌ 这不是 AP volume 的实际分辨率",
+      "❌ 这是 2D 纹理格式",
+      "❌ 这是半分辨率 VRT 格式"
+    ]
+  }
+];
+
+const _origMulti = [
+  {
+    q: "SkyAtmosphere 的 LUT 流水线依赖关系正确的是?(多选)",
+    options: [
+      "TransmittanceLut 是 root,所有其他 LUT 都依赖它",
+      "MultiScatteredLuminanceLut 依赖 Transmittance",
+      "Sky-ViewLut 同时依赖 Transmittance + MultiScattered",
+      "CameraAerialPerspectiveVolume 依赖 Transmittance + MultiScattered",
+      "DistantSkyLightLut 跟其他 LUT 完全无关"
+    ],
+    correct: [0, 1, 2, 3],
+    explanations: [
+      "✅ Transmittance 不依赖任何 LUT",
+      "✅ MultiScattered 用 Transmittance 计算 sphere samples",
+      "✅ Sky-View 同时查 Transmittance + MultiScattered",
+      "✅ AP volume 也依赖这两个 LUT",
+      "❌ DistantSkyLightLut 也查 Transmittance(line 1577)"
+    ]
+  },
+  {
+    q: "SkyAtmosphere 17 个参数中,影响日落颜色的关键参数?(多选)",
+    options: [
+      "MieScattering",
+      "MiePhaseG",
+      "MieExtinction",
+      "RayleighScattering",
+      "RayleighDensityExpScale"
+    ],
+    correct: [0, 1, 2],
+    explanations: [
+      "✅ Mie 散射系数,决定日落红黄",
+      "✅ Mie 相函数不对称因子,>0.9 强前向散射(日晕)",
+      "✅ Mie 消光系数,跟 MieScattering 接近时 haze 自然",
+      "❌ Rayleigh 决定蓝天,对日落影响小",
+      "❌ Rayleigh 密度衰减,影响小"
+    ]
+  },
+  {
+    q: "哪些 LUT 是 per-view 的?(多选)",
+    options: [
+      "TransmittanceLut",
+      "MultiScatteredLuminanceLut",
+      "Sky-ViewLut",
+      "CameraAerialPerspectiveVolume",
+      "DistantSkyLightLut"
+    ],
+    correct: [2, 3],
+    explanations: [
+      "❌ Transmittance 是场景级,所有 view 共享",
+      "❌ MultiScattered 也是场景级",
+      "✅ Sky-View 是 per-view(全分辨率 = 视图分辨率)",
+      "✅ AP volume 是 per-view(32x32x32 per view)",
+      "❌ DistantSkyLight 是 buffer,跟 view 无关"
+    ]
+  },
+  {
+    q: "哪些情况会导致 SkyAtmosphere 不显示或黑屏?(多选)",
+    options: [
+      "场景没放 USkyAtmosphereComponent",
+      "Mobile 端没配 IsSky material mesh",
+      "VisualizeSkyAtmosphere showflag 关闭",
+      "r.SkyAtmosphere.StateVersioning 设为 0",
+      "所有 SkyLight 都关闭"
+    ],
+    correct: [0, 1, 2],
+    explanations: [
+      "✅ 没 component → 无 LUT → 无 sky",
+      "✅ SceneRendering.cpp:4555 硬警告,Mobile 必须配 IsSky mesh",
+      "✅ showflag 控制可见性",
+      "❌ StateVersioning=0 强制每帧重算 LUT,不会黑屏只是性能差",
+      "❌ SkyLight 是消费者,不影响 sky 本身渲染"
+    ]
+  }
+];
+
+const _origTF = [
+  {
+    q: "TransmittanceLut 每帧都重算,不能缓存。",
+    correct: false,
+    explanation: "❌ 错误:Transmittance + MultiScattered 受 State Versioning 控制,物理参数不变就不重算(SkyAtmosphereRendering.cpp:1513)。只有 Sky-View + AP 因为 view-dependent 每帧重算。"
+  },
+  {
+    q: "MultiScatteredLuminanceLut 是 32x32 R16G16B16A16F,本质是离散化的球谐函数系数。",
+    correct: true,
+    explanation: "✅ 正确:MultiScattering 近似算法需要球面采样,32x32 是 sphere harmonic 系数离散化的紧凑表达,带 SphereSamples 预生成。"
+  },
+  {
+    q: "CameraAerialPerspectiveVolume 是 3D 纹理,提供相机到 fragment 的体积散射。",
+    correct: true,
+    explanation: "✅ 正确:AP volume 32x32x32 R16G16B16A16F,编码(camera-relative-position, view direction) → transmittance + in-scattering,体积云和远景颜色查这个 LUT 得到雾化效果。"
+  },
+  {
+    q: "r.SkyAtmosphere.DistantSkyLightLUT 关闭后会提高 SkyLight 实时捕获精度。",
+    correct: false,
+    explanation: "❌ 反向理解:关闭 DistantSkyLightLut 会让 SkyLight 实时捕获走低效路径(可能是更粗的近似或完全黑屏),开启反而**更快更准**。"
+  },
+  {
+    q: "RayleighDensityExpScale 设 1/8.5 km 是地球真实值,代表 Rayleigh 散射的标尺高度。",
+    correct: true,
+    explanation: "✅ 正确:Rayleigh 散射强度随高度指数衰减,H=8.5 km 是地球大气典型值,1/H=0.117 就是 1/8.5 ≈ 0.117。这个参数决定天空蓝的垂直分布。"
+  }
+];
+
+let dragQuestions = JSON.parse(JSON.stringify(_origDrag));
+let singleQuestions = JSON.parse(JSON.stringify(_origSingle));
+let multiQuestions = JSON.parse(JSON.stringify(_origMulti));
+let trueFalseQuestions = JSON.parse(JSON.stringify(_origTF));
+let currentMode = 'all';
+let currentIndex = 0;
+const results = {};
+let overviewOpen = false;
+let activeFilter = 'all';
+
+function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function shuffleOptions(q){const idx=q.options.map((_,i)=>i);const si=shuffleArray(idx);return{...q,options:si.map(i=>q.options[i]),optionExplanations:si.map(i=>q.optionExplanations[i]),correct:Array.isArray(q.correct)?q.correct.map(o=>si.indexOf(o)).filter(i=>i>=0).sort((a,b)=>a-b):si.indexOf(q.correct)}}
+function reshuffleAll(){resetAll();dragQuestions=shuffleArray(_origDrag);singleQuestions=shuffleArray(_origSingle).map(shuffleOptions);multiQuestions=shuffleArray(_origMulti).map(shuffleOptions);trueFalseQuestions=shuffleArray(_origTF);currentIndex=0;renderCurrent()}
+function getAllQuestions(){const all=[];dragQuestions.forEach((q,i)=>all.push({type:'drag',idx:i,data:q,mode:'drag'}));singleQuestions.forEach((q,i)=>all.push({type:'single',idx:i,data:q,mode:'single'}));multiQuestions.forEach((q,i)=>all.push({type:'multi',idx:i,data:q,mode:'multi'}));trueFalseQuestions.forEach((q,i)=>all.push({type:'tf',idx:i,data:q,mode:'tf'}));return all}
+function setMode(mode){currentMode=mode;currentIndex=0;renderCurrent();document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.type===mode))}
+function totalCount(){return dragQuestions.length+singleQuestions.length+multiQuestions.length+trueFalseQuestions.length}
+function answeredCount(){return Object.keys(results).filter(k=>results[k]!==null).length}
+function correctCount(){return Object.values(results).filter(r=>r&&r.correct).length}
+function wrongCount(){return Object.values(results).filter(r=>r&&!r.correct).length}
+function updateScore(){document.getElementById('answered-num').textContent=answeredCount();document.getElementById('correct-num').textContent=correctCount();document.getElementById('wrong-num').textContent=wrongCount();const t=totalCount();document.getElementById('score-pct').textContent=answeredCount()===0?'0%':Math.round(correctCount()/answeredCount()*100)+'%';const cur=getFilteredQuestions().length;document.getElementById('progress-text').textContent=`第 ${Math.min(currentIndex+1,cur)} 题 / 共 ${cur} 题`;document.getElementById('progress-fill').style.width=(cur>0?(Math.min(currentIndex+1,cur)/cur*100)+'%':'0%')}
+function getFilteredQuestions(){if(currentMode==='all')return getAllQuestions();return getAllQuestions().filter(q=>q.mode===currentMode)}
+function renderCurrent(){const qs=getFilteredQuestions();if(qs.length===0){document.getElementById('questions-container').innerHTML='<div class="card"><p>该题型暂无题目。</p></div>';updateScore();return}currentIndex=Math.max(0,Math.min(currentIndex,qs.length-1));const q=qs[currentIndex];document.getElementById('questions-container').innerHTML='';if(q.mode==='drag')renderDrag(q);else if(q.mode==='single')renderSingle(q);else if(q.mode==='multi')renderMulti(q);else if(q.mode==='tf')renderTrueFalse(q);updateScore()}
+function recordResult(type,idx,correct,userAnswer){results[`${type}-${idx}`]={correct,userAnswer};updateScore()}
+function resetAll(){for(const k in results)delete results[k];currentIndex=0;renderCurrent();updateOverview()}
+function renderDrag(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">拖拽填空</span><h3>${q.data.text}</h3><div class="drag-pool">${q.data.pool.map(p=>`<span class="draggable" data-term="${p}">${p}</span>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;setupDragDrop(q);setupNav();setupCheckReset(q,'drag')}
+function renderSingle(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">单选题</span><h3>${q.data.q}</h3><div class="options-list">${q.data.options.map((o,i)=>`<div class="option" data-idx="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${o}</span></div>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;q.data.options.forEach((_,i)=>{document.querySelector(`.option[data-idx="${i}"]`).addEventListener('click',()=>{document.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));document.querySelector(`.option[data-idx="${i}"]`).classList.add('selected')})});setupNav();setupCheckReset(q,'single')}
+function renderMulti(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">多选题</span><h3>${q.data.q}</h3><div class="options-list">${q.data.options.map((o,i)=>`<div class="option" data-idx="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${o}</span></div>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;q.data.options.forEach((_,i)=>{document.querySelector(`.option[data-idx="${i}"]`).addEventListener('click',()=>{document.querySelector(`.option[data-idx="${i}"]`).classList.toggle('selected')})});setupNav();setupCheckReset(q,'multi')}
+function renderTrueFalse(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">判断题</span><h3>${q.data.q}</h3><div class="tf-options"><div class="tf-btn" data-val="true">✅ 正确</div><div class="tf-btn" data-val="false">❌ 错误</div></div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;document.querySelectorAll('.tf-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tf-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')}));setupNav();setupCheckReset(q,'tf')}
+function setupDragDrop(q){const fills=document.querySelectorAll('.drop-zone');fills.forEach((z,i)=>{z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag-over')});z.addEventListener('dragleave',()=>z.classList.remove('drag-over'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('drag-over');const term=e.dataTransfer.getData('text/plain');if(term){z.innerHTML=`<span class="dropped-text">${term}</span>`;z.dataset.filled=term;z.classList.add('filled');document.querySelectorAll(`.draggable`).forEach(d=>{if(d.dataset.term===term)d.classList.add('used')})}})});document.querySelectorAll('.draggable').forEach(d=>{d.setAttribute('draggable','true');d.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',d.dataset.term)})})}
+function setupNav(){const prev=document.getElementById('prev-btn');const next=document.getElementById('next-btn');if(prev)prev.addEventListener('click',()=>{if(currentIndex>0){currentIndex--;renderCurrent()}});if(next)next.addEventListener('click',()=>{const qs=getFilteredQuestions();if(currentIndex<qs.length-1){currentIndex++;renderCurrent()}})}
+function setupCheckReset(q,mode){const cb=document.getElementById('check-btn');const rb=document.getElementById('reset-btn');if(cb)cb.addEventListener('click',()=>{if(mode==='drag')checkDrag(q);else if(mode==='single')checkSingle(q);else if(mode==='multi')checkMulti(q);else if(mode==='tf')checkTF(q);updateOverview()});if(rb)rb.addEventListener('click',()=>renderCurrent())}
+function showFeedback(correct,explanations){const fb=document.getElementById('fb');fb.className='feedback show '+(correct?'feedback-correct':'feedback-wrong');fb.innerHTML=`<span class="feedback-title">${correct?'✅ 回答正确！':'❌ 回答错误'}</span><ul>${explanations.map(e=>`<li>${e}</li>`).join('')}</ul>`}
+function checkDrag(q){const fills=document.querySelectorAll('.drop-zone');let allCorrect=true;const exp=[];fills.forEach((z,i)=>{const user=z.dataset.filled||'';const expect=q.data.answers[i];const ok=user===expect;if(!ok)allCorrect=false;z.classList.remove('correct','wrong');z.classList.add(ok?'correct':'wrong');exp.push(q.data.explanations[i])});recordResult('drag',q.originalIndex,allCorrect,null);showFeedback(allCorrect,exp)}
+function checkSingle(q){const sel=document.querySelector('.option.selected');if(!sel){alert('请先选择答案');return}const i=parseInt(sel.dataset.idx);const correct=i===q.data.correct;document.querySelectorAll('.option').forEach((o,j)=>{o.classList.remove('correct-mark','wrong-mark');if(j===q.data.correct)o.classList.add('correct-mark');else if(j===i&&!correct)o.classList.add('wrong-mark')});recordResult('single',q.originalIndex,correct,i);showFeedback(correct,q.data.explanations)}
+function checkMulti(q){const sels=Array.from(document.querySelectorAll('.option.selected')).map(o=>parseInt(o.dataset.idx));if(sels.length===0){alert('请先选择答案');return}const corr=q.data.correct.slice().sort((a,b)=>a-b);const user=sels.slice().sort((a,b)=>a-b);const ok=JSON.stringify(corr)===JSON.stringify(user);document.querySelectorAll('.option').forEach((o,j)=>{o.classList.remove('correct-mark','wrong-mark');if(corr.includes(j))o.classList.add('correct-mark');else if(sels.includes(j)&&!ok)o.classList.add('wrong-mark')});recordResult('multi',q.originalIndex,ok,sels);showFeedback(ok,q.data.explanations)}
+function checkTF(q){const sel=document.querySelector('.tf-btn.selected');if(!sel){alert('请先选择');return}const v=sel.dataset.val==='true';const ok=v===q.data.correct;document.querySelectorAll('.tf-btn').forEach(b=>{b.classList.remove('correct-mark','wrong-mark')});document.querySelector(`.tf-btn[data-val="${q.data.correct?'true':'false'}"]`).classList.add('correct-mark');if(!ok)sel.classList.add('wrong-mark');recordResult('tf',q.originalIndex,ok,v);showFeedback(ok,[q.data.explanation])}
+function updateOverview(){const grid=document.getElementById('overview-grid');if(!grid)return;grid.innerHTML='';const all=getAllQuestions();all.forEach((q,i)=>{const item=document.createElement('div');item.className='overview-item';const r=results[`${q.type}-${q.idx}`];if(r){item.classList.add(r.correct?'correct':'wrong')}item.innerHTML=`<div class="ov-num">${i+1}</div><div class="ov-type">${q.type}</div>`;item.addEventListener('click',()=>{setMode(q.type);const qs=getFilteredQuestions();currentIndex=qs.findIndex(x=>x.type===q.type&&x.idx===q.idx);overviewOpen=false;document.getElementById('overview-panel').classList.remove('show');renderCurrent()});grid.appendChild(item)})}
+document.getElementById('btn-overview').addEventListener('click',()=>{overviewOpen=!overviewOpen;document.getElementById('overview-panel').classList.toggle('show',overviewOpen);if(overviewOpen)updateOverview()});
+document.getElementById('btn-reshuffle').addEventListener('click',reshuffleAll);
+document.getElementById('btn-reset-all').addEventListener('click',()=>{if(confirm('确定重置全部答题记录?'))resetAll()});
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.type)));
+document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;document.querySelectorAll('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));const items=document.querySelectorAll('.overview-item');items.forEach(item=>{const i=parseInt(item.querySelector('.ov-num').textContent)-1;const q=getAllQuestions()[i];const r=results[`${q.type}-${q.idx}`];let show=true;if(activeFilter==='unanswered')show=!r;else if(activeFilter==='correct')show=r&&r.correct;else if(activeFilter==='wrong')show=r&&!r.correct;item.style.display=show?'':'none'})}));
+renderCurrent();
+</script>
+</body>
+</html>

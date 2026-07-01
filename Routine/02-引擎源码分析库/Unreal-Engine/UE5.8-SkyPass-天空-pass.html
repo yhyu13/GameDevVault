@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5.8 SkyPass 天空 Pass · 互动式面试卡牌</title>
+<style>
+:root{--bg:#f5f5f0;--card-bg:#fff;--primary:#3a5a7c;--accent:#6b9e75;--accent-wrong:#c45c5c;--text:#2c3e50;--text-light:#5d6d7e;--border:#d0d5dd;--shadow:rgba(0,0,0,.08);--drop-zone:#eef2f7;--draggable:#f0f4f8;--status-correct:#e8f5e9;--status-wrong:#fce8e8;--status-unanswered:#f8f9fa}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem}
+header h1{margin:0;font-size:1.3rem;font-weight:500}
+header p{margin:.2rem 0 0;opacity:.85;font-size:.85rem}
+.header-left{flex:1;min-width:260px}
+.header-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.header-btn{padding:.5rem 1rem;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;cursor:pointer;transition:all .2s;font-size:.88rem;text-decoration:none;display:inline-block}
+.header-btn:hover{background:rgba(255,255,255,.25)}
+.container{max-width:820px;margin:0 auto;padding:1.5rem}
+.nav-tabs{display:flex;gap:.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+.nav-tab{flex:1;min-width:90px;padding:.6rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:.85rem;transition:all .2s;color:var(--text-light)}
+.nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,.25)}
+.nav-tab:hover:not(.active){background:var(--drop-zone)}
+.score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:.6rem;flex-wrap:wrap}
+.score-mini{font-size:.85rem;color:var(--text-light);white-space:nowrap}
+.score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+.progress-text{text-align:right;font-size:.8rem;color:var(--text-light);margin-bottom:.3rem}
+.progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s ease}
+.card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+.card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:26px;font-size:.8rem;font-weight:600;margin-right:.5rem}
+.card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5}
+.q-type{font-size:.75rem;color:var(--text-light);background:#eef2f7;padding:2px 8px;border-radius:4px;margin-left:.4rem}
+.drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem}
+.drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all .2s;padding:0 6px;font-size:.95rem}
+.drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+.drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8;cursor:pointer}
+.drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+.drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+.drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+.drop-zone.correct .dropped-text{color:var(--accent)}
+.drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+.drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:.5rem;padding:.8rem;background:var(--drop-zone);border-radius:8px}
+.draggable{padding:.4rem .9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all .15s;font-size:.92rem}
+.draggable:hover{background:#dbe4ee;border-color:var(--primary);transform:translateY(-1px)}
+.draggable.used{opacity:.35;cursor:default;pointer-events:none}
+.options-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.0rem}
+.option{padding:.7rem 1.0rem;background:var(--card-bg);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.6rem;font-size:.95rem;line-height:1.45}
+.option:hover{border-color:var(--primary);background:var(--drop-zone)}
+.option.selected{border-color:var(--primary);background:#e8f0f8}
+.option.correct-mark{border-color:var(--accent);background:#e8f5e9}
+.option.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+.option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;flex-shrink:0;background:#fff}
+.option.selected .opt-marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+.option.correct-mark .opt-marker{background:var(--accent);color:#fff;border-color:var(--accent)}
+.option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+.tf-options{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.0rem}
+.tf-btn{padding:.9rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;transition:all .15s;font-size:.95rem;text-align:center}
+.tf-btn:hover{border-color:var(--primary);background:var(--drop-zone)}
+.tf-btn.selected{border-color:var(--primary);background:#e8f0f8}
+.tf-btn.correct-mark{border-color:var(--accent);background:#e8f5e9}
+.tf-btn.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+.feedback{margin-top:1.0rem;padding:.9rem 1.1rem;border-radius:8px;background:#f0f4f8;border-left:3px solid var(--primary);font-size:.92rem;line-height:1.6;display:none}
+.feedback.show{display:block}
+.feedback.feedback-correct{border-left-color:var(--accent);background:#e8f5e9}
+.feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:#fce8e8}
+.feedback-title{font-weight:600;margin-bottom:.3rem;display:block}
+.feedback ul{margin:.4rem 0 0 0;padding-left:1.2rem}
+.feedback li{margin-bottom:.3rem}
+.action-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.0rem}
+.btn{padding:.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.9rem;transition:all .15s}
+.btn:hover{background:var(--drop-zone);border-color:var(--primary)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2c4661;border-color:#2c4661;color:#fff}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{filter:brightness(.95)}
+.nav-row{display:flex;justify-content:space-between;margin-top:.8rem;gap:.6rem}
+.overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+.overview-panel.show{display:block}
+.overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:.5rem}
+.overview-header h2{margin:0;font-size:1.15rem;font-weight:500}
+.overview-stats{display:flex;gap:.5rem;flex-wrap:wrap}
+.filter-btn{padding:.4rem .8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .15s}
+.filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filter-btn:hover:not(.active){background:#dbe4ee}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:.5rem}
+.overview-item{aspect-ratio:1;border-radius:8px;background:var(--status-unanswered);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:.78rem;text-align:center;padding:.2rem}
+.overview-item.correct{background:var(--status-correct);border-color:var(--accent)}
+.overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong)}
+.overview-item:hover{transform:scale(1.04);box-shadow:0 2px 8px var(--shadow)}
+.overview-item .ov-num{font-weight:700;font-size:1.0rem;margin-bottom:.1rem}
+.overview-item .ov-type{font-size:.65rem;opacity:.75;text-transform:uppercase;letter-spacing:.5px}
+.hidden{display:none}
+@media (max-width:600px){.container{padding:1rem}.card{padding:1.2rem 1.0rem}header{padding:1rem}header h1{font-size:1.1rem}.nav-tab{font-size:.78rem;padding:.5rem .3rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>UE5.8 SkyPass 天空 Pass · 互动式面试卡牌</h1>
+    <p>UE 5.8 · 共 15 题（拖拽 3 + 单选 4 + 多选 3 + 判断 5）· 配套笔记：<a class="header-btn" href="UE5.8-SkyPass-天空-pass.md" target="_blank">打开分析笔记</a></p>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" id="btn-overview">📊 题目总览</button>
+    <button class="header-btn" id="btn-reshuffle">🔄 随机打乱</button>
+    <button class="header-btn" id="btn-reset-all">🔄 重置全部</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-type="all">全部</div>
+    <div class="nav-tab" data-type="drag">拖拽填空</div>
+    <div class="nav-tab" data-type="single">单选题</div>
+    <div class="nav-tab" data-type="multi">多选题</div>
+    <div class="nav-tab" data-type="tf">判断题</div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-mini">已答 <span class="score-num" id="answered-num">0</span> / <span id="total-num">15</span></div>
+    <div class="score-mini">正确 <span class="score-num" id="correct-num" style="color:var(--accent)">0</span></div>
+    <div class="score-mini">错误 <span class="score-num" id="wrong-num" style="color:var(--accent-wrong)">0</span></div>
+    <div class="score-mini">得分率 <span class="score-num" id="score-pct">0%</span></div>
+  </div>
+
+  <div class="progress-text" id="progress-text">第 1 题 / 共 15 题</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:7%"></div></div>
+
+  <div id="overview-panel" class="overview-panel">
+    <div class="overview-header">
+      <h2>题目总览</h2>
+      <div class="overview-stats">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="unanswered">未答</button>
+        <button class="filter-btn" data-filter="correct">正确</button>
+        <button class="filter-btn" data-filter="wrong">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <div id="questions-container"></div>
+
+</div>
+
+<script>
+const _origDrag = [
+  {
+    text: "SkyPass 由 <span class='drop-zone' data-idx='0'></span> 宏双重注册（deferred + mobile），运行时根据 <span class='drop-zone' data-idx='1'></span> 选 shader 集，材质必须勾 <span class='drop-zone' data-idx='2'></span> flag。",
+    answers: ["REGISTER_MESHPASSPROCESSOR_AND_PSOCOLLECTOR", "GetFeatureLevelShadingPath", "IsSky"],
+    pool: ["REGISTER_MESHPASSPROCESSOR_AND_PSOCOLLECTOR", "GetFeatureLevelShadingPath", "IsSky", "RENDER_PASS_REGISTER", "MaterialDomain", "TwoSided"],
+    explanations: [
+      "SkyPassRendering.cpp:352-353 双重注册,同一工厂函数 CreateSkyPassProcessor",
+      "GetFeatureLevelShadingPath(line 69)选 deferred 还是 mobile shader 集",
+      "Material->IsSky() flag 必须勾,否则 AddMeshBatch 直接 fallback"
+    ]
+  },
+  {
+    text: "SkyPass 跟 BasePass 共享 <span class='drop-zone' data-idx='0'></span> VS/PS 框架,但用 <span class='drop-zone' data-idx='1'></span> LightMapPolicy 跳过 lightmap 采样。Real-time Sky Capture 输出到 <span class='drop-zone' data-idx='2'></span>。",
+    answers: ["TBasePassVertexShaderPolicyParamType", "LMP_NO_LIGHTMAP", "cube map"],
+    pool: ["TBasePassVertexShaderPolicyParamType", "LMP_NO_LIGHTMAP", "cube map", "FUniquePSOPolicy", "LMP_DirectionalLightmap", "2D texture"],
+    explanations: [
+      "SkyPass 复用 BasePass VS/PS 框架(SkyPassRendering.cpp:71-86)",
+      "LMP_NO_LIGHTMAP = FUniformLightMapPolicy 跳过 lightmap,sky 不需要 baked lighting",
+      "Real-time Sky Capture 渲到 cube map(GetCaptureFrameSkyEnvMapTextureDesc)"
+    ]
+  },
+  {
+    text: "ESkyPassType 有 3 个值:SPT_Default(普通)、SPT_RealTimeCapture_<span class='drop-zone' data-idx='0'></span>、SPT_RealTimeCapture_<span class='drop-zone' data-idx='1'></span>。它们的区别是 <span class='drop-zone' data-idx='2'></span>。",
+    answers: ["DepthWrite", "DepthNop", "是否写入深度"],
+    pool: ["DepthWrite", "DepthNop", "是否写入深度", "MSAA", "ShadingPath", "Translucent"],
+    explanations: [
+      "SPT_RealTimeCapture_DepthWrite 主物体写深度",
+      "SPT_RealTimeCapture_DepthNop 不写深度让其他物体重叠",
+      "3 模式只在反射捕获(ReflectionEnvironmentRealTimeCapture.cpp:770-788)用"
+    ]
+  }
+];
+
+const _origSingle = [
+  {
+    q: "SkyPassRendering.cpp 有多少行代码?",
+    options: ["约 100 行", "约 200 行", "约 353 行", "约 800 行"],
+    correct: 2,
+    explanations: [
+      "❌ 偏少",
+      "❌ 偏少",
+      "✅ 整个文件 353 行,UE5.8 三套天空系统里最轻",
+      "❌ 偏多"
+    ]
+  },
+  {
+    q: "SkyPass 的 shader 来源是?",
+    options: [
+      "独立的 SkyPassVertexShader + SkyPassPixelShader",
+      "复用 BasePass 的 TBasePassVertexShaderPolicyParamType / Pixel",
+      "复用 MobileBasePass",
+      "复用 SkyAtmosphere shader"
+    ],
+    correct: 1,
+    explanations: [
+      "❌ SkyPass 没自己的 shader",
+      "✅ GetBasePassShaders<LightMapPolicyType>(SkyPassRendering.cpp:75)",
+      "❌ 这不对",
+      "❌ SkyAtmosphere shader 是大气专用,sky pass 不复用"
+    ]
+  },
+  {
+    q: "Mobile 上 SkyAtmosphere 不显示的根本原因是?",
+    options: [
+      "Mobile 不支持 SkyAtmosphere component",
+      "SkyAtmosphere 只能算 LUT,需要个 IsSky mesh 作为输出载体",
+      "Mobile GPU 不支持 scatter 计算",
+      "Mobile 默认禁用 Atmosphere showflag"
+    ],
+    correct: 1,
+    explanations: [
+      "❌ Mobile 完全支持 SkyAtmosphere",
+      "✅ SceneRendering.cpp:4555 警告,Mobile 必须配 IsSky material mesh",
+      "❌ 不涉及 GPU 能力",
+      "❌ showflag 跟 IsSky mesh 是两件事"
+    ]
+  },
+  {
+    q: "为什么 SkyPass 是 mobile 端必备?",
+    options: [
+      "Mobile 没 SkyAtmosphere",
+      "Mobile 的 SkyAtmosphere 路径必须配 IsSky mesh 才能渲染",
+      "Mobile GPU 性能差所以用 SkyPass 兜底",
+      "SkyPass 跟 SkyAtmosphere 是同一回事"
+    ],
+    correct: 1,
+    explanations: [
+      "❌ Mobile 有 SkyAtmosphere",
+      "✅ SkyAtmosphere 算 LUT 但不直接渲屏,需要 mesh 载体,这是 mobile 必备 SkySphere 的根因",
+      "❌ 性能不是原因",
+      "❌ 两个独立系统"
+    ]
+  }
+];
+
+const _origMulti = [
+  {
+    q: "SkyPass 渲染时机在哪些路径被触发?(多选)",
+    options: [
+      "Deferred BasePass(EMeshPass::SkyPass 调度)",
+      "Mobile BasePass(MobileBasePassRendering.cpp:544)",
+      "MobileShadingRenderer 5 处 BuildMeshRenderingCommands",
+      "Real-time Sky Capture(ReflectionEnvironmentRealTimeCapture)",
+      "VolumetricCloud 主 trace pass"
+    ],
+    correct: [0, 1, 2, 3],
+    explanations: [
+      "✅ BasePassRendering.cpp:1502/1585 调用",
+      "✅ MobileBasePassRendering.cpp:544 直接调用",
+      "✅ MobileShadingRenderer.cpp 5 处 BuildMeshRenderingCommands",
+      "✅ ReflectionEnvironmentRealTimeCapture.cpp:788 也复用 SkyPass",
+      "❌ VolumetricCloud 主 trace 是独立 compute shader,不调 SkyPass"
+    ]
+  },
+  {
+    q: "哪些材质标记会通过 FSkyPassMeshProcessor::AddMeshBatch 过滤?(多选)",
+    options: [
+      "Material->IsSky() == true",
+      "GetMaterialNoFallback(FeatureLevel) 拿到正确材质",
+      "TryAddMeshBatch 成功",
+      "MaterialDomain 必须是 Volume",
+      "TwoSided 必须 true"
+    ],
+    correct: [0, 1, 2],
+    explanations: [
+      "✅ IsSky flag 是过滤主条件(SkyPassRendering.cpp:29)",
+      "✅ Material proxy fallback 链(line 27-38)",
+      "✅ TryAddMeshBatch 成功才算加入",
+      "❌ MaterialDomain 没限制,SkyPass 用 Surface domain",
+      "❌ TwoSided 不是必要条件"
+    ]
+  },
+  {
+    q: "FSkyPassMeshProcessor::CollectPSOInitializers 干了什么?(多选)",
+    options: [
+      "枚举所有 (vertex factory × material) 组合",
+      "调用 GetBasePassShaders 拿到 VS + PS 对",
+      "组成 FPSOPrecacheData 列表",
+      "运行时直接渲 skybox",
+      "管理 LUT 资源"
+    ],
+    correct: [0, 1, 2],
+    explanations: [
+      "✅ SkyPassRendering.cpp:184 的核心职责",
+      "✅ GetBasePassShaders 拿 shader 对(line 184-238)",
+      "✅ 预生成 PSO precache 数据避免运行时卡编译",
+      "❌ PSO precache 是加载阶段,不是渲染时",
+      "❌ SkyPass 不管 LUT,LUT 是 SkyAtmosphere 管的"
+    ]
+  }
+];
+
+const _origTF = [
+  {
+    q: "SkyPass 必须有自己独立的 Vertex Shader 和 Pixel Shader。",
+    correct: false,
+    explanation: "❌ SkyPass 复用 BasePass 的 VS/PS(SkyPassRendering.cpp:75 GetBasePassShaders),无独立 shader。这是它的核心简化之一。"
+  },
+  {
+    q: "SkyPass 在运行时几乎不占额外显存。",
+    correct: true,
+    explanation: "✅ skybox 直接写 SceneColor,不占独立 buffer;只有 Real-time Sky Capture 临时 cube map ~28KB。跟 SkyAtmosphere(1.6MB) + VolumetricCloud(46MB)形成鲜明对比。"
+  },
+  {
+    q: "SkyPass 需要 Lightmap 才能正确渲染。",
+    correct: false,
+    explanation: "❌ SkyPass 用 LMP_NO_LIGHTMAP,显式跳过 lightmap(SkyPassRendering.cpp:66-67),sky mesh 不需要 baked lighting。"
+  },
+  {
+    q: "SkyPass 在 reflection capture view 也会渲染。",
+    correct: false,
+    explanation: "❌ REGISTER_MESHPASSPROCESSOR_AND_PSOCOLLECTOR 注册时带 EMeshPassFlags::MainView(SkyPassRendering.cpp:352-353),意味着 SkyPass 只在主 view 渲,反射捕获 view 不参与。"
+  },
+  {
+    q: "Real-time Sky Capture 复用 SkyPass processor 是为了视觉一致性。",
+    correct: true,
+    explanation: "✅ SkyLight 实时捕获用同一个 FSkyPassMeshProcessor + 同一套 shader(SkyPassRendering.cpp:770-869),保证 cube map 渲出来的 sky 跟主屏视觉一致,避免 SkyLight 跟主屏 sky 不匹配。"
+  }
+];
+
+let dragQuestions = JSON.parse(JSON.stringify(_origDrag));
+let singleQuestions = JSON.parse(JSON.stringify(_origSingle));
+let multiQuestions = JSON.parse(JSON.stringify(_origMulti));
+let trueFalseQuestions = JSON.parse(JSON.stringify(_origTF));
+let currentMode = 'all';
+let currentIndex = 0;
+const results = {};
+let overviewOpen = false;
+let activeFilter = 'all';
+
+function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function shuffleOptions(q){const idx=q.options.map((_,i)=>i);const si=shuffleArray(idx);return{...q,options:si.map(i=>q.options[i]),optionExplanations:si.map(i=>q.optionExplanations[i]),correct:Array.isArray(q.correct)?q.correct.map(o=>si.indexOf(o)).filter(i=>i>=0).sort((a,b)=>a-b):si.indexOf(q.correct)}}
+function reshuffleAll(){resetAll();dragQuestions=shuffleArray(_origDrag);singleQuestions=shuffleArray(_origSingle).map(shuffleOptions);multiQuestions=shuffleArray(_origMulti).map(shuffleOptions);trueFalseQuestions=shuffleArray(_origTF);currentIndex=0;renderCurrent()}
+function getAllQuestions(){const all=[];dragQuestions.forEach((q,i)=>all.push({type:'drag',idx:i,data:q,mode:'drag'}));singleQuestions.forEach((q,i)=>all.push({type:'single',idx:i,data:q,mode:'single'}));multiQuestions.forEach((q,i)=>all.push({type:'multi',idx:i,data:q,mode:'multi'}));trueFalseQuestions.forEach((q,i)=>all.push({type:'tf',idx:i,data:q,mode:'tf'}));return all}
+function setMode(mode){currentMode=mode;currentIndex=0;renderCurrent();document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.type===mode))}
+function totalCount(){return dragQuestions.length+singleQuestions.length+multiQuestions.length+trueFalseQuestions.length}
+function answeredCount(){return Object.keys(results).filter(k=>results[k]!==null).length}
+function correctCount(){return Object.values(results).filter(r=>r&&r.correct).length}
+function wrongCount(){return Object.values(results).filter(r=>r&&!r.correct).length}
+function updateScore(){document.getElementById('answered-num').textContent=answeredCount();document.getElementById('correct-num').textContent=correctCount();document.getElementById('wrong-num').textContent=wrongCount();const t=totalCount();document.getElementById('score-pct').textContent=answeredCount()===0?'0%':Math.round(correctCount()/answeredCount()*100)+'%';const cur=getFilteredQuestions().length;document.getElementById('progress-text').textContent=`第 ${Math.min(currentIndex+1,cur)} 题 / 共 ${cur} 题`;document.getElementById('progress-fill').style.width=(cur>0?(Math.min(currentIndex+1,cur)/cur*100)+'%':'0%')}
+function getFilteredQuestions(){if(currentMode==='all')return getAllQuestions();return getAllQuestions().filter(q=>q.mode===currentMode)}
+function renderCurrent(){const qs=getFilteredQuestions();if(qs.length===0){document.getElementById('questions-container').innerHTML='<div class="card"><p>该题型暂无题目。</p></div>';updateScore();return}currentIndex=Math.max(0,Math.min(currentIndex,qs.length-1));const q=qs[currentIndex];document.getElementById('questions-container').innerHTML='';if(q.mode==='drag')renderDrag(q);else if(q.mode==='single')renderSingle(q);else if(q.mode==='multi')renderMulti(q);else if(q.mode==='tf')renderTrueFalse(q);updateScore()}
+function recordResult(type,idx,correct,userAnswer){results[`${type}-${idx}`]={correct,userAnswer};updateScore()}
+function resetAll(){for(const k in results)delete results[k];currentIndex=0;renderCurrent();updateOverview()}
+function renderDrag(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">拖拽填空</span><h3>${q.data.text}</h3><div class="drag-pool">${q.data.pool.map(p=>`<span class="draggable" data-term="${p}">${p}</span>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;setupDragDrop(q);setupNav();setupCheckReset(q,'drag')}
+function renderSingle(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">单选题</span><h3>${q.data.q}</h3><div class="options-list">${q.data.options.map((o,i)=>`<div class="option" data-idx="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${o}</span></div>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;q.data.options.forEach((_,i)=>{document.querySelector(`.option[data-idx="${i}"]`).addEventListener('click',()=>{document.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));document.querySelector(`.option[data-idx="${i}"]`).classList.add('selected')})});setupNav();setupCheckReset(q,'single')}
+function renderMulti(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">多选题</span><h3>${q.data.q}</h3><div class="options-list">${q.data.options.map((o,i)=>`<div class="option" data-idx="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${o}</span></div>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;q.data.options.forEach((_,i)=>{document.querySelector(`.option[data-idx="${i}"]`).addEventListener('click',()=>{document.querySelector(`.option[data-idx="${i}"]`).classList.toggle('selected')})});setupNav();setupCheckReset(q,'multi')}
+function renderTrueFalse(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">判断题</span><h3>${q.data.q}</h3><div class="tf-options"><div class="tf-btn" data-val="true">✅ 正确</div><div class="tf-btn" data-val="false">❌ 错误</div></div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;document.querySelectorAll('.tf-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tf-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')}));setupNav();setupCheckReset(q,'tf')}
+function setupDragDrop(q){const fills=document.querySelectorAll('.drop-zone');fills.forEach((z,i)=>{z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag-over')});z.addEventListener('dragleave',()=>z.classList.remove('drag-over'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('drag-over');const term=e.dataTransfer.getData('text/plain');if(term){z.innerHTML=`<span class="dropped-text">${term}</span>`;z.dataset.filled=term;z.classList.add('filled');document.querySelectorAll(`.draggable`).forEach(d=>{if(d.dataset.term===term)d.classList.add('used')})}})});document.querySelectorAll('.draggable').forEach(d=>{d.setAttribute('draggable','true');d.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',d.dataset.term)})})}
+function setupNav(){const prev=document.getElementById('prev-btn');const next=document.getElementById('next-btn');if(prev)prev.addEventListener('click',()=>{if(currentIndex>0){currentIndex--;renderCurrent()}});if(next)next.addEventListener('click',()=>{const qs=getFilteredQuestions();if(currentIndex<qs.length-1){currentIndex++;renderCurrent()}})}
+function setupCheckReset(q,mode){const cb=document.getElementById('check-btn');const rb=document.getElementById('reset-btn');if(cb)cb.addEventListener('click',()=>{if(mode==='drag')checkDrag(q);else if(mode==='single')checkSingle(q);else if(mode==='multi')checkMulti(q);else if(mode==='tf')checkTF(q);updateOverview()});if(rb)rb.addEventListener('click',()=>renderCurrent())}
+function showFeedback(correct,explanations){const fb=document.getElementById('fb');fb.className='feedback show '+(correct?'feedback-correct':'feedback-wrong');fb.innerHTML=`<span class="feedback-title">${correct?'✅ 回答正确！':'❌ 回答错误'}</span><ul>${explanations.map(e=>`<li>${e}</li>`).join('')}</ul>`}
+function checkDrag(q){const fills=document.querySelectorAll('.drop-zone');let allCorrect=true;const exp=[];fills.forEach((z,i)=>{const user=z.dataset.filled||'';const expect=q.data.answers[i];const ok=user===expect;if(!ok)allCorrect=false;z.classList.remove('correct','wrong');z.classList.add(ok?'correct':'wrong');exp.push(q.data.explanations[i])});recordResult('drag',q.originalIndex,allCorrect,null);showFeedback(allCorrect,exp)}
+function checkSingle(q){const sel=document.querySelector('.option.selected');if(!sel){alert('请先选择答案');return}const i=parseInt(sel.dataset.idx);const correct=i===q.data.correct;document.querySelectorAll('.option').forEach((o,j)=>{o.classList.remove('correct-mark','wrong-mark');if(j===q.data.correct)o.classList.add('correct-mark');else if(j===i&&!correct)o.classList.add('wrong-mark')});recordResult('single',q.originalIndex,correct,i);showFeedback(correct,q.data.explanations)}
+function checkMulti(q){const sels=Array.from(document.querySelectorAll('.option.selected')).map(o=>parseInt(o.dataset.idx));if(sels.length===0){alert('请先选择答案');return}const corr=q.data.correct.slice().sort((a,b)=>a-b);const user=sels.slice().sort((a,b)=>a-b);const ok=JSON.stringify(corr)===JSON.stringify(user);document.querySelectorAll('.option').forEach((o,j)=>{o.classList.remove('correct-mark','wrong-mark');if(corr.includes(j))o.classList.add('correct-mark');else if(sels.includes(j)&&!ok)o.classList.add('wrong-mark')});recordResult('multi',q.originalIndex,ok,sels);showFeedback(ok,q.data.explanations)}
+function checkTF(q){const sel=document.querySelector('.tf-btn.selected');if(!sel){alert('请先选择');return}const v=sel.dataset.val==='true';const ok=v===q.data.correct;document.querySelectorAll('.tf-btn').forEach(b=>{b.classList.remove('correct-mark','wrong-mark')});document.querySelector(`.tf-btn[data-val="${q.data.correct?'true':'false'}"]`).classList.add('correct-mark');if(!ok)sel.classList.add('wrong-mark');recordResult('tf',q.originalIndex,ok,v);showFeedback(ok,[q.data.explanation])}
+function updateOverview(){const grid=document.getElementById('overview-grid');if(!grid)return;grid.innerHTML='';const all=getAllQuestions();all.forEach((q,i)=>{const item=document.createElement('div');item.className='overview-item';const r=results[`${q.type}-${q.idx}`];if(r){item.classList.add(r.correct?'correct':'wrong')}item.innerHTML=`<div class="ov-num">${i+1}</div><div class="ov-type">${q.type}</div>`;item.addEventListener('click',()=>{setMode(q.type);const qs=getFilteredQuestions();currentIndex=qs.findIndex(x=>x.type===q.type&&x.idx===q.idx);overviewOpen=false;document.getElementById('overview-panel').classList.remove('show');renderCurrent()});grid.appendChild(item)})}
+document.getElementById('btn-overview').addEventListener('click',()=>{overviewOpen=!overviewOpen;document.getElementById('overview-panel').classList.toggle('show',overviewOpen);if(overviewOpen)updateOverview()});
+document.getElementById('btn-reshuffle').addEventListener('click',reshuffleAll);
+document.getElementById('btn-reset-all').addEventListener('click',()=>{if(confirm('确定重置全部答题记录?'))resetAll()});
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.type)));
+document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;document.querySelectorAll('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));const items=document.querySelectorAll('.overview-item');items.forEach(item=>{const i=parseInt(item.querySelector('.ov-num').textContent)-1;const q=getAllQuestions()[i];const r=results[`${q.type}-${q.idx}`];let show=true;if(activeFilter==='unanswered')show=!r;else if(activeFilter==='correct')show=r&&r.correct;else if(activeFilter==='wrong')show=r&&!r.correct;item.style.display=show?'':'none'})}));
+renderCurrent();
+</script>
+</body>
+</html>
