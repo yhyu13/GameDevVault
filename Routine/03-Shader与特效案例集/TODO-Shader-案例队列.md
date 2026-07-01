@@ -15,7 +15,7 @@
 |----|------|--------|------|------|----------|------|
 | A | **Lumen 反射降级** (SSR → Screen Probe → Surface Cache → HW RT) | P0 | ☑ 完成 | 2026-07-01 | `后处理效果/Lumen-反射降级.md` | 接 W2 SSR；演进链路 |
 | B | **Lumen GI 漫反射** (Surface Cache + Voxel Cone Tracing) | P0 | ☑ 完成 | 2026-07-01 | `后处理效果/Lumen-GI-漫反射.md` | 户外 / 室内两套参数 |
-| C | **Nanite 材质管线** (虚拟几何 + Material AtributeId + Persistent Buffer) | P0 | ☐ 待做 | — | `材质系统/Nanite-材质管线.md` | 独立专题 |
+| C | **Nanite 材质管线** (虚拟几何 + Material AtributeId + Persistent Buffer) | P0 | ☑ 完成 | 2026-07-02 | `后处理效果/Nanite-材质管线.md` | 独立专题；FNaniteShadingPipeline 去重 + 5-bin 分类 + UE5.8 WorkGraph 新路径 |
 | D | **VSM Virtual Shadow Map** (页表 + Moments + Moment Bias) | P0 | ☐ 待做 | — | `后处理效果/VSM-Virtual-Shadow-Map.md` | 与 CSM 对照 |
 | E | **Mass / NNE / PCG** (UE5 AI 系统) | P1 | ☐ 待做 | — | `计算着色器/` | 集群专题 |
 | F | **UE5.6 / UE5.7 新 feature** (SM5/6 差异) | P1 | ☐ 持续 | — | 待拆 | 长期跟踪 |
@@ -32,6 +32,7 @@
 | W2 | 屏幕空间反射 SSR | 2026-07-01 | `后处理效果/屏幕空间反射-SSR.md` |
 | A | Lumen 反射降级 | 2026-07-01 | `后处理效果/Lumen-反射降级.md` |
 | B | Lumen GI 漫反射 | 2026-07-01 | `后处理效果/Lumen-GI-漫反射.md` |
+| C | Nanite 材质管线 | 2026-07-02 | `后处理效果/Nanite-材质管线.md` |
 
 ---
 
@@ -59,4 +60,4 @@
 
 ---
 
-*Last updated: 2026-07-01*
+*Last updated: 2026-07-02*
