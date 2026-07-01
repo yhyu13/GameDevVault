@@ -1,0 +1,262 @@
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
+index 28b49968f..eeb12622b 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
+@@ -1,10 +1,26 @@
+-﻿// Copyright Epic Games, Inc. All Rights Reserved.
++// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #include "ModelContextProtocolEditor.h"
+ #include "IModelContextProtocolModule.h"
+ #include "ModelContextProtocolEditorToolLibrary.h"
+ #include "ModelContextProtocolSettings.h"
+ #include "ModelContextProtocolToolLibrary.h"
++#include "ModelContextProtocolEditorContextTool.h"
++#include "ModelContextProtocolViewportTool.h"
++#include "ModelContextProtocolSaveLevelTool.h"
++#include "CustomMcpEditorToolLibrary.h"
++#include "ModelContextProtocolListLevelsTool.h"
++#include "ModelContextProtocolClassInventoryTool.h"
++#include "ModelContextProtocolOpenLevelTool.h"
++#include "ModelContextProtocolSnapshotWorldTool.h"
++#include "ModelContextProtocolRestoreWorldTool.h"
++#include "ModelContextProtocolSpawnActorTool.h"
++#include "ModelContextProtocolSetActorTransformTool.h"
++#include "ModelContextProtocolVerifyPositionTool.h"
++#include "ModelContextProtocolSummarizeSceneTool.h"
++#include "ModelContextProtocolSearchActorsTool.h"
++#include "ModelContextProtocolListBlueprintsTool.h"
++#include "ModelContextProtocolSetActorStateTools.h"
+ 
+ #include "Editor.h"
+ #include "KismetCompilerModule.h"
+@@ -48,6 +64,9 @@ void FModelContextProtocolEditorModule::StartupModule()
+ 
+ void FModelContextProtocolEditorModule::SetupEditorIntegration()
+ {
++	// Force CDO creation for custom tool library so UFUNCTIONs auto-register as MCP tools
++	GetDefault<UCustomMcpEditorToolLibrary>();
++
+ 	// Subscribe to ToolsetRegistry changes so adapters are re-registered when toolsets are added
+ 	if (UToolsetRegistrySubsystem* ToolsetRegistrySubsystem = GEditor ? GEditor->GetEditorSubsystem<UToolsetRegistrySubsystem>() : nullptr)
+ 	{
+@@ -68,6 +87,9 @@ void FModelContextProtocolEditorModule::SetupEditorIntegration()
+ 			Module->StartServer(UE::ModelContextProtocol::GetServerPortNumber(), UE::ModelContextProtocol::GetServerUrlPath());
+ 		}
+ 	}
++
++	// Register built-in editor tools (e.g., get_editor_context, capture_viewport, save_current_level)
++	RegisterBuiltinEditorTools();
+ }
+ 
+ void FModelContextProtocolEditorModule::ShutdownModule()
+@@ -84,9 +106,145 @@ void FModelContextProtocolEditorModule::ShutdownModule()
+ 		ToolsetRegistrySubsystem->ToolsetRegistry.OnToolsetRegistered().Remove(OnToolsetRegisteredHandle);
+ 	}
+ 
++	DeregisterBuiltinEditorTools();
+ 	ToolsetRegistryAdapterManager.DeregisterTools();
+ }
+ 
++void FModelContextProtocolEditorModule::RegisterBuiltinEditorTools()
++{
++	IModelContextProtocolModule* Module = IModelContextProtocolModule::Get();
++	if (!Module)
++	{
++		return;
++	}
++
++	EditorContextTool = MakeShared<FModelContextProtocolEditorContextTool>();
++	if (Module->AddTool(EditorContextTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: get_editor_context");
++	}
++
++	ViewportTool = MakeShared<FModelContextProtocolViewportTool>();
++	if (Module->AddTool(ViewportTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: capture_viewport");
++	}
++
++	SaveLevelTool = MakeShared<FModelContextProtocolSaveLevelTool>();
++	if (Module->AddTool(SaveLevelTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: save_current_level");
++	}
++
++	ListLevelsTool = MakeShared<FModelContextProtocolListLevelsTool>();
++	if (Module->AddTool(ListLevelsTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: list_levels");
++	}
++
++	ClassInventoryTool = MakeShared<FModelContextProtocolClassInventoryTool>();
++	if (Module->AddTool(ClassInventoryTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: class_inventory");
++	}
++
++	OpenLevelTool = MakeShared<FModelContextProtocolOpenLevelTool>();
++	if (Module->AddTool(OpenLevelTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: open_level");
++	}
++
++	SnapshotWorldTool = MakeShared<FModelContextProtocolSnapshotWorldTool>();
++	if (Module->AddTool(SnapshotWorldTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: snapshot_world");
++	}
++
++	RestoreWorldTool = MakeShared<FModelContextProtocolRestoreWorldTool>();
++	if (Module->AddTool(RestoreWorldTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: restore_world");
++	}
++
++	SpawnActorTool = MakeShared<FModelContextProtocolSpawnActorTool>();
++	if (Module->AddTool(SpawnActorTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: spawn_actor");
++	}
++
++	SetActorTransformTool = MakeShared<FModelContextProtocolSetActorTransformTool>();
++	if (Module->AddTool(SetActorTransformTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: set_actor_transform");
++	}
++
++	VerifyPositionTool = MakeShared<FModelContextProtocolVerifyPositionTool>();
++	if (Module->AddTool(VerifyPositionTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: verify_position");
++	}
++
++	SummarizeSceneTool = MakeShared<FModelContextProtocolSummarizeSceneTool>();
++	if (Module->AddTool(SummarizeSceneTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: summarize_scene");
++	}
++
++	SearchActorsTool = MakeShared<FModelContextProtocolSearchActorsTool>();
++	if (Module->AddTool(SearchActorsTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: search_actors");
++	}
++
++	ListBlueprintsTool = MakeShared<FModelContextProtocolListBlueprintsTool>();
++	if (Module->AddTool(ListBlueprintsTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: list_blueprints");
++	}
++
++	SetVisibilityTool = MakeShared<FModelContextProtocolSetVisibilityTool>();
++	if (Module->AddTool(SetVisibilityTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: set_visibility");
++	}
++
++	SetMobilityTool = MakeShared<FModelContextProtocolSetMobilityTool>();
++	if (Module->AddTool(SetMobilityTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: set_mobility");
++	}
++
++	SetCollisionTool = MakeShared<FModelContextProtocolSetCollisionTool>();
++	if (Module->AddTool(SetCollisionTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: set_collision");
++	}
++}
++
++void FModelContextProtocolEditorModule::DeregisterBuiltinEditorTools()
++{
++	if (IModelContextProtocolModule* Module = IModelContextProtocolModule::Get())
++	{
++		if (EditorContextTool.IsValid()) { Module->RemoveTool(EditorContextTool.ToSharedRef()); EditorContextTool.Reset(); }
++		if (ViewportTool.IsValid()) { Module->RemoveTool(ViewportTool.ToSharedRef()); ViewportTool.Reset(); }
++		if (SaveLevelTool.IsValid()) { Module->RemoveTool(SaveLevelTool.ToSharedRef()); SaveLevelTool.Reset(); }
++		if (ListLevelsTool.IsValid()) { Module->RemoveTool(ListLevelsTool.ToSharedRef()); ListLevelsTool.Reset(); }
++		if (ClassInventoryTool.IsValid()) { Module->RemoveTool(ClassInventoryTool.ToSharedRef()); ClassInventoryTool.Reset(); }
++		if (OpenLevelTool.IsValid()) { Module->RemoveTool(OpenLevelTool.ToSharedRef()); OpenLevelTool.Reset(); }
++		if (SnapshotWorldTool.IsValid()) { Module->RemoveTool(SnapshotWorldTool.ToSharedRef()); SnapshotWorldTool.Reset(); }
++		if (RestoreWorldTool.IsValid()) { Module->RemoveTool(RestoreWorldTool.ToSharedRef()); RestoreWorldTool.Reset(); }
++		if (SpawnActorTool.IsValid()) { Module->RemoveTool(SpawnActorTool.ToSharedRef()); SpawnActorTool.Reset(); }
++		if (SetActorTransformTool.IsValid()) { Module->RemoveTool(SetActorTransformTool.ToSharedRef()); SetActorTransformTool.Reset(); }
++		if (VerifyPositionTool.IsValid()) { Module->RemoveTool(VerifyPositionTool.ToSharedRef()); VerifyPositionTool.Reset(); }
++		if (SummarizeSceneTool.IsValid()) { Module->RemoveTool(SummarizeSceneTool.ToSharedRef()); SummarizeSceneTool.Reset(); }
++		if (SearchActorsTool.IsValid()) { Module->RemoveTool(SearchActorsTool.ToSharedRef()); SearchActorsTool.Reset(); }
++		if (ListBlueprintsTool.IsValid()) { Module->RemoveTool(ListBlueprintsTool.ToSharedRef()); ListBlueprintsTool.Reset(); }
++		if (SetVisibilityTool.IsValid()) { Module->RemoveTool(SetVisibilityTool.ToSharedRef()); SetVisibilityTool.Reset(); }
++		if (SetMobilityTool.IsValid()) { Module->RemoveTool(SetMobilityTool.ToSharedRef()); SetMobilityTool.Reset(); }
++		if (SetCollisionTool.IsValid()) { Module->RemoveTool(SetCollisionTool.ToSharedRef()); SetCollisionTool.Reset(); }
++	}
++}
++
+ #undef LOCTEXT_NAMESPACE
+ 
+ IMPLEMENT_MODULE(FModelContextProtocolEditorModule, ModelContextProtocolEditor)
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
+index 8b9c33129..fc52cfa1c 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
+@@ -1,4 +1,4 @@
+-﻿// Copyright Epic Games, Inc. All Rights Reserved.
++// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #pragma once
+ 
+@@ -7,6 +7,24 @@
+ #include "Modules/ModuleManager.h"
+ #include "ToolsetRegistry/DelegateHandle.h"
+ 
++struct FModelContextProtocolEditorContextTool;
++struct FModelContextProtocolViewportTool;
++struct FModelContextProtocolSaveLevelTool;
++struct FModelContextProtocolListLevelsTool;
++struct FModelContextProtocolClassInventoryTool;
++struct FModelContextProtocolOpenLevelTool;
++struct FModelContextProtocolSnapshotWorldTool;
++struct FModelContextProtocolRestoreWorldTool;
++struct FModelContextProtocolSpawnActorTool;
++struct FModelContextProtocolSetActorTransformTool;
++struct FModelContextProtocolVerifyPositionTool;
++struct FModelContextProtocolSummarizeSceneTool;
++struct FModelContextProtocolSearchActorsTool;
++struct FModelContextProtocolListBlueprintsTool;
++struct FModelContextProtocolSetVisibilityTool;
++struct FModelContextProtocolSetMobilityTool;
++struct FModelContextProtocolSetCollisionTool;
++
+ class FModelContextProtocolEditorModule : public IModuleInterface
+ {
+ public:
+@@ -17,9 +35,28 @@ public:
+ 
+ private:
+ 	void SetupEditorIntegration();
++	void RegisterBuiltinEditorTools();
++	void DeregisterBuiltinEditorTools();
+ 
+ 	FToolsetRegistryToolAdapterManager ToolsetRegistryAdapterManager;
+ 	UE::ToolsetRegistry::FDelegateHandleRaii PostEngineInitHandle;
+ 	FDelegateHandle OnRefreshToolsHandle;
+ 	FDelegateHandle OnToolsetRegisteredHandle;
++	TSharedPtr<FModelContextProtocolEditorContextTool> EditorContextTool;
++	TSharedPtr<FModelContextProtocolViewportTool> ViewportTool;
++	TSharedPtr<FModelContextProtocolSaveLevelTool> SaveLevelTool;
++	TSharedPtr<FModelContextProtocolListLevelsTool> ListLevelsTool;
++	TSharedPtr<FModelContextProtocolClassInventoryTool> ClassInventoryTool;
++	TSharedPtr<FModelContextProtocolOpenLevelTool> OpenLevelTool;
++	TSharedPtr<FModelContextProtocolSnapshotWorldTool> SnapshotWorldTool;
++	TSharedPtr<FModelContextProtocolRestoreWorldTool> RestoreWorldTool;
++	TSharedPtr<FModelContextProtocolSpawnActorTool> SpawnActorTool;
++	TSharedPtr<FModelContextProtocolSetActorTransformTool> SetActorTransformTool;
++	TSharedPtr<FModelContextProtocolVerifyPositionTool> VerifyPositionTool;
++	TSharedPtr<FModelContextProtocolSummarizeSceneTool> SummarizeSceneTool;
++	TSharedPtr<FModelContextProtocolSearchActorsTool> SearchActorsTool;
++	TSharedPtr<FModelContextProtocolListBlueprintsTool> ListBlueprintsTool;
++	TSharedPtr<FModelContextProtocolSetVisibilityTool> SetVisibilityTool;
++	TSharedPtr<FModelContextProtocolSetMobilityTool> SetMobilityTool;
++	TSharedPtr<FModelContextProtocolSetCollisionTool> SetCollisionTool;
+ };
