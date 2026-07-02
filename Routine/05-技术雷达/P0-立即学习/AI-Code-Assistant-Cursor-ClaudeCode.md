@@ -1,6 +1,7 @@
 ---
 tags: [radar/P0, radar/AI-生产力, radar/工具链]
 aliases: [Cursor, Claude Code, GitHub Copilot, AI 编程助手, 配对编程]
+quarterly_review: 2026-Q3
 ---
 
 # AI 编程助手 — Cursor / Claude Code / Copilot(直接吃产能)
@@ -97,6 +98,7 @@ aliases: [Cursor, Claude Code, GitHub Copilot, AI 编程助手, 配对编程]
 |------|--------|------|----------|
 | 2026-06-25 | 我 | P0 立即学习 — 已经是行业基线,不用就落后 | 1个月后 |
 | 2026-06-26 | 我 | 复核 — TRAE(中文首选)+ MAI-Code-1-Flash(Copilot 升级)补全国内/微软阵营 | 2周后 |
+| 2026-07-03 | 我 | Q3 启动 — 纳入季度复盘 Routine | 2026-07-10 |
 
 ---
 

@@ -1,6 +1,7 @@
 ---
 tags: [radar/P1, radar/AI-资产生成, radar/工具链]
-aliases: [Meshy, Luma AI, Luma Genie, Tripo3D, Hunyuan3D, 文本生 3D, Image-to-3D, 3D Agent]
+aliases: [Meshy, Luma AI, Luma Genie, Tripo3D, 文本生 3D, Image-to-3D, 3D Agent]
+quarterly_review: 2026-Q3
 ---
 
 # Meshy / Luma Genie / Tripo3D — Text/Image-to-3D 资产生成
@@ -38,12 +39,12 @@ aliases: [Meshy, Luma AI, Luma Genie, Tripo3D, Hunyuan3D, 文本生 3D, Image-to
 | **Meshy 3D Agent** | Text/Image/Agent | 2 分钟/模型 | ~$1/模型 | 中(可后处理) | 有插件 |
 | **Luma Genie** | Text | 10 秒 | 按量 | 中 | 有 UE5 插件 |
 | **Tripo3D** | Text/Image | 1-3 分钟 | 订阅制 | 良 | 通用 FBX |
-| **Hunyuan3D**(腾讯) | Image-to-3D | 30 秒-2 分钟 | 开源/云 | 优(带拓扑) | 通用 |
+| **Hunyuan3D**(腾讯) | Image-to-3D | 30 秒-2 分钟 | 开源/云 | 优(带拓扑) | 通用 | → 已独立为 [[Hunyuan3D-Tencent-Topology]] (P0) |
 | **CSM** | Video/Image | 1-5 分钟 | 订阅 | 中 | 通用 |
 
 **核心技术栈(2026):**
 - **3DGS + Mesh 混合**:神经渲染 + 拓扑 mesh,质量+可控性兼顾
-- **专业拓扑布线**:Hunyuan3D 的关键突破 — 直接出"能挂骨骼动画"的 mesh
+- **专业拓扑布线**:[[Hunyuan3D-Tencent-Topology]] 的关键突破 — 直接出"能挂骨骼动画"的 mesh(已独立成 P0 条目)
 - **3D Agent 模式**:Meshy 首创,多轮对话 + 持续迭代,像和设计师协作
 
 ---
@@ -74,7 +75,7 @@ aliases: [Meshy, Luma AI, Luma Genie, Tripo3D, Hunyuan3D, 文本生 3D, Image-to
 - **快速 prototype**:策划说"我要一堆史莱姆",AI 一下午出 50 个变体,挑 10 个进项目
 - **UGC 工具**:UE 项目里加个"AI 生成你的角色"功能,Meshy/Luma API + WebSocket 推流
 - **程序化关卡**:把 AI 生成 + PCG 框架结合 — 美术给 prompt,引擎批量出场景元素
-- **NPC 角色变体**:Hunyuan3D 的"专业布线" 让 AI 角色能直接挂 UE 的 Skeletal Mesh + Animation Blueprint
+- **NPC 角色变体**:[[Hunyuan3D-Tencent-Topology]] 的"专业布线"让 AI 角色能直接挂 UE 的 Skeletal Mesh + Animation Blueprint
 
 **对你 day-job 的真实杠杆:**
 - 读项目代码时看到"资源加载流程"能马上想到"这个流程可以接 AI 资产生成"
@@ -88,6 +89,7 @@ aliases: [Meshy, Luma AI, Luma Genie, Tripo3D, Hunyuan3D, 文本生 3D, Image-to
 | 日期 | 评估人 | 结论 | 下次回顾 |
 |------|--------|------|----------|
 | 2026-06-25 | 我 | P1 持续关注 — 资产管线拐点,选定 1-2 家试用 | 1个月后 |
+| 2026-07-03 | 我 | Q3 启动 — [[Hunyuan3D-Tencent-Topology]] 从本条目拆出独立 P0 | 2026-07-25 |
 
 ---
 
@@ -96,7 +98,7 @@ aliases: [Meshy, Luma AI, Luma Genie, Tripo3D, Hunyuan3D, 文本生 3D, Image-to
 - Meshy:https://www.meshy.ai/
 - Luma AI:https://lumalabs.ai/
 - Tripo3D:https://www.tripo3d.ai/
-- 腾讯 Hunyuan3D:https://3d.hunyuan.tencent.com/(开源版本可用)
+- 腾讯 Hunyuan3D:https://3d.hunyuan.tencent.com/(开源版本可用) — 已独立为 [[Hunyuan3D-Tencent-Topology]] P0 条目,作为 day-job 主力 AI 资产生成选择
 - A16Z 2024 年度报告把 Meshy 评为"最受欢迎 3D AI 工具"
 - Perforce 2025 State of Game Technology:https://www.perforce.com/resources/state-of-game-technology-report
 

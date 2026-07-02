@@ -1,6 +1,7 @@
 ---
 tags: [radar/P2, radar/AI-资产生成, radar/工具链]
 aliases: [ElevenLabs, AI 语音合成, TTS, 声音克隆, Voice Cloning]
+quarterly_review: 2026-Q3
 ---
 
 # ElevenLabs — AI 语音合成 / 声音克隆
@@ -84,6 +85,7 @@ aliases: [ElevenLabs, AI 语音合成, TTS, 声音克隆, Voice Cloning]
 | 日期 | 评估人 | 结论 | 下次回顾 |
 |------|--------|------|----------|
 | 2026-06-25 | 我 | P2 了解即可 — 知道边界,不投入时间 | 3个月后 |
+| 2026-07-03 | 我 | Q3 启动 — 纳入季度复盘 Routine | 2026-09-25 |
 
 ---
 
