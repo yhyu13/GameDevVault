@@ -1,0 +1,4350 @@
+{
+  "timestamp": "2026-07-02T23:53:45.994978+00:00",
+  "server_url": "http://127.0.0.1:8000/mcp",
+  "live_tool_count": 24,
+  "live_tools": [
+    "DeleteActor",
+    "GetActorDetails",
+    "ListActors",
+    "call_tool",
+    "capture_viewport",
+    "class_inventory",
+    "describe_toolset",
+    "execute_console_command",
+    "get_editor_context",
+    "list_blueprints",
+    "list_levels",
+    "list_toolsets",
+    "open_level",
+    "restore_world",
+    "save_current_level",
+    "search_actors",
+    "set_actor_transform",
+    "set_collision",
+    "set_mobility",
+    "set_visibility",
+    "snapshot_world",
+    "spawn_actor",
+    "summarize_scene",
+    "verify_position"
+  ],
+  "missing_tools": [],
+  "pascal_case_duplicates": [],
+  "summary": {
+    "pass": 11,
+    "gated": 3,
+    "fail": 0,
+    "unreachable": 0
+  },
+  "records": [
+    {
+      "name": "list_levels",
+      "kind": "Read",
+      "args": {
+        "root": "/Game/"
+      },
+      "status": "PASS",
+      "result": {
+        "levels": [
+          {
+            "path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom.Lvl_IntroRoom",
+            "name": "Lvl_IntroRoom",
+            "size_bytes": -1,
+            "is_current": false
+          },
+          {
+            "path": "/Game/DemoTemplate/Niagara/Lvl_Room_Niagara.Lvl_Room_Niagara",
+            "name": "Lvl_Room_Niagara",
+            "size_bytes": -1,
+            "is_current": false
+          }
+        ]
+      },
+      "latency_ms": 15998
+    },
+    {
+      "name": "class_inventory",
+      "kind": "Read",
+      "args": {
+        "filter_prefix": "BP_"
+      },
+      "status": "PASS",
+      "result": {
+        "classes": [
+          {
+            "name": "BP_SaveData_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_SaveData.BP_SaveData",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonCameraManager_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonCameraManager.BP_FirstPersonCameraManager",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonPlayerController_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonPlayerController.BP_FirstPersonPlayerController",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonCharacter_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter.BP_FirstPersonCharacter",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GM_Template_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_GM_Template.BP_GM_Template",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Titles_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_Titles.BP_Titles",
+            "instance_count_in_level": 16
+          },
+          {
+            "name": "BP_TextSwitcher_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_TextSwitcher.BP_TextSwitcher",
+            "instance_count_in_level": 26
+          },
+          {
+            "name": "BP_SequenceTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Sequencer/BP_SequenceTrigger.BP_SequenceTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_KeyboardKey_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/BP_KeyboardKey.BP_KeyboardKey",
+            "instance_count_in_level": 6
+          },
+          {
+            "name": "BP_MouseKey_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/BP_MouseKey.BP_MouseKey",
+            "instance_count_in_level": 2
+          },
+          {
+            "name": "BP_Anim_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Animated/BP_Anim.BP_Anim",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_SplinePath_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/SplinePath/BP_SplinePath.BP_SplinePath",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DangleBlocks_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Physics/BP_DangleBlocks.BP_DangleBlocks",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DoorFrame_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/Door/BP_DoorFrame.BP_DoorFrame",
+            "instance_count_in_level": 6
+          },
+          {
+            "name": "BP_TemplateCube_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Templates/BP_TemplateCube.BP_TemplateCube",
+            "instance_count_in_level": 11
+          },
+          {
+            "name": "BP_DoorTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_DoorTrigger.BP_DoorTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DoorFrame_Unlockable_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_DoorFrame_Unlockable.BP_DoorFrame_Unlockable",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_Light_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_Light.BP_Light",
+            "instance_count_in_level": 3
+          },
+          {
+            "name": "BP_GizmoDemo_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Transform/BP_GizmoDemo.BP_GizmoDemo",
+            "instance_count_in_level": 3
+          },
+          {
+            "name": "BP_SpawnPoint_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_SpawnPoint.BP_SpawnPoint",
+            "instance_count_in_level": 12
+          },
+          {
+            "name": "BP_UI_Update_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/EditorUI/BP_UI_Update.BP_UI_Update",
+            "instance_count_in_level": 4
+          },
+          {
+            "name": "BP_Metasound_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Metasounds/BP_Metasound.BP_Metasound",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_ConfettiTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Templates/BP_ConfettiTrigger.BP_ConfettiTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_StartupLocation_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/EditorStartCam/BP_StartupLocation.BP_StartupLocation",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_CVD_SkySphere_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/ChaosVD/BP_CVD_SkySphere.BP_CVD_SkySphere",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SkeletalMeshPreview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Dataflow/BP_SkeletalMeshPreview.BP_SkeletalMeshPreview",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GeometryCollectionPreview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/GeometryCollectionPlugin/BP_GeometryCollectionPreview.BP_GeometryCollectionPreview",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_PreviewGroom_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/HairStrands/BP_PreviewGroom.BP_PreviewGroom",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Sky_Sphere_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Engine/EngineSky/BP_Sky_Sphere.BP_Sky_Sphere",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SubdivideOnceUsingAutoGeneratedPolyGroups_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/SkeletalMeshModelingTools/MeshProcessing/BP_SubdivideOnceUsingAutoGeneratedPolyGroups.BP_SubdivideOnceUsingAutoGeneratedPolyGroups",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SubdivideOnceUsingDefaultPolyGroups_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/SkeletalMeshModelingTools/MeshProcessing/BP_SubdivideOnceUsingDefaultPolyGroups.BP_SubdivideOnceUsingDefaultPolyGroups",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_BuoyancyExample_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/Blueprints/BP_BuoyancyExample.BP_BuoyancyExample",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ActorRefs_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Engine/WorldPartition/UnitTests/BP_ActorRefs.BP_ActorRefs",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_DecalTestPOM_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/DatasmithContent/Materials/StdDecal/BP_DecalTestPOM.BP_DecalTestPOM",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Landmass_LayerStack_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_Landmass_LayerStack.BP_Landmass_LayerStack",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_MeshGrids_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_MeshGrids.BP_MeshGrids",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ScreenOverlay_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_ScreenOverlay.BP_ScreenOverlay",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FluidSim_01_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/BP_FluidSim_01.BP_FluidSim_01",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GlobalFoliageActor_UE5_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Fab/Actors/GlobalFoliageActor/BP_GlobalFoliageActor_UE5.BP_GlobalFoliageActor_UE5",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_BuildingSample_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/PCG/SampleContent/Grammar/BP_BuildingSample.BP_BuildingSample",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_MakeTextureStamp_FromStaticMesh_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Helpers/BP_MakeTextureStamp_FromStaticMesh.BP_MakeTextureStamp_FromStaticMesh",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_LandmassBrush_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Brushes/BP_LandmassBrush.BP_LandmassBrush",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_LSBrush_Noise_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Brushes/BP_LSBrush_Noise.BP_LSBrush_Noise",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Dynamic_Force_Component_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Dynamic_Force_Component.BP_Dynamic_Force_Component",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Dynamic_Force_SkelMesh_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Dynamic_Force_SkelMesh.BP_Dynamic_Force_SkelMesh",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Fluid_Impulse_Repeating_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Fluid_Impulse_Repeating.BP_Fluid_Impulse_Repeating",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GetSimRenderTargets_Material_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_GetSimRenderTargets_Material.BP_GetSimRenderTargets_Material",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_WaterSim_TickInEditorTest_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_WaterSim_TickInEditorTest.BP_WaterSim_TickInEditorTest",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ActorTagger_Preview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/BiomePreviews/BP_ActorTagger_Preview.BP_ActorTagger_Preview",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonGameMode_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonGameMode.BP_FirstPersonGameMode",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FP_CameraManager_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FP_CameraManager.BP_FP_CameraManager",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_DevCom_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_DevCom.BP_DevCom",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_JumpPad_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/JumpPad/BP_JumpPad.BP_JumpPad",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_WobbleTarget_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/Target/BP_WobbleTarget.BP_WobbleTarget",
+            "instance_count_in_level": 0
+          }
+        ]
+      },
+      "latency_ms": 16000
+    },
+    {
+      "name": "open_level",
+      "kind": "Write",
+      "args": {
+        "level_path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom",
+        "save_first": true
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "loaded_level": "/Game/DemoTemplate/_Core/Lvl_IntroRoom",
+        "actor_count": 391,
+        "saved_previous": false
+      },
+      "latency_ms": 16039
+    },
+    {
+      "name": "snapshot_world",
+      "kind": "Write",
+      "args": {
+        "label": "smoke_test"
+      },
+      "status": "PASS",
+      "result": "Level not saved to disk. Please save first (e.g. via save_current_level).",
+      "latency_ms": 16000
+    },
+    {
+      "name": "restore_world",
+      "kind": "Write",
+      "args": {
+        "label": "smoke_test"
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "restored_from": "smoke_test",
+        "level_path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom.Lvl_IntroRoom:PersistentLevel",
+        "note": "Snapshot copied. Use open_level to reload the level."
+      },
+      "latency_ms": 16000
+    },
+    {
+      "name": "spawn_actor",
+      "kind": "Write",
+      "args": {
+        "class_name": "BP_TemplateCube_C",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "actor_name": "BP_TemplateCube_C_UAID_345A6032E8759DEA02_1860348231",
+        "class": "BP_TemplateCube_C",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "latency_ms": 15688
+    },
+    {
+      "name": "set_actor_transform",
+      "kind": "Write",
+      "args": {
+        "actor_name": "Brush_1",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "new_location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        },
+        "new_rotation": {
+          "pitch": 0,
+          "yaw": 0,
+          "roll": 0
+        },
+        "new_scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "latency_ms": 15999
+    },
+    {
+      "name": "verify_position",
+      "kind": "Read",
+      "args": {
+        "actor_name": "Brush_1",
+        "expected": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "actual": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        },
+        "delta": 0,
+        "within_epsilon": true
+      },
+      "latency_ms": 16000
+    },
+    {
+      "name": "summarize_scene",
+      "kind": "Read",
+      "args": {},
+      "status": "PASS",
+      "result": {
+        "actor_count": 392,
+        "level_path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom.Lvl_IntroRoom:PersistentLevel",
+        "world_type": "Editor",
+        "top_classes": [
+          {
+            "class": "StaticMeshActor",
+            "count": 262
+          },
+          {
+            "class": "BP_TextSwitcher_C",
+            "count": 26
+          },
+          {
+            "class": "BP_Titles_C",
+            "count": 16
+          },
+          {
+            "class": "BP_TemplateCube_C",
+            "count": 12
+          },
+          {
+            "class": "BP_SpawnPoint_C",
+            "count": 12
+          },
+          {
+            "class": "TextRenderActor",
+            "count": 9
+          },
+          {
+            "class": "BP_KeyboardKey_C",
+            "count": 6
+          },
+          {
+            "class": "BP_DoorFrame_C",
+            "count": 6
+          },
+          {
+            "class": "BP_UI_Update_C",
+            "count": 4
+          },
+          {
+            "class": "BP_GizmoDemo_C",
+            "count": 3
+          }
+        ],
+        "single_instance_classes": [
+          "BuoyancyManager",
+          "BP_DoorFrame_Unlockable_C",
+          "BP_DoorTrigger_C",
+          "SkyAtmosphere",
+          "WorldDataLayers",
+          "LevelSequenceActor",
+          "WorldSettings",
+          "Brush",
+          "BP_SequenceTrigger_C",
+          "NiagaraActor",
+          "GameplayDebuggerPlayerManager",
+          "Actor",
+          "DefaultPhysicsVolume",
+          "BP_Metasound_C",
+          "BP_ConfettiTrigger_C",
+          "WorldPartitionMiniMap",
+          "VolumetricCloud",
+          "PlayerStart",
+          "BP_Anim_C",
+          "BP_DangleBlocks_C",
+          "DirectionalLight",
+          "ExponentialHeightFog",
+          "BP_StartupLocation_C",
+          "SkyLight",
+          "BP_SplinePath_C",
+          "AbstractNavData"
+        ],
+        "actors_at_origin": [
+          {
+            "name": "WorldSettings_1",
+            "class": "WorldSettings"
+          },
+          {
+            "name": "WorldDataLayers",
+            "class": "WorldDataLayers"
+          },
+          {
+            "name": "BuoyancyManager_0",
+            "class": "BuoyancyManager"
+          },
+          {
+            "name": "DefaultPhysicsVolume_0",
+            "class": "DefaultPhysicsVolume"
+          },
+          {
+            "name": "GameplayDebuggerPlayerManager_0",
+            "class": "GameplayDebuggerPlayerManager"
+          },
+          {
+            "name": "ChaosDebugDrawActor",
+            "class": "Actor"
+          },
+          {
+            "name": "WorldPartitionMiniMap_0",
+            "class": "WorldPartitionMiniMap"
+          },
+          {
+            "name": "StaticMeshActor_0",
+            "class": "StaticMeshActor"
+          },
+          {
+            "name": "AbstractNavData-Default",
+            "class": "AbstractNavData"
+          }
+        ],
+        "themes": {
+          "lighting": 5,
+          "trigger_volumes": 3,
+          "characters": 12,
+          "sequences": 2,
+          "metasounds": 1,
+          "static_meshes": 262
+        }
+      },
+      "latency_ms": 15999
+    },
+    {
+      "name": "search_actors",
+      "kind": "Read",
+      "args": {
+        "class_regex": "BP_.*"
+      },
+      "status": "PASS",
+      "result": {
+        "actors": [
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1914811066",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": -855.4464536816749,
+              "y": 263.23286338413465,
+              "z": 988.1251031429599
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1892547235",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 2528.126281292035,
+              "y": 990.0000607423615,
+              "z": 790
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AF8D02_1292343215",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 400.00000039657823,
+              "y": -2510,
+              "z": -127.1491374832946
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1320872932",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 1047.1819169999999,
+              "y": -2186.476384,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1387531690",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 399.99999488945554,
+              "y": -1770,
+              "z": -101.99990555273689
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1593838522",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 200.53782816622294,
+              "y": -2510,
+              "z": 1.8946519621420634
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1296560800",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2000,
+              "y": -3590.0000061394303,
+              "z": 1156.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A33D9402_1164057519",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 4530,
+              "y": 990,
+              "z": 1106.209961
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3A99302_1719302483",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 400,
+              "y": -1850,
+              "z": -199.74990000000253
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3AF9302_1344133566",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 144.1695747611393,
+              "y": -2510,
+              "z": 2.5219818393083138
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A32F8B02_2116560561",
+            "class": "BP_DoorFrame_Unlockable_C",
+            "location": {
+              "x": 4000,
+              "y": -1850,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_DoorTrigger_C_UAID_F4A475FF15A36F8B02_1477780827",
+            "class": "BP_DoorTrigger_C",
+            "location": {
+              "x": 4000,
+              "y": -2500,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1467436174",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 4882.80870017268,
+              "y": 1261.8460701880285,
+              "z": 1023.0932419999999
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3439402_1106863599",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 2818.1265085663736,
+              "y": 1289.9999104178867,
+              "z": 1200
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1364325801",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 4589.999999650934,
+              "y": -2639.999999912313,
+              "z": 1096.5238302098364
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3439402_1732074600",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2650,
+              "y": 980,
+              "z": 641.227762
+            }
+          },
+          {
+            "name": "BP_GizmoDemo_C_UAID_F4A475FF15A30A8D02_1621641155",
+            "class": "BP_GizmoDemo_C",
+            "location": {
+              "x": 660.7163720263594,
+              "y": 772.981334,
+              "z": 100.92048942692176
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1936599069",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 3269.8266380140244,
+              "y": -2254.2055335033847,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1610044525",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 145.53782816622294,
+              "y": -2510,
+              "z": -53.10534803785792
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1469665175",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 4969.770226361499,
+              "y": 1215.8653082789224,
+              "z": 1203.093242
+            }
+          },
+          {
+            "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1474794156",
+            "class": "BP_UI_Update_C",
+            "location": {
+              "x": 2000,
+              "y": 300,
+              "z": 800
+            }
+          },
+          {
+            "name": "BP_SequenceTrigger_C_UAID_F4A475FF15A32E8B02_1143428382",
+            "class": "BP_SequenceTrigger_C",
+            "location": {
+              "x": 2800,
+              "y": -3310,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1583708232",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 338.126304625459,
+              "y": 989.999998638722,
+              "z": 269.9999999616
+            }
+          },
+          {
+            "name": "BP_Light_C_UAID_F4A475FF15A36F8B02_1930181834",
+            "class": "BP_Light_C",
+            "location": {
+              "x": 4300,
+              "y": -1900,
+              "z": 990
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A34A8902_1868366204",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": -400,
+              "y": 250,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1141107154",
+            "class": "BP_UI_Update_C",
+            "location": {
+              "x": 2400,
+              "y": -1300,
+              "z": 200
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1952088420",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 4568.126294518922,
+              "y": -2490.0001895712553,
+              "z": 1200
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EA9302_2003937914",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": -1770,
+              "y": -1290,
+              "z": 1076.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A33D9402_1629156521",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2810,
+              "y": 1440,
+              "z": 1186.209961
+            }
+          },
+          {
+            "name": "BP_MouseKey_C_UAID_F4A475FF15A3AF8D02_1670713220",
+            "class": "BP_MouseKey_C",
+            "location": {
+              "x": 340.5572733466821,
+              "y": -2506.5945110000002,
+              "z": -34.24240772893161
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1977437237",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": -1651.873708,
+              "y": -1290.000012,
+              "z": 1190
+            }
+          },
+          {
+            "name": "BP_DangleBlocks_C_UAID_F4A475FF15A3968902_1387668616",
+            "class": "BP_DangleBlocks_C",
+            "location": {
+              "x": 199.99999954804002,
+              "y": -3400.000000140309,
+              "z": 1400
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3378F02_1272651190",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 237.3806347899806,
+              "y": -2510,
+              "z": 53.447046748549695
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1565510060",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5170.170194196825,
+              "y": 346.4213275586839,
+              "z": 982.2281255013893
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1930232068",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": -442.8180825938782,
+              "y": -2146.4763841400595,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3FA8802_2006604127",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 400.00000002646175,
+              "y": -2510,
+              "z": 134.60308101606614
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1318374688",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 4300,
+              "y": -700,
+              "z": 288.250086
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1102677091",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 690,
+              "y": -3360,
+              "z": 1156.209961
+            }
+          },
+          {
+            "name": "BP_Light_C_UAID_F4A475FF15A36F8B02_1928291833",
+            "class": "BP_Light_C",
+            "location": {
+              "x": 3700,
+              "y": -1900,
+              "z": 990
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1602257523",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 200.53782816622294,
+              "y": -2510,
+              "z": -53.10534803785792
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3908902_1672628511",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 440,
+              "y": 90,
+              "z": 32.88926724241901
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A30A8D02_1464182151",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 1590,
+              "y": -1380,
+              "z": 288.25010334374747
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_2070748421",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 3608.126433077622,
+              "y": 89.99985911750761,
+              "z": 1000
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3378F02_1361906191",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 299.7870533504391,
+              "y": -2510,
+              "z": -35.8678235212257
+            }
+          },
+          {
+            "name": "BP_Metasound_C_UAID_F4A475FF15A3DD8A02_1390193150",
+            "class": "BP_Metasound_C",
+            "location": {
+              "x": -449.9999998970458,
+              "y": -3250,
+              "z": 861.4216892322407
+            }
+          },
+          {
+            "name": "BP_ConfettiTrigger_C_UAID_F4A475FF15A3119402_1298410799",
+            "class": "BP_ConfettiTrigger_C",
+            "location": {
+              "x": 4000,
+              "y": -750,
+              "z": 910
+            }
+          },
+          {
+            "name": "BP_UI_Update_C_UAID_F4A475FF15A34B9402_1504655983",
+            "class": "BP_UI_Update_C",
+            "location": {
+              "x": 690,
+              "y": 440,
+              "z": 130
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1323843203",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 449.9999999057404,
+              "y": 979.9999999999999,
+              "z": 210.66281436558828
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1606014208",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 1917.501227,
+              "y": -1788.2980374165288,
+              "z": 327.1874221629601
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1463210173",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5072.17403571379,
+              "y": 1169.8364527809222,
+              "z": 1023.0932419999999
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1255918799",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2799.999997726138,
+              "y": -3589.9999940142006,
+              "z": 1106.209961
+            }
+          },
+          {
+            "name": "BP_Anim_C_UAID_F4A475FF15A3238B02_2033533439",
+            "class": "BP_Anim_C",
+            "location": {
+              "x": 2020,
+              "y": -3400,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AE9302_1838398388",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 400.0000000350359,
+              "y": -1209.9999999999995,
+              "z": 2.5583821462468137
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1635761065",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5354.723761937163,
+              "y": 840.5344885443787,
+              "z": 1005.8098660713775
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1340321689",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 2400,
+              "y": -200,
+              "z": 693.1313505507787
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1607016524",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 255.537828166223,
+              "y": -2510,
+              "z": -53.10534803785792
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1910408417",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 1388.1263432246626,
+              "y": -1910.0000645717207,
+              "z": 1210
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3C29302_1446208933",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 403.75061400000004,
+              "y": -1208.298037,
+              "z": -92.81257799999997
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1507158204",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 1917.501227,
+              "y": -1786.5960746505084,
+              "z": 456.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1552812207",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 4350.000000158178,
+              "y": 89.99999999999989,
+              "z": 311.22776202141034
+            }
+          },
+          {
+            "name": "BP_MouseKey_C_UAID_F4A475FF15A3AF8D02_1514909217",
+            "class": "BP_MouseKey_C",
+            "location": {
+              "x": 565.606728694518,
+              "y": -2506.5945106057893,
+              "z": -34.24240825470464
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1873662416",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 688.1262959343924,
+              "y": -3240.0000359380215,
+              "z": 1210
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1632759064",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5244.529753597846,
+              "y": 1018.3653110331202,
+              "z": 1023.0932419289204
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_2118126422",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 4378.126495778999,
+              "y": 989.9998052438572,
+              "z": 1200
+            }
+          },
+          {
+            "name": "BP_GizmoDemo_C_UAID_F4A475FF15A3478902_1828996667",
+            "class": "BP_GizmoDemo_C",
+            "location": {
+              "x": 1290.7163721133218,
+              "y": 772.9813336324975,
+              "z": 99.99999999999997
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1827563415",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": -571.8737078262088,
+              "y": -3580.000011513282,
+              "z": 1318.8964742759977
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1601088063",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5189.39384916248,
+              "y": 530.4441252620866,
+              "z": 1328.962164244926
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1480659176",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5185.116324137825,
+              "y": 1108.855691082571,
+              "z": 1188.093242
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1864456234",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 4228.126296671559,
+              "y": 90.00009010776074,
+              "z": 470
+            }
+          },
+          {
+            "name": "NewEditorUtilityBlueprint_C_UAID_F4A475FF15A3B08D02_1445677397",
+            "class": "BP_StartupLocation_C",
+            "location": {
+              "x": 395.27677399054016,
+              "y": -3169.005905959725,
+              "z": -16.08292378911524
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1594690062",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5174.244195309834,
+              "y": 444.526142945271,
+              "z": 1149.6269900032178
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1804406233",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 2038.1263600699485,
+              "y": -1789.9999786301826,
+              "z": 550
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3038902_1806122727",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 4200,
+              "y": -750,
+              "z": 200
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3C19302_1689069751",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": -1890,
+              "y": -190,
+              "z": 1106.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1734467209",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 448.586895396095,
+              "y": 980.5376919296319,
+              "z": 106.2348671488304
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EE9302_2001758622",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 1530,
+              "y": -1910,
+              "z": 1106.209961
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3C08B02_1790421076",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 750,
+              "y": -2300,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_SplinePath_C_UAID_F4A475FF15A3DD9402_1282200680",
+            "class": "BP_SplinePath_C",
+            "location": {
+              "x": 400,
+              "y": -3150,
+              "z": -200
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3368F02_1077176012",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 557.6090710345215,
+              "y": -2510,
+              "z": 44.588912905163994
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1823798206",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2650,
+              "y": 980,
+              "z": 736.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1747309093",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": -290,
+              "y": -1130,
+              "z": 1026.209961
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1948914419",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 2708.126256,
+              "y": -3590.0001226932204,
+              "z": 1210
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3C08B02_1833558077",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 1650,
+              "y": -2300,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1926085236",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": -1771.87370765536,
+              "y": -190.000012129295,
+              "z": 1200
+            }
+          },
+          {
+            "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1465393155",
+            "class": "BP_UI_Update_C",
+            "location": {
+              "x": 3600,
+              "y": -300,
+              "z": 200
+            }
+          },
+          {
+            "name": "BP_Light_C_UAID_F4A475FF15A3708B02_1854429013",
+            "class": "BP_Light_C",
+            "location": {
+              "x": 4000,
+              "y": -1900,
+              "z": 1360
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1945456070",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 4000,
+              "y": 100,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1925360067",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": -882.3751089796211,
+              "y": -930.022806812304,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1938201418",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 1908.1262558183364,
+              "y": -3590.000095337953,
+              "z": 1210
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1567172061",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5202.7382916646075,
+              "y": 621.1242421167867,
+              "z": 1143.9277075485295
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1722158205",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 4349.999999818323,
+              "y": 90.00000000000011,
+              "z": 411.5863978806807
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1790097414",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": -291.8737080000001,
+              "y": -1250.000012,
+              "z": 1120
+            }
+          },
+          {
+            "name": "BP_GizmoDemo_C_UAID_F4A475FF15A30A8D02_1618273154",
+            "class": "BP_GizmoDemo_C",
+            "location": {
+              "x": 980.716371797092,
+              "y": 772.9813340000018,
+              "z": 111.89354865914044
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3FB8802_1557440307",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 1750,
+              "y": -1300,
+              "z": 200
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1132042931",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 400,
+              "y": -3160,
+              "z": -101.999906
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1326648092",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": -450.00000019124735,
+              "y": -3580,
+              "z": 1215.1064352759977
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1560925059",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5214.313503197263,
+              "y": 716.7705485620154,
+              "z": 982.2281268475191
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3AF9302_1338918565",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 256.8244703254563,
+              "y": -2510,
+              "z": 2.5219818267451757
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_345A6032E8759DEA02_1860348231",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 0,
+              "y": 0,
+              "z": 100
+            }
+          }
+        ],
+        "total_matched": 99,
+        "truncated": false
+      },
+      "latency_ms": 16000
+    },
+    {
+      "name": "list_blueprints",
+      "kind": "Read",
+      "args": {},
+      "status": "PASS",
+      "result": {
+        "blueprints": [
+          {
+            "name": "DmgTypeBP_Environmental",
+            "path": "/Engine/EngineDamageTypes/DmgTypeBP_Environmental.DmgTypeBP_Environmental",
+            "is_data_only": true,
+            "compiled": true,
+            "parent_class": "DamageType",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_SaveData",
+            "path": "/Game/DemoTemplate/_Core/BP_SaveData.BP_SaveData",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "SaveGame",
+            "used_in_level": 0
+          },
+          {
+            "name": "BPI_TouchInterface",
+            "path": "/Game/Input/Touch/BPI_TouchInterface.BPI_TouchInterface",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Interface",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonCameraManager",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonCameraManager.BP_FirstPersonCameraManager",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "PlayerCameraManager",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonPlayerController",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonPlayerController.BP_FirstPersonPlayerController",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "PlayerController",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonCharacter",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter.BP_FirstPersonCharacter",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Character",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_GM_Template",
+            "path": "/Game/DemoTemplate/_Core/BP_GM_Template.BP_GM_Template",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "GameModeBase",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Titles",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_Titles.BP_Titles",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_TextSwitcher",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_TextSwitcher.BP_TextSwitcher",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_SequenceTrigger",
+            "path": "/Game/DemoTemplate/Sequencer/BP_SequenceTrigger.BP_SequenceTrigger",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_KeyboardKey",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/BP_KeyboardKey.BP_KeyboardKey",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "StandardMacros",
+            "path": "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Object",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_MouseKey",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/BP_MouseKey.BP_MouseKey",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Anim",
+            "path": "/Game/DemoTemplate/Animated/BP_Anim.BP_Anim",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_SplinePath",
+            "path": "/Game/DemoTemplate/_Core/SplinePath/BP_SplinePath.BP_SplinePath",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_DangleBlocks",
+            "path": "/Game/DemoTemplate/Physics/BP_DangleBlocks.BP_DangleBlocks",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_DoorFrame",
+            "path": "/Game/LevelPrototyping/Interactable/Door/BP_DoorFrame.BP_DoorFrame",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_TemplateCube",
+            "path": "/Game/DemoTemplate/Templates/BP_TemplateCube.BP_TemplateCube",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_DoorTrigger",
+            "path": "/Game/DemoTemplate/Blueprint/BP_DoorTrigger.BP_DoorTrigger",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_DoorFrame_Unlockable",
+            "path": "/Game/DemoTemplate/Blueprint/BP_DoorFrame_Unlockable.BP_DoorFrame_Unlockable",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "BP_DoorFrame_C",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Light",
+            "path": "/Game/DemoTemplate/Blueprint/BP_Light.BP_Light",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_GizmoDemo",
+            "path": "/Game/DemoTemplate/Transform/BP_GizmoDemo.BP_GizmoDemo",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_SpawnPoint",
+            "path": "/Game/DemoTemplate/_Core/BP_SpawnPoint.BP_SpawnPoint",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_UI_Update",
+            "path": "/Game/DemoTemplate/_Core/EditorUI/BP_UI_Update.BP_UI_Update",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Metasound",
+            "path": "/Game/DemoTemplate/Metasounds/BP_Metasound.BP_Metasound",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_ConfettiTrigger",
+            "path": "/Game/DemoTemplate/Templates/BP_ConfettiTrigger.BP_ConfettiTrigger",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "Actor",
+            "used_in_level": 0
+          },
+          {
+            "name": "UI_InGame",
+            "path": "/Game/DemoTemplate/_Core/EditorUI/UI_InGame.UI_InGame",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "UserWidget",
+            "used_in_level": 0
+          },
+          {
+            "name": "UI_Thumbstick",
+            "path": "/Game/Input/Touch/UI_Thumbstick.UI_Thumbstick",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "UserWidget",
+            "used_in_level": 0
+          },
+          {
+            "name": "UI_TouchSimple",
+            "path": "/Game/Input/Touch/UI_TouchSimple.UI_TouchSimple",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "UserWidget",
+            "used_in_level": 0
+          },
+          {
+            "name": "UIE_KeyboardKey",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/UIE_KeyboardKey.UIE_KeyboardKey",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "UserWidget",
+            "used_in_level": 0
+          },
+          {
+            "name": "UIE_Mouse",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/UIE_Mouse.UIE_Mouse",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "UserWidget",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_StartupLocation",
+            "path": "/Game/DemoTemplate/_Core/EditorStartCam/BP_StartupLocation.BP_StartupLocation",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "EditorUtilityActor",
+            "used_in_level": 0
+          },
+          {
+            "name": "EU_BP_StartLoc",
+            "path": "/Game/DemoTemplate/_Core/EditorStartCam/EU_BP_StartLoc.EU_BP_StartLoc",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "EditorUtilityObject",
+            "used_in_level": 0
+          },
+          {
+            "name": "ABP_FP_Copy",
+            "path": "/Game/FirstPerson/Anims/ABP_FP_Copy.ABP_FP_Copy",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "AnimInstance",
+            "used_in_level": 0
+          },
+          {
+            "name": "ABP_Unarmed",
+            "path": "/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.ABP_Unarmed",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "AnimInstance",
+            "used_in_level": 0
+          },
+          {
+            "name": "ABP_Copycat",
+            "path": "/Game/DemoTemplate/Animated/ABP_Copycat.ABP_Copycat",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "AnimInstance",
+            "used_in_level": 0
+          },
+          {
+            "name": "CR_Mannequin_FootIK",
+            "path": "/Game/Characters/Mannequins/Rigs/CR_Mannequin_FootIK.CR_Mannequin_FootIK",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "ControlRig",
+            "used_in_level": 0
+          },
+          {
+            "name": "CtrlRig_FPWarp",
+            "path": "/Game/FirstPerson/Anims/CtrlRig_FPWarp.CtrlRig_FPWarp",
+            "is_data_only": false,
+            "compiled": true,
+            "parent_class": "ControlRig",
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_CVD_SkySphere",
+            "path": "/ChaosVD/BP_CVD_SkySphere.BP_CVD_SkySphere",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_SkeletalMeshPreview",
+            "path": "/Dataflow/BP_SkeletalMeshPreview.BP_SkeletalMeshPreview",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DesktopPresence",
+            "path": "/ConcertSyncClient/DesktopPresence.DesktopPresence",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "VRPresence",
+            "path": "/ConcertSyncClient/VRPresence.VRPresence",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ChaosDestructionListenerActor",
+            "path": "/ChaosNiagara/ChaosDestructionListenerActor.ChaosDestructionListenerActor",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_GeometryCollectionPreview",
+            "path": "/GeometryCollectionPlugin/BP_GeometryCollectionPreview.BP_GeometryCollectionPreview",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "GeometryScriptMacroLibrary",
+            "path": "/GeometryScripting/GeometryScriptMacroLibrary.GeometryScriptMacroLibrary",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_PreviewGroom",
+            "path": "/HairStrands/BP_PreviewGroom.BP_PreviewGroom",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ActorComponentMacros",
+            "path": "/Engine/EditorBlueprintResources/ActorComponentMacros.ActorComponentMacros",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ActorMacros",
+            "path": "/Engine/EditorBlueprintResources/ActorMacros.ActorMacros",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Sky_Sphere",
+            "path": "/Engine/EngineSky/BP_Sky_Sphere.BP_Sky_Sphere",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DefaultBurnInOptions",
+            "path": "/Engine/Sequencer/DefaultBurnInOptions.DefaultBurnInOptions",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_SubdivideOnceUsingAutoGeneratedPolyGroups",
+            "path": "/SkeletalMeshModelingTools/MeshProcessing/BP_SubdivideOnceUsingAutoGeneratedPolyGroups.BP_SubdivideOnceUsingAutoGeneratedPolyGroups",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_SubdivideOnceUsingDefaultPolyGroups",
+            "path": "/SkeletalMeshModelingTools/MeshProcessing/BP_SubdivideOnceUsingDefaultPolyGroups.BP_SubdivideOnceUsingDefaultPolyGroups",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DatasmithActor",
+            "path": "/DatasmithContent/Datasmith/DatasmithActor.DatasmithActor",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DatasmithAreaLight",
+            "path": "/DatasmithContent/Datasmith/DatasmithAreaLight.DatasmithAreaLight",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DatasmithAreaLightMesh",
+            "path": "/DatasmithContent/Datasmith/DatasmithArealightMesh.DatasmithAreaLightMesh",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DatasmithLayer",
+            "path": "/DatasmithContent/Datasmith/DatasmithLayer.DatasmithLayer",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DatasmithSelector",
+            "path": "/DatasmithContent/Datasmith/DatasmithSelector.DatasmithSelector",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_BuoyancyExample",
+            "path": "/Water/Blueprints/BP_BuoyancyExample.BP_BuoyancyExample",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "NiagaraPreview",
+            "path": "/Niagara/Blueprints/NiagaraPreview.NiagaraPreview",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "NiagaraPreviewAxisLODDistance",
+            "path": "/Niagara/Blueprints/NiagaraPreviewAxisLODDistance.NiagaraPreviewAxisLODDistance",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CurveRemapDensity",
+            "path": "/PCG/BP_Elements/CurveRemapDensity.CurveRemapDensity",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DistanceToDensity",
+            "path": "/PCG/BP_Elements/DistanceToDensity.DistanceToDensity",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ExportAsPointDataToPCGAsset",
+            "path": "/PCG/BP_Elements/ExportAsPointDataToPCGAsset.ExportAsPointDataToPCGAsset",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ImportDataTable",
+            "path": "/PCG/BP_Elements/ImportDataTable.ImportDataTable",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PCGAsset",
+            "path": "/PCG/BP_Elements/PCGAsset.PCGAsset",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PointFromPlayerPawn",
+            "path": "/PCG/BP_Elements/PointFromPlayerPawn.PointFromPlayerPawn",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "SceneRenderTarget",
+            "path": "/PCG/BP_Elements/SceneRenderTarget.SceneRenderTarget",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_AnchorField_Generic",
+            "path": "/Engine/EditorResources/FieldNodes/FS_AnchorField_Generic.FS_AnchorField_Generic",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_BombField_Prototype",
+            "path": "/Engine/EditorResources/FieldNodes/FS_BombField_Prototype.FS_BombField_Prototype",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_MasterField",
+            "path": "/Engine/EditorResources/FieldNodes/FS_MasterField.FS_MasterField",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_SleepDisable_Generic",
+            "path": "/Engine/EditorResources/FieldNodes/FS_SleepDisable_Generic.FS_SleepDisable_Generic",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Linear_Force_for_Cloth",
+            "path": "/Engine/EditorResources/FieldNodes/Linear_Force_for_Cloth.Linear_Force_for_Cloth",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Linear_Velocity_for_Cloth",
+            "path": "/Engine/EditorResources/FieldNodes/Linear_Velocity_for_Cloth.Linear_Velocity_for_Cloth",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AITesting_MoveGoal",
+            "path": "/Engine/FunctionalTesting/Blueprints/AITesting_MoveGoal.AITesting_MoveGoal",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_ActorRefs",
+            "path": "/Engine/WorldPartition/UnitTests/BP_ActorRefs.BP_ActorRefs",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_DecalTestPOM",
+            "path": "/DatasmithContent/Materials/StdDecal/BP_DecalTestPOM.BP_DecalTestPOM",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "JumpFlood_Component2D",
+            "path": "/Landmass/DistanceFields/Blueprints/JumpFlood_Component2D.JumpFlood_Component2D",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CustomBrush_Landmass",
+            "path": "/Landmass/Landscape/BlueprintBrushes/CustomBrush_Landmass.CustomBrush_Landmass",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CustomBrush_Landmass_River",
+            "path": "/Landmass/Landscape/BlueprintBrushes/CustomBrush_Landmass_River.CustomBrush_Landmass_River",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CustomBrush_MaterialOnly",
+            "path": "/Landmass/Landscape/BlueprintBrushes/CustomBrush_MaterialOnly.CustomBrush_MaterialOnly",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrushManager",
+            "path": "/Landmass/Landscape/BlueprintBrushes/LandmassBrushManager.LandmassBrushManager",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "SplineMeshChild",
+            "path": "/Landmass/Landscape/BlueprintBrushes/SplineMeshChild.SplineMeshChild",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "TextureTest",
+            "path": "/Landmass/Landscape/BlueprintBrushes/TextureTest.TextureTest",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Landmass_LayerStack",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_Landmass_LayerStack.BP_Landmass_LayerStack",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_MeshGrids",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_MeshGrids.BP_MeshGrids",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_ScreenOverlay",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_ScreenOverlay.BP_ScreenOverlay",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DrawMaterial",
+            "path": "/Landmass/TextureCreation/Blueprints/DrawMaterial.DrawMaterial",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Debug_Landscape_Textures",
+            "path": "/Water/Blueprints/Debug/Debug_Landscape_Textures.Debug_Landscape_Textures",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "GenerateCausticsTextures",
+            "path": "/Water/Caustics/Blueprints/GenerateCausticsTextures.GenerateCausticsTextures",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "WaterBody_Niagara_ShoreFoam",
+            "path": "/Water/Effects/Waterbody/WaterBody_Niagara_ShoreFoam.WaterBody_Niagara_ShoreFoam",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_FluidSim_01",
+            "path": "/Water/FluidSimulation/Blueprints/BP_FluidSim_01.BP_FluidSim_01",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "WaveFoamRenderer",
+            "path": "/Water/FluidSimulation/WaveFoam/WaveFoamRenderer.WaveFoamRenderer",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "UnderWaterPostProcessMesh",
+            "path": "/Water/Materials/PostProcessing/UnderWaterPostProcessMesh.UnderWaterPostProcessMesh",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_GlobalFoliageActor_UE5",
+            "path": "/Fab/Actors/GlobalFoliageActor/BP_GlobalFoliageActor_UE5.BP_GlobalFoliageActor_UE5",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AppendAttributeSet",
+            "path": "/PCG/BP_Elements/Deprecated/AppendAttributeSet.AppendAttributeSet",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ApplyScaleToBounds",
+            "path": "/PCG/BP_Elements/Deprecated/ApplyScaleToBounds.ApplyScaleToBounds",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AttributeAppendVector",
+            "path": "/PCG/BP_Elements/Deprecated/AttributeAppendVector.AttributeAppendVector",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AttributeOperations",
+            "path": "/PCG/BP_Elements/Deprecated/AttributeOperations.AttributeOperations",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AttributeToParamData",
+            "path": "/PCG/BP_Elements/Deprecated/AttributeToParamData.AttributeToParamData",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AttributeTrigOperations",
+            "path": "/PCG/BP_Elements/Deprecated/AttributeTrigOperations.AttributeTrigOperations",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AttributeVectorCrossProduct",
+            "path": "/PCG/BP_Elements/Deprecated/AttributeVectorCrossProduct.AttributeVectorCrossProduct",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AttributeVectorDotProduct",
+            "path": "/PCG/BP_Elements/Deprecated/AttributeVectorDotProduct.AttributeVectorDotProduct",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AttributeVectorLength",
+            "path": "/PCG/BP_Elements/Deprecated/AttributeVectorLength.AttributeVectorLength",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AttributeVectorNormalize",
+            "path": "/PCG/BP_Elements/Deprecated/AttributeVectorNormalize.AttributeVectorNormalize",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BoundsModifier",
+            "path": "/PCG/BP_Elements/Deprecated/BoundsModifier.BoundsModifier",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BreakAttributeToFloats",
+            "path": "/PCG/BP_Elements/Deprecated/BreakAttributeToFloats.BreakAttributeToFloats",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BreakParamDataToFloats",
+            "path": "/PCG/BP_Elements/Deprecated/BreakParamDataToFloats.BreakParamDataToFloats",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CombineParamsAndInputs",
+            "path": "/PCG/BP_Elements/Deprecated/CombineParamsAndInputs.CombineParamsAndInputs",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CopyPoints",
+            "path": "/PCG/BP_Elements/Deprecated/CopyPoints.CopyPoints",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CreateAttribute",
+            "path": "/PCG/BP_Elements/Deprecated/CreateAttribute.CreateAttribute",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CreateParamData",
+            "path": "/PCG/BP_Elements/Deprecated/CreateParamData.CreateParamData",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CreatePoints",
+            "path": "/PCG/BP_Elements/Deprecated/CreatePoints.CreatePoints",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CreatePointsGrid",
+            "path": "/PCG/BP_Elements/Deprecated/CreatePointsGrid.CreatePointsGrid",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DebugPrintAttribute",
+            "path": "/PCG/BP_Elements/Deprecated/DebugPrintAttribute.DebugPrintAttribute",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DensityNoise",
+            "path": "/PCG/BP_Elements/Deprecated/DensityNoise.DensityNoise",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DistanceToNeighbors",
+            "path": "/PCG/BP_Elements/Deprecated/DistanceToNeighbors.DistanceToNeighbors",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DuplicatePoints",
+            "path": "/PCG/BP_Elements/Deprecated/DuplicatePoints.DuplicatePoints",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ExtentsModifier",
+            "path": "/PCG/BP_Elements/Deprecated/ExtentsModifier.ExtentsModifier",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FilterAttributes",
+            "path": "/PCG/BP_Elements/Deprecated/FilterAttributes.FilterAttributes",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "GetTransformedBounds",
+            "path": "/PCG/BP_Elements/Deprecated/GetTransformedBounds.GetTransformedBounds",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "HeightToDensity",
+            "path": "/PCG/BP_Elements/Deprecated/HeightToDensity.HeightToDensity",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "IntersectWithTaggedActorGeo",
+            "path": "/PCG/BP_Elements/Deprecated/IntersectWithTaggedActorGeo.IntersectWithTaggedActorGeo",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandscapeDeclivityToDensity",
+            "path": "/PCG/BP_Elements/Deprecated/LandscapeDeclivityToDensity.LandscapeDeclivityToDensity",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandscapeMaskFromTaggedActors",
+            "path": "/PCG/BP_Elements/Deprecated/LandscapeMaskFromTaggedActors.LandscapeMaskFromTaggedActors",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandscapeNormalVarianceToDensity",
+            "path": "/PCG/BP_Elements/Deprecated/LandscapeNormalVarianceToDensity.LandscapeNormalVarianceToDensity",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LocalTranslation",
+            "path": "/PCG/BP_Elements/Deprecated/LocalTranslation.LocalTranslation",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "MeshToPoints",
+            "path": "/PCG/BP_Elements/Deprecated/MeshToPoints.MeshToPoints",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "NormalToDensity",
+            "path": "/PCG/BP_Elements/Deprecated/NormalToDensity.NormalToDensity",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataCrossProduct",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataCrossProduct.ParamDataCrossProduct",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataDotProduct",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataDotProduct.ParamDataDotProduct",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataFloatsToVector",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataFloatsToVector.ParamDataFloatsToVector",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataNormalizeVector",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataNormalizeVector.ParamDataNormalizeVector",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataOperations",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataOperations.ParamDataOperations",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataToFloat",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataToFloat.ParamDataToFloat",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataToInt",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataToInt.ParamDataToInt",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataTrigOperations",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataTrigOperations.ParamDataTrigOperations",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamDataVectorEqual",
+            "path": "/PCG/BP_Elements/Deprecated/ParamDataVectorEqual.ParamDataVectorEqual",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ParamFromActorTag",
+            "path": "/PCG/BP_Elements/Deprecated/ParamFromActorTag.ParamFromActorTag",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PointsFromActorClass",
+            "path": "/PCG/BP_Elements/Deprecated/PointsFromActorClass.PointsFromActorClass",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PointsFromActorTag",
+            "path": "/PCG/BP_Elements/Deprecated/PointsFromActorTag.PointsFromActorTag",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ProjectLandscapeNormals",
+            "path": "/PCG/BP_Elements/Deprecated/ProjectLandscapeNormals.ProjectLandscapeNormals",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ProjectPointsOnLandscape",
+            "path": "/PCG/BP_Elements/Deprecated/ProjectPointsOnLandscape.ProjectPointsOnLandscape",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ReadPCGPointsFromAsset",
+            "path": "/PCG/BP_Elements/Deprecated/ReadPCGPointsFromAsset.ReadPCGPointsFromAsset",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RebuildPointRotationFromNormal",
+            "path": "/PCG/BP_Elements/Deprecated/RebuildPointRotationFromNormal.RebuildPointRotationFromNormal",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RemapDensity",
+            "path": "/PCG/BP_Elements/Deprecated/RemapDensity.RemapDensity",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ScaleByDensity",
+            "path": "/PCG/BP_Elements/Deprecated/ScaleByDensity.ScaleByDensity",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "SelectInputs",
+            "path": "/PCG/BP_Elements/Deprecated/SelectInputs.SelectInputs",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "SelectParamData",
+            "path": "/PCG/BP_Elements/Deprecated/SelectParamData.SelectParamData",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "SetPointColor",
+            "path": "/PCG/BP_Elements/Deprecated/SetPointColor.SetPointColor",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "TextureSampler",
+            "path": "/PCG/BP_Elements/Deprecated/TextureSampler.TextureSampler",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "TransferAttribute",
+            "path": "/PCG/BP_Elements/Deprecated/TransferAttribute.TransferAttribute",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "TransformByAttribute",
+            "path": "/PCG/BP_Elements/Deprecated/TransformByAttribute.TransformByAttribute",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "TransformPoints",
+            "path": "/PCG/BP_Elements/Deprecated/TransformPoints.TransformPoints",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "VoxelizeMeshToPoints",
+            "path": "/PCG/BP_Elements/Deprecated/VoxelizeMeshToPoints.VoxelizeMeshToPoints",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "WritePCGPointsToAsset",
+            "path": "/PCG/BP_Elements/Deprecated/WritePCGPointsToAsset.WritePCGPointsToAsset",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PCGPointList",
+            "path": "/PCG/BP_Elements/Resources/PCGPointList.PCGPointList",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PCG_BP_FunctionLibrary",
+            "path": "/PCG/BP_Elements/Resources/PCG_BP_FunctionLibrary.PCG_BP_FunctionLibrary",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RenderTargetFunctions",
+            "path": "/PCG/BP_Elements/Resources/RenderTargetFunctions.RenderTargetFunctions",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_BuildingSample",
+            "path": "/PCG/SampleContent/Grammar/BP_BuildingSample.BP_BuildingSample",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RenderToTexture_Game",
+            "path": "/Engine/ArtTools/RenderToTexture/Blueprints/RenderToTexture_Game.RenderToTexture_Game",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RenderToTexture_LevelBP",
+            "path": "/Engine/ArtTools/RenderToTexture/Blueprints/RenderToTexture_LevelBP.RenderToTexture_LevelBP",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RenderToTexture_Pawn",
+            "path": "/Engine/ArtTools/RenderToTexture/Blueprints/RenderToTexture_Pawn.RenderToTexture_Pawn",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RenderToTextureFunctionLibrary",
+            "path": "/Engine/ArtTools/RenderToTexture/Macros/RenderToTextureFunctionLibrary.RenderToTextureFunctionLibrary",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RenderToTextureMacros",
+            "path": "/Engine/ArtTools/RenderToTexture/Macros/RenderToTextureMacros.RenderToTextureMacros",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_BaseField",
+            "path": "/Engine/EditorResources/FieldNodes/Niagara/FS_BaseField.FS_BaseField",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_RadialField",
+            "path": "/Engine/EditorResources/FieldNodes/Niagara/FS_RadialField.FS_RadialField",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_UniformScalarField",
+            "path": "/Engine/EditorResources/FieldNodes/Niagara/FS_UniformScalarField.FS_UniformScalarField",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_UniformVectorField",
+            "path": "/Engine/EditorResources/FieldNodes/Niagara/FS_UniformVectorField.FS_UniformVectorField",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "FS_WaveScalarField",
+            "path": "/Engine/EditorResources/FieldNodes/Niagara/FS_WaveScalarField.FS_WaveScalarField",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Tutorial_BP_Class",
+            "path": "/Engine/Tutorial/BlueprintTutorials/TutorialAssets/Tutorial_BP_Class.Tutorial_BP_Class",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Tutorial_BP_Interface",
+            "path": "/Engine/Tutorial/BlueprintTutorials/TutorialAssets/Tutorial_BP_Interface.Tutorial_BP_Interface",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ImportedSequencesHelper",
+            "path": "/DatasmithContent/Blueprints/FBXImporter/Animation/ImportedSequencesHelper.ImportedSequencesHelper",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_CopyRegion",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/LandmassBrush_CopyRegion.LandmassBrush_CopyRegion",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_Erosion",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/LandmassBrush_Erosion.LandmassBrush_Erosion",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_MaskObject",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/LandmassBrush_MaskObject.LandmassBrush_MaskObject",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_MeshStamp",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/LandmassBrush_MeshStamp.LandmassBrush_MeshStamp",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_ProceduralNoise",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/LandmassBrush_ProceduralNoise.LandmassBrush_ProceduralNoise",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_Terraces",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/LandmassBrush_Terraces.LandmassBrush_Terraces",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_TextureStamp",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/LandmassBrush_TextureStamp.LandmassBrush_TextureStamp",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_TextureStamp_Scattered",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/LandmassBrush_TextureStamp_Scattered.LandmassBrush_TextureStamp_Scattered",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_MakeTextureStamp_FromStaticMesh",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Helpers/BP_MakeTextureStamp_FromStaticMesh.BP_MakeTextureStamp_FromStaticMesh",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Landmass_EditorInterface",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Interface/Landmass_EditorInterface.Landmass_EditorInterface",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Landmass_Interface",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Interface/Landmass_Interface.Landmass_Interface",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassActor_Library",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Libraries/LandmassActor_Library.LandmassActor_Library",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Landmass_FunctionLibrary",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Libraries/Landmass_FunctionLibrary.Landmass_FunctionLibrary",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandscapeBrushLibrary",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Libraries/LandscapeBrushLibrary.LandscapeBrushLibrary",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "WaterBrushCacheContainer",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Libraries/WaterBrushCacheContainer.WaterBrushCacheContainer",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Landmass_PreviewLandscape",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Previewing/Landmass_PreviewLandscape.Landmass_PreviewLandscape",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_ListEntryData",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Widgets/LandmassBrush_ListEntryData.LandmassBrush_ListEntryData",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassViewport",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Widgets/LandmassViewport.LandmassViewport",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Landmass_WidgetComponents",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Widgets/Landmass_WidgetComponents.Landmass_WidgetComponents",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_LandmassBrush",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Brushes/BP_LandmassBrush.BP_LandmassBrush",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_LSBrush_Noise",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Brushes/BP_LSBrush_Noise.BP_LSBrush_Noise",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ChildProcMesh",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Components/ChildProcMesh.ChildProcMesh",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ErosionComponent",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Components/ErosionComponent.ErosionComponent",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ShallowWaterSimComponent",
+            "path": "/Water/FluidSimulation/Blueprints/Components/ShallowWaterSimComponent.ShallowWaterSimComponent",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "WaveFoamSimComponent",
+            "path": "/Water/FluidSimulation/Blueprints/Components/WaveFoamSimComponent.WaveFoamSimComponent",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Dynamic_Force_Component",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Dynamic_Force_Component.BP_Dynamic_Force_Component",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Dynamic_Force_SkelMesh",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Dynamic_Force_SkelMesh.BP_Dynamic_Force_SkelMesh",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_Fluid_Impulse_Repeating",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Fluid_Impulse_Repeating.BP_Fluid_Impulse_Repeating",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_GetSimRenderTargets_Material",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_GetSimRenderTargets_Material.BP_GetSimRenderTargets_Material",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_WaterSim_TickInEditorTest",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_WaterSim_TickInEditorTest.BP_WaterSim_TickInEditorTest",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PhysicsMacros",
+            "path": "/Water/FluidSimulation/Blueprints/Libraries/PhysicsMacros.PhysicsMacros",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "RT_MaterialsHolder",
+            "path": "/PCG/BP_Elements/Resources/MaterialsAndRTs/RT_MaterialsHolder.RT_MaterialsHolder",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "MeshSocketsToPoints",
+            "path": "/PCG/SampleContent/MeshSockets/Elements/MeshSocketsToPoints.MeshSocketsToPoints",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "TutorialCharacter",
+            "path": "/Engine/Tutorial/SubEditors/TutorialAssets/Character/TutorialCharacter.TutorialCharacter",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_TextureStamp_BigIsland",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Brushes/Advanced/LandmassBrush_TextureStamp_BigIsland.LandmassBrush_TextureStamp_BigIsland",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ErosionBrush_DataSettings_Preset",
+            "path": "/Landmass/Landscape/ErosionBrush/BP/DataAsset/ErosionBrush_DataSettings_Preset.ErosionBrush_DataSettings_Preset",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_ActorTagger_Preview",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/BiomePreviews/BP_ActorTagger_Preview.BP_ActorTagger_Preview",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ASM_Preview_Helper",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Debug/BP/ASM_Preview_Helper.ASM_Preview_Helper",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonGameMode",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonGameMode.BP_FirstPersonGameMode",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_FP_CameraManager",
+            "path": "/Game/FirstPerson/Blueprints/BP_FP_CameraManager.BP_FP_CameraManager",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_DevCom",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_DevCom.BP_DevCom",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_JumpPad",
+            "path": "/Game/LevelPrototyping/Interactable/JumpPad/BP_JumpPad.BP_JumpPad",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "BP_WobbleTarget",
+            "path": "/Game/LevelPrototyping/Interactable/Target/BP_WobbleTarget.BP_WobbleTarget",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DefaultBurnIn",
+            "path": "/Engine/Sequencer/DefaultBurnIn.DefaultBurnIn",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AudioButtonMatrix",
+            "path": "/AudioWidgets/AudioButtonMatrix/AudioButtonMatrix.AudioButtonMatrix",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AudioButtonMatrixColumn",
+            "path": "/AudioWidgets/AudioButtonMatrix/AudioButtonMatrixColumn.AudioButtonMatrixColumn",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AudioButtonToggle",
+            "path": "/AudioWidgets/AudioButtonToggle/AudioButtonToggle.AudioButtonToggle",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AudioFader",
+            "path": "/AudioWidgets/AudioFader/AudioFader.AudioFader",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AudioKnobLarge",
+            "path": "/AudioWidgets/AudioKnobLarge/AudioKnobLarge.AudioKnobLarge",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AudioKnobSmall",
+            "path": "/AudioWidgets/AudioKnobSmall/AudioKnobSmall.AudioKnobSmall",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AudioTextBox",
+            "path": "/AudioWidgets/AudioTextBox/AudioTextBox.AudioTextBox",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "SubmixEffectDelayPresetWidget",
+            "path": "/AudioWidgets/SubmixEffects/SubmixEffectDelayPresetWidget.SubmixEffectDelayPresetWidget",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DefaultTakeBurnIn",
+            "path": "/Takes/Sequencer/DefaultTakeBurnIn.DefaultTakeBurnIn",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "DefaultRecordingOverlay",
+            "path": "/Takes/UMG/DefaultRecordingOverlay.DefaultRecordingOverlay",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AnimationSampleUI",
+            "path": "/DatasmithContent/Blueprints/FBXImporter/UI/AnimationSampleUI.AnimationSampleUI",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassBrush_EntryWidget",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Widgets/LandmassBrush_EntryWidget.LandmassBrush_EntryWidget",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_MultiClickButton",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_MultiClickButton.Widget_MultiClickButton",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "UI_InfoDisplay",
+            "path": "/Game/DemoTemplate/_Core/DevCom/Assets/UI/UI_InfoDisplay.UI_InfoDisplay",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "EUW_Landmass_Editor",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Widgets/EUW_Landmass_Editor.EUW_Landmass_Editor",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "LandmassViewport_Widget",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Widgets/LandmassViewport_Widget.LandmassViewport_Widget",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "ActorTagger",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/ActorTagger.ActorTagger",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "EUW_ErosionKey",
+            "path": "/Landmass/Landscape/ErosionBrush/BP/Widgets/EUW_ErosionKey.EUW_ErosionKey",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "EUW_Landscape_Erosion",
+            "path": "/Landmass/Landscape/ErosionBrush/BP/Widgets/EUW_Landscape_Erosion.EUW_Landscape_Erosion",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_AssemblyPreviewSave",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_AssemblyPreviewSave.Widget_AssemblyPreviewSave",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_InputBlank",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_InputBlank.Widget_InputBlank",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_InputClassDefaultObject",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_InputClassDefaultObject.Widget_InputClassDefaultObject",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_InputFloat",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_InputFloat.Widget_InputFloat",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_InputSoftObjectPath",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_InputSoftObjectPath.Widget_InputSoftObjectPath",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_InputString",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_InputString.Widget_InputString",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_InputTemplate",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_InputTemplate.Widget_InputTemplate",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_InputVector3",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_InputVector3.Widget_InputVector3",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_SearchReplaceActors",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_SearchReplaceActors.Widget_SearchReplaceActors",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Widget_Tagging",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/Widgets/Widget_Tagging.Widget_Tagging",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PCGUtility_LevelToPCG",
+            "path": "/PCG/Utilities/PCGUtility_LevelToPCG.PCGUtility_LevelToPCG",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "EUB_Reimport_FromMesh",
+            "path": "/Dataflow/Templates/SKM/EUB_Reimport_FromMesh.EUB_Reimport_FromMesh",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "EUB_SpawnErosionTab",
+            "path": "/Landmass/Landscape/ErosionBrush/BP/Widgets/EUB_SpawnErosionTab.EUB_SpawnErosionTab",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "TutorialAnimationBlueprint",
+            "path": "/Engine/Tutorial/SubEditors/TutorialAssets/TutorialAnimationBlueprint.TutorialAnimationBlueprint",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "TutorialTPP_AnimBlueprint",
+            "path": "/Engine/Tutorial/SubEditors/TutorialAssets/Character/TutorialTPP_AnimBlueprint.TutorialTPP_AnimBlueprint",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRU_3Node",
+            "path": "/AnimatorKit/UtilityRigs/CRU_3Node.CRU_3Node",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRU_AddLocator",
+            "path": "/AnimatorKit/UtilityRigs/CRU_AddLocator.CRU_AddLocator",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRU_BlendParent",
+            "path": "/AnimatorKit/UtilityRigs/CRU_BlendParent.CRU_BlendParent",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRU_ChainSim",
+            "path": "/AnimatorKit/UtilityRigs/CRU_ChainSim.CRU_ChainSim",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRU_MorphTargetDriver",
+            "path": "/AnimatorKit/UtilityRigs/CRU_MorphTargetDriver.CRU_MorphTargetDriver",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRU_SingleSim",
+            "path": "/AnimatorKit/UtilityRigs/CRU_SingleSim.CRU_SingleSim",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRU_SplinePath",
+            "path": "/AnimatorKit/UtilityRigs/CRU_SplinePath.CRU_SplinePath",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Root",
+            "path": "/ControlRig/Modules/Root.Root",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "StandardFunctionLibrary",
+            "path": "/ControlRig/StandardFunctionLibrary/StandardFunctionLibrary.StandardFunctionLibrary",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AddControl",
+            "path": "/ControlRigModules/Modules/AddControl.AddControl",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AnimalNeck",
+            "path": "/ControlRigModules/Modules/AnimalNeck.AnimalNeck",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AnimalSpine",
+            "path": "/ControlRigModules/Modules/AnimalSpine.AnimalSpine",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Arm",
+            "path": "/ControlRigModules/Modules/Arm.Arm",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Chain",
+            "path": "/ControlRigModules/Modules/Chain.Chain",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Constraint",
+            "path": "/ControlRigModules/Modules/Constraint.Constraint",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Finger",
+            "path": "/ControlRigModules/Modules/Finger.Finger",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Foot",
+            "path": "/ControlRigModules/Modules/Foot.Foot",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "HindLeg",
+            "path": "/ControlRigModules/Modules/HindLeg.HindLeg",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Hinge",
+            "path": "/ControlRigModules/Modules/Hinge.Hinge",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Leg",
+            "path": "/ControlRigModules/Modules/Leg.Leg",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Neck",
+            "path": "/ControlRigModules/Modules/Neck.Neck",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Piston",
+            "path": "/ControlRigModules/Modules/Piston.Piston",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PivotProxy",
+            "path": "/ControlRigModules/Modules/PivotProxy.PivotProxy",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Shoulder",
+            "path": "/ControlRigModules/Modules/Shoulder.Shoulder",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Spine",
+            "path": "/ControlRigModules/Modules/Spine.Spine",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Suspension",
+            "path": "/ControlRigModules/Modules/Suspension.Suspension",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Tail",
+            "path": "/ControlRigModules/Modules/Tail.Tail",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "VehiclePivotProxy",
+            "path": "/ControlRigModules/Modules/VehiclePivotProxy.VehiclePivotProxy",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Wheel",
+            "path": "/ControlRigModules/Modules/Wheel.Wheel",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AddControl",
+            "path": "/ControlRigModules/Modules56/AddControl.AddControl",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AnimalNeck",
+            "path": "/ControlRigModules/Modules56/AnimalNeck.AnimalNeck",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AnimalSpine",
+            "path": "/ControlRigModules/Modules56/AnimalSpine.AnimalSpine",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Arm",
+            "path": "/ControlRigModules/Modules56/Arm.Arm",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Chain",
+            "path": "/ControlRigModules/Modules56/Chain.Chain",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Constraint",
+            "path": "/ControlRigModules/Modules56/Constraint.Constraint",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Finger",
+            "path": "/ControlRigModules/Modules56/Finger.Finger",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Foot",
+            "path": "/ControlRigModules/Modules56/Foot.Foot",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "HindLeg",
+            "path": "/ControlRigModules/Modules56/HindLeg.HindLeg",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Hinge",
+            "path": "/ControlRigModules/Modules56/Hinge.Hinge",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Leg",
+            "path": "/ControlRigModules/Modules56/Leg.Leg",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Neck",
+            "path": "/ControlRigModules/Modules56/Neck.Neck",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Piston",
+            "path": "/ControlRigModules/Modules56/Piston.Piston",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PivotProxy",
+            "path": "/ControlRigModules/Modules56/PivotProxy.PivotProxy",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Shoulder",
+            "path": "/ControlRigModules/Modules56/Shoulder.Shoulder",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Spine",
+            "path": "/ControlRigModules/Modules56/Spine.Spine",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Suspension",
+            "path": "/ControlRigModules/Modules56/Suspension.Suspension",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Tail",
+            "path": "/ControlRigModules/Modules56/Tail.Tail",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "VehiclePivotProxy",
+            "path": "/ControlRigModules/Modules56/VehiclePivotProxy.VehiclePivotProxy",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Wheel",
+            "path": "/ControlRigModules/Modules56/Wheel.Wheel",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AddControl",
+            "path": "/ControlRigModules/Modules58/AddControl.AddControl",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AnimalNeck",
+            "path": "/ControlRigModules/Modules58/AnimalNeck.AnimalNeck",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "AnimalSpine",
+            "path": "/ControlRigModules/Modules58/AnimalSpine.AnimalSpine",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Arm",
+            "path": "/ControlRigModules/Modules58/Arm.Arm",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Chain",
+            "path": "/ControlRigModules/Modules58/Chain.Chain",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Constraint",
+            "path": "/ControlRigModules/Modules58/Constraint.Constraint",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Finger",
+            "path": "/ControlRigModules/Modules58/Finger.Finger",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Foot",
+            "path": "/ControlRigModules/Modules58/Foot.Foot",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "HindLeg",
+            "path": "/ControlRigModules/Modules58/HindLeg.HindLeg",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Hinge",
+            "path": "/ControlRigModules/Modules58/Hinge.Hinge",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Leg",
+            "path": "/ControlRigModules/Modules58/Leg.Leg",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Neck",
+            "path": "/ControlRigModules/Modules58/Neck.Neck",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Piston",
+            "path": "/ControlRigModules/Modules58/Piston.Piston",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "PivotProxy",
+            "path": "/ControlRigModules/Modules58/PivotProxy.PivotProxy",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Shoulder",
+            "path": "/ControlRigModules/Modules58/Shoulder.Shoulder",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Spine",
+            "path": "/ControlRigModules/Modules58/Spine.Spine",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Suspension",
+            "path": "/ControlRigModules/Modules58/Suspension.Suspension",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Tail",
+            "path": "/ControlRigModules/Modules58/Tail.Tail",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "VehiclePivotProxy",
+            "path": "/ControlRigModules/Modules58/VehiclePivotProxy.VehiclePivotProxy",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Wheel",
+            "path": "/ControlRigModules/Modules58/Wheel.Wheel",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "SplineFunctionLibrary",
+            "path": "/ControlRigSpline/SplineFunctionLibrary/SplineFunctionLibrary.SplineFunctionLibrary",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRD_CameraSpaceLattice_10x10",
+            "path": "/AnimatorKit/DeformerRigs/CameraSpaceLatticeDeformer/CRD_CameraSpaceLattice_10x10.CRD_CameraSpaceLattice_10x10",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRD_Lattice",
+            "path": "/AnimatorKit/DeformerRigs/LatticeDeformer/CRD_Lattice.CRD_Lattice",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRD_Lattice_2x2x2",
+            "path": "/AnimatorKit/DeformerRigs/LatticeDeformer/CRD_Lattice_2x2x2.CRD_Lattice_2x2x2",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRD_Lattice_3x3x3",
+            "path": "/AnimatorKit/DeformerRigs/LatticeDeformer/CRD_Lattice_3x3x3.CRD_Lattice_3x3x3",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRD_Lattice_4x4x4",
+            "path": "/AnimatorKit/DeformerRigs/LatticeDeformer/CRD_Lattice_4x4x4.CRD_Lattice_4x4x4",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CRD_SculptDeformer",
+            "path": "/AnimatorKit/DeformerRigs/SculptDeformer/CRD_SculptDeformer.CRD_SculptDeformer",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Root",
+            "path": "/ControlRig/Modules/Modules56/Root.Root",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "Root",
+            "path": "/ControlRig/Modules/Modules58/Root.Root",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CR_Mannequin_Body",
+            "path": "/Game/Characters/Mannequins/Rigs/CR_Mannequin_Body.CR_Mannequin_Body",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          },
+          {
+            "name": "CR_Mannequin_Procedural",
+            "path": "/Game/Characters/Mannequins/Rigs/CR_Mannequin_Procedural.CR_Mannequin_Procedural",
+            "parent_class": "",
+            "is_data_only": false,
+            "compiled": false,
+            "used_in_level": 0
+          }
+        ]
+      },
+      "latency_ms": 16000
+    },
+    {
+      "name": "set_visibility",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "Brush_1",
+        "hidden": false
+      },
+      "status": "GATED",
+      "result": "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable.",
+      "latency_ms": 15999
+    },
+    {
+      "name": "set_mobility",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "Brush_1",
+        "mobility": "Movable"
+      },
+      "status": "GATED",
+      "result": "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable.",
+      "latency_ms": 15999
+    },
+    {
+      "name": "set_collision",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "Brush_1",
+        "profile": "BlockAll"
+      },
+      "status": "GATED",
+      "result": "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable.",
+      "latency_ms": 15999
+    }
+  ]
+}

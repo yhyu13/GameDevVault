@@ -1,6 +1,7 @@
 # 📡 技术雷达与工具栈
 
 > **对应周计划：周五晚 — 更新技术雷达（整理）**
+> **当前形态：2026-Q3 季度复盘 Routine** — 每次周五整理同时维护"周行动"与"季度复盘"两条线
 
 ---
 
@@ -22,37 +23,135 @@
 | **P0-立即学习** | 与当前工作直接相关，或即将成为行业标准 | 本周内安排时间学习 |
 | **P1-持续关注** | 有潜力，但尚未成熟或暂时用不上 | 每月回顾一次，收集资料 |
 | **P2-了解即可** | 有意思但偏离当前方向 | 听说过就行，不投入时间 |
+| **已掌握** | 已完成学习并能用于生产 | 移出活跃雷达，季度复盘抽样回看 |
+| **已放弃** | 评估后判断不再投入 | 保留记录以备重评，移出活跃雷达 |
 
 ---
 
-## 当前雷达（2026-06-26 更新 — 本批次聚焦 AI 游戏开发）
+## 当前雷达（2026-07-03 更新 — 深度重构版）
 
-### P0-立即学习
+> 本批次从 12 项调整为 13 项：把 [[Hunyuan3D-Tencent-Topology]] 从 [[Meshy-LumaGenie-Text-to-3D]] 拆出独立条目；把 [[Rust-GameDev]] 从 P0 降为 P2；新建 `已掌握/` 和 `已放弃/` 两个 bucket。
 
-| 技术 | 简介 | 关联工作 | 截止日期 |
-|------|------|----------|----------|
-| [[Rust-GameDev]] | Rust 在游戏引擎开发中的应用 | 自研引擎模块语言选型 | — |
-| [[DLSS-FSR-AI超分辨率]] | DLSS 4.5 / FSR 4 / XeSS — 神经超分 + 帧生成（6 月 1 日 Computex 新增 Ray Reconstruction） | Lyra + Lumen 4K 路径追踪 | — |
-| [[NVIDIA-ACE-AI-NPC]] | NVIDIA ACE 微服务 — 长期记忆 + 情绪 NPC（PUBG Ally / Total War: Pharaoh 已上生产） | 引擎集成 + AI 队友原型 | — |
-| [[AI-Code-Assistant-Cursor-ClaudeCode]] | Cursor / Claude Code / Copilot / TRAE / MAI-Code — 直接吃产能 | 读项目代码 + 写工具 | — |
-| [[3DGS-Gaussian-Splatting]] | 3DGS 神经渲染 — ZipSplat 33x 压缩 / World Labs Marble | 资产管线 + 扫描场景 | — |
-| [[UnrealMCP-N1UnrealMCP]] | MCP 协议让 AI Agent 直接操控 UE Editor — 100+ 命令 11 类 | day-job "读 + 改 + 验证" 闭环 | — |
-| [[UE-NNE-TensorRT-Plugin]] | UE NNE + NVIDIA TensorRT for RTX — 引擎里挂自定义神经网络的官方入口 | 自定义降噪 / 超分 / 神经压缩 / NPC 决策 | — |
+### P0-立即学习（7 项）
 
-### P1-持续关注
+| 技术 | 简介 | 关联工作 | 截止日期 | 下次回顾 |
+|------|------|----------|----------|----------|
+| [[DLSS-FSR-AI超分辨率]] | DLSS 4.5 / FSR 4 / XeSS — 神经超分 + 帧生成 | Lyra + Lumen 4K 路径追踪 | — | 2026-07-10 |
+| [[NVIDIA-ACE-AI-NPC]] | NVIDIA ACE 微服务 — 长期记忆 + 情绪 NPC | 引擎集成 + AI 队友原型 | — | 2026-07-10 |
+| [[AI-Code-Assistant-Cursor-ClaudeCode]] | Cursor / Claude Code / Copilot / TRAE / MAI-Code | 读项目代码 + 写工具 | — | 2026-07-10 |
+| [[3DGS-Gaussian-Splatting]] | 3DGS 神经渲染 — ZipSplat 33x 压缩 | 资产管线 + 扫描场景 | — | 2026-07-10 |
+| [[UnrealMCP-N1UnrealMCP]] | MCP 协议让 AI Agent 直接操控 UE Editor | day-job "读 + 改 + 验证" 闭环 | — | 2026-07-26 |
+| [[UE-NNE-TensorRT-Plugin]] | UE NNE + NVIDIA TensorRT for RTX — 自定义神经网络官方入口 | 自定义降噪 / 超分 / 神经压缩 / NPC 决策 | — | 2026-07-26 |
+| [[Hunyuan3D-Tencent-Topology]] ⭐ NEW | 腾讯 Hunyuan3D — 拓扑 mesh + 开源可商用 | day-job 主力 AI 资产生成选择 | — | 2026-08-03 |
+
+### P1-持续关注（3 项）
 
 | 技术 | 简介 | 最新动态 | 下次回顾 |
 |------|------|----------|----------|
-| [[StableDiffusion-FLUX-AI美术]] | SD/FLUX 文本生图 — ComfyUI 工作流 | FLUX.2 32B 2025 末发布 | 1个月后 |
-| [[Meshy-LumaGenie-Text-to-3D]] | Meshy / Luma / Tripo3D / Hunyuan3D | Meshy ARR 4000 万美元 | 1个月后 |
-| [[LLM-NPC-Inworld-Convai]] | Inworld / Convai 产品化 NPC 平台 | Inworld 长期记忆生产可用 | 1个月后 |
+| [[StableDiffusion-FLUX-AI美术]] | SD/FLUX 文本生图 — ComfyUI 工作流 | FLUX.2 32B 2025 末发布 | 2026-07-25 |
+| [[Meshy-LumaGenie-Text-to-3D]] | Meshy / Luma / Tripo3D | Meshy ARR 4000 万美元 | 2026-07-25 |
+| [[LLM-NPC-Inworld-Convai]] | Inworld / Convai 产品化 NPC 平台 | Inworld 长期记忆生产可用 | 2026-07-25 |
 
-### P2-了解即可
+### P2-了解即可（3 项 — 含 1 项降级）
 
 | 技术 | 简介 | 为什么放 P2 |
 |------|------|-------------|
 | [[ElevenLabs-AI-Voice]] | ElevenLabs AI 语音合成 | 偏音频/独立游戏向,不是引擎核心 |
 | [[WorldModels-Genie3-Hunyuan]] | Genie 3 / Oasis 实时世界生成 | 5-10 年后的事,等它真正可用再学 |
+| [[Rust-GameDev]] ⚠️ DEGRADED | Rust 在游戏引擎开发中的应用 | 18 个月未复评 + day-job 已转向 Lyra/Lumen,Q3 末决定是否"已放弃" |
+
+### 已掌握（暂无）
+
+> 占位 — 等第一批 P0 项完成时填入。预期顺序：DLSS-FSR > AI-Code-Assistant > UnrealMCP > 3DGS > UE-NNE > NVIDIA-ACE > Hunyuan3D
+
+### 已放弃（暂无）
+
+> 占位 — Q3 末评估 [[Rust-GameDev]] 时决定是否首次填入
+
+---
+
+## 季度复盘（2026-Q3: 7月-9月）
+
+### 本季度核心目标
+
+- **完成 P0 全部 7 项的"上手"阶段**（每个至少跑通一次 demo / 在工程里见过一次效果）
+- **Hunyuan3D demo 闭环**：跑通 Image-to-3D → 拓扑 mesh → UE 导入 → 挂骨骼动画
+- **AI-Code-Assistant + UnrealMCP 联动**：用 MCP 让 AI Agent 自动跑 PIE 验证
+- **Rust 终审**：9 月底评估，决定"继续 P2"还是"移入已放弃"
+
+### 季度回顾日历
+
+| 日期 | 事件 | 触发条件 |
+|------|------|----------|
+| 2026-07-03 | 深度重构 + Q3 启动 | 本次整理 |
+| 2026-08-07 | 月度回顾 1 | P0 进度盘点 |
+| 2026-09-04 | 月度回顾 2 | P0 进度盘点 + 季度收尾 |
+| 2026-09-25 | Q3 收尾 + Q4 计划 | 季度总结 |
+
+### 季度成功标准（OKR 风格）
+
+- **O1**:P0 七项全部完成"上手"阶段（每项都有 1 个可展示的 demo 或工程证据）
+- **O2**:Routine 雷达具备"季度复盘"形态（README / 状态迁移 / 季度日历 三件套跑通）
+- **O3**:至少 1 项 P0 升入"已掌握"（如果季度内 AI-Code-Assistant / DLSS-FSR 已能日常用，就算达成）
+
+### 季度风险
+
+- **P0 项过多（7 项）**:每周 1 项都满负荷,任何一项卡壳都会拖累整体进度 → 缓解：优先保 AI-Code-Assistant + UnrealMCP（day-job 直接杠杆）
+- **Hunyuan3D API 限制**:腾讯云 API 可能有 QPS / 月配额 → 缓解：提前查清限制,准备 fallback 到 Luma
+
+---
+
+## 下一步行动（按周拆解 — 2026-W28 / W29 / W30）
+
+> **这是 Routine 雷达"季度复盘形态"的核心改进**:每个周五整理都要更新"未来三周的下一步"。
+
+### 本周（W28: 7/6 - 7/12）— 7/10 是 4 个 P0 的"2 周后回顾"到期日
+
+- [ ] 复评 [[AI-Code-Assistant-Cursor-ClaudeCode]]:是否已在 day-job 日常用？
+- [ ] 复评 [[NVIDIA-ACE-AI-NPC]]:是否跑通一个 demo？
+- [ ] 复评 [[DLSS-FSR-AI超分辨率]]:Lyra 项目是否已开 DLSS 4.5？
+- [ ] 复评 [[3DGS-Gaussian-Splatting]]:是否用过 Luma UE 插件拍场景？
+- [ ] Hunyuan3D:注册账号 + 跑 5 张图看拓扑质量
+
+### 下周（W29: 7/13 - 7/19）
+
+- [ ] Hunyuan3D:接 API 进工程 + 出一个挂骨骼 demo 角色
+- [ ] AI-Code-Assistant + UnrealMCP 联动：试 ping → spawn_actor → create_blueprint
+- [ ] 评估是否把 [[NVIDIA-ACE-AI-NPC]] 升到"已掌握"
+
+### 再下周（W30: 7/20 - 7/26）— 2 个 P0 的"1 个月后回顾"到期
+
+- [ ] 复评 [[UnrealMCP-N1UnrealMCP]]:是否已用于真实 day-job 工作流？
+- [ ] 复评 [[UE-NNE-TensorRT-Plugin]]:是否跑通 ONNX 加载 demo？
+- [ ] 月度盘点：把完成度同步到 [[季度复盘（2026-Q3）]]
+
+---
+
+## 状态迁移流程
+
+```
+进入雷达
+  ↓
+P2 / P1 / P0 (按评估决定)
+  ↓ 周期回顾
+评估后保留 / 升级 / 降级 / 移入已掌握 / 移入已放弃
+  ↓
+已掌握 ←─ 完成学习 + 用于生产
+已放弃 ←─ 评估后不再投入
+```
+
+### 状态迁移触发条件
+
+- **升 P0 → P1**:学了但目前用不上
+- **升 P0 → 已掌握**:能在生产中独立使用,不再需要查资料
+- **降 P0 → P2**:18 个月未复评 或 day-job 转向
+- **P0/P1/P2 → 已放弃**:确认不会再投入时间
+
+### 迁移记录位置
+
+- 每个条目末尾的"状态迁移"区块记录单条目的迁移历史
+- `已掌握/` 和 `已放弃/` 目录放归档后的文件
+- 本 README 的"当前雷达"区块只保留活跃项
 
 ---
 
@@ -63,6 +162,8 @@
 | `#radar/P0` | 立即学习 |
 | `#radar/P1` | 持续关注 |
 | `#radar/P2` | 了解即可 |
+| `#radar/已掌握` | 已学习完成，可移出雷达 |
+| `#radar/已放弃` | 评估后不再关注 |
 | `#radar/图形渲染` | 渲染相关 |
 | `#radar/引擎架构` | 架构相关 |
 | `#radar/工具链` | 编辑器/工具 |
@@ -72,8 +173,7 @@
 | `#radar/AI-资产生成` | AI 美术 / 3D / 音乐 / 语音 |
 | `#radar/AI-生产力` | AI 编程 / 工具 |
 | `#radar/AI-世界生成` | 世界模型 / 实时生成 |
-| `#radar/已掌握` | 已学习完成，可移出雷达 |
-| `#radar/已放弃` | 评估后不再关注 |
+| `#quarterly_review/2026-Q3` | 季度复盘锚点 |
 
 ---
 
@@ -101,6 +201,8 @@
 - [[01-论文笔记库]] — 新论文转化为雷达条目
 - [[99-Templates/技术雷达条目]] — 新建条目模板
 
+---
+
 ## 当前聚焦主题：AI 游戏开发(2026-06 起)
 
 本批次只收录 **AI 相关** 的游戏开发技术与技能。后续批次会逐步覆盖：
@@ -117,3 +219,19 @@
 - **ZipSplat 论文**(6 月 3 日,ETH + Microsoft):3DGS 33x 压缩,24 视角 0.8s 推理,3.3MB 存储 685 FPS
 - **UnrealMCP / N1UnrealMCP**:UE 5.7 官方 MCP 插件,AI Agent 100+ 命令控制 Editor
 - **NVIDIA TensorRT for RTX Plugin for UE NNE**:引擎里挂自定义神经网络的官方入口
+- **腾讯 Hunyuan3D**:Image-to-3D 自带专业拓扑结构,开源可商用
+
+---
+
+## Routine 维护节奏
+
+| 周期 | 任务 |
+|------|------|
+| **每周五晚** | 更新"下一步行动"、处理到期回顾、加新条目 |
+| **每月第一周五** | 月度盘点:P0 进度 + P1 资料收集 + 下个月计划 |
+| **季度末(9/25)** | 季度复盘:状态迁移决策 + Q4 计划 + 整库健康度盘点 |
+
+---
+
+*Create date: 2026-06-25*
+*Last modified: 2026-07-03（深度重构：Hunyuan3D 独立 + Rust 降级 + 已掌握/已放弃 bucket + 季度复盘 Routine 启动）*

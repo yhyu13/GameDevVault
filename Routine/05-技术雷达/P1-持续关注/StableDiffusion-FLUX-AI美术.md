@@ -1,6 +1,7 @@
 ---
 tags: [radar/P1, radar/AI-资产生成, radar/工具链]
 aliases: [Stable Diffusion, FLUX, FLUX.2, SDXL, ComfyUI, AI 美术, 文本生图, LoRA, ControlNet]
+quarterly_review: 2026-Q3
 ---
 
 # Stable Diffusion / FLUX — AI 美术管线(贴图/概念图/Icon)
@@ -82,6 +83,7 @@ aliases: [Stable Diffusion, FLUX, FLUX.2, SDXL, ComfyUI, AI 美术, 文本生图
 | 日期 | 评估人 | 结论 | 下次回顾 |
 |------|--------|------|----------|
 | 2026-06-25 | 我 | P1 持续关注 — 美术主管导,自己不一定要上手画,但要懂 | 1个月后 |
+| 2026-07-03 | 我 | Q3 启动 — 纳入季度复盘 Routine | 2026-07-25 |
 
 ---
 

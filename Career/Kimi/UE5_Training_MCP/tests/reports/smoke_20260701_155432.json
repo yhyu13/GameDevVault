@@ -1,0 +1,218 @@
+{
+  "timestamp": "2026-07-01T15:54:32.920207+00:00",
+  "server_url": "http://127.0.0.1:8000/mcp",
+  "live_tool_count": 24,
+  "live_tools": [
+    "DeleteActor",
+    "GetActorDetails",
+    "ListActors",
+    "call_tool",
+    "capture_viewport",
+    "class_inventory",
+    "describe_toolset",
+    "execute_console_command",
+    "get_editor_context",
+    "list_blueprints",
+    "list_levels",
+    "list_toolsets",
+    "open_level",
+    "restore_world",
+    "save_current_level",
+    "search_actors",
+    "set_actor_transform",
+    "set_collision",
+    "set_mobility",
+    "set_visibility",
+    "snapshot_world",
+    "spawn_actor",
+    "summarize_scene",
+    "verify_position"
+  ],
+  "missing_tools": [],
+  "pascal_case_duplicates": [],
+  "summary": {
+    "pass": 0,
+    "gated": 0,
+    "fail": 14,
+    "unreachable": 0
+  },
+  "records": [
+    {
+      "name": "list_levels",
+      "kind": "Read",
+      "args": {
+        "root": "/Game/"
+      },
+      "status": "FAIL",
+      "result": null,
+      "latency_ms": 15998
+    },
+    {
+      "name": "class_inventory",
+      "kind": "Read",
+      "args": {
+        "filter_prefix": "BP_"
+      },
+      "status": "FAIL",
+      "result": null,
+      "latency_ms": 15999
+    },
+    {
+      "name": "open_level",
+      "kind": "Write",
+      "args": {
+        "level_path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom",
+        "save_first": true
+      },
+      "status": "FAIL",
+      "result": null,
+      "latency_ms": 16023
+    },
+    {
+      "name": "snapshot_world",
+      "kind": "Write",
+      "args": {
+        "label": "smoke_test"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60333
+    },
+    {
+      "name": "restore_world",
+      "kind": "Write",
+      "args": {
+        "label": "smoke_test"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60013
+    },
+    {
+      "name": "spawn_actor",
+      "kind": "Write",
+      "args": {
+        "class_name": "StaticMeshActor",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60027
+    },
+    {
+      "name": "set_actor_transform",
+      "kind": "Write",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60004
+    },
+    {
+      "name": "verify_position",
+      "kind": "Read",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "expected": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60009
+    },
+    {
+      "name": "summarize_scene",
+      "kind": "Read",
+      "args": {},
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60002
+    },
+    {
+      "name": "search_actors",
+      "kind": "Read",
+      "args": {
+        "class_regex": "BP_.*"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60004
+    },
+    {
+      "name": "list_blueprints",
+      "kind": "Read",
+      "args": {},
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60018
+    },
+    {
+      "name": "set_visibility",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "hidden": false
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60026
+    },
+    {
+      "name": "set_mobility",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "mobility": "Movable"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60025
+    },
+    {
+      "name": "set_collision",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "profile": "BlockAll"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 60.0s: timed out"
+      },
+      "latency_ms": 60020
+    }
+  ]
+}

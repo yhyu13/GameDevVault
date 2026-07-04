@@ -1,6 +1,7 @@
 ---
 tags: [radar/P0, radar/AI-渲染, radar/引擎架构]
 aliases: [UE NNE, Neural Network Engine, TensorRT for RTX, NNE TensorRT Plugin, NvRTX, 自定义神经网络]
+quarterly_review: 2026-Q3
 ---
 
 # UE NNE + TensorRT for RTX Plugin — 引擎里挂自定义神经网络的官方入口
@@ -94,6 +95,7 @@ aliases: [UE NNE, Neural Network Engine, TensorRT for RTX, NNE TensorRT Plugin, 
 | 日期 | 评估人 | 结论 | 下次回顾 |
 |------|--------|------|----------|
 | 2026-06-26 | 我 | P0 立即学习 — 自定义 AI 在引擎里的官方入口 | 1个月后 |
+| 2026-07-03 | 我 | Q3 启动 — 纳入季度复盘 Routine | 2026-07-26 |
 
 ---
 
