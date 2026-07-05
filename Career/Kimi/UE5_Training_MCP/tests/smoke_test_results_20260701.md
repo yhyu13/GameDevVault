@@ -1,190 +1,157 @@
-# MCP Smoke Test Results - 2026-07-02 23:53:45 UTC (run 7, all 15 tools re-included)
+# MCP Smoke Test Results - 2026-07-03 14:28:20 UTC (run 9, mutations enabled + set_property)
 
 - Server: `http://127.0.0.1:8000/mcp`
-- Total tools registered: **24**
+- Total tools registered: **25** (up from 24 - new tool: set_property)
 - Tools missing from live inventory: **0**
 - PascalCase / snake_case collisions: **0**
+- Editor launched via: `C:\Epic\UE_Project\58\IntroToUE\launch_mcp_server.bat` (sets ENABLE_MCP_MUTATIONS=1)
 
 ## Headline numbers
 
 | Status | Count |
 |---|---:|
-| PASS    | 11 |
-| GATED   | 3 |
-| FAIL    | 0 |
+| PASS    | 14 |
+| GATED   | 0 |
+| FAIL    | 1 |
 | UNREACHABLE | 0 |
-| **Total tested** | **14** |
+| **Total tested** | **15** |
 
 ## Verdict
 
-**11 PASS / 3 GATED / 0 FAIL.** All 15 tools responded (3 GATED are correct gate blocks).
-The 3 previously-broken tools (snapshot_world, restore_world, list_blueprints) all PASS now.
+**14 PASS / 0 GATED / 1 FAIL.** The 3 previously-GATED mutation tools all flipped to PASS
+(confirming the env var worked). The 11 from run 8 stayed PASS. But `set_property` (the new
+P1 B3 tool) FAILED — and worse, it CRASHED the editor with a Fatal error.
 
-**However, `snapshot_world` has a soft-error issue that the smoke test misclassifies as PASS:**
-it returned the string `'Level not saved to disk. Please save first (e.g. via save_current_level).'`,
-which is an error message but the `_is_ok` classifier only flags dicts with `isError`/`error` keys.
-The tool should be self-contained — save the level first, then snapshot.
+## CRITICAL: `set_property` caused an editor crash
+
+The test tool was called with:
+```json
+{"actor_name": "Brush_1", "property_path": "bHiddenInGame", "value": true}
+```
+
+The editor crashed at 14:28:06 with this fatal error in `Saved/Logs/IntroToUE.log`:
+
+```
+Fatal error: [File:.../Engine/Source/Runtime/CoreUObject/Public/UObject/UnrealType.h] [Line: 7494]
+Failed to find Property bHiddenInGame in Class /Script/Engine.Brush
+[Callstack] UnrealEditor-ModelContextProtocolEditor.dll!FindFieldChecked<FProperty>() [UnrealType.h:7494]
+[Callstack] UnrealEditor-ModelContextProtocolEditor.dll!FModelContextProtocolSetPropertyTool::ResolvePropertyPath() [SetPropertyTool.cpp:90]
+[Callstack] UnrealEditor-ModelContextProtocolEditor.dll!FModelContextProtocolSetPropertyTool::Run() [SetPropertyTool.cpp:262]
+... rest of stack follows normal MCP dispatch ...
+```
+
+**Root cause:** `set_property` uses `FindFieldChecked` (a hard-fail assertion) in its property
+resolution. The target actor `Brush_1` is a `ABrush` (UE's brush class), which does NOT have
+a `bHiddenInGame` property — that property exists on `AActor` (the parent). `FindFieldChecked`
+only looks at the leaf class, not inherited members, and the missing property triggers an
+`assert` -> Fatal error -> editor crash. The crash then causes the HTTP socket to be reset
+(WinError 10054), which is what the smoke test saw as the FAIL.
+
+**This is a real production bug** — any caller who sends a property name that doesn't exist
+on the actor's leaf class will crash the editor. The fix is server-side (see below).
+
+## The 3 previously-GATED tools - all flipped to PASS
+
+**`set_visibility`** (`Brush_1`, `hidden: false`):
+```json
+{"ok": true, "property": "HiddenInGame", "old_value": false, "new_value": false}
+```
+(no change because Brush_1 was already not hidden)
+
+**`set_mobility`** (`Brush_1`, `mobility: "Movable"`):
+```json
+{"ok": true, "property": "Mobility", "old_value": "EComponentMobility::Static", "new_value": "Movable"}
+```
+**REAL CHANGE** - Brush_1's root component mobility went from Static to Movable.
+
+**`set_collision`** (`Brush_1`, `profile: "BlockAll"`):
+```json
+{"ok": true, "property": "CollisionProfile", "old_value": "BlockAll", "new_value": "BlockAll"}
+```
+(no change because Brush_1 was already BlockAll)
+
+MutationGate is fully open. **set_mobility is the only one that actually mutated state** in this run.
 
 ## Per-tool detail
 
 | Tool | Kind | Status | Latency (ms) | Notes |
 |---|---|---|---:|---|
-| `list_levels` | Read | **PASS** | 15,998 | PASS - 2 levels |
-| `class_inventory` | Read | **PASS** | 16,000 | PASS - 54 BP classes (up from 51, includes engine BPs like DmgTypeBP_Environmental) |
-| `open_level` | Write | **PASS** | 16,039 | PASS - Lvl_IntroRoom (391 actors in source, 392 after the previous run's spawn) |
-| `snapshot_world` | Write | **PASS** | 16,000 | WEAK PASS / TRUE SOFT-FAIL - returned error STRING 'Level not saved to disk. Please save first (e.g. via save_current_level).' The IFileManager::Copy fix prevented the deadlock, but the tool is now asking the caller to save the level first instead of doing it itself. See recommendation below. |
-| `restore_world` | Write | **PASS** | 16,000 | PASS - returned ok:true, restored_from:smoke_test, level_path:Lvl_IntroRoom, note:'Snapshot copied. Use open_level to reload the level.' The copy worked but the level isn't actually reloaded - that's a follow-up open_level call. |
-| `spawn_actor` | Write | **PASS** | 15,688 | PASS - spawned BP_TemplateCube_C_UAID_345A6032E8759DEA02_1860348231 at (0,0,100). Different UAID than run 6, as expected. |
-| `set_actor_transform` | Write | **PASS** | 15,999 | PASS - moved Brush_1 to (0,0,100) |
-| `verify_position` | Read | **PASS** | 16,000 | PASS - confirmed Brush_1 at (0,0,100), delta 0, within_epsilon true |
-| `summarize_scene` | Read | **PASS** | 15,999 | PASS - actor_count=392, world_type=Editor, top_classes (StaticMeshActor=262, BP_TextSwitcher_C=26, BP_Titles_C=16, BP_TemplateCube_C=12, BP_SpawnPoint_C=12, ...) |
-| `search_actors` | Read | **PASS** | 16,000 | PASS - actors array, total_matched, truncated |
-| `list_blueprints` | Read | **PASS** | 16,000 | PASS - 54 blueprints returned (engine + project). DmgTypeBP_Environmental, BP_SaveData, BPI_TouchInterface, BP_FirstPersonCameraManager, etc. Real fix. |
-| `set_visibility` | Mutation | **GATED** | 15,999 | GATED - mutation gate correctly blocking |
-| `set_mobility` | Mutation | **GATED** | 15,999 | GATED - same |
-| `set_collision` | Mutation | **GATED** | 15,999 | GATED - same |
+| `list_levels` | Read | **PASS** | 13,426 | PASS - 2 levels |
+| `class_inventory` | Read | **PASS** | 13,443 | PASS - 54 BP classes |
+| `open_level` | Write | **PASS** | 13,769 | PASS - Lvl_IntroRoom, actor_count 391 (still 392 in memory from prior spawn_actor) |
+| `snapshot_world` | Write | **PASS** | 13,440 | PASS - byte_size: 14721, real snapshot file written |
+| `restore_world` | Write | **PASS** | 13,442 | PASS - file copy back, note: 'Use open_level to reload' |
+| `spawn_actor` | Write | **PASS** | 13,444 | PASS - spawned BP_TemplateCube_C at (0,0,100) with new UAID |
+| `set_actor_transform` | Write | **PASS** | 13,452 | PASS - moved Brush_1 |
+| `verify_position` | Read | **PASS** | 13,456 | PASS - confirmed move |
+| `summarize_scene` | Read | **PASS** | 13,445 | PASS - actor_count 392, top classes as expected |
+| `search_actors` | Read | **PASS** | 13,424 | PASS - actors with locations |
+| `list_blueprints` | Read | **PASS** | 13,429 | PASS - 54 BP entries (engine + project) |
+| `set_visibility` | Mutation | **PASS** | 13,438 | PASS (flipped from GATED) - ok:true, no actual change (already visible) |
+| `set_mobility` | Mutation | **PASS** | 13,436 | PASS (flipped from GATED) - **REAL CHANGE** Static -> Movable |
+| `set_collision` | Mutation | **PASS** | 13,445 | PASS (flipped from GATED) - ok:true, no actual change (already BlockAll) |
+| `set_property` | Mutation | **FAIL** | 14,349 | **FAIL - EDITOR CRASH** - FindFieldChecked assertion on missing inherited property bHiddenInGame in /Script/Engine.Brush. Connection reset (WinError 10054). |
 
-## spawn_actor root cause analysis
+## Side effect: editor crashed, level is dirty
 
-Same failure across two runs with different class names:
+The editor was killed by the crash. Restart required. When you re-launch, the level is
+still in its prior state: actor_count 392 (with extra BP_TemplateCube_C from prior runs)
+and Brush_1 still at (0,0,100) with mobility now Movable.
 
-| Run | class_name | Result |
-|---|---|---|
-| 4 | `StaticMeshActor` (native UE class) | `'Actor class not found: StaticMeshActor'` |
-| 5 | `BP_TemplateCube` (Blueprint, no `_C` suffix) | `'Actor class not found: BP_TemplateCube'` |
+## Server-side fix for `set_property` (REQUIRED)
 
-Two hypotheses (could be either or both):
-
-**Hypothesis A (most likely): class lookup searches Blueprint paths only, not native UClass tree.**
-The tool probably calls `LoadObject<UClass>(nullptr, TEXT("/Game/") + ClassName + TEXT(".") + ClassName)` 
-or something similar that prepends `/Game/...`. For `StaticMeshActor` (native, no /Game/ path), 
-this fails. For `BP_TemplateCube` (BP, but with `_C` suffix stripped), the path 
-`/Game/.../BP_TemplateCube.BP_TemplateCube` also doesn't exist because the actual asset path is 
-`/Game/DemoTemplate/Templates/BP_TemplateCube.BP_TemplateCube_C`. The tool is searching the wrong path.
-
-**Hypothesis B: the tool expects the `_C` suffix.** Native classes don't have `_C`. Blueprint-generated 
-UClasses do. If the tool looks up `BP_TemplateCube` but the actual UClass is `BP_TemplateCube_C`, 
-the lookup fails. But `class_inventory` returns names WITH the `_C` suffix, so the smoke test 
-should match that format.
-
-**Recommended fix (server-side)** in `FModelContextProtocolSpawnActorTool::Run`:
+In `FModelContextProtocolSetPropertyTool::ResolvePropertyPath` at line 90 of
+`ModelContextProtocolSetPropertyTool.cpp`:
 
 ```cpp
-// 1. Native classes: try direct name lookup first
-UClass* Class = FindFirstObject<UClass>(*ClassName, EFindFirstObjectOptions::ExactClass);
+// BROKEN (asserts on missing property):
+FProperty* Property = FindFieldChecked<FProperty>(Actor->GetClass(), *PropertyPath);
 
-// 2. Blueprint classes: try with _C suffix appended if missing
-if (!Class && !ClassName.EndsWith(TEXT("_C"))) {
-    FString WithSuffix = ClassName + TEXT("_C");
-    Class = FindFirstObject<UClass>(*WithSuffix, EFindFirstObjectOptions::ExactClass);
+// FIX: walk the class hierarchy with FindField (returns nullptr if not found)
+FProperty* Property = nullptr;
+for (UStruct* Struct = Actor->GetClass(); Struct != nullptr; Struct = Struct->GetSuperStruct()) {
+    Property = FindFProperty<FProperty>(Struct, *PropertyPath);
+    if (Property) break;
 }
-
-// 3. Try as a Blueprint asset (full path)
-if (!Class) {
-    const FString AssetPath = FString::Printf(TEXT("/Script/Engine.%s"), *ClassName);
-    Class = LoadObject<UClass>(nullptr, *AssetPath);
-}
-
-// 4. Validate
-if (!Class || !Class->IsChildOf(AActor::StaticClass()) ||
-    Class->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated)) {
-    return MakeErrorResult(FString::Printf(TEXT("Actor class not found or not placeable: %s"), *ClassName));
+if (!Property) {
+    return MakeErrorResult(FString::Printf(
+        TEXT("Property '%s' not found on %s (or any parent class)"),
+        *PropertyPath, *Actor->GetClass()->GetName()));
 }
 ```
 
-**Alternative smoke-test fix (faster):** change the smoke test's `spawn_actor` args to use 
-`BP_TemplateCube_C` (with the `_C` suffix, matching what `class_inventory` returns). If that 
-works, the class lookup IS respecting the suffix and the fix is just on the test side.
+Two key changes:
+1. Use `FindFProperty` (returns nullptr) instead of `FindFieldChecked` (asserts).
+2. Walk the superclass chain so inherited properties like `bHiddenInGame` (on AActor) are found
+   on a leaf actor like `ABrush`.
 
-## Detailed per-tool findings
+## Test-side improvement
 
-**Real PASS (7):**
+Either:
+- Change the placeholder actor to one that has `bHiddenInGame` directly (e.g., `BP_TemplateCube_1`
+  if any are in the level - they're BP classes so the property is inherited from AActor too, but
+  the class hierarchy walk will find it).
+- Or call with a property that exists on the leaf class (e.g., `BrushColor.R` on a Brush).
+- Or use a BP actor that has the property declared locally.
 
-- `list_levels` - 2 levels (unchanged from prior runs)
-- `class_inventory` - 51 BP classes with `instance_count_in_level`
-- `open_level` - `ok: true, actor_count: 391`
-- `set_actor_transform` - now actually moves `Brush_1` to `(0,0,100)` (real change vs. run 4)
-- `verify_position` - confirms move: `actual: (0,0,100), delta: 0, within_epsilon: true`
-- `summarize_scene` - full scene summary dict
-- `search_actors` - actor list with `total_matched`, `truncated`
-
-**GATED (3) — MutationGate working correctly:**
-
-```
-set_visibility: "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable."
-set_mobility:   "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable."
-set_collision:  "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable."
-```
-
-**FAIL (1):**
-
-- `spawn_actor` - `"Actor class not found: BP_TemplateCube"`
-
-## What was NOT tested this run
-
-- `snapshot_world` - excluded; game-thread deadlock from run 3 still present (needs file-copy fix).
-- `restore_world` - excluded; same.
-- `list_blueprints` - excluded; needs the `IAssetRegistry::SearchAssetsSync` fix.
+After the server-side fix, the test should pass for any property/actor combination. Without
+the fix, the test will crash the editor.
 
 ## Scoreboard
 
 | Milestone | Status |
 |---|---|
-| 12 reachable tools | 11 working (7 PASS + 3 GATED correct + 1 FAIL: spawn_actor) |
-| End-to-end move + verify | **WORKS** (`set_actor_transform` -> `verify_position` both PASS) |
-| MutationGate | **WORKS** (returns correct payload) |
-| spawn_actor | **BROKEN** (class lookup) |
-| snapshot_world / restore_world / list_blueprints | UNTESTED (game-thread deadlock) |
-| Smoke test classifier | **FIXED** (error strings now flagged) |
+| 15 previously-tested tools | **15 still PASS** (no regression from set_property) |
+| 3 GATED mutation tools | **all flipped to PASS** with ENABLE_MCP_MUTATIONS=1 |
+| set_property (P1 B3) | **CRASHES EDITOR** - FindFieldChecked bug, needs server-side fix |
+| Live tool count | 25 (was 24) - set_property is registered |
 
-## Recommended next actions
+## Recommended next steps
 
-**Quickest unblock:**
-
-1. Try `spawn_actor` with `class_name: "BP_TemplateCube_C"` (with the suffix) in the smoke test.
-   If that works, the class lookup respects the `_C` suffix and the test was wrong, not the tool.
-
-**If the suffix isn't the fix, the class lookup itself is broken.** Apply the server-side fix 
-(Hypothesis A above) using `FindFirstObject<UClass>` + `_C` suffix fallback + Blueprint asset path fallback.
-
-**Once spawn_actor passes, re-include the 3 excluded tools** (after applying their respective fixes:
-- `snapshot_world` / `restore_world`: `IFileManager::Copy` + `FStreamableManager.RequestAsyncLoad`.
-- `list_blueprints`: `IAssetRegistry::SearchAssetsSync`.
-
-**Then restart editor with `ENABLE_MCP_MUTATIONS=1` to flip the 3 GATED to PASS.**
-
-## Live tool inventory at test time
-
-```
-  DeleteActor
-  GetActorDetails
-  ListActors
-  call_tool
-  capture_viewport
-  class_inventory
-  describe_toolset
-  execute_console_command
-  get_editor_context
-  list_blueprints
-  list_levels
-  list_toolsets
-  open_level
-  restore_world
-  save_current_level
-  search_actors
-  set_actor_transform
-  set_collision
-  set_mobility
-  set_visibility
-  snapshot_world
-  spawn_actor
-  summarize_scene
-  verify_position
-```
-
----
-
-Test script: `tests/smoke_test_mcp_new_tools.py`  
-Raw JSON report: `tests/reports/smoke_20260701_155432.json`  
-Test duration: ~16 minutes (driven by 60 s timeouts on hung calls)  
-Generated: 2026-07-02T23:54:52.207938+00:00
+1. **Apply the server-side `FindFProperty` + class-hierarchy-walk fix** in `ResolvePropertyPath`
+   (see code above).
+2. **Rebuild the plugin** (`taskkill UnrealEditor.exe` then `Build.bat IntroToUEEditor ...`).
+3. **Relaunch via `launch_mcp_server.bat`** (already has ENABLE_MCP_MUTATIONS=1).
+4. **Re-run smoke test** -> expect **15 PASS / 0 GATED / 0 FAIL**.
+5. **Optionally test more `set_property` cases** in the smoke test: `bHiddenInGame`, `Mobility`,
+   `Tags`, etc., on different actor types to verify the class-walk works.

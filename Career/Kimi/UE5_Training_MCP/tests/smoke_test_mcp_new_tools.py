@@ -196,6 +196,7 @@ TEST_CASES = [
     ("set_visibility",         {"actor_name": "<PLACEHOLDER>", "hidden": False}, "Mutation"),
     ("set_mobility",           {"actor_name": "<PLACEHOLDER>", "mobility": "Movable"}, "Mutation"),
     ("set_collision",          {"actor_name": "<PLACEHOLDER>", "profile": "BlockAll"}, "Mutation"),
+    ("set_property",           {"actor_name": "<PLACEHOLDER>", "property_path": "bHiddenInGame", "value": True}, "Mutation"),
 ]
 
 
