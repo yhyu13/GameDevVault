@@ -1,0 +1,673 @@
+{
+  "timestamp": "2026-07-01T21:59:44.760970+00:00",
+  "server_url": "http://127.0.0.1:8000/mcp",
+  "live_tool_count": 24,
+  "live_tools": [
+    "DeleteActor",
+    "GetActorDetails",
+    "ListActors",
+    "call_tool",
+    "capture_viewport",
+    "class_inventory",
+    "describe_toolset",
+    "execute_console_command",
+    "get_editor_context",
+    "list_blueprints",
+    "list_levels",
+    "list_toolsets",
+    "open_level",
+    "restore_world",
+    "save_current_level",
+    "search_actors",
+    "set_actor_transform",
+    "set_collision",
+    "set_mobility",
+    "set_visibility",
+    "snapshot_world",
+    "spawn_actor",
+    "summarize_scene",
+    "verify_position"
+  ],
+  "missing_tools": [],
+  "pascal_case_duplicates": [],
+  "summary": {
+    "pass": 3,
+    "gated": 0,
+    "fail": 11,
+    "unreachable": 0
+  },
+  "records": [
+    {
+      "name": "list_levels",
+      "kind": "Read",
+      "args": {
+        "root": "/Game/"
+      },
+      "status": "PASS",
+      "result": {
+        "levels": [
+          {
+            "path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom.Lvl_IntroRoom",
+            "name": "Lvl_IntroRoom",
+            "size_bytes": -1,
+            "is_current": false
+          },
+          {
+            "path": "/Game/DemoTemplate/Niagara/Lvl_Room_Niagara.Lvl_Room_Niagara",
+            "name": "Lvl_Room_Niagara",
+            "size_bytes": -1,
+            "is_current": false
+          }
+        ]
+      },
+      "latency_ms": 16002
+    },
+    {
+      "name": "class_inventory",
+      "kind": "Read",
+      "args": {
+        "filter_prefix": "BP_"
+      },
+      "status": "PASS",
+      "result": {
+        "classes": [
+          {
+            "name": "BP_SaveData_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_SaveData.BP_SaveData",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonCameraManager_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonCameraManager.BP_FirstPersonCameraManager",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonPlayerController_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonPlayerController.BP_FirstPersonPlayerController",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonCharacter_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter.BP_FirstPersonCharacter",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GM_Template_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_GM_Template.BP_GM_Template",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Titles_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_Titles.BP_Titles",
+            "instance_count_in_level": 16
+          },
+          {
+            "name": "BP_TextSwitcher_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_TextSwitcher.BP_TextSwitcher",
+            "instance_count_in_level": 26
+          },
+          {
+            "name": "BP_SequenceTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Sequencer/BP_SequenceTrigger.BP_SequenceTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_KeyboardKey_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/BP_KeyboardKey.BP_KeyboardKey",
+            "instance_count_in_level": 6
+          },
+          {
+            "name": "BP_MouseKey_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/BP_MouseKey.BP_MouseKey",
+            "instance_count_in_level": 2
+          },
+          {
+            "name": "BP_Anim_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Animated/BP_Anim.BP_Anim",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_SplinePath_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/SplinePath/BP_SplinePath.BP_SplinePath",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DangleBlocks_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Physics/BP_DangleBlocks.BP_DangleBlocks",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DoorFrame_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/Door/BP_DoorFrame.BP_DoorFrame",
+            "instance_count_in_level": 6
+          },
+          {
+            "name": "BP_TemplateCube_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Templates/BP_TemplateCube.BP_TemplateCube",
+            "instance_count_in_level": 11
+          },
+          {
+            "name": "BP_DoorTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_DoorTrigger.BP_DoorTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DoorFrame_Unlockable_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_DoorFrame_Unlockable.BP_DoorFrame_Unlockable",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_Light_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_Light.BP_Light",
+            "instance_count_in_level": 3
+          },
+          {
+            "name": "BP_GizmoDemo_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Transform/BP_GizmoDemo.BP_GizmoDemo",
+            "instance_count_in_level": 3
+          },
+          {
+            "name": "BP_SpawnPoint_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_SpawnPoint.BP_SpawnPoint",
+            "instance_count_in_level": 12
+          },
+          {
+            "name": "BP_UI_Update_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/EditorUI/BP_UI_Update.BP_UI_Update",
+            "instance_count_in_level": 4
+          },
+          {
+            "name": "BP_Metasound_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Metasounds/BP_Metasound.BP_Metasound",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_ConfettiTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Templates/BP_ConfettiTrigger.BP_ConfettiTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_StartupLocation_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/EditorStartCam/BP_StartupLocation.BP_StartupLocation",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_CVD_SkySphere_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/ChaosVD/BP_CVD_SkySphere.BP_CVD_SkySphere",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SkeletalMeshPreview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Dataflow/BP_SkeletalMeshPreview.BP_SkeletalMeshPreview",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GeometryCollectionPreview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/GeometryCollectionPlugin/BP_GeometryCollectionPreview.BP_GeometryCollectionPreview",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_PreviewGroom_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/HairStrands/BP_PreviewGroom.BP_PreviewGroom",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Sky_Sphere_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Engine/EngineSky/BP_Sky_Sphere.BP_Sky_Sphere",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SubdivideOnceUsingAutoGeneratedPolyGroups_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/SkeletalMeshModelingTools/MeshProcessing/BP_SubdivideOnceUsingAutoGeneratedPolyGroups.BP_SubdivideOnceUsingAutoGeneratedPolyGroups",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SubdivideOnceUsingDefaultPolyGroups_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/SkeletalMeshModelingTools/MeshProcessing/BP_SubdivideOnceUsingDefaultPolyGroups.BP_SubdivideOnceUsingDefaultPolyGroups",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_BuoyancyExample_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/Blueprints/BP_BuoyancyExample.BP_BuoyancyExample",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ActorRefs_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Engine/WorldPartition/UnitTests/BP_ActorRefs.BP_ActorRefs",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_DecalTestPOM_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/DatasmithContent/Materials/StdDecal/BP_DecalTestPOM.BP_DecalTestPOM",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Landmass_LayerStack_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_Landmass_LayerStack.BP_Landmass_LayerStack",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_MeshGrids_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_MeshGrids.BP_MeshGrids",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ScreenOverlay_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_ScreenOverlay.BP_ScreenOverlay",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FluidSim_01_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/BP_FluidSim_01.BP_FluidSim_01",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GlobalFoliageActor_UE5_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Fab/Actors/GlobalFoliageActor/BP_GlobalFoliageActor_UE5.BP_GlobalFoliageActor_UE5",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_BuildingSample_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/PCG/SampleContent/Grammar/BP_BuildingSample.BP_BuildingSample",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonGameMode_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonGameMode.BP_FirstPersonGameMode",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FP_CameraManager_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FP_CameraManager.BP_FP_CameraManager",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_MakeTextureStamp_FromStaticMesh_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Helpers/BP_MakeTextureStamp_FromStaticMesh.BP_MakeTextureStamp_FromStaticMesh",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_LandmassBrush_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Brushes/BP_LandmassBrush.BP_LandmassBrush",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_LSBrush_Noise_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Brushes/BP_LSBrush_Noise.BP_LSBrush_Noise",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Dynamic_Force_Component_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Dynamic_Force_Component.BP_Dynamic_Force_Component",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Dynamic_Force_SkelMesh_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Dynamic_Force_SkelMesh.BP_Dynamic_Force_SkelMesh",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Fluid_Impulse_Repeating_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Fluid_Impulse_Repeating.BP_Fluid_Impulse_Repeating",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GetSimRenderTargets_Material_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_GetSimRenderTargets_Material.BP_GetSimRenderTargets_Material",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_WaterSim_TickInEditorTest_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_WaterSim_TickInEditorTest.BP_WaterSim_TickInEditorTest",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_DevCom_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_DevCom.BP_DevCom",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_JumpPad_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/JumpPad/BP_JumpPad.BP_JumpPad",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_WobbleTarget_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/Target/BP_WobbleTarget.BP_WobbleTarget",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ActorTagger_Preview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/BiomePreviews/BP_ActorTagger_Preview.BP_ActorTagger_Preview",
+            "instance_count_in_level": 0
+          }
+        ]
+      },
+      "latency_ms": 15996
+    },
+    {
+      "name": "open_level",
+      "kind": "Write",
+      "args": {
+        "level_path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom",
+        "save_first": true
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "loaded_level": "/Game/DemoTemplate/_Core/Lvl_IntroRoom",
+        "actor_count": 391,
+        "saved_previous": false
+      },
+      "latency_ms": 16055
+    },
+    {
+      "name": "snapshot_world",
+      "kind": "Write",
+      "args": {
+        "label": "smoke_test"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30343
+    },
+    {
+      "name": "restore_world",
+      "kind": "Write",
+      "args": {
+        "label": "smoke_test"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30026
+    },
+    {
+      "name": "spawn_actor",
+      "kind": "Write",
+      "args": {
+        "class_name": "StaticMeshActor",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30008
+    },
+    {
+      "name": "set_actor_transform",
+      "kind": "Write",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30020
+    },
+    {
+      "name": "verify_position",
+      "kind": "Read",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "expected": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30005
+    },
+    {
+      "name": "summarize_scene",
+      "kind": "Read",
+      "args": {},
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30026
+    },
+    {
+      "name": "search_actors",
+      "kind": "Read",
+      "args": {
+        "class_regex": "BP_.*"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30031
+    },
+    {
+      "name": "list_blueprints",
+      "kind": "Read",
+      "args": {},
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30028
+    },
+    {
+      "name": "set_visibility",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "hidden": false
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30008
+    },
+    {
+      "name": "set_mobility",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "mobility": "Movable"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30021
+    },
+    {
+      "name": "set_collision",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "profile": "BlockAll"
+      },
+      "status": "FAIL",
+      "result": {
+        "error": "Request to MCP server timed out after 30.0s: timed out"
+      },
+      "latency_ms": 30004
+    }
+  ]
+}

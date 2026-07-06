@@ -1,0 +1,1656 @@
+{
+  "timestamp": "2026-07-02T00:56:42.887500+00:00",
+  "server_url": "http://127.0.0.1:8000/mcp",
+  "live_tool_count": 24,
+  "live_tools": [
+    "DeleteActor",
+    "GetActorDetails",
+    "ListActors",
+    "call_tool",
+    "capture_viewport",
+    "class_inventory",
+    "describe_toolset",
+    "execute_console_command",
+    "get_editor_context",
+    "list_blueprints",
+    "list_levels",
+    "list_toolsets",
+    "open_level",
+    "restore_world",
+    "save_current_level",
+    "search_actors",
+    "set_actor_transform",
+    "set_collision",
+    "set_mobility",
+    "set_visibility",
+    "snapshot_world",
+    "spawn_actor",
+    "summarize_scene",
+    "verify_position"
+  ],
+  "missing_tools": [],
+  "pascal_case_duplicates": [],
+  "summary": {
+    "pass": 8,
+    "gated": 3,
+    "fail": 0,
+    "unreachable": 0
+  },
+  "records": [
+    {
+      "name": "list_levels",
+      "kind": "Read",
+      "args": {
+        "root": "/Game/"
+      },
+      "status": "PASS",
+      "result": {
+        "levels": [
+          {
+            "path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom.Lvl_IntroRoom",
+            "name": "Lvl_IntroRoom",
+            "size_bytes": -1,
+            "is_current": false
+          },
+          {
+            "path": "/Game/DemoTemplate/Niagara/Lvl_Room_Niagara.Lvl_Room_Niagara",
+            "name": "Lvl_Room_Niagara",
+            "size_bytes": -1,
+            "is_current": false
+          }
+        ]
+      },
+      "latency_ms": 15998
+    },
+    {
+      "name": "class_inventory",
+      "kind": "Read",
+      "args": {
+        "filter_prefix": "BP_"
+      },
+      "status": "PASS",
+      "result": {
+        "classes": [
+          {
+            "name": "BP_SaveData_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_SaveData.BP_SaveData",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonCameraManager_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonCameraManager.BP_FirstPersonCameraManager",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonPlayerController_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonPlayerController.BP_FirstPersonPlayerController",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonCharacter_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter.BP_FirstPersonCharacter",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GM_Template_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_GM_Template.BP_GM_Template",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Titles_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_Titles.BP_Titles",
+            "instance_count_in_level": 16
+          },
+          {
+            "name": "BP_TextSwitcher_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_TextSwitcher.BP_TextSwitcher",
+            "instance_count_in_level": 26
+          },
+          {
+            "name": "BP_SequenceTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Sequencer/BP_SequenceTrigger.BP_SequenceTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_KeyboardKey_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/BP_KeyboardKey.BP_KeyboardKey",
+            "instance_count_in_level": 6
+          },
+          {
+            "name": "BP_MouseKey_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/KeyboardKey/BP_MouseKey.BP_MouseKey",
+            "instance_count_in_level": 2
+          },
+          {
+            "name": "BP_Anim_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Animated/BP_Anim.BP_Anim",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_SplinePath_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/SplinePath/BP_SplinePath.BP_SplinePath",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DangleBlocks_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Physics/BP_DangleBlocks.BP_DangleBlocks",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DoorFrame_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/Door/BP_DoorFrame.BP_DoorFrame",
+            "instance_count_in_level": 6
+          },
+          {
+            "name": "BP_TemplateCube_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Templates/BP_TemplateCube.BP_TemplateCube",
+            "instance_count_in_level": 11
+          },
+          {
+            "name": "BP_DoorTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_DoorTrigger.BP_DoorTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_DoorFrame_Unlockable_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_DoorFrame_Unlockable.BP_DoorFrame_Unlockable",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_Light_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Blueprint/BP_Light.BP_Light",
+            "instance_count_in_level": 3
+          },
+          {
+            "name": "BP_GizmoDemo_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Transform/BP_GizmoDemo.BP_GizmoDemo",
+            "instance_count_in_level": 3
+          },
+          {
+            "name": "BP_SpawnPoint_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/BP_SpawnPoint.BP_SpawnPoint",
+            "instance_count_in_level": 12
+          },
+          {
+            "name": "BP_UI_Update_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/EditorUI/BP_UI_Update.BP_UI_Update",
+            "instance_count_in_level": 4
+          },
+          {
+            "name": "BP_Metasound_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Metasounds/BP_Metasound.BP_Metasound",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_ConfettiTrigger_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/Templates/BP_ConfettiTrigger.BP_ConfettiTrigger",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_StartupLocation_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/EditorStartCam/BP_StartupLocation.BP_StartupLocation",
+            "instance_count_in_level": 1
+          },
+          {
+            "name": "BP_CVD_SkySphere_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/ChaosVD/BP_CVD_SkySphere.BP_CVD_SkySphere",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SkeletalMeshPreview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Dataflow/BP_SkeletalMeshPreview.BP_SkeletalMeshPreview",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GeometryCollectionPreview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/GeometryCollectionPlugin/BP_GeometryCollectionPreview.BP_GeometryCollectionPreview",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_PreviewGroom_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/HairStrands/BP_PreviewGroom.BP_PreviewGroom",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Sky_Sphere_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Engine/EngineSky/BP_Sky_Sphere.BP_Sky_Sphere",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SubdivideOnceUsingAutoGeneratedPolyGroups_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/SkeletalMeshModelingTools/MeshProcessing/BP_SubdivideOnceUsingAutoGeneratedPolyGroups.BP_SubdivideOnceUsingAutoGeneratedPolyGroups",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_SubdivideOnceUsingDefaultPolyGroups_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/SkeletalMeshModelingTools/MeshProcessing/BP_SubdivideOnceUsingDefaultPolyGroups.BP_SubdivideOnceUsingDefaultPolyGroups",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_BuoyancyExample_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/Blueprints/BP_BuoyancyExample.BP_BuoyancyExample",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ActorRefs_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Engine/WorldPartition/UnitTests/BP_ActorRefs.BP_ActorRefs",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_DecalTestPOM_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/DatasmithContent/Materials/StdDecal/BP_DecalTestPOM.BP_DecalTestPOM",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Landmass_LayerStack_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_Landmass_LayerStack.BP_Landmass_LayerStack",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_MeshGrids_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_MeshGrids.BP_MeshGrids",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ScreenOverlay_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/BP_ScreenOverlay.BP_ScreenOverlay",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FluidSim_01_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/BP_FluidSim_01.BP_FluidSim_01",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GlobalFoliageActor_UE5_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Fab/Actors/GlobalFoliageActor/BP_GlobalFoliageActor_UE5.BP_GlobalFoliageActor_UE5",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_BuildingSample_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/PCG/SampleContent/Grammar/BP_BuildingSample.BP_BuildingSample",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FirstPersonGameMode_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FirstPersonGameMode.BP_FirstPersonGameMode",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_FP_CameraManager_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/FirstPerson/Blueprints/BP_FP_CameraManager.BP_FP_CameraManager",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_MakeTextureStamp_FromStaticMesh_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/BlueprintBrushes/Helpers/BP_MakeTextureStamp_FromStaticMesh.BP_MakeTextureStamp_FromStaticMesh",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_LandmassBrush_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Brushes/BP_LandmassBrush.BP_LandmassBrush",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_LSBrush_Noise_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Landmass/Landscape/OldPrototype_BP/Brushes/BP_LSBrush_Noise.BP_LSBrush_Noise",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Dynamic_Force_Component_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Dynamic_Force_Component.BP_Dynamic_Force_Component",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Dynamic_Force_SkelMesh_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Dynamic_Force_SkelMesh.BP_Dynamic_Force_SkelMesh",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_Fluid_Impulse_Repeating_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_Fluid_Impulse_Repeating.BP_Fluid_Impulse_Repeating",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_GetSimRenderTargets_Material_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_GetSimRenderTargets_Material.BP_GetSimRenderTargets_Material",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_WaterSim_TickInEditorTest_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Water/FluidSimulation/Blueprints/Examples/BP_WaterSim_TickInEditorTest.BP_WaterSim_TickInEditorTest",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_DevCom_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/DemoTemplate/_Core/DevCom/BP_DevCom.BP_DevCom",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_JumpPad_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/JumpPad/BP_JumpPad.BP_JumpPad",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_WobbleTarget_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/Game/LevelPrototyping/Interactable/Target/BP_WobbleTarget.BP_WobbleTarget",
+            "instance_count_in_level": 0
+          },
+          {
+            "name": "BP_ActorTagger_Preview_C",
+            "is_blueprint": true,
+            "is_abstract": false,
+            "parent": "AActor",
+            "path": "/PCG/Utilities/Assemblies/ActorTagger/BiomePreviews/BP_ActorTagger_Preview.BP_ActorTagger_Preview",
+            "instance_count_in_level": 0
+          }
+        ]
+      },
+      "latency_ms": 16000
+    },
+    {
+      "name": "open_level",
+      "kind": "Write",
+      "args": {
+        "level_path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom",
+        "save_first": true
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "loaded_level": "/Game/DemoTemplate/_Core/Lvl_IntroRoom",
+        "actor_count": 391,
+        "saved_previous": false
+      },
+      "latency_ms": 16064
+    },
+    {
+      "name": "spawn_actor",
+      "kind": "Write",
+      "args": {
+        "class_name": "StaticMeshActor",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "PASS",
+      "result": "Actor class not found: StaticMeshActor",
+      "latency_ms": 15998
+    },
+    {
+      "name": "set_actor_transform",
+      "kind": "Write",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "location": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "new_location": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "new_rotation": {
+          "pitch": 0,
+          "yaw": 0,
+          "roll": 0
+        },
+        "new_scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "latency_ms": 16000
+    },
+    {
+      "name": "verify_position",
+      "kind": "Read",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "expected": {
+          "x": 0,
+          "y": 0,
+          "z": 100
+        }
+      },
+      "status": "PASS",
+      "result": {
+        "ok": true,
+        "actual": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "delta": 100,
+        "within_epsilon": false
+      },
+      "latency_ms": 15999
+    },
+    {
+      "name": "summarize_scene",
+      "kind": "Read",
+      "args": {},
+      "status": "PASS",
+      "result": {
+        "actor_count": 391,
+        "level_path": "/Game/DemoTemplate/_Core/Lvl_IntroRoom.Lvl_IntroRoom:PersistentLevel",
+        "world_type": "Editor",
+        "top_classes": [
+          {
+            "class": "StaticMeshActor",
+            "count": 262
+          },
+          {
+            "class": "BP_TextSwitcher_C",
+            "count": 26
+          },
+          {
+            "class": "BP_Titles_C",
+            "count": 16
+          },
+          {
+            "class": "BP_SpawnPoint_C",
+            "count": 12
+          },
+          {
+            "class": "BP_TemplateCube_C",
+            "count": 11
+          },
+          {
+            "class": "TextRenderActor",
+            "count": 9
+          },
+          {
+            "class": "BP_KeyboardKey_C",
+            "count": 6
+          },
+          {
+            "class": "BP_DoorFrame_C",
+            "count": 6
+          },
+          {
+            "class": "BP_UI_Update_C",
+            "count": 4
+          },
+          {
+            "class": "BP_GizmoDemo_C",
+            "count": 3
+          }
+        ],
+        "single_instance_classes": [
+          "BuoyancyManager",
+          "BP_DoorFrame_Unlockable_C",
+          "BP_DoorTrigger_C",
+          "SkyAtmosphere",
+          "WorldDataLayers",
+          "LevelSequenceActor",
+          "WorldSettings",
+          "Brush",
+          "BP_SequenceTrigger_C",
+          "NiagaraActor",
+          "GameplayDebuggerPlayerManager",
+          "Actor",
+          "DefaultPhysicsVolume",
+          "BP_Metasound_C",
+          "BP_ConfettiTrigger_C",
+          "WorldPartitionMiniMap",
+          "VolumetricCloud",
+          "PlayerStart",
+          "BP_Anim_C",
+          "BP_DangleBlocks_C",
+          "DirectionalLight",
+          "ExponentialHeightFog",
+          "BP_StartupLocation_C",
+          "SkyLight",
+          "BP_SplinePath_C",
+          "AbstractNavData"
+        ],
+        "actors_at_origin": [
+          {
+            "name": "WorldSettings_1",
+            "class": "WorldSettings"
+          },
+          {
+            "name": "WorldDataLayers",
+            "class": "WorldDataLayers"
+          },
+          {
+            "name": "BuoyancyManager_0",
+            "class": "BuoyancyManager"
+          },
+          {
+            "name": "DefaultPhysicsVolume_0",
+            "class": "DefaultPhysicsVolume"
+          },
+          {
+            "name": "GameplayDebuggerPlayerManager_0",
+            "class": "GameplayDebuggerPlayerManager"
+          },
+          {
+            "name": "ChaosDebugDrawActor",
+            "class": "Actor"
+          },
+          {
+            "name": "WorldPartitionMiniMap_0",
+            "class": "WorldPartitionMiniMap"
+          },
+          {
+            "name": "StaticMeshActor_0",
+            "class": "StaticMeshActor"
+          },
+          {
+            "name": "AbstractNavData-Default",
+            "class": "AbstractNavData"
+          }
+        ],
+        "themes": {
+          "lighting": 5,
+          "trigger_volumes": 3,
+          "characters": 12,
+          "sequences": 2,
+          "metasounds": 1,
+          "static_meshes": 262
+        }
+      },
+      "latency_ms": 15999
+    },
+    {
+      "name": "search_actors",
+      "kind": "Read",
+      "args": {
+        "class_regex": "BP_.*"
+      },
+      "status": "PASS",
+      "result": {
+        "actors": [
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1914811066",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": -855.4464536816749,
+              "y": 263.23286338413465,
+              "z": 988.1251031429599
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1892547235",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 2528.126281292035,
+              "y": 990.0000607423615,
+              "z": 790
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AF8D02_1292343215",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 400.00000039657823,
+              "y": -2510,
+              "z": -127.1491374832946
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1320872932",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 1047.1819169999999,
+              "y": -2186.476384,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1387531690",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 399.99999488945554,
+              "y": -1770,
+              "z": -101.99990555273689
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1593838522",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 200.53782816622294,
+              "y": -2510,
+              "z": 1.8946519621420634
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1296560800",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2000,
+              "y": -3590.0000061394303,
+              "z": 1156.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A33D9402_1164057519",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 4530,
+              "y": 990,
+              "z": 1106.209961
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3A99302_1719302483",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 400,
+              "y": -1850,
+              "z": -199.74990000000253
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3AF9302_1344133566",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 144.1695747611393,
+              "y": -2510,
+              "z": 2.5219818393083138
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A32F8B02_2116560561",
+            "class": "BP_DoorFrame_Unlockable_C",
+            "location": {
+              "x": 4000,
+              "y": -1850,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_DoorTrigger_C_UAID_F4A475FF15A36F8B02_1477780827",
+            "class": "BP_DoorTrigger_C",
+            "location": {
+              "x": 4000,
+              "y": -2500,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1467436174",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 4882.80870017268,
+              "y": 1261.8460701880285,
+              "z": 1023.0932419999999
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3439402_1106863599",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 2818.1265085663736,
+              "y": 1289.9999104178867,
+              "z": 1200
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1364325801",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 4589.999999650934,
+              "y": -2639.999999912313,
+              "z": 1096.5238302098364
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3439402_1732074600",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2650,
+              "y": 980,
+              "z": 641.227762
+            }
+          },
+          {
+            "name": "BP_GizmoDemo_C_UAID_F4A475FF15A30A8D02_1621641155",
+            "class": "BP_GizmoDemo_C",
+            "location": {
+              "x": 660.7163720263594,
+              "y": 772.981334,
+              "z": 100.92048942692176
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1936599069",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 3269.8266380140244,
+              "y": -2254.2055335033847,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1610044525",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 145.53782816622294,
+              "y": -2510,
+              "z": -53.10534803785792
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1469665175",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 4969.770226361499,
+              "y": 1215.8653082789224,
+              "z": 1203.093242
+            }
+          },
+          {
+            "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1474794156",
+            "class": "BP_UI_Update_C",
+            "location": {
+              "x": 2000,
+              "y": 300,
+              "z": 800
+            }
+          },
+          {
+            "name": "BP_SequenceTrigger_C_UAID_F4A475FF15A32E8B02_1143428382",
+            "class": "BP_SequenceTrigger_C",
+            "location": {
+              "x": 2800,
+              "y": -3310,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1583708232",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 338.126304625459,
+              "y": 989.999998638722,
+              "z": 269.9999999616
+            }
+          },
+          {
+            "name": "BP_Light_C_UAID_F4A475FF15A36F8B02_1930181834",
+            "class": "BP_Light_C",
+            "location": {
+              "x": 4300,
+              "y": -1900,
+              "z": 990
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A34A8902_1868366204",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": -400,
+              "y": 250,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1141107154",
+            "class": "BP_UI_Update_C",
+            "location": {
+              "x": 2400,
+              "y": -1300,
+              "z": 200
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1952088420",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 4568.126294518922,
+              "y": -2490.0001895712553,
+              "z": 1200
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EA9302_2003937914",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": -1770,
+              "y": -1290,
+              "z": 1076.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A33D9402_1629156521",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2810,
+              "y": 1440,
+              "z": 1186.209961
+            }
+          },
+          {
+            "name": "BP_MouseKey_C_UAID_F4A475FF15A3AF8D02_1670713220",
+            "class": "BP_MouseKey_C",
+            "location": {
+              "x": 340.5572733466821,
+              "y": -2506.5945110000002,
+              "z": -34.24240772893161
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1977437237",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": -1651.873708,
+              "y": -1290.000012,
+              "z": 1190
+            }
+          },
+          {
+            "name": "BP_DangleBlocks_C_UAID_F4A475FF15A3968902_1387668616",
+            "class": "BP_DangleBlocks_C",
+            "location": {
+              "x": 199.99999954804002,
+              "y": -3400.000000140309,
+              "z": 1400
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3378F02_1272651190",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 237.3806347899806,
+              "y": -2510,
+              "z": 53.447046748549695
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1565510060",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5170.170194196825,
+              "y": 346.4213275586839,
+              "z": 982.2281255013893
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1930232068",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": -442.8180825938782,
+              "y": -2146.4763841400595,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3FA8802_2006604127",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 400.00000002646175,
+              "y": -2510,
+              "z": 134.60308101606614
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1318374688",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 4300,
+              "y": -700,
+              "z": 288.250086
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1102677091",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 690,
+              "y": -3360,
+              "z": 1156.209961
+            }
+          },
+          {
+            "name": "BP_Light_C_UAID_F4A475FF15A36F8B02_1928291833",
+            "class": "BP_Light_C",
+            "location": {
+              "x": 3700,
+              "y": -1900,
+              "z": 990
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1602257523",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 200.53782816622294,
+              "y": -2510,
+              "z": -53.10534803785792
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3908902_1672628511",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 440,
+              "y": 90,
+              "z": 32.88926724241901
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A30A8D02_1464182151",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 1590,
+              "y": -1380,
+              "z": 288.25010334374747
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_2070748421",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 3608.126433077622,
+              "y": 89.99985911750761,
+              "z": 1000
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3378F02_1361906191",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 299.7870533504391,
+              "y": -2510,
+              "z": -35.8678235212257
+            }
+          },
+          {
+            "name": "BP_Metasound_C_UAID_F4A475FF15A3DD8A02_1390193150",
+            "class": "BP_Metasound_C",
+            "location": {
+              "x": -449.9999998970458,
+              "y": -3250,
+              "z": 861.4216892322407
+            }
+          },
+          {
+            "name": "BP_ConfettiTrigger_C_UAID_F4A475FF15A3119402_1298410799",
+            "class": "BP_ConfettiTrigger_C",
+            "location": {
+              "x": 4000,
+              "y": -750,
+              "z": 910
+            }
+          },
+          {
+            "name": "BP_UI_Update_C_UAID_F4A475FF15A34B9402_1504655983",
+            "class": "BP_UI_Update_C",
+            "location": {
+              "x": 690,
+              "y": 440,
+              "z": 130
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1323843203",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 449.9999999057404,
+              "y": 979.9999999999999,
+              "z": 210.66281436558828
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1606014208",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 1917.501227,
+              "y": -1788.2980374165288,
+              "z": 327.1874221629601
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1463210173",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5072.17403571379,
+              "y": 1169.8364527809222,
+              "z": 1023.0932419999999
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EF9302_1255918799",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2799.999997726138,
+              "y": -3589.9999940142006,
+              "z": 1106.209961
+            }
+          },
+          {
+            "name": "BP_Anim_C_UAID_F4A475FF15A3238B02_2033533439",
+            "class": "BP_Anim_C",
+            "location": {
+              "x": 2020,
+              "y": -3400,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AE9302_1838398388",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 400.0000000350359,
+              "y": -1209.9999999999995,
+              "z": 2.5583821462468137
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1635761065",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5354.723761937163,
+              "y": 840.5344885443787,
+              "z": 1005.8098660713775
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3918902_1340321689",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 2400,
+              "y": -200,
+              "z": 693.1313505507787
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3678D02_1607016524",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 255.537828166223,
+              "y": -2510,
+              "z": -53.10534803785792
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1910408417",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 1388.1263432246626,
+              "y": -1910.0000645717207,
+              "z": 1210
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3C29302_1446208933",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 403.75061400000004,
+              "y": -1208.298037,
+              "z": -92.81257799999997
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1507158204",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 1917.501227,
+              "y": -1786.5960746505084,
+              "z": 456.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1552812207",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 4350.000000158178,
+              "y": 89.99999999999989,
+              "z": 311.22776202141034
+            }
+          },
+          {
+            "name": "BP_MouseKey_C_UAID_F4A475FF15A3AF8D02_1514909217",
+            "class": "BP_MouseKey_C",
+            "location": {
+              "x": 565.606728694518,
+              "y": -2506.5945106057893,
+              "z": -34.24240825470464
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1873662416",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 688.1262959343924,
+              "y": -3240.0000359380215,
+              "z": 1210
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1632759064",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5244.529753597846,
+              "y": 1018.3653110331202,
+              "z": 1023.0932419289204
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_2118126422",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 4378.126495778999,
+              "y": 989.9998052438572,
+              "z": 1200
+            }
+          },
+          {
+            "name": "BP_GizmoDemo_C_UAID_F4A475FF15A3478902_1828996667",
+            "class": "BP_GizmoDemo_C",
+            "location": {
+              "x": 1290.7163721133218,
+              "y": 772.9813336324975,
+              "z": 99.99999999999997
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1827563415",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": -571.8737078262088,
+              "y": -3580.000011513282,
+              "z": 1318.8964742759977
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1601088063",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5189.39384916248,
+              "y": 530.4441252620866,
+              "z": 1328.962164244926
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3139402_1480659176",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5185.116324137825,
+              "y": 1108.855691082571,
+              "z": 1188.093242
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1864456234",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 4228.126296671559,
+              "y": 90.00009010776074,
+              "z": 470
+            }
+          },
+          {
+            "name": "NewEditorUtilityBlueprint_C_UAID_F4A475FF15A3B08D02_1445677397",
+            "class": "BP_StartupLocation_C",
+            "location": {
+              "x": 395.27677399054016,
+              "y": -3169.005905959725,
+              "z": -16.08292378911524
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1594690062",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5174.244195309834,
+              "y": 444.526142945271,
+              "z": 1149.6269900032178
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1804406233",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 2038.1263600699485,
+              "y": -1789.9999786301826,
+              "z": 550
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3038902_1806122727",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 4200,
+              "y": -750,
+              "z": 200
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3C19302_1689069751",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": -1890,
+              "y": -190,
+              "z": 1106.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3BE9302_1734467209",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 448.586895396095,
+              "y": 980.5376919296319,
+              "z": 106.2348671488304
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EE9302_2001758622",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 1530,
+              "y": -1910,
+              "z": 1106.209961
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3C08B02_1790421076",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 750,
+              "y": -2300,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_SplinePath_C_UAID_F4A475FF15A3DD9402_1282200680",
+            "class": "BP_SplinePath_C",
+            "location": {
+              "x": 400,
+              "y": -3150,
+              "z": -200
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3368F02_1077176012",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 557.6090710345215,
+              "y": -2510,
+              "z": 44.588912905163994
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1823798206",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 2650,
+              "y": 980,
+              "z": 736.209961
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1747309093",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": -290,
+              "y": -1130,
+              "z": 1026.209961
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1948914419",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 2708.126256,
+              "y": -3590.0001226932204,
+              "z": 1210
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3C08B02_1833558077",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 1650,
+              "y": -2300,
+              "z": 900
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3419402_1926085236",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": -1771.87370765536,
+              "y": -190.000012129295,
+              "z": 1200
+            }
+          },
+          {
+            "name": "BP_UI_Update_C_UAID_F4A475FF15A3A98D02_1465393155",
+            "class": "BP_UI_Update_C",
+            "location": {
+              "x": 3600,
+              "y": -300,
+              "z": 200
+            }
+          },
+          {
+            "name": "BP_Light_C_UAID_F4A475FF15A3708B02_1854429013",
+            "class": "BP_Light_C",
+            "location": {
+              "x": 4000,
+              "y": -1900,
+              "z": 1360
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1945456070",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 4000,
+              "y": 100,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3938902_1925360067",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": -882.3751089796211,
+              "y": -930.022806812304,
+              "z": 988.125103
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1938201418",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": 1908.1262558183364,
+              "y": -3590.000095337953,
+              "z": 1210
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1567172061",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5202.7382916646075,
+              "y": 621.1242421167867,
+              "z": 1143.9277075485295
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3AD9302_1722158205",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": 4349.999999818323,
+              "y": 90.00000000000011,
+              "z": 411.5863978806807
+            }
+          },
+          {
+            "name": "BP_Titles_C_UAID_F4A475FF15A3429402_1790097414",
+            "class": "BP_Titles_C",
+            "location": {
+              "x": -291.8737080000001,
+              "y": -1250.000012,
+              "z": 1120
+            }
+          },
+          {
+            "name": "BP_GizmoDemo_C_UAID_F4A475FF15A30A8D02_1618273154",
+            "class": "BP_GizmoDemo_C",
+            "location": {
+              "x": 980.716371797092,
+              "y": 772.9813340000018,
+              "z": 111.89354865914044
+            }
+          },
+          {
+            "name": "BP_DoorFrame_C_UAID_F4A475FF15A3FB8802_1557440307",
+            "class": "BP_DoorFrame_C",
+            "location": {
+              "x": 1750,
+              "y": -1300,
+              "z": 200
+            }
+          },
+          {
+            "name": "BP_SpawnPoint_C_UAID_F4A475FF15A3C29302_1132042931",
+            "class": "BP_SpawnPoint_C",
+            "location": {
+              "x": 400,
+              "y": -3160,
+              "z": -101.999906
+            }
+          },
+          {
+            "name": "BP_TextSwitcher_C_UAID_F4A475FF15A3EB9302_1326648092",
+            "class": "BP_TextSwitcher_C",
+            "location": {
+              "x": -450.00000019124735,
+              "y": -3580,
+              "z": 1215.1064352759977
+            }
+          },
+          {
+            "name": "BP_TemplateCube_C_UAID_F4A475FF15A3938902_1560925059",
+            "class": "BP_TemplateCube_C",
+            "location": {
+              "x": 5214.313503197263,
+              "y": 716.7705485620154,
+              "z": 982.2281268475191
+            }
+          },
+          {
+            "name": "BP_KeyboardKey_C_UAID_F4A475FF15A3AF9302_1338918565",
+            "class": "BP_KeyboardKey_C",
+            "location": {
+              "x": 256.8244703254563,
+              "y": -2510,
+              "z": 2.5219818267451757
+            }
+          }
+        ],
+        "total_matched": 98,
+        "truncated": false
+      },
+      "latency_ms": 16000
+    },
+    {
+      "name": "set_visibility",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "hidden": false
+      },
+      "status": "GATED",
+      "result": "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable.",
+      "latency_ms": 15999
+    },
+    {
+      "name": "set_mobility",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "mobility": "Movable"
+      },
+      "status": "GATED",
+      "result": "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable.",
+      "latency_ms": 15999
+    },
+    {
+      "name": "set_collision",
+      "kind": "Mutation",
+      "args": {
+        "actor_name": "WorldSettings_1",
+        "profile": "BlockAll"
+      },
+      "status": "GATED",
+      "result": "Mutations are disabled. Set environment variable ENABLE_MCP_MUTATIONS=1 to enable.",
+      "latency_ms": 16000
+    }
+  ]
+}

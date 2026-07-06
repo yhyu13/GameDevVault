@@ -1,6 +1,7 @@
 ---
 tags: [radar/P1, radar/AI-NPC, radar/工具链]
 aliases: [Inworld, Convai, Charisma.AI, Character.AI, LLM NPC, AI NPC 平台]
+quarterly_review: 2026-Q3
 ---
 
 # LLM-NPC 平台 — Inworld / Convai / Charisma.AI(产品形态)
@@ -88,6 +89,7 @@ aliases: [Inworld, Convai, Charisma.AI, Character.AI, LLM NPC, AI NPC 平台]
 | 日期 | 评估人 | 结论 | 次回顾 |
 |------|--------|------|----------|
 | 2026-06-25 | 我 | P1 持续关注 — 跑通 1 个 Inworld demo 就足够 | 1个月后 |
+| 2026-07-03 | 我 | Q3 启动 — 纳入季度复盘 Routine | 2026-07-25 |
 
 ---
 

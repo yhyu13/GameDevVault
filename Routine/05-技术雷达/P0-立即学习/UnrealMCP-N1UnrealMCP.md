@@ -1,6 +1,7 @@
 ---
 tags: [radar/P0, radar/AI-生产力, radar/工具链]
 aliases: [UnrealMCP, N1UnrealMCP, DandyDay UnrealMCP, UE MCP, MCP for UE, AI 控制 UE Editor]
+quarterly_review: 2026-Q3
 ---
 
 # UnrealMCP(N1) — 让 AI Agent 直接操控 UE Editor
@@ -95,6 +96,7 @@ aliases: [UnrealMCP, N1UnrealMCP, DandyDay UnrealMCP, UE MCP, MCP for UE, AI 控
 | 日期 | 评估人 | 结论 | 下次回顾 |
 |------|--------|------|----------|
 | 2026-06-26 | 我 | P0 立即学习 — day-job 直接闭环加速 | 1个月后 |
+| 2026-07-03 | 我 | Q3 启动 — 纳入季度复盘 Routine | 2026-07-26 |
 
 ---
 

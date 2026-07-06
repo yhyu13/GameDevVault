@@ -5,25 +5,26 @@ aliases: []
 
 # Nanite 材质管线 — 虚拟几何 + 持久化 Material ID + Shading Bin
 
-| 字段 | 内容 |
-|------|------|
-| **效果名称** | Nanite 虚拟几何的材质管线（5-bin 分类 + 持久化 Material Buffer + Shading Pipeline 缓存） |
-| **类型** | 渲染管线 / 材质 / 几何 |
-| **平台** | PC SM5 / SM6 / Console（不支持 mobile / WebGL） |
-| **创建日期** | 2026-07-02 |
+| 字段       | 内容                                                                                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **效果名称** | Nanite 虚拟几何的材质管线（5-bin 分类 + 持久化 Material Buffer + Shading Pipeline 缓存）                                                                                              |
+| **类型**   | 渲染管线 / 材质 / 几何                                                                                                                                                      |
+| **平台**   | PC SM5 / SM6 / Console（不支持 mobile / WebGL）                                                                                                                          |
+| **创建日期** | 2026-07-02                                                                                                                                                          |
 | **参考来源** | UE 5.8 主线源码 `Engine/Source/Runtime/Renderer/Private/Nanite/{NaniteMaterials,NaniteShading,NaniteShared,NaniteMaterialsSceneExtension}.{h,cpp}` + GDC 2022 Nanite 演讲 |
+|          |                                                                                                                                                                     |
 
 ---
 
 ## 效果对比
 
-| 传统材质管线 | Nanite 材质管线 |
-|------------|---------------|
-| 每个 Draw Call 绑一个材质 | **5 个 Bin** 分类（Triangle / Voxel / Curve / Raster / Fallback）|
-| DrawIndexedInstanced 逐 mesh | **Persistent Material Buffer** 字节寻址 |
-| 按 Mesh 排序（不跨 mesh） | **FNaniteShadingPipeline** 去重 + 按 Shader 分组 |
-| Pixel Shader 像素级评估 | **Compute Shader** + Hidden Surface Removal（无 Z pre-pass）|
-| Material ID 是 1 个 uint16 | **Material Index 在 MaterialDataBuffer 中** 每 triangle 1 个 entry |
+| 传统材质管线                      | Nanite 材质管线                                                    |
+| --------------------------- | -------------------------------------------------------------- |
+| 每个 Draw Call 绑一个材质          | **5 个 Bin** 分类（Triangle / Voxel / Curve / Raster / Fallback）   |
+| DrawIndexedInstanced 逐 mesh | **Persistent Material Buffer** 字节寻址                            |
+| 按 Mesh 排序（不跨 mesh）          | **FNaniteShadingPipeline** 去重 + 按 Shader 分组                    |
+| Pixel Shader 像素级评估          | **Compute Shader** + Hidden Surface Removal（无 Z pre-pass）      |
+| Material ID 是 1 个 uint16    | **Material Index 在 MaterialDataBuffer 中** 每 triangle 1 个 entry |
 
 ---
 

@@ -29,21 +29,26 @@
 
 ---
 
-## 现象速查表 → 工具 → 知识参考
+## 现象速查表 → 工具 → 知识参考 / 瓶颈案例
 
-| 现象 | 首选工具 | 知识参考（按主题） |
+| 现象 | 首选工具 | 知识参考 / 瓶颈案例 |
 |------|----------|---------------------|
 | DrawCall 过高 | RenderDoc / Insights | [[知识参考/Unreal Insights 帧分析实战]] |
 | 卡顿 spikes | Insights | [[知识参考/Unreal Insights 帧分析实战]] + [[知识参考/Lyra 性能架构]]（加载流程） |
 | 纹理带宽高 | RenderDoc Texture Viewer | [[知识参考/Unreal Insights 帧分析实战]] |
-| 顶点处理瓶颈 | GPU Profiler | [[知识参考/Nanite 性能调优]] |
-| Lumen GI / 反射卡 | profilegpu | [[知识参考/Lumen 性能调优]] |
+| 顶点处理瓶颈 | GPU Profiler | [[知识参考/Nanite 性能调优]] + [[瓶颈案例/植被-过度绘制-Cluster-Tree粒度问题]] |
+| Lumen GI 反射卡 | profilegpu | [[知识参考/Lumen 性能调优]] + [[瓶颈案例/Lumen-反射开销过高-平滑材质场景]] |
+| VSM 阴影棋盘瑕疵 | `r.Shadow.Virtual.ShowStats` | [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] |
+| Nanite 破面 / 闪烁 | `NaniteStats` | [[知识参考/Nanite 性能调优]] + [[瓶颈案例/Nanite-WPO禁用距离-破面修复]] |
 | GT/RT/RHI 同步 | Insights Timing | [[知识参考/渲染线程瓶颈诊断]] |
+| 大纹理上传卡顿 | Insights RenderThread | [[知识参考/渲染线程瓶颈诊断]] + [[瓶颈案例/大纹理RT申请-Render线程卡顿]] |
 | 物理卡顿 | Insights + Chaos Visual | — （待补 Chaos 笔记） |
 | 移动端发烫 | 厂商 SDK (PerfHUD) | [[知识参考/渲染线程瓶颈诊断]] > 移动端 |
-| 加载卡顿 | Insights LoadTime | [[知识参考/Lyra 性能架构]]（5 阶段加载流程） |
+| 加载卡顿 | Insights LoadTime | [[知识参考/Lyra 性能架构]]（5 阶段加载流程）+ [[瓶颈案例/大纹理RT申请-Render线程卡顿]] |
 
 > **速查表本身不写"百分比数字"**——具体场景下能省多少必须自己 Profile。
+>
+> **新增 5 篇瓶颈案例**（2026-07-02，从 GDC 2024 + UE 官方文档 + 知乎一线经验汇编）每篇都是 `perf/待验证` 状态，**未经本人 Profile**，数字需自己复测。
 
 ---
 
@@ -90,6 +95,22 @@
 
 ---
 
+## 瓶颈案例索引（2026-07-02 新增 — GDC + UE 官方 + 知乎汇编）
+
+| 笔记 | 现象 | 主要来源 | 状态 |
+|------|------|---------|------|
+| [[瓶颈案例/Lumen-反射开销过高-平滑材质场景]] | 平滑材质下 Lumen 反射占 GPU 大头 | UE Lumen Performance Guide + 知乎 | `perf/待验证` |
+| [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] | 阴影棋盘格 / 缓存污染 | UE VSM 官方文档 + GDC 2024 + 知乎 | `perf/待验证` |
+| [[瓶颈案例/植被-过度绘制-Cluster-Tree粒度问题]] | 植被密集 basepass VS 高 / RT occlusion spike | 知乎《UE5性能优化-GPU》 | `perf/待验证` |
+| [[瓶颈案例/Nanite-WPO禁用距离-破面修复]] | Nanite 随机破面 / 画面闪烁 / 阴影错乱 | GDC 2024 Wihlidal + 知乎 + UE 官方 | `perf/待验证` |
+| [[瓶颈案例/大纹理RT申请-Render线程卡顿]] | RT 申请抖动 / 关卡切换 spike | 知乎《UE5性能优化-Render线程》 | `perf/待验证` |
+| [[瓶颈案例/DrawCall-过高-植被渲染]] | 植被 DrawCall 暴增帧率掉一半 | （旧案例，Unity 术语残留，待重写为 UE5 版本） | `perf/已验证` |
+
+> **所有 `perf/待验证` 案例**——来源是公开资料（GDC 演讲、UE 官方文档、知乎一线经验），**未经本人 Profile**。
+> 验证流程在每篇笔记末尾的"验证流程"小节；Profile 后请把 tag 改成 `perf/已验证` 并补自己的实测数字。
+
+---
+
 ## 关联知识库
 
 - [[02-引擎源码分析库]] — 引擎底层性能设计
@@ -102,6 +123,7 @@
 - [ ] 完成至少 1 次完整的帧分析（Unreal Insights）
 - [ ] 记录至少 3 个可复用的优化方案（写 [[瓶颈案例/]] ）
 - [ ] M5 专项：跑 Lyra 默认 map 录 30 秒 utrace，按 [[知识参考/Unreal Insights 帧分析实战]] 流程做一遍诊断
+- [ ] **新增（2026-07）**：从 5 篇新案例中挑 1–2 篇（推荐 [[瓶颈案例/Lumen-反射开销过高-平滑材质场景]] 或 [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]]）做 Profile 验证，把 tag 升级到 `perf/已验证`
 
 ---
 

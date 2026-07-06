@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UnrealMCP (N1) — 让 AI Agent 直接操控 UE Editor — 互动式面试卡牌</title>
+<style>
+  :root {
+    --bg:#f5f5f0; --card-bg:#fff; --primary:#3a5a7c; --accent:#6b9e75; --accent-wrong:#c45c5c;
+    --text:#2c3e50; --text-light:#5d6d7e; --border:#d0d5dd; --shadow:rgba(0,0,0,0.08);
+    --drop-zone:#eef2f7; --draggable:#f0f4f8;
+    --status-correct:#e8f5e9; --status-wrong:#fce8e8; --status-unanswered:#f8f9fa;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+  header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow)}
+  header h1{margin:0;font-size:1.2rem;font-weight:500}
+  header p{margin:0.2rem 0 0;opacity:0.85;font-size:0.85rem}
+  .container{max-width:820px;margin:0 auto;padding:1.5rem}
+  .nav-tabs{display:flex;gap:0.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+  .nav-tab{flex:1;min-width:90px;padding:0.6rem 0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.85rem;transition:all 0.2s;color:var(--text-light)}
+  .nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+  .nav-tab:hover:not(.active){background:var(--drop-zone)}
+  .score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.6rem;flex-wrap:wrap}
+  .score-mini{font-size:0.85rem;color:var(--text-light);white-space:nowrap}
+  .score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+  .progress-text{text-align:right;font-size:0.8rem;color:var(--text-light);margin-bottom:0.3rem}
+  .progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+  .card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:26px;font-size:0.8rem;font-weight:600;margin-right:0.5rem}
+  .card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5}
+  .q-type{font-size:0.75rem;color:var(--text-light);background:#eef2f7;padding:2px 8px;border-radius:4px;margin-left:0.4rem}
+  .drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem}
+  .drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all 0.2s;padding:0 6px;font-size:0.95rem}
+  .drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+  .drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8;cursor:pointer}
+  .drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+  .drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+  .drop-zone.correct .dropped-text{color:var(--accent)}
+  .drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+  .drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.8rem;background:var(--drop-zone);border-radius:8px}
+  .draggable{padding:0.4rem 0.9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all 0.15s;font-size:0.92rem}
+  .draggable:hover{background:#dbe4ee;border-color:var(--primary);transform:translateY(-1px)}
+  .draggable.used{opacity:0.35;cursor:default;pointer-events:none}
+  .options-list{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.0rem}
+  .option{padding:0.7rem 1.0rem;background:var(--card-bg);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.6rem;font-size:0.95rem;line-height:1.45}
+  .option:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .option.selected{border-color:var(--primary);background:#e8f0f8}
+  .option.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .option.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:600;flex-shrink:0;background:#fff}
+  .option.selected .opt-marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .option.correct-mark .opt-marker{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+  .tf-options{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.0rem}
+  .tf-btn{padding:0.9rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;transition:all 0.15s;font-size:0.95rem;text-align:center}
+  .tf-btn:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .tf-btn.selected{border-color:var(--primary);background:#e8f0f8}
+  .tf-btn.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .tf-btn.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .feedback{margin-top:1.0rem;padding:0.9rem 1.1rem;border-radius:8px;background:#f0f4f8;border-left:3px solid var(--primary);font-size:0.92rem;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback.feedback-correct{border-left-color:var(--accent);background:#e8f5e9}
+  .feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:#fce8e8}
+  .feedback-title{font-weight:600;margin-bottom:0.3rem;display:block}
+  .feedback ul{margin:0.4rem 0 0 0;padding-left:1.2rem}
+  .feedback li{margin-bottom:0.3rem}
+  .action-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1.0rem}
+  .btn{padding:0.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:0.9rem;transition:all 0.15s}
+  .btn:hover{background:var(--drop-zone);border-color:var(--primary)}
+  .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn-primary:hover{background:#2c4661;border-color:#2c4661;color:#fff}
+  .nav-row{display:flex;justify-content:space-between;margin-top:0.8rem;gap:0.6rem}
+  .overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .overview-panel.show{display:block}
+  .overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:0.5rem}
+  .overview-header h2{margin:0;font-size:1.15rem;font-weight:500}
+  .overview-stats{display:flex;gap:0.5rem;flex-wrap:wrap}
+  .filter-btn{padding:0.4rem 0.8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.82rem;transition:all 0.15s}
+  .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .filter-btn:hover:not(.active){background:#dbe4ee}
+  .overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:0.5rem}
+  .overview-item{aspect-ratio:1;border:1.5px solid var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--status-unanswered);transition:all 0.15s;font-size:0.85rem}
+  .overview-item.correct{background:var(--status-correct);border-color:var(--accent);color:var(--accent)}
+  .overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong);color:var(--accent-wrong)}
+  .overview-item:hover{transform:scale(1.05);box-shadow:0 2px 6px var(--shadow)}
+  .overview-item .ov-num{font-weight:600;font-size:0.95rem}
+  .overview-item .ov-type{font-size:0.7rem;opacity:0.7;margin-top:2px}
+  .source-link{display:inline-block;margin-top:1.0rem;padding:0.5rem 1.0rem;background:var(--drop-zone);border-radius:6px;color:var(--primary);text-decoration:none;font-size:0.88rem;border:1px solid var(--border)}
+  .source-link:hover{background:#dbe4ee}
+</style>
+</head>
+<body>
+<header>
+  <h1>UnrealMCP (N1) — 让 AI Agent 直接操控 UE Editor</h1>
+  <p>P0-立即学习 | day-job 直接闭环加速,MCP 协议 2026 H1 爆发</p>
+</header>
+<div class="container">
+
+<div class="nav-tabs">
+  <div class="nav-tab active" data-type="all">全部</div>
+  <div class="nav-tab" data-type="drag">拖拽填空</div>
+  <div class="nav-tab" data-type="single">单选题</div>
+  <div class="nav-tab" data-type="multi">多选题</div>
+  <div class="nav-tab" data-type="tf">判断题</div>
+</div>
+
+<div class="score-bar">
+  <div class="score-mini">已答:<span class="score-num" id="answered-num">0</span> / <span id="total-num">0</span></div>
+  <div class="score-mini">正确:<span class="score-num" id="correct-num">0</span></div>
+  <div class="score-mini">错误:<span class="score-num" id="wrong-num">0</span></div>
+  <div class="score-mini">得分:<span class="score-num" id="score-pct">0%</span></div>
+  <div style="flex:1"></div>
+  <button class="btn" id="btn-overview">📊 题目总览</button>
+  <button class="btn" id="btn-reset-all">🔄 重置所有分数</button>
+</div>
+<div class="progress-text" id="progress-text">第 1 题 / 共 0 题</div>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+<div class="overview-panel" id="overview-panel">
+  <div class="overview-header">
+    <h2>题目总览</h2>
+    <div class="overview-stats">
+      <div class="filter-btn active" data-filter="all">全部</div>
+      <div class="filter-btn" data-filter="unanswered">未答</div>
+      <div class="filter-btn" data-filter="correct">正确</div>
+      <div class="filter-btn" data-filter="wrong">错误</div>
+    </div>
+  </div>
+  <div class="overview-grid" id="overview-grid"></div>
+</div>
+
+<div id="q-container"></div>
+
+<div class="nav-row">
+  <button class="btn btn-primary" id="btn-prev">← 上一题</button>
+  <button class="btn btn-primary" id="btn-next">下一题 →</button>
+</div>
+
+<a class="source-link" href="./UnrealMCP-N1UnrealMCP.md">📄 查看原始笔记(MD)</a>
+
+</div>
+
+<script>
+// 题目数据
+const dragQuestions = [
+  {
+    "sentence": "UnrealMCP 架构:MCP({0}) → Python Bridge(TCP:55558) → UE Plugin → EditorSubsystem({1})。",
+    "answers": [
+      "stdio",
+      "MCP Server"
+    ],
+    "pool": [
+      "stdio",
+      "TCP",
+      "HTTP",
+      "MCP Server",
+      "EditorSubsystem",
+      "WorldSubsystem"
+    ],
+    "per_slot_analysis": [
+      "MCP(stdio) = AI Agent 端的 MCP 协议,Claude Code / Cursor 都通过 stdio 通信。",
+      "EditorSubsystem 是 MCP Server,扩展 Editor 能力的标准入口。"
+    ]
+  }
+];
+const singleQuestions = [
+  {
+    "question": "UnrealMCP 提供 104 个命令,分多少类?",
+    "options": [
+      "A. 5 类",
+      "B. 11 类",
+      "C. 20 类",
+      "D. 50 类"
+    ],
+    "correct": 1,
+    "analysis": [
+      "❌ 5 类太少。",
+      "✅ UnrealMCP 提供 104 个命令,分 11 类:Editor(19)、Blueprint(12)、Blueprint Node(15)、Material(11)、UMG(7)、Project(5)、Asset(8)、Landscape(8)、PIE(5)、Data(10)、Meta(4)。",
+      "❌ 20 类偏多。",
+      "❌ 50 类明显过多。"
+    ]
+  },
+  {
+    "question": "UnrealMCP 在哪个 UE 版本上已稳定?",
+    "options": [
+      "A. UE 4.27",
+      "B. UE 5.0",
+      "C. UE 5.4",
+      "D. UE 5.7"
+    ],
+    "correct": 3,
+    "analysis": [
+      "❌ UE 4.27 太老,MCP 协议 2024 才发布。",
+      "❌ UE 5.0 不支持,缺少必要的 EditorSubsystem 扩展。",
+      "❌ UE 5.4 部分支持,但不完整。",
+      "✅ UE 5.7 已稳定,GitHub 12 commits + 持续活跃,Demo 项目齐全。"
+    ]
+  },
+  {
+    "question": "UnrealMCP 的所有 mutation 命令包在什么事务里,实现自动 Undo/Redo?",
+    "options": [
+      "A. FTransaction 安全网",
+      "B. FScopedTransaction",
+      "C. 手动 git checkout",
+      "D. 无事务,直接改"
+    ],
+    "correct": 1,
+    "analysis": [
+      "❌ FTransaction 不是 UE 的标准事务类。",
+      "✅ UnrealMCP 把所有 mutation 命令包在 FScopedTransaction 里——自动 Undo/Redo。这是 UE Editor 编程的标准模式。",
+      "❌ git checkout 跟 Undo/Redo 无关,git 是版本控制。",
+      "❌ 没有事务就直接改是 dangerous,容易出错。"
+    ]
+  }
+];
+const multiQuestions = [
+  {
+    "question": "UnrealMCP 的 11 类命令包括?(多选)",
+    "options": [
+      "A. Editor(19 个:spawn/delete/transform actor 等)",
+      "B. Blueprint(12 个:创建 BP、加 component、编译)",
+      "C. Material(11 个:创建材质、加 expression)",
+      "D. Niagara(8 个:粒子系统控制)",
+      "E. PIE(5 个:Play/Stop、控制台命令)",
+      "F. Meta(4 个:ping、list_commands 等)"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      4,
+      5
+    ],
+    "analysis": [
+      "✅ Editor(19 个):spawn/delete/transform actor、开 level、截图、视口操作。",
+      "✅ Blueprint(12 个):创建 BP、加 component/variable、编译。",
+      "✅ Material(11 个):创建材质、加 expression、连节点。",
+      "❌ 不包含 Niagara(粒子系统控制)。",
+      "✅ PIE(5 个):Play/Stop、控制台命令(带黑名单)。",
+      "✅ Meta(4 个):ping、list_commands、describe_command、list_categories。"
+    ]
+  },
+  {
+    "question": "UnrealMCP + Claude Code 配合实现的 AI 工作流包括?(多选)",
+    "options": [
+      "A. AI 读 Lyra GameMode,然后自动加自定义 GameState",
+      "B. AI 创建 GameFeature 子类 + 加 1 个 Ability + 跑 PIE 截图",
+      "C. AI 改 C++ 后自动调 UnrealMCP 编译 + 检查 BP 编译错误",
+      "D. 完全手动,AI 不能触发任何 UE 操作",
+      "E. MetaHuman / Audio2Face 集成测试自动化",
+      "F. 跨模块批量重构 + 自动验证"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      4,
+      5
+    ],
+    "analysis": [
+      "✅ '在 LyraGameMode 里加一个自定义 GameState 初始化步骤'——AI 直接 spawn actor / 改蓝图 / 编译 / 跑 PIE。",
+      "✅ UnrealMCP 让 AI 自己读 Lyra 的 GameFeature → 创建自定义 GameFeature 子类 → 加 1 个 Ability → 跑 PIE 截图,全程 5 分钟。",
+      "✅ 跨模块批量重构(引擎模块间同步签名):AI 改完 C++,自动调 UnrealMCP 编译 + 检查 BP 编译错误 + 截图验证。",
+      "❌ 不是完全手动,UnrealMCP 核心价值就是让 AI 触发 UE 操作。",
+      "✅ MetaHuman / Audio2Face / 3DGS 这些 P0 条目的'实测验证'都能靠 UnrealMCP 自动化。",
+      "✅ 跨模块批量重构是 UnrealMCP + Claude Code 的招牌场景。"
+    ]
+  }
+];
+const trueFalseQuestions = [
+  {
+    "question": "UnrealMCP 直接修改 UE 引擎源码。",
+    "answer": false,
+    "analysis": "✅ 正确理解:UnrealMCP 是项目级插件(Plugins/N1UnrealMCP),通过 EditorSubsystem 扩展 UE 能力,不需要修改引擎源码。\n\n❌ 常见误解:以为 MCP 工具要改引擎——其实通过 Subsystem 反射即可,Epic 官方也推荐这种方式扩展 Editor。"
+  },
+  {
+    "question": "UnrealMCP 通过 stdio 和 AI Agent 通信,Claude Code / Cursor 都直接对接。",
+    "answer": true,
+    "analysis": "✅ 正确理解:MCP(stdio)是 LLM tool call 的标准通信模型,Claude Code / Cursor 都直接走 stdio,不用自定义协议。\n\n❌ 常见误解:以为要写 HTTP/RPC——MCP 协议本身就是为了统一 LLM tool call 设计的,stdio + JSON-RPC 是默认。"
+  },
+  {
+    "question": "UnrealMCP 的所有 mutation 命令支持自动 Undo/Redo。",
+    "answer": true,
+    "analysis": "✅ 正确理解:所有 mutation 命令包在 FScopedTransaction 里,这是 UE Editor 编程的标准模式,自动 Undo/Redo。\n\n❌ 常见误解:以为需要手动实现 Undo——FScopedTransaction 是 UE 内置事务类,AI 改错的成本几乎为零。\n\n**追问**:'那 Perforce 自动 checkout 呢?'\n→ UnrealMCP 同时做了 Perforce 自动 checkout + MarkPackageDirty + 可选 save,资产版本管理自动化。"
+  }
+];
+
+const allQuestions = [
+  ...dragQuestions.map((q,i)=>({type:'drag', index:i})),
+  ...singleQuestions.map((q,i)=>({type:'single', index:i})),
+  ...multiQuestions.map((q,i)=>({type:'multi', index:i})),
+  ...trueFalseQuestions.map((q,i)=>({type:'tf', index:i}))
+];
+
+let currentQ = 0;
+let currentType = 'all';
+let overviewOpen = false;
+let overviewFilter = 'all';
+let answeredSet = new Map();
+
+function qKey(type, idx) { return type + '_' + idx; }
+function getTotal() { return allQuestions.length; }
+function getFilteredIndices() {
+  if (currentType === 'all') return allQuestions.map((_,i)=>i);
+  return allQuestions.map((q,i)=>q.type===currentType?i:-1).filter(i=>i>=0);
+}
+
+function getCurrentQDef() {
+  const def = allQuestions[currentQ];
+  if (def.type === 'drag') return { def: dragQuestions[def.index], type: 'drag', num: def.index+1 };
+  if (def.type === 'single') return { def: singleQuestions[def.index], type: 'single', num: def.index+1 };
+  if (def.type === 'multi') return { def: multiQuestions[def.index], type: 'multi', num: def.index+1 };
+  return { def: trueFalseQuestions[def.index], type: 'tf', num: def.index+1 };
+}
+
+function setAnswered(type, idx, result) {
+  answeredSet.set(qKey(type, idx), result);
+  updateScoreBar();
+  updateOverviewGrid();
+}
+
+function updateScoreBar() {
+  const total = getTotal();
+  let correct = 0, wrong = 0;
+  for (const v of answeredSet.values()) {
+    if (v === 'correct') correct++;
+    else if (v === 'wrong') wrong++;
+  }
+  const answered = correct + wrong;
+  document.getElementById('answered-num').textContent = answered;
+  document.getElementById('correct-num').textContent = correct;
+  document.getElementById('wrong-num').textContent = wrong;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  document.getElementById('score-pct').textContent = pct + '%';
+}
+
+function updateProgress() {
+  const filtered = getFilteredIndices();
+  const pos = filtered.indexOf(currentQ);
+  const total = filtered.length;
+  document.getElementById('progress-text').textContent = `第 ${pos+1} 题 / 共 ${total} 题`;
+  document.getElementById('progress-fill').style.width = (total > 0 ? ((pos+1)/total)*100 : 0) + '%';
+  document.getElementById('total-num').textContent = total;
+}
+
+function updateOverviewGrid() {
+  const grid = document.getElementById('overview-grid');
+  grid.innerHTML = '';
+  allQuestions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'overview-item';
+    const status = answeredSet.get(qKey(q.type, q.index));
+    if (status === 'correct') div.classList.add('correct');
+    else if (status === 'wrong') div.classList.add('wrong');
+    if (i === currentQ) div.style.outline = '3px solid var(--primary)';
+    if (overviewFilter === 'unanswered' && status) { div.style.display = 'none'; return; }
+    if (overviewFilter === 'correct' && status !== 'correct') { div.style.display = 'none'; return; }
+    if (overviewFilter === 'wrong' && status !== 'wrong') { div.style.display = 'none'; return; }
+    const typeMap = { drag: '拖', single: '单', multi: '多', tf: '判' };
+    div.innerHTML = `<div class="ov-num">${i+1}</div><div class="ov-type">${typeMap[q.type]}</div>`;
+    div.onclick = () => { currentQ = i; renderQuestion(); toggleOverview(false); };
+    grid.appendChild(div);
+  });
+}
+
+function toggleOverview(force) {
+  const panel = document.getElementById('overview-panel');
+  if (typeof force === 'boolean') { overviewOpen = force; panel.classList.toggle('show', force); }
+  else { overviewOpen = !overviewOpen; panel.classList.toggle('show', overviewOpen); }
+  if (overviewOpen) updateOverviewGrid();
+}
+
+// 拖拽填空
+function renderDrag(def) {
+  const container = document.getElementById('q-container');
+  const parts = def.sentence.split(/(\{\d+\})/g);
+  let slotsHTML = '';
+  let slotIdx = 0;
+  for (const p of parts) {
+    const m = p.match(/^\{(\d+)\}$/);
+    if (m) { slotsHTML += `<span class="drop-zone" data-slot="${slotIdx}" data-empty="true">　</span>`; slotIdx++; }
+    else { slotsHTML += p; }
+  }
+  const shuffled = [...def.pool].sort(()=>Math.random()-0.5);
+  let poolHTML = '<div class="drag-pool">';
+  for (const term of shuffled) {
+    poolHTML += `<div class="draggable" draggable="true" data-term="${term}">${term}</div>`;
+  }
+  poolHTML += '</div>';
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.sentence.replace(/[{}]/g,'').substring(0,40)}…<span class="q-type">拖拽填空</span></h3>
+      <div class="drag-sentence">${slotsHTML}</div>
+      ${poolHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+  const fillState = Array(def.answers.length).fill(null);
+  const draggables = container.querySelectorAll('.draggable');
+  const dropZones = container.querySelectorAll('.drop-zone');
+  draggables.forEach(d => {
+    d.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', d.dataset.term);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+  dropZones.forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const term = e.dataTransfer.getData('text/plain');
+      const slot = parseInt(zone.dataset.slot);
+      const existingSlot = fillState.indexOf(term);
+      if (existingSlot >= 0 && existingSlot !== slot) {
+        fillState[existingSlot] = null;
+        const oldZone = container.querySelector(`[data-slot="${existingSlot}"]`);
+        oldZone.textContent = '　';
+        oldZone.dataset.empty = 'true';
+        oldZone.classList.remove('filled', 'correct', 'wrong');
+      }
+      fillState[slot] = term;
+      zone.innerHTML = `<span class="dropped-text">${term}</span>`;
+      zone.dataset.empty = 'false';
+      zone.classList.add('filled');
+      zone.classList.remove('correct', 'wrong');
+      const sourceDraggable = Array.from(draggables).find(d => d.dataset.term === term);
+      if (sourceDraggable) sourceDraggable.classList.add('used');
+      hideFeedback();
+    });
+    zone.addEventListener('click', () => {
+      if (zone.dataset.empty === 'true' || !fillState[parseInt(zone.dataset.slot)]) return;
+      const slot = parseInt(zone.dataset.slot);
+      const term = fillState[slot];
+      fillState[slot] = null;
+      zone.textContent = '　';
+      zone.dataset.empty = 'true';
+      zone.classList.remove('filled', 'correct', 'wrong');
+      const sourceDraggable = Array.from(draggables).find(d => d.dataset.term === term);
+      if (sourceDraggable) sourceDraggable.classList.remove('used');
+      hideFeedback();
+    });
+  });
+  document.getElementById('btn-check').onclick = () => {
+    let allCorrect = true;
+    fillState.forEach((term, i) => {
+      const zone = container.querySelector(`[data-slot="${i}"]`);
+      zone.classList.remove('correct', 'wrong');
+      if (term === def.answers[i]) zone.classList.add('correct');
+      else { zone.classList.add('wrong'); allCorrect = false; }
+    });
+    const isFull = fillState.every(t => t !== null);
+    if (!isFull) { showFeedback(false, '<b>未填完</b><br>请把所有空位都填上后再检查。'); return; }
+    let html = '<span class="feedback-title">' + (allCorrect ? '✅ 完全正确！' : '❌ 有错误') + '</span><ul>';
+    fillState.forEach((term, i) => {
+      const ok = term === def.answers[i];
+      html += `<li>第 ${i+1} 空：<b>${ok?'✅ 正确':'❌ 错误'}</b> —— 你的答案：<code>${term}</code>；正确答案：<code>${def.answers[i]}</code>。${def.per_slot_analysis[i]}</li>`;
+    });
+    html += '</ul>';
+    showFeedback(allCorrect, html);
+    setAnswered('drag', dragQuestions.indexOf(def), allCorrect ? 'correct' : 'wrong');
+  };
+  document.getElementById('btn-reset').onclick = () => renderDrag(def);
+}
+
+// 单选
+function renderSingle(def) {
+  const container = document.getElementById('q-container');
+  let optsHTML = '<div class="options-list">';
+  def.options.forEach((opt, i) => {
+    const label = opt.length > 1 && opt[1] === '.' ? opt.substring(2) : opt;
+    optsHTML += `<div class="option" data-opt="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${label}</span></div>`;
+  });
+  optsHTML += '</div>';
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">单选题</span></h3>
+      ${optsHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+  let selected = null;
+  const opts = container.querySelectorAll('.option');
+  opts.forEach(o => {
+    o.onclick = () => { if (selected !== null) return; selected = parseInt(o.dataset.opt); o.classList.add('selected'); hideFeedback(); };
+  });
+  document.getElementById('btn-check').onclick = () => {
+    if (selected === null) { showFeedback(false, '<b>未选择</b><br>请先选一个选项。'); return; }
+    const ok = selected === def.correct;
+    opts.forEach((o, i) => {
+      if (i === def.correct) o.classList.add('correct-mark');
+      if (i === selected && i !== def.correct) o.classList.add('wrong-mark');
+    });
+    let html = '<span class="feedback-title">' + (ok ? '✅ 回答正确！' : '❌ 回答错误') + '</span><ul>';
+    def.analysis.forEach((a, i) => html += `<li>${a}</li>`);
+    html += '</ul>';
+    showFeedback(ok, html);
+    setAnswered('single', singleQuestions.indexOf(def), ok ? 'correct' : 'wrong');
+  };
+  document.getElementById('btn-reset').onclick = () => renderSingle(def);
+}
+
+// 多选
+function renderMulti(def) {
+  const container = document.getElementById('q-container');
+  let optsHTML = '<div class="options-list">';
+  def.options.forEach((opt, i) => {
+    const label = opt.length > 1 && opt[1] === '.' ? opt.substring(2) : opt;
+    optsHTML += `<div class="option" data-opt="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${label}</span></div>`;
+  });
+  optsHTML += '</div>';
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">多选题</span></h3>
+      ${optsHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+  const selected = new Set();
+  const opts = container.querySelectorAll('.option');
+  opts.forEach(o => {
+    o.onclick = () => {
+      const i = parseInt(o.dataset.opt);
+      if (selected.has(i)) { selected.delete(i); o.classList.remove('selected'); }
+      else { selected.add(i); o.classList.add('selected'); }
+      hideFeedback();
+    };
+  });
+  document.getElementById('btn-check').onclick = () => {
+    if (selected.size === 0) { showFeedback(false, '<b>未选择</b><br>多选题必须至少选 1 项。'); return; }
+    const correctSet = new Set(def.correct);
+    const isExactMatch = selected.size === correctSet.size && [...selected].every(i => correctSet.has(i));
+    opts.forEach((o, i) => {
+      if (correctSet.has(i)) o.classList.add('correct-mark');
+      if (selected.has(i) && !correctSet.has(i)) o.classList.add('wrong-mark');
+    });
+    let html = '<span class="feedback-title">' + (isExactMatch ? '✅ 完全正确！' : '❌ 有错误 / 漏选') + '</span><ul>';
+    def.analysis.forEach((a, i) => html += `<li>${a}</li>`);
+    html += '</ul>';
+    showFeedback(isExactMatch, html);
+    setAnswered('multi', multiQuestions.indexOf(def), isExactMatch ? 'correct' : 'wrong');
+  };
+  document.getElementById('btn-reset').onclick = () => renderMulti(def);
+}
+
+// 判断
+function renderTF(def) {
+  const container = document.getElementById('q-container');
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">判断题</span></h3>
+      <div class="tf-options">
+        <div class="tf-btn" data-tf="true">✅ 正确(True)</div>
+        <div class="tf-btn" data-tf="false">❌ 错误(False)</div>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+  let selected = null;
+  const btns = container.querySelectorAll('.tf-btn');
+  btns.forEach(b => {
+    b.onclick = () => { btns.forEach(x => x.classList.remove('selected')); b.classList.add('selected'); selected = b.dataset.tf === 'true'; hideFeedback(); };
+  });
+  document.getElementById('btn-check').onclick = () => {
+    if (selected === null) { showFeedback(false, '<b>未选择</b><br>请先选 True 或 False。'); return; }
+    const ok = selected === def.answer;
+    btns.forEach(b => {
+      const v = b.dataset.tf === 'true';
+      if (v === def.answer) b.classList.add('correct-mark');
+      if (v === selected && v !== def.answer) b.classList.add('wrong-mark');
+    });
+    const analysisParts = def.analysis.split('\n\n');
+    let html = '<span class="feedback-title">' + (ok ? '✅ 判断正确！' : '❌ 判断错误') + '</span>';
+    html += '<div style="white-space:pre-line;margin-top:0.3rem">' + analysisParts[0] + '</div>';
+    if (analysisParts.length > 1) {
+      html += '<div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px dashed var(--border);white-space:pre-line;color:var(--text-light)">' + analysisParts.slice(1).join('\n\n') + '</div>';
+    }
+    showFeedback(ok, html);
+    setAnswered('tf', trueFalseQuestions.indexOf(def), ok ? 'correct' : 'wrong');
+  };
+  document.getElementById('btn-reset').onclick = () => renderTF(def);
+}
+
+function renderQuestion() {
+  const { def, type } = getCurrentQDef();
+  if (type === 'drag') renderDrag(def);
+  else if (type === 'single') renderSingle(def);
+  else if (type === 'multi') renderMulti(def);
+  else renderTF(def);
+  updateProgress();
+  updateOverviewGrid();
+}
+
+function showFeedback(ok, html) {
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = html;
+  fb.classList.add('show');
+  fb.classList.toggle('feedback-correct', ok);
+  fb.classList.toggle('feedback-wrong', !ok);
+}
+
+function hideFeedback() {
+  const fb = document.getElementById('feedback');
+  if (fb) { fb.classList.remove('show'); fb.innerHTML = ''; }
+}
+
+function navTo(direction) {
+  const filtered = getFilteredIndices();
+  if (filtered.length === 0) return;
+  const pos = filtered.indexOf(currentQ);
+  let newPos = pos + direction;
+  if (newPos < 0) newPos = filtered.length - 1;
+  if (newPos >= filtered.length) newPos = 0;
+  currentQ = filtered[newPos];
+  renderQuestion();
+}
+
+document.getElementById('btn-prev').onclick = () => navTo(-1);
+document.getElementById('btn-next').onclick = () => navTo(1);
+document.getElementById('btn-overview').onclick = () => toggleOverview();
+document.getElementById('btn-reset-all').onclick = () => {
+  if (!confirm('确认重置全部答题记录？')) return;
+  answeredSet.clear();
+  updateScoreBar();
+  updateOverviewGrid();
+  currentQ = 0;
+  renderQuestion();
+};
+
+document.querySelectorAll('.nav-tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentType = t.dataset.type;
+    const filtered = getFilteredIndices();
+    if (filtered.length > 0) currentQ = filtered[0];
+    renderQuestion();
+  };
+});
+
+document.querySelectorAll('.filter-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    overviewFilter = b.dataset.filter;
+    updateOverviewGrid();
+  };
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') navTo(-1);
+  else if (e.key === 'ArrowRight') navTo(1);
+  else if (e.key === 'o' || e.key === 'O') toggleOverview();
+});
+
+updateScoreBar();
+renderQuestion();
+updateOverviewGrid();
+</script>
+
+</body>
+</html>
