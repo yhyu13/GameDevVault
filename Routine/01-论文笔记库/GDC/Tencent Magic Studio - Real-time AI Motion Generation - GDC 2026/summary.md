@@ -36,14 +36,15 @@ Fighting games need *thousands* of motion transitions between combat states (att
 
 ## Hard Numbers
 
-| Metric | Traditional | AI System | Gain |
-|---|---|---|---|
-| Model size (FP32 / INT8) | n/a | 15 MB / 6 MB | small enough for shipping |
-| Inference time per frame | n/a | 0.75 ms (FP32) → **0.4 ms** (INT8) | real-time |
-| Position error | n/a | < 1 unit | invisible to player |
-| Time to produce one transition | 30 min mocap + 60 min cleanup = **90 min** | 5 min mocap + 15 min cleanup = **20 min** | **−78%** |
-| Asset-to-action coverage ratio | 930 mocap clips for 930 actions (**1 : 1**) | 445 clips for 930 actions (**0.48 : 1**) | **−52%** |
-| Combat states covered | finite; many missing transitions | combinatorially generated on demand | effectively infinite |
+| Metric                         | Traditional                                 | AI System                                 | Gain                      |
+| ------------------------------ | ------------------------------------------- | ----------------------------------------- | ------------------------- |
+| Model size (FP32 / INT8)       | n/a                                         | 15 MB / 6 MB                              | small enough for shipping |
+| Inference time per frame       | n/a                                         | 0.75 ms (FP32) → **0.4 ms** (INT8)        | real-time                 |
+| Position error                 | n/a                                         | < 1 unit                                  | invisible to player       |
+| Time to produce one transition | 30 min mocap + 60 min cleanup = **90 min**  | 5 min mocap + 15 min cleanup = **20 min** | **−78%**                  |
+| Asset-to-action coverage ratio | 930 mocap clips for 930 actions (**1 : 1**) | 445 clips for 930 actions (**0.48 : 1**)  | **−52%**                  |
+| Combat states covered          | finite; many missing transitions            | combinatorially generated on demand       | effectively infinite      |
+|                                |                                             |                                           |                           |
 
 ## Why It Matters
 
