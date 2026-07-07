@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5.8 HeterogeneousVolumes 体素体积 · 互动式面试卡牌</title>
+<style>
+:root{--bg:#1a1a22;--card-bg:#252530;--primary:#ff7043;--primary-dark:#e85a2c;--accent:#66bb6a;--accent-wrong:#ef5350;--text:#e8e8ee;--text-light:#a0a0b0;--border:#3a3a48;--shadow:rgba(0,0,0,.45);--drop-zone:#2f2f3a;--draggable:#34343f;--status-correct:#2d4a36;--status-wrong:#4a2d2d;--status-unanswered:#34343f}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+header{background:linear-gradient(135deg,#2c1810,#1a1a22);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 12px var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;border-bottom:2px solid var(--primary)}
+header h1{margin:0;font-size:1.3rem;font-weight:500}
+header p{margin:.2rem 0 0;opacity:.85;font-size:.85rem}
+.header-left{flex:1;min-width:260px}
+.header-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.header-btn{padding:.5rem 1rem;background:rgba(255,112,67,.15);border:1px solid rgba(255,112,67,.4);border-radius:8px;color:#fff;cursor:pointer;transition:all .2s;font-size:.88rem;text-decoration:none;display:inline-block}
+.header-btn:hover{background:rgba(255,112,67,.3);border-color:var(--primary)}
+.container{max-width:820px;margin:0 auto;padding:1.5rem}
+.nav-tabs{display:flex;gap:.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+.nav-tab{flex:1;min-width:90px;padding:.6rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:.85rem;transition:all .2s;color:var(--text-light)}
+.nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(255,112,67,.4)}
+.nav-tab:hover:not(.active){background:var(--drop-zone);color:var(--text)}
+.score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:.6rem;flex-wrap:wrap}
+.score-mini{font-size:.85rem;color:var(--text-light);white-space:nowrap}
+.score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+.progress-text{text-align:right;font-size:.8rem;color:var(--text-light);margin-bottom:.3rem}
+.progress-bar{height:6px;background:#2f2f3a;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#ffa726);border-radius:3px;transition:width .3s ease}
+.card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem;border:1px solid var(--border)}
+.card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:26px;font-size:.8rem;font-weight:600;margin-right:.5rem}
+.card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5;color:var(--text)}
+.q-type{font-size:.75rem;color:var(--text-light);background:#34343f;padding:2px 8px;border-radius:4px;margin-left:.4rem}
+.drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem}
+.drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed #4a4a58;border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all .2s;padding:0 6px;font-size:.95rem;color:var(--text-light)}
+.drop-zone.drag-over{background:#3a3a48;border-color:var(--primary);color:var(--text)}
+.drop-zone.filled{border-style:solid;border-color:var(--primary);background:#3a2820;cursor:pointer;color:var(--text)}
+.drop-zone.correct{border-color:var(--accent);background:#1f3a26;color:#fff}
+.drop-zone.wrong{border-color:var(--accent-wrong);background:#3a1f1f;color:#fff}
+.drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+.drop-zone.correct .dropped-text{color:var(--accent)}
+.drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+.drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:.5rem;padding:.8rem;background:var(--drop-zone);border-radius:8px}
+.draggable{padding:.4rem .9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all .15s;font-size:.92rem;color:var(--text)}
+.draggable:hover{background:#3a3a48;border-color:var(--primary);transform:translateY(-1px)}
+.draggable.used{opacity:.35;cursor:default;pointer-events:none}
+.options-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.0rem}
+.option{padding:.7rem 1.0rem;background:#2a2a35;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.6rem;font-size:.95rem;line-height:1.45;color:var(--text)}
+.option:hover{border-color:var(--primary);background:#34343f}
+.option.selected{border-color:var(--primary);background:#3a2820}
+.option.correct-mark{border-color:var(--accent);background:#1f3a26}
+.option.wrong-mark{border-color:var(--accent-wrong);background:#3a1f1f}
+.option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;flex-shrink:0;background:#1a1a22;color:var(--text)}
+.option.selected .opt-marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+.option.correct-mark .opt-marker{background:var(--accent);color:#fff;border-color:var(--accent)}
+.option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+.tf-options{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.0rem}
+.tf-btn{padding:.9rem;border:1.5px solid var(--border);border-radius:8px;background:#2a2a35;cursor:pointer;transition:all .15s;font-size:.95rem;text-align:center;color:var(--text)}
+.tf-btn:hover{border-color:var(--primary);background:#34343f}
+.tf-btn.selected{border-color:var(--primary);background:#3a2820}
+.tf-btn.correct-mark{border-color:var(--accent);background:#1f3a26}
+.tf-btn.wrong-mark{border-color:var(--accent-wrong);background:#3a1f1f}
+.feedback{margin-top:1.0rem;padding:.9rem 1.1rem;border-radius:8px;background:#2a2a35;border-left:3px solid var(--primary);font-size:.92rem;line-height:1.6;display:none;color:var(--text)}
+.feedback.show{display:block}
+.feedback.feedback-correct{border-left-color:var(--accent);background:#1f3a26}
+.feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:#3a1f1f}
+.feedback-title{font-weight:600;margin-bottom:.3rem;display:block;color:var(--primary)}
+.feedback-correct .feedback-title{color:var(--accent)}
+.feedback-wrong .feedback-title{color:var(--accent-wrong)}
+.feedback ul{margin:.4rem 0 0 0;padding-left:1.2rem}
+.feedback li{margin-bottom:.3rem}
+.action-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.0rem}
+.btn{padding:.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:#2a2a35;color:var(--text);cursor:pointer;font-size:.9rem;transition:all .15s}
+.btn:hover{background:#34343f;border-color:var(--primary)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-dark);border-color:var(--primary-dark);color:#fff}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{filter:brightness(.95)}
+.nav-row{display:flex;justify-content:space-between;margin-top:.8rem;gap:.6rem}
+.overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem;border:1px solid var(--border)}
+.overview-panel.show{display:block}
+.overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:.5rem}
+.overview-header h2{margin:0;font-size:1.15rem;font-weight:500;color:var(--text)}
+.overview-stats{display:flex;gap:.5rem;flex-wrap:wrap}
+.filter-btn{padding:.4rem .8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .15s;color:var(--text)}
+.filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filter-btn:hover:not(.active){background:#3a3a48}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:.5rem}
+.overview-item{aspect-ratio:1;border-radius:8px;background:var(--status-unanswered);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:.78rem;text-align:center;padding:.2rem;color:var(--text-light)}
+.overview-item.correct{background:var(--status-correct);border-color:var(--accent);color:var(--accent)}
+.overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong);color:var(--accent-wrong)}
+.overview-item:hover{transform:scale(1.04);box-shadow:0 2px 8px var(--shadow)}
+.overview-item .ov-num{font-weight:700;font-size:1.0rem;margin-bottom:.1rem}
+.overview-item .ov-type{font-size:.65rem;opacity:.75;text-transform:uppercase;letter-spacing:.5px}
+.hidden{display:none}
+@media (max-width:600px){.container{padding:1rem}.card{padding:1.2rem 1.0rem}header{padding:1rem}header h1{font-size:1.1rem}.nav-tab{font-size:.78rem;padding:.5rem .3rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>UE5.8 HeterogeneousVolumes 体素体积 · 互动式面试卡牌</h1>
+    <p>6 Pipeline · 阴影双选择 · Ortho+Frustum Grid · Majorant delta tracking</p>
+    <p style="margin-top:.4rem"><a href="UE5.8-HeterogeneousVolumes-体素体积.md" class="header-btn">📄 配套源码笔记</a></p>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" onclick="reshuffleAll()">🔄 随机打乱</button>
+    <button class="header-btn" onclick="toggleOverview()">📊 题目总览</button>
+    <button class="header-btn" onclick="resetAll()">🔄 重置所有分数</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="score-bar">
+    <div class="score-mini">总分: <span class="score-num" id="totalScore">0</span> / <span id="totalMax">0</span></div>
+    <div class="score-mini">正确: <span class="score-num" id="correctCount">0</span></div>
+    <div class="score-mini">错误: <span class="score-num" id="wrongCount">0</span></div>
+    <div class="score-mini">未答: <span class="score-num" id="unansweredCount">0</span></div>
+  </div>
+  <div class="progress-text"><span id="currentIdx">1</span> / <span id="totalCount">0</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-mode="drag" onclick="switchMode('drag')">🧩 拖拽填空 (<span id="cntDrag">0</span>)</div>
+    <div class="nav-tab" data-mode="single" onclick="switchMode('single')">🔘 单选 (<span id="cntSingle">0</span>)</div>
+    <div class="nav-tab" data-mode="multi" onclick="switchMode('multi')">☑️ 多选 (<span id="cntMulti">0</span>)</div>
+    <div class="nav-tab" data-mode="tf" onclick="switchMode('tf')">⚖️ 判断 (<span id="cntTF">0</span>)</div>
+  </div>
+
+  <div id="overviewPanel" class="overview-panel">
+    <div class="overview-header">
+      <h2>题目总览</h2>
+      <div class="overview-stats">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">✓ 正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">✗ 错误</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">○ 未答</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="cardContainer"></div>
+
+  <div class="nav-row">
+    <button class="btn" onclick="prevCard()">← 上一题</button>
+    <button class="btn" onclick="nextCard()">下一题 →</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// ====================== 题目数据 ======================
+
+const _origDrag = [
+  {
+    id: 'd1',
+    sentence: 'HeterogeneousVolumes 支持 [0]/VoxelGrid/SparseVoxel/HardwareRayTracing 等多个 pipeline,主入口是 FDeferredShadingSceneRenderer::[1],合成入口是 [2]。',
+    answers: ['LiveShading', 'RenderHeterogeneousVolumes', 'CompositeHeterogeneousVolumes'],
+    pool: ['LiveShading', 'RenderHeterogeneousVolumes', 'CompositeHeterogeneousVolumes', 'BuildPreshadingGrid', 'RenderHeterogeneousVolumeShadows'],
+    perSlot: [
+      '与 VoxelGrid/SparseVoxel/HardwareRayTracing 并列的轻量级 pipeline,默认路径',
+      'FDeferredShadingSceneRenderer 的体积渲染主入口,HeterogeneousVolumes.cpp:1085',
+      '把 downsampled radiance 上采样 + 滤波 + 合成到 SceneColor,HeterogeneousVolumes.cpp:1582'
+    ]
+  },
+  {
+    id: 'd2',
+    sentence: '阴影体系有两层:[0] 控制阴影数据格式(AdaptiveVolumetricShadowMap/BeerShadowMap),[1] 控制阴影算法路径(LiveShading/VoxelGrid)。VoxelGrid 路径会先调 [2] 构造自适应网格。',
+    answers: ['EShadowType', 'EShadowPipeline', 'BuildOrthoVoxelGrid'],
+    pool: ['EShadowType', 'EShadowPipeline', 'BuildOrthoVoxelGrid', 'BuildPreshadingGrid', 'GenerateSparseVoxels'],
+    perSlot: [
+      '枚举定义在 HeterogeneousVolumes.h:93,含 AdaptiveVolumetricShadowMap/BeerShadowMap',
+      '枚举定义在 HeterogeneousVolumes.h:100,含 LiveShading/VoxelGrid',
+      'VoxelGridPipeline.cpp:2861,产出 FOrthoVoxelGridUniformBufferParameters'
+    ]
+  },
+  {
+    id: 'd3',
+    sentence: '自适应体素网格有两份 UB:[0] 是世界等距,给阴影投射用;[1] 是视锥对齐 (froxel),按深度切片变密度。grid 数据走 [2] 而非 texture 以支持稀疏内存。',
+    answers: ['FOrthoVoxelGridUniformBufferParameters', 'FFrustumVoxelGridUniformBufferParameters', 'StructuredBuffer'],
+    pool: ['FOrthoVoxelGridUniformBufferParameters', 'FFrustumVoxelGridUniformBufferParameters', 'StructuredBuffer', 'Texture3D', 'FMatrix44f'],
+    perSlot: [
+      'HeterogeneousVolumes.h:361,含 TopLevelGridBitmask/TopLevelGrid/ExtinctionGrid 等',
+      'HeterogeneousVolumes.h:379,含 WorldToClip/ViewFrustumPlanes[6]/FroxelGrid',
+      'grid 数据走这种 RDG buffer,header 里有 FTopLevelGridData/FScalarGridData/FVectorGridData'
+    ]
+  },
+  {
+    id: 'd4',
+    sentence: 'SparseVoxel 走 allocator 三阶段:[0] 清零 → FAllocateSparseVoxels 分配 → FRefineSparseVoxels refine。BuildPreshadingGrid 产出 [1] 喂给 [2] delta tracking。',
+    answers: ['FClearAllocator', 'MajorantRT', '路径追踪'],
+    pool: ['FClearAllocator', 'MajorantRT', '路径追踪', 'ExtinctionTexture', 'LightingCache'],
+    perSlot: [
+      'SparseVoxelPipeline.cpp:79,清零 NumVoxelsBuffer (GPU atomic counter)',
+      'FPreshadingUniformBufferParameters 的关键字段,存最大消光系数 3D 纹理',
+      '用 FPathTracingHeterogeneousVolumesCallableInfo 接 callable shader'
+    ]
+  },
+  {
+    id: 'd5',
+    sentence: '合成阶段做三件事:[0] 迭代上采样(2x/3x)→ FHeterogeneousVolumesFilterCS 滤波(支持 Constant/Linear/Cubic)→ [1] 最终合成到 SceneColor。顺序由 [2] 决定是 BeforeTranslucent 还是 AfterTranslucent。',
+    answers: ['FHeterogeneousVolumesUpsampleCS', 'FHeterogeneousVolumesCompositeCS', 'EHeterogeneousVolumesCompositionType'],
+    pool: ['FHeterogeneousVolumesUpsampleCS', 'FHeterogeneousVolumesCompositeCS', 'EHeterogeneousVolumesCompositionType', 'BuildOrthoVoxelGrid', 'RenderWithPreshading'],
+    perSlot: [
+      'HeterogeneousVolumes.cpp 中定义的 compute shader,迭代 2x/3x 上采样',
+      'HeterogeneousVolumes.cpp:1579 实现,把 radiance 写回 SceneColor.Target',
+      'HeterogeneousVolumes.h:53 的枚举,决定合成阶段位置'
+    ]
+  },
+  {
+    id: 'd6',
+    sentence: 'EScalabilityMode 驱动 pipeline 选择:Low/High 走 [0];Epic/Cinematic 走 [1]。Cinematic 还可配合 [2]。',
+    answers: ['LiveShading', 'VoxelGrid', 'HardwareRayTracing'],
+    pool: ['LiveShading', 'VoxelGrid', 'HardwareRayTracing', 'Preshading', 'MaterialBaking'],
+    perSlot: [
+      '默认低开销路径,LiveShadingPipeline.cpp 3633 行',
+      '自适应体素网格路径,VoxelGridPipeline.cpp 4625 行,带 Ortho+Frustum Grid',
+      'HardwareRayTracing.cpp:FCreateSparseVoxelBLAS 把稀疏体素构建为 BLAS'
+    ]
+  },
+  {
+    id: 'd7',
+    sentence: 'MaterialBakingPipeline 烘焙出 [0]/Emission/Albedo 三张 Texture3D 喂给所有 pipeline。Preshading 额外产出 [1] 喂路径追踪。VoxelGrid 路径会缓存 UB 到 [2] 复用。',
+    answers: ['Extinction', 'MajorantTexture', 'FSceneViewState'],
+    pool: ['Extinction', 'MajorantTexture', 'FSceneViewState', 'FPathTracingHeterogeneousVolumesCallableInfo', 'FClearAllocator'],
+    perSlot: [
+      '消光系数纹理,所有 pipeline 共享输入',
+      '最大消光系数 3D 纹理,delta tracking 关键输入',
+      'HeterogeneousVolumes.cpp:1080 缓存 OrthoVoxelGridUniformBuffer 给后续帧复用'
+    ]
+  },
+  {
+    id: 'd8',
+    sentence: '阴影路径中 VoxelGrid 模式先把 OrthoGrid UB 缓存到 [0],然后调 [1] 渲染 AdaptiveVolumetricShadowMap。AVSM 注入到主 pass 之前由 [2] 处理 Holdout。',
+    answers: ['ViewState', 'RenderAdaptiveVolumetricShadowMapWithVoxelGrid', 'RenderAdaptiveVolumetricCameraMapWithVoxelGrid'],
+    pool: ['ViewState', 'RenderAdaptiveVolumetricShadowMapWithVoxelGrid', 'RenderAdaptiveVolumetricCameraMapWithVoxelGrid', 'BuildFrustumVoxelGrid', 'FCopyTexture3D'],
+    perSlot: [
+      'HeterogeneousVolumes.cpp:1080 缓存的位置,FSceneViewState 跨帧持久化',
+      'VoxelGrid 路径渲染阴影,带 VisibleLightInfos/VirtualShadowMapArray',
+      '主相机路径的 AVSM 渲染,处理透射 + Holdout 合成'
+    ]
+  }
+];
+
+const _origSingle = [
+  {
+    id: 's1',
+    q: 'HeterogeneousVolumes 的主渲染入口函数是?',
+    options: [
+      'A. FDeferredShadingSceneRenderer::RenderHeterogeneousVolumes',
+      'B. FSceneRenderer::InitViews',
+      'C. FDeferredShadingSceneRenderer::CompositeHeterogeneousVolumes',
+      'D. FHeterogeneousVolumesCompositeCS::AddPass'
+    ],
+    correct: 0,
+    optionExplanations: [
+      '✅ 正确:HeterogeneousVolumes.cpp:1085 定义的主入口,被 SceneRendering.cpp 调度',
+      '❌ 错误:InitViews 是 View 初始化,不做体积渲染',
+      '❌ 错误:这是合成入口(HeterogeneousVolumes.cpp:1582),不是主渲染入口',
+      '❌ 错误:这是 Composite 阶段的 compute shader'
+    ]
+  },
+  {
+    id: 's2',
+    q: 'EShadowType 的两种取值是?',
+    options: [
+      'A. AdaptiveVolumetricShadowMap / BeerShadowMap',
+      'B. LiveShading / VoxelGrid',
+      'C. BeforeTranslucent / AfterTranslucent',
+      'D. Ortho / Frustum'
+    ],
+    correct: 0,
+    optionExplanations: [
+      '✅ 正确:HeterogeneousVolumes.h:93 定义,控制阴影数据格式',
+      '❌ 错误:这是 EShadowPipeline 的取值(HeterogeneousVolumes.h:100),控制算法路径',
+      '❌ 错误:这是 EHeterogeneousVolumesCompositionType 的取值',
+      '❌ 错误:这是 Voxel Grid 的两种 build 模式,不是 enum'
+    ]
+  },
+  {
+    id: 's3',
+    q: 'VoxelGridPipeline 中 BuildOrthoVoxelGrid 定义在哪一行附近?',
+    options: [
+      'A. HeterogeneousVolumes.cpp:1085',
+      'B. HeterogeneousVolumes.h:434',
+      'C. VoxelGridPipeline.cpp:2861',
+      'D. SparseVoxelPipeline.cpp:215'
+    ],
+    correct: 2,
+    optionExplanations: [
+      '❌ 错误:这是 RenderHeterogeneousVolumes 主入口',
+      '❌ 错误:这是声明位置,不是定义位置',
+      '✅ 正确:VoxelGridPipeline.cpp:2861 是 BuildOrthoVoxelGrid 定义位置',
+      '❌ 错误:这是 GenerateSparseVoxels 的位置,跟 OrthoGrid 无关'
+    ]
+  },
+  {
+    id: 's4',
+    q: 'CompositeHeterogeneousVolumes 中上采样阶段的迭代因子如何选择?',
+    options: [
+      'A. 固定 2x',
+      'B. 固定 3x',
+      'C. DownsampleFactor % 3 == 0 则 3,否则 2',
+      'D. 由 CVar 决定,默认 4x'
+    ],
+    correct: 2,
+    optionExplanations: [
+      '❌ 错误:不是固定 2x,实际按需切换',
+      '❌ 错误:不是固定 3x,实际按需切换',
+      '✅ 正确:HeterogeneousVolumes.cpp:1602 写的 if (DownsampleFactor % 3 == 0) ? 3 : 2',
+      '❌ 错误:不存在 4x 上采样因子'
+    ]
+  },
+  {
+    id: 's5',
+    q: 'StohasticFiltering Mode 中哪种核最贵但噪声收敛最快?',
+    options: [
+      'A. Disabled',
+      'B. Constant',
+      'C. Linear',
+      'D. Cubic'
+    ],
+    correct: 3,
+    optionExplanations: [
+      '❌ 错误:Disabled 不过滤,最快但噪声最差',
+      '❌ 错误:Constant 常数核,最便宜的滤波',
+      '❌ 错误:Linear 线性核,中等',
+      '✅ 正确:EStochasticFilteringMode::Cubic 三次核最贵但收敛最快,HeterogeneousVolumes.h:139'
+    ]
+  },
+  {
+    id: 's6',
+    q: 'BuildPreshadingGrid 产出的 MajorantRT 喂给哪个系统?',
+    options: [
+      'A. 主相机 Pass 渲染',
+      'B. 阴影 Pass 渲染',
+      'C. 路径追踪 delta tracking',
+      'D. 后处理 Bloom'
+    ],
+    correct: 2,
+    optionExplanations: [
+      '❌ 错误:主相机 Pass 走的是 FPreshadingUniformBufferParameters 的 radiance 纹理,不是 MajorantRT',
+      '❌ 错误:阴影走 AdaptiveVolumetricShadowMap,不用 Majorant',
+      '✅ 正确:MajorantRT 存进 FPathTracingHeterogeneousVolumesCallableInfo 给路径追踪 callable shader 用',
+      '❌ 错误:Bloom 是后处理,与体积无关'
+    ]
+  },
+  {
+    id: 's7',
+    q: 'BuildFrustumVoxelGrid 中"froxel"含义是?',
+    options: [
+      'A. 等距体素',
+      'B. 视锥+体素,按深度切片自适应密度',
+      'C. 稀疏体素',
+      'D. 烘焙纹理'
+    ],
+    correct: 1,
+    optionExplanations: [
+      '❌ 错误:等距体素是 OrthoGrid 的特点',
+      '✅ 正确:Froxel = Frustum + Voxel,FFrustumVoxelGridUniformBufferParameters 按深度切片变密度',
+      '❌ 错误:稀疏体素是 SparseVoxelPipeline 的概念',
+      '❌ 错误:烘焙是 MaterialBakingPipeline 的概念'
+    ]
+  },
+  {
+    id: 's8',
+    q: 'MaterialBakingPipeline 的输出是什么?',
+    options: [
+      'A. 阴影图',
+      'B. 体素 grid',
+      'C. Extinction/Emission/Albedo 三张 3D 纹理',
+      'D. MajorantRT'
+    ],
+    correct: 2,
+    optionExplanations: [
+      '❌ 错误:阴影图由 AVSM pipeline 产出',
+      '❌ 错误:体素 grid 由 VoxelGridPipeline 产出',
+      '✅ 正确:FHeterogeneousVolumesBakeMaterialCS 写 RWExtinction/Emission/Albedo Texture3D',
+      '❌ 错误:MajorantRT 由 PreshadingPipeline 产出'
+    ]
+  }
+];
+
+const _origMulti = [
+  {
+    id: 'm1',
+    q: 'HeterogeneousVolumes 6 个独立 pipeline 的 .cpp 文件对应下面哪些?',
+    options: [
+      'A. HeterogeneousVolumesLiveShadingPipeline.cpp',
+      'B. HeterogeneousVolumesVoxelGridPipeline.cpp',
+      'C. HeterogeneousVolumesSparseVoxelPipeline.cpp',
+      'D. HeterogeneousVolumesHardwareRayTracing.cpp',
+      'E. HeterogeneousVolumesPreshadingPipeline.cpp',
+      'F. HeterogeneousVolumesMaterialBakingPipeline.cpp'
+    ],
+    correct: [0, 1, 2, 3, 4, 5],
+    optionExplanations: [
+      '✅ 正确:LiveShading 默认低开销路径',
+      '✅ 正确:VoxelGrid 自适应网格路径',
+      '✅ 正确:SparseVoxel 稀疏 mipmap chain',
+      '✅ 正确:HardwareRayTracing RT 路径',
+      '✅ 正确:Preshading 产 Majorant 喂路径追踪',
+      '✅ 正确:MaterialBaking 烘焙所有 pipeline 输入'
+    ]
+  },
+  {
+    id: 'm2',
+    q: 'HeterogeneousVolumes 系统中哪些是 UniformBuffer struct(UB struct)?',
+    options: [
+      'A. FSparseVoxelUniformBufferParameters',
+      'B. FPreshadingUniformBufferParameters',
+      'C. FOrthoVoxelGridUniformBufferParameters',
+      'D. FFrustumVoxelGridUniformBufferParameters',
+      'E. FPathTracingHeterogeneousVolumesCallableInfo',
+      'F. FHeterogeneousVolumesSceneProxy'
+    ],
+    correct: [0, 1, 2, 3],
+    optionExplanations: [
+      '✅ 正确:HeterogeneousVolumes.h:242 用 BEGIN_UNIFORM_BUFFER_STRUCT 声明',
+      '✅ 正确:HeterogeneousVolumes.h:276 用 BEGIN_UNIFORM_BUFFER_STRUCT 声明',
+      '✅ 正确:HeterogeneousVolumes.h:361 用 BEGIN_UNIFORM_BUFFER_STRUCT 声明',
+      '✅ 正确:HeterogeneousVolumes.h:379 用 BEGIN_UNIFORM_BUFFER_STRUCT 声明',
+      '❌ 错误:这是普通 struct,不是 UB struct,存 5 个 ShaderId',
+      '❌ 错误:这是 SceneProxy 类,不是 UB struct'
+    ]
+  },
+  {
+    id: 'm3',
+    q: 'SparseVoxelPipeline 中 allocator 三阶段包括哪些 compute shader?',
+    options: [
+      'A. FClearAllocator',
+      'B. FAllocateSparseVoxels',
+      'C. FRefineSparseVoxels',
+      'D. FCreateSparseVoxelBLAS',
+      'E. FHeterogeneousVolumesBakeMaterialCS',
+      'F. FHeterogeneousVolumesCompositeCS'
+    ],
+    correct: [0, 1, 2],
+    optionExplanations: [
+      '✅ 正确:SparseVoxelPipeline.cpp:79,清零 NumVoxelsBuffer',
+      '✅ 正确:cpp 中段,分配初始体素',
+      '✅ 正确:cpp:213,多次 refine 提升细节',
+      '❌ 错误:FCreateSparseVoxelBLAS 是 HardwareRayTracing 路径用的',
+      '❌ 错误:这是 MaterialBaking 路径的 shader',
+      '❌ 错误:这是 Composite 阶段的 shader'
+    ]
+  },
+  {
+    id: 'm4',
+    q: 'VoxelGrid 路径会用到哪几类 grid data?',
+    options: [
+      'A. FTopLevelGridBitmaskData',
+      'B. FTopLevelGridData',
+      'C. FScalarGridData',
+      'D. FVectorGridData',
+      'E. FVoxelDataPacked',
+      'F. FPathTracingHeterogeneousVolumesCallableInfo'
+    ],
+    correct: [0, 1, 2, 3],
+    optionExplanations: [
+      '✅ 正确:HeterogeneousVolumes.h:340,顶层 bitmask (PackedData[2])',
+      '✅ 正确:HeterogeneousVolumes.h:345,顶层 grid (PackedData[1])',
+      '✅ 正确:HeterogeneousVolumes.h:350,标量 grid (消光/Majorant 用)',
+      '✅ 正确:HeterogeneousVolumes.h:355,矢量 grid (Emission/Scattering 用)',
+      '❌ 错误:FVoxelDataPacked 是 SparseVoxel 用的,不是 VoxelGrid',
+      '❌ 错误:这是路径追踪 callable 容器,不是 grid data'
+    ]
+  },
+  {
+    id: 'm5',
+    q: 'CompositeHeterogeneousVolumes 阶段包含哪些 compute shader?',
+    options: [
+      'A. FHeterogeneousVolumesUpsampleCS',
+      'B. FHeterogeneousVolumesFilterCS',
+      'C. FHeterogeneousVolumesCompositeCS',
+      'D. FHeterogeneousVolumesBakeMaterialCS',
+      'E. FRenderLightingCacheWithPreshadingCS',
+      'F. FCreateSparseVoxelBLAS'
+    ],
+    correct: [0, 1, 2],
+    optionExplanations: [
+      '✅ 正确:HeterogeneousVolumes.cpp 中定义,迭代 2x/3x 上采样',
+      '✅ 正确:HeterogeneousVolumes.cpp 中定义,Permutation: Constant/Linear/Cubic',
+      '✅ 正确:HeterogeneousVolumes.cpp:1579 实现,合成到 SceneColor',
+      '❌ 错误:这是 MaterialBaking 用的',
+      '❌ 错误:这是 Preshading 写 lighting cache 用的',
+      '❌ 错误:这是 HW RT 用的'
+    ]
+  },
+  {
+    id: 'm6',
+    q: 'HeterogeneousVolumes 中哪几项是 UE 5.8 公开的 enum?',
+    options: [
+      'A. EScalabilityMode',
+      'B. EShadowType',
+      'C. EShadowPipeline',
+      'D. EVoxelGridBuildMode',
+      'E. EStochasticFilteringMode',
+      'F. EIndirectLightingMode'
+    ],
+    correct: [0, 1, 2, 3, 4, 5],
+    optionExplanations: [
+      '✅ 正确:HeterogeneousVolumes.h:82,Low/High/Epic/Cinematic',
+      '✅ 正确:HeterogeneousVolumes.h:93,AdaptiveVolumetricShadowMap/BeerShadowMap',
+      '✅ 正确:HeterogeneousVolumes.h:100,LiveShading/VoxelGrid',
+      '✅ 正确:HeterogeneousVolumes.h:416,PathTracing/Shadows',
+      '✅ 正确:HeterogeneousVolumes.h:134,Disabled/Constant/Linear/Cubic',
+      '✅ 正确:HeterogeneousVolumes.h:117,Disabled/LightingCachePass/SingleScatteringPass'
+    ]
+  },
+  {
+    id: 'm7',
+    q: 'RenderHeterogeneousVolumeShadows 中 VoxelGrid 路径会执行哪些步骤?',
+    options: [
+      'A. BuildOrthoVoxelGrid',
+      'B. BuildFrustumVoxelGrid',
+      'C. RenderAdaptiveVolumetricCameraMapWithVoxelGrid',
+      'D. RenderAdaptiveVolumetricShadowMapWithVoxelGrid',
+      'E. RenderAdaptiveVolumetricShadowMapWithLiveShading (VoxelGrid 模式)',
+      'F. BuildPreshadingGrid'
+    ],
+    correct: [0, 1, 3],
+    optionExplanations: [
+      '✅ 正确:HeterogeneousVolumes.cpp:1006 调 BuildOrthoVoxelGrid',
+      '✅ 正确:HeterogeneousVolumes.cpp:1007 调 BuildFrustumVoxelGrid',
+      '❌ 错误:这是 RenderHeterogeneousVolumes 主 pass 干的,不是 shadow pass',
+      '✅ 正确:cpp:1060 调 RenderAdaptiveVolumetricShadowMapWithVoxelGrid',
+      '❌ 错误:VoxelGrid 模式不走 LiveShading,只走 VoxelGrid',
+      '❌ 错误:BuildPreshadingGrid 是 Preshading pipeline 干的,不是 shadow'
+    ]
+  },
+  {
+    id: 'm8',
+    q: 'FSparseVoxelUniformBufferParameters 中包含哪些字段?',
+    options: [
+      'A. LocalToWorld / WorldToLocal',
+      'B. ExtinctionTexture / EmissionTexture / AlbedoTexture',
+      'C. NumVoxelsBuffer / VoxelBuffer',
+      'D. MajorantTexture',
+      'E. MaxTraceDistance / StepSize',
+      'F. ViewFrustumPlanes[6]'
+    ],
+    correct: [0, 1, 2, 4],
+    optionExplanations: [
+      '✅ 正确:HeterogeneousVolumes.h:244-245,两个 64B 矩阵',
+      '✅ 正确:cpp 247-253,三个 3D 纹理',
+      '✅ 正确:cpp 260-261,稀疏体素数据',
+      '❌ 错误:MajorantTexture 是 FPreshadingUniformBufferParameters 的字段,不是 SparseVoxel',
+      '✅ 正确:cpp 265-271,步进参数',
+      '❌ 错误:ViewFrustumPlanes[6] 是 FFrustumVoxelGridUniformBufferParameters 的字段'
+    ]
+  }
+];
+
+const _origTF = [
+  {
+    id: 't1',
+    q: 'HeterogeneousVolumes 完全取代了 UE4 的 Volumetric Fog。',
+    correct: false,
+    explanation: '❌ 错误:不是取代而是共存。EFogMode (HeterogeneousVolumes.h:177) 的 Reference 模式把两者混合;FSparseVoxelUniformBufferParameters 的 bApplyVolumetricFog 控制是否叠加 VolumetricFog。常见误解:以为新系统完全替代旧系统。'
+  },
+  {
+    id: 't2',
+    q: 'SparseVoxel pipeline 必须配合 MajorantRT 才能工作。',
+    correct: false,
+    explanation: '❌ 错误:MajorantRT 只在 Preshading 路径产出,喂给路径追踪 delta tracking。SparseVoxel 走 GenerateSparseVoxels 三阶段,不依赖 Majorant。常见误解:把所有 "Majorant" 概念关联到所有 pipeline。'
+  },
+  {
+    id: 't3',
+    q: 'EShadowType 和 EShadowPipeline 是正交的两层选择。',
+    correct: true,
+    explanation: '✅ 正确:EShadowType (AdaptiveVolumetricShadowMap vs BeerShadowMap) 控制阴影数据格式;EShadowPipeline (LiveShading vs VoxelGrid) 控制阴影算法路径。HeterogeneousVolumes.h:93/100 各自独立,二者正交组合。'
+  },
+  {
+    id: 't4',
+    q: 'FOrthoVoxelGridUniformBufferParameters 包含 MajorantGridBuffer。',
+    correct: true,
+    explanation: '✅ 正确:HeterogeneousVolumes.h:376 显式声明 MajorantGridBuffer (StructuredBuffer<FScalarGridData>),由 bUseMajorantGrid permutation 控制是否启用。'
+  },
+  {
+    id: 't5',
+    q: 'CompositeHeterogeneousVolumes 只在 Translucent 之后合成。',
+    correct: false,
+    explanation: '❌ 错误:EHeterogeneousVolumesCompositionType (HeterogeneousVolumes.h:53) 有 BeforeTranslucent 和 AfterTranslucent 两种取值,前者先于 Translucent Pass 合成(让玻璃/水面盖在体积上),后者在 Translucent 之后(默认)。常见误解:以为只有一种合成顺序。'
+  },
+  {
+    id: 't6',
+    q: 'BuildFrustumVoxelGrid 中 "froxel" 指视锥对齐体素,按深度切片变密度。',
+    correct: true,
+    explanation: '✅ 正确:Froxel = Frustum + Voxel,FFrustumVoxelGridUniformBufferParameters 含 TopLevelFroxelGridResolution / VoxelDimensions / NearPlaneDepth / FarPlaneDepth,按深度切片自适应密度。'
+  },
+  {
+    id: 't7',
+    q: 'MaterialBakingPipeline 只在运行时执行,不参与离线烘焙。',
+    correct: false,
+    explanation: '❌ 错误:虽然叫 "baking",但 FHeterogeneousVolumesBakeMaterialCS 是 RT 期间执行的 compute shader(因为材质可能每帧变化)。它是把 material evaluation 输出到 3D 纹理的运行时 pass,不是离线工具。常见误解:把 "baking" 当作离线流程。'
+  },
+  {
+    id: 't8',
+    q: 'FPathTracingHeterogeneousVolumesCallableInfo 含 5 个 callable shader id。',
+    correct: true,
+    explanation: '✅ 正确:HeterogeneousVolumes.h:331-335 定义 IntersectShaderId / GetDensityBoundsShaderId / GetDensityShaderId / SampleDistanceShaderId / GetTransmittanceShaderId 共 5 个,加上 MajorantRT 喂路径追踪。'
+  },
+  {
+    id: 't9',
+    q: 'RenderHeterogeneousVolumeShadows 中 LiveShading 分支仍然由 shadow pass 自己处理。',
+    correct: false,
+    explanation: '❌ 错误:HeterogeneousVolumes.cpp:1046 把 RenderAdaptiveVolumetricShadowMapWithLiveShading 用 #if 0 注释掉,实际由 ShadowDepthRendering 接管。常见误解:以为 LiveShading 阴影路径仍在自己这里处理。'
+  },
+  {
+    id: 't10',
+    q: 'FSparseVoxelUniformBufferParameters 含 FMatrix44f 共 4 个 (LocalToWorld + WorldToLocal + 局部边界外两个 Matrix)。',
+    correct: false,
+    explanation: '❌ 错误:只含 2 个 FMatrix44f (LocalToWorld + WorldToLocal),加上 FVector3f LocalBoundsOrigin/LocalBoundsExtent (各 12B)。常见误解:把局部边界也算成 Matrix。'
+  }
+];
+
+// ====================== 状态 ======================
+
+let dragQuestions = JSON.parse(JSON.stringify(_origDrag));
+let singleQuestions = JSON.parse(JSON.stringify(_origSingle));
+let multiQuestions = JSON.parse(JSON.stringify(_origMulti));
+let trueFalseQuestions = JSON.parse(JSON.stringify(_origTF));
+
+let currentMode = 'drag';
+let currentIdx = 0;
+let dragState = {};
+let singleState = {};
+let multiState = {};
+let tfState = {};
+let allQuestions = [];
+let currentFilter = 'all';
+
+function rebuildAllQuestions() {
+  allQuestions = [];
+  dragQuestions.forEach((q, i) => allQuestions.push({ mode: 'drag', idx: i, id: q.id }));
+  singleQuestions.forEach((q, i) => allQuestions.push({ mode: 'single', idx: i, id: q.id }));
+  multiQuestions.forEach((q, i) => allQuestions.push({ mode: 'multi', idx: i, id: q.id }));
+  trueFalseQuestions.forEach((q, i) => allQuestions.push({ mode: 'tf', idx: i, id: q.id }));
+  document.getElementById('totalCount').textContent = allQuestions.length;
+  document.getElementById('totalMax').textContent = allQuestions.length;
+  document.getElementById('cntDrag').textContent = dragQuestions.length;
+  document.getElementById('cntSingle').textContent = singleQuestions.length;
+  document.getElementById('cntMulti').textContent = multiQuestions.length;
+  document.getElementById('cntTF').textContent = trueFalseQuestions.length;
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleOptions(q) {
+  const indices = q.options.map((_, i) => i);
+  const shuffledIndices = shuffleArray(indices);
+  const newOptions = shuffledIndices.map(i => q.options[i]);
+  const newOptionExplanations = shuffledIndices.map(i => q.optionExplanations[i]);
+  const newCorrect = Array.isArray(q.correct)
+    ? q.correct.map(oldIdx => shuffledIndices.indexOf(oldIdx)).filter(i => i >= 0).sort((a, b) => a - b)
+    : shuffledIndices.indexOf(q.correct);
+  return { ...q, options: newOptions, optionExplanations: newOptionExplanations, correct: newCorrect };
+}
+
+function reshuffleAll() {
+  if (!confirm('确定要随机打乱所有题目和选项吗?分数会清空。')) return;
+  resetAll();
+  dragQuestions = shuffleArray(JSON.parse(JSON.stringify(_origDrag)));
+  singleQuestions = shuffleArray(JSON.parse(JSON.stringify(_origSingle))).map(shuffleOptions);
+  multiQuestions = shuffleArray(JSON.parse(JSON.stringify(_origMulti))).map(shuffleOptions);
+  trueFalseQuestions = shuffleArray(JSON.parse(JSON.stringify(_origTF)));
+  rebuildAllQuestions();
+  switchMode(currentMode);
+}
+
+function resetAll() {
+  dragState = {}; singleState = {}; multiState = {}; tfState = {};
+  rebuildAllQuestions();
+  switchMode(currentMode);
+  updateScore();
+}
+
+function getState(mode, idx) {
+  if (mode === 'drag') return dragState[idx] || (dragState[idx] = { filled: [], checked: false, correct: null });
+  if (mode === 'single') return singleState[idx] || (singleState[idx] = { selected: -1, checked: false, correct: null });
+  if (mode === 'multi') return multiState[idx] || (multiState[idx] = { selected: [], checked: false, correct: null });
+  if (mode === 'tf') return tfState[idx] || (tfState[idx] = { selected: null, checked: false, correct: null });
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  currentIdx = 0;
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode);
+  });
+  if (mode === 'drag') renderDrag();
+  else if (mode === 'single') renderSingle();
+  else if (mode === 'multi') renderMulti();
+  else if (mode === 'tf') renderTrueFalse();
+}
+
+function getCurrentList() {
+  if (currentMode === 'drag') return dragQuestions;
+  if (currentMode === 'single') return singleQuestions;
+  if (currentMode === 'multi') return multiQuestions;
+  if (currentMode === 'tf') return trueFalseQuestions;
+  return [];
+}
+
+function prevCard() {
+  if (currentIdx > 0) { currentIdx--; renderCurrent(); }
+}
+
+function nextCard() {
+  const list = getCurrentList();
+  if (currentIdx < list.length - 1) { currentIdx++; renderCurrent(); }
+}
+
+function renderCurrent() {
+  if (currentMode === 'drag') renderDrag();
+  else if (currentMode === 'single') renderSingle();
+  else if (currentMode === 'multi') renderMulti();
+  else if (currentMode === 'tf') renderTrueFalse();
+}
+
+function updateScore() {
+  let correct = 0, wrong = 0, unanswered = 0;
+  dragQuestions.forEach((_, i) => {
+    const s = dragState[i];
+    if (!s || s.filled.length === 0) unanswered++;
+    else if (s.correct === true) correct++;
+    else if (s.correct === false) wrong++;
+  });
+  singleQuestions.forEach((_, i) => {
+    const s = singleState[i];
+    if (!s || s.selected === -1) unanswered++;
+    else if (s.correct === true) correct++;
+    else if (s.correct === false) wrong++;
+  });
+  multiQuestions.forEach((_, i) => {
+    const s = multiState[i];
+    if (!s || s.selected.length === 0) unanswered++;
+    else if (s.correct === true) correct++;
+    else if (s.correct === false) wrong++;
+  });
+  trueFalseQuestions.forEach((_, i) => {
+    const s = tfState[i];
+    if (!s || s.selected === null) unanswered++;
+    else if (s.correct === true) correct++;
+    else if (s.correct === false) wrong++;
+  });
+  document.getElementById('totalScore').textContent = correct;
+  document.getElementById('correctCount').textContent = correct;
+  document.getElementById('wrongCount').textContent = wrong;
+  document.getElementById('unansweredCount').textContent = unanswered;
+  const list = getCurrentList();
+  document.getElementById('currentIdx').textContent = Math.min(currentIdx + 1, list.length);
+  document.getElementById('progressFill').style.width = (list.length > 0 ? ((currentIdx + 1) / list.length * 100) : 0) + '%';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
+// ====================== Drag ======================
+
+function renderDrag() {
+  const list = dragQuestions;
+  if (list.length === 0) { document.getElementById('cardContainer').innerHTML = ''; updateScore(); return; }
+  if (currentIdx >= list.length) currentIdx = list.length - 1;
+  if (currentIdx < 0) currentIdx = 0;
+  const q = list[currentIdx];
+  const s = getState('drag', currentIdx);
+  const dropCount = (q.sentence.match(/\[\d+\]/g) || []).length;
+  while (s.filled.length < dropCount) s.filled.push(null);
+
+  let html = `<div class="card"><span class="card-number">${currentIdx + 1}</span><h3>${escapeHtml(q.sentence.replace(/\[\d+\]/g, m => {
+    const idx = parseInt(m.slice(1, -1));
+    const filled = s.filled[idx];
+    const cls = !filled ? '' : (s.checked ? (s.correct ? 'correct' : 'wrong') : 'filled');
+    const text = filled ? `<span class="dropped-text">${escapeHtml(filled)}</span>` : '拖入';
+    return `</h3></div><div class="card"><span class="card-number"></span><h3><span class="drop-zone ${cls}" data-slot="${idx}">${text}</span>`;
+  }))}<span class="q-type">拖拽填空</span></h3>`;
+
+  html += `<div class="drag-pool">`;
+  q.pool.forEach((term, i) => {
+    const used = s.filled.includes(term);
+    html += `<div class="draggable ${used ? 'used' : ''}" draggable="${!used}" data-term="${escapeHtml(term)}">${escapeHtml(term)}</div>`;
+  });
+  html += `</div>`;
+
+  if (s.checked) {
+    const cls = s.correct ? 'feedback-correct' : 'feedback-wrong';
+    const title = s.correct ? '✅ 回答正确!' : '❌ 回答错误';
+    html += `<div class="feedback show ${cls}"><span class="feedback-title">${title}</span><ul>`;
+    q.answers.forEach((ans, i) => {
+      const got = s.filled[i] || '(空)';
+      const ok = s.filled[i] === ans;
+      html += `<li>第 ${i + 1} 空:正确答案 <b>${escapeHtml(ans)}</b>${ok ? ' ✓' : ` (你答: ${escapeHtml(got)})`}<br><span style="opacity:.8">${escapeHtml(q.perSlot[i] || '')}</span></li>`;
+    });
+    html += `</ul></div>`;
+  }
+
+  html += `<div class="action-row">
+    <button class="btn btn-primary" onclick="checkDrag()">检查答案</button>
+    <button class="btn" onclick="resetDrag()">重置</button>
+  </div></div>`;
+
+  document.getElementById('cardContainer').innerHTML = html;
+  attachDragHandlers();
+  updateScore();
+}
+
+function attachDragHandlers() {
+  const draggables = document.querySelectorAll('.draggable:not(.used)');
+  const dropZones = document.querySelectorAll('.drop-zone');
+  draggables.forEach(d => {
+    d.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', d.dataset.term); e.dataTransfer.effectAllowed = 'move'; });
+  });
+  dropZones.forEach(z => {
+    z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('drag-over'); });
+    z.addEventListener('dragleave', () => z.classList.remove('drag-over'));
+    z.addEventListener('drop', e => {
+      e.preventDefault();
+      z.classList.remove('drag-over');
+      const term = e.dataTransfer.getData('text/plain');
+      const slot = parseInt(z.dataset.slot);
+      const s = getState('drag', currentIdx);
+      const prev = s.filled[slot];
+      s.filled[slot] = term;
+      if (prev === term) return;
+      renderDrag();
+    });
+  });
+  dropZones.forEach(z => {
+    if (z.classList.contains('filled')) {
+      z.addEventListener('click', () => {
+        const slot = parseInt(z.dataset.slot);
+        const s = getState('drag', currentIdx);
+        s.filled[slot] = null;
+        renderDrag();
+      });
+    }
+  });
+}
+
+function checkDrag() {
+  const q = dragQuestions[currentIdx];
+  const s = getState('drag', currentIdx);
+  const allFilled = s.filled.every(f => f !== null && f !== undefined);
+  if (!allFilled) { alert('请先填完所有空'); return; }
+  let correct = true;
+  for (let i = 0; i < q.answers.length; i++) if (s.filled[i] !== q.answers[i]) { correct = false; break; }
+  s.checked = true;
+  s.correct = correct;
+  renderDrag();
+}
+
+function resetDrag() {
+  delete dragState[currentIdx];
+  renderDrag();
+}
+
+// ====================== Single ======================
+
+function renderSingle() {
+  const list = singleQuestions;
+  if (list.length === 0) { document.getElementById('cardContainer').innerHTML = ''; updateScore(); return; }
+  if (currentIdx >= list.length) currentIdx = list.length - 1;
+  const q = list[currentIdx];
+  const s = getState('single', currentIdx);
+
+  let html = `<div class="card"><span class="card-number">${currentIdx + 1}</span><h3>${escapeHtml(q.q)}<span class="q-type">单选</span></h3><div class="options-list">`;
+  q.options.forEach((opt, i) => {
+    let cls = '';
+    if (s.checked) {
+      if (i === q.correct) cls = 'correct-mark';
+      else if (i === s.selected && i !== q.correct) cls = 'wrong-mark';
+    } else if (i === s.selected) cls = 'selected';
+    html += `<div class="option ${cls}" onclick="selectSingle(${i})"><span class="opt-marker">${String.fromCharCode(65 + i)}</span><span>${escapeHtml(opt)}</span></div>`;
+  });
+  html += `</div>`;
+  if (s.checked) {
+    const cls = s.correct ? 'feedback-correct' : 'feedback-wrong';
+    const title = s.correct ? '✅ 回答正确!' : '❌ 回答错误';
+    html += `<div class="feedback show ${cls}"><span class="feedback-title">${title}</span><ul>`;
+    q.optionExplanations.forEach((e, i) => { html += `<li>${escapeHtml(e)}</li>`; });
+    html += `</ul></div>`;
+  }
+  html += `<div class="action-row">
+    <button class="btn btn-primary" onclick="checkSingle()">检查答案</button>
+    <button class="btn" onclick="resetSingle()">重置</button>
+  </div></div>`;
+  document.getElementById('cardContainer').innerHTML = html;
+  updateScore();
+}
+
+function selectSingle(i) {
+  const s = getState('single', currentIdx);
+  if (s.checked) return;
+  s.selected = i;
+  renderSingle();
+}
+
+function checkSingle() {
+  const q = singleQuestions[currentIdx];
+  const s = getState('single', currentIdx);
+  if (s.selected === -1) { alert('请先选择'); return; }
+  s.checked = true;
+  s.correct = (s.selected === q.correct);
+  renderSingle();
+}
+
+function resetSingle() {
+  delete singleState[currentIdx];
+  renderSingle();
+}
+
+// ====================== Multi ======================
+
+function renderMulti() {
+  const list = multiQuestions;
+  if (list.length === 0) { document.getElementById('cardContainer').innerHTML = ''; updateScore(); return; }
+  if (currentIdx >= list.length) currentIdx = list.length - 1;
+  const q = list[currentIdx];
+  const s = getState('multi', currentIdx);
+
+  let html = `<div class="card"><span class="card-number">${currentIdx + 1}</span><h3>${escapeHtml(q.q)}<span class="q-type">多选</span></h3><div class="options-list">`;
+  q.options.forEach((opt, i) => {
+    let cls = '';
+    const isSelected = s.selected.includes(i);
+    const isCorrect = q.correct.includes(i);
+    if (s.checked) {
+      if (isCorrect) cls = 'correct-mark';
+      else if (isSelected && !isCorrect) cls = 'wrong-mark';
+    } else if (isSelected) cls = 'selected';
+    html += `<div class="option ${cls}" onclick="toggleMulti(${i})"><span class="opt-marker">${isSelected ? '✓' : String.fromCharCode(65 + i)}</span><span>${escapeHtml(opt)}</span></div>`;
+  });
+  html += `</div>`;
+  if (s.checked) {
+    const cls = s.correct ? 'feedback-correct' : 'feedback-wrong';
+    const title = s.correct ? '✅ 全部正确!' : '❌ 有错误';
+    html += `<div class="feedback show ${cls}"><span class="feedback-title">${title}</span><ul>`;
+    q.optionExplanations.forEach((e, i) => { html += `<li>${escapeHtml(e)}</li>`; });
+    html += `</ul></div>`;
+  }
+  html += `<div class="action-row">
+    <button class="btn btn-primary" onclick="checkMulti()">检查答案</button>
+    <button class="btn" onclick="resetMulti()">重置</button>
+  </div></div>`;
+  document.getElementById('cardContainer').innerHTML = html;
+  updateScore();
+}
+
+function toggleMulti(i) {
+  const s = getState('multi', currentIdx);
+  if (s.checked) return;
+  const idx = s.selected.indexOf(i);
+  if (idx >= 0) s.selected.splice(idx, 1);
+  else s.selected.push(i);
+  s.selected.sort((a, b) => a - b);
+  renderMulti();
+}
+
+function checkMulti() {
+  const q = multiQuestions[currentIdx];
+  const s = getState('multi', currentIdx);
+  if (s.selected.length === 0) { alert('请至少选择一项'); return; }
+  const set1 = new Set(s.selected);
+  const set2 = new Set(q.correct);
+  s.checked = true;
+  s.correct = set1.size === set2.size && [...set1].every(x => set2.has(x));
+  renderMulti();
+}
+
+function resetMulti() {
+  delete multiState[currentIdx];
+  renderMulti();
+}
+
+// ====================== True/False ======================
+
+function renderTrueFalse() {
+  const list = trueFalseQuestions;
+  if (list.length === 0) { document.getElementById('cardContainer').innerHTML = ''; updateScore(); return; }
+  if (currentIdx >= list.length) currentIdx = list.length - 1;
+  const q = list[currentIdx];
+  const s = getState('tf', currentIdx);
+
+  let html = `<div class="card"><span class="card-number">${currentIdx + 1}</span><h3>${escapeHtml(q.q)}<span class="q-type">判断</span></h3><div class="tf-options">`;
+  const opts = [{ v: true, l: '✓ 正确 (True)' }, { v: false, l: '✗ 错误 (False)' }];
+  opts.forEach(o => {
+    let cls = '';
+    if (s.checked) {
+      if (o.v === q.correct) cls = 'correct-mark';
+      else if (s.selected === o.v && o.v !== q.correct) cls = 'wrong-mark';
+    } else if (s.selected === o.v) cls = 'selected';
+    html += `<div class="tf-btn ${cls}" onclick="selectTF(${o.v})">${o.l}</div>`;
+  });
+  html += `</div>`;
+  if (s.checked) {
+    const cls = s.correct ? 'feedback-correct' : 'feedback-wrong';
+    const title = s.correct ? '✅ 判断正确!' : '❌ 判断错误';
+    html += `<div class="feedback show ${cls}"><span class="feedback-title">${title}</span><div>${escapeHtml(q.explanation)}</div></div>`;
+  }
+  html += `<div class="action-row">
+    <button class="btn btn-primary" onclick="checkTF()">检查答案</button>
+    <button class="btn" onclick="resetTF()">重置</button>
+  </div></div>`;
+  document.getElementById('cardContainer').innerHTML = html;
+  updateScore();
+}
+
+function selectTF(v) {
+  const s = getState('tf', currentIdx);
+  if (s.checked) return;
+  s.selected = v;
+  renderTrueFalse();
+}
+
+function checkTF() {
+  const q = trueFalseQuestions[currentIdx];
+  const s = getState('tf', currentIdx);
+  if (s.selected === null) { alert('请先判断'); return; }
+  s.checked = true;
+  s.correct = (s.selected === q.correct);
+  renderTrueFalse();
+}
+
+function resetTF() {
+  delete tfState[currentIdx];
+  renderTrueFalse();
+}
+
+// ====================== Overview ======================
+
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) renderOverview();
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === f);
+  });
+  renderOverview();
+}
+
+function renderOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  allQuestions.forEach((q, i) => {
+    const state = q.mode === 'drag' ? dragState[q.idx] : q.mode === 'single' ? singleState[q.idx] : q.mode === 'multi' ? multiState[q.idx] : tfState[q.idx];
+    let cls = '';
+    if (state && state.checked) cls = state.correct ? 'correct' : 'wrong';
+    else if (state && ((state.filled && state.filled.length > 0 && state.filled.some(f => f)) || (state.selected !== undefined && state.selected !== null && state.selected !== -1) || (state.selected && state.selected.length > 0))) cls = '';
+    let show = true;
+    if (currentFilter === 'correct') show = cls === 'correct';
+    else if (currentFilter === 'wrong') show = cls === 'wrong';
+    else if (currentFilter === 'unanswered') show = !cls;
+    if (!show) return;
+    const modeLabel = { drag: '填', single: '单', multi: '多', tf: '判' }[q.mode];
+    html += `<div class="overview-item ${cls}" onclick="jumpTo('${q.mode}', ${q.idx})"><div class="ov-num">${i + 1}</div><div class="ov-type">${modeLabel}</div></div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function jumpTo(mode, idx) {
+  currentIdx = idx;
+  switchMode(mode);
+  toggleOverview();
+}
+
+// ====================== Init ======================
+
+rebuildAllQuestions();
+switchMode('drag');
+</script>
+
+</body>
+</html>

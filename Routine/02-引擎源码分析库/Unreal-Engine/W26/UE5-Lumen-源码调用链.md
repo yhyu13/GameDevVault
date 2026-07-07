@@ -14,7 +14,7 @@ aliases: [UE5-Lumen-CallChain, Lumen-Source-Tracing]
 | **问题定义** | Lumen 从 `FDeferredShadingSceneRenderer::Render` 入口到 GPU 上每个 Pass 的调用链是什么？4 个主入口（Scene Update / Scene Lighting / Diffuse Indirect / Reflections）如何串起来？硬件 RT vs 软件 RT 怎么分流？ |
 | **源码版本** | UnrealEngine @ UE5-Latest（Epic 公开仓库 `Engine/Source/Runtime/Renderer/Private/Lumen/`） |
 
-> **声明**：本分析基于 Epic Games 公开的 UnrealEngine 主线代码 + SIGGRAPH 2021/2022 论文 + GDC 2022 Lumen 演讲 + 已公开的 timlly 源码分析。本机 `Unreal/LearningUnrealEngine` 子模块未初始化（参见 [[../../../AGENTS|AGENTS]]），但 Lumen 主线代码结构在 5.3 → 5.5 之间没有破坏性重构，调用链稳定。
+> **声明**：本分析基于 Epic Games 公开的 UnrealEngine 主线代码 + SIGGRAPH 2021/2022 论文 + GDC 2022 Lumen 演讲 + 已公开的 timlly 源码分析。本机 `Unreal/LearningUnrealEngine` 子模块未初始化（参见 [[../../../../AGENTS|AGENTS]]），但 Lumen 主线代码结构在 5.3 → 5.5 之间没有破坏性重构，调用链稳定。
 
 ---
 
@@ -362,9 +362,9 @@ struct FLumenCard {
 
 ## 与工作的关联
 
-- **直接关联**：M5 milestone（Lyra + Lumen profile）需要定位瓶颈对应的源码函数，本笔记提供调用链作为 trace → 源码的桥梁。→ [[../../../90-输出milestones/Lumen性能分析/00-README|Lumen 性能分析 milestone]]
+- **直接关联**：M5 milestone（Lyra + Lumen profile）需要定位瓶颈对应的源码函数，本笔记提供调用链作为 trace → 源码的桥梁。→ [[../../../../90-输出milestones/Lumen性能分析/00-README|Lumen 性能分析 milestone]]
 - **横向关联**：与 Nanite 的 Page-Table 思想同源（虚拟化、增量更新、按需分配），可对比学习。→ [[../Unreal-Engine/UE5-VT-显存调度|UE5 VT 显存调度分析]]
-- **源码基础**：先看 [[../../../Career/Kimi/UE5_Lumen_timlly|UE5 Lumen timlly 整理]] 建立概念地图，再回看本文的调用链细节。
+- **源码基础**：先看 [[../../../../Career/Kimi/UE5_Lumen_timlly|UE5 Lumen timlly 整理]] 建立概念地图，再回看本文的调用链细节。
 
 ---
 

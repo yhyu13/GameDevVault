@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5.8 MegaLights 随机光照 — 面试卡牌</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: #1a1a2e; color: #e0e0e0; line-height: 1.6; min-height: 100vh; padding: 16px; }
+.container { max-width: 900px; margin: 0 auto; }
+header { background: linear-gradient(135deg, #16213e 0%, #0f3460 100%); padding: 20px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #4fc3f7; }
+h1 { font-size: 22px; color: #4fc3f7; margin-bottom: 6px; }
+.subtitle { font-size: 14px; color: #b0b0b0; margin-bottom: 12px; }
+.header-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.header-links a { color: #4fc3f7; text-decoration: none; font-size: 14px; padding: 4px 10px; border: 1px solid #4fc3f7; border-radius: 6px; }
+.header-links a:hover { background: #4fc3f7; color: #1a1a2e; }
+
+.stats-bar { display: flex; gap: 12px; flex-wrap: wrap; background: #16213e; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+.stat { flex: 1; min-width: 100px; text-align: center; padding: 8px; background: #0f3460; border-radius: 6px; }
+.stat-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+.stat-value { font-size: 18px; color: #4fc3f7; font-weight: bold; }
+
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+button { background: #0f3460; color: #e0e0e0; border: 1px solid #4fc3f7; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+button:hover { background: #4fc3f7; color: #1a1a2e; }
+button.primary { background: #4fc3f7; color: #1a1a2e; font-weight: bold; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab { background: #16213e; color: #b0b0b0; padding: 10px 16px; border-radius: 6px 6px 0 0; cursor: pointer; border: 1px solid #333; border-bottom: none; font-size: 14px; }
+.tab.active { background: #0f3460; color: #4fc3f7; border-color: #4fc3f7; }
+
+.card-area { background: #16213e; border: 1px solid #4fc3f7; border-radius: 0 8px 8px 8px; padding: 20px; min-height: 360px; }
+
+.progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #333; }
+.progress-text { font-size: 13px; color: #b0b0b0; }
+.progress-bar { flex: 1; height: 6px; background: #0f3460; border-radius: 3px; margin: 0 12px; overflow: hidden; }
+.progress-fill { height: 100%; background: #4fc3f7; transition: width 0.3s; }
+
+.q-type { display: inline-block; background: #0f3460; color: #4fc3f7; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; }
+.question-text { font-size: 16px; line-height: 1.7; margin-bottom: 16px; color: #fff; }
+.question-text .blank { display: inline-block; min-width: 80px; padding: 2px 10px; margin: 0 2px; background: #0f3460; border: 1px dashed #4fc3f7; border-radius: 4px; text-align: center; color: #4fc3f7; font-style: italic; }
+.question-text .blank.filled { background: #4fc3f7; color: #1a1a2e; font-style: normal; }
+.question-text .blank.correct { background: #2e7d32; border-color: #2e7d32; color: #fff; }
+.question-text .blank.wrong { background: #c62828; border-color: #c62828; color: #fff; }
+
+.options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.option { background: #0f3460; border: 1px solid #333; padding: 12px 16px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+.option:hover { border-color: #4fc3f7; }
+.option.selected { border-color: #4fc3f7; background: #16213e; }
+.option.correct { border-color: #2e7d32; background: #1b5e20; }
+.option.wrong { border-color: #c62828; background: #b71c1c; }
+
+.tf-options { display: flex; gap: 12px; margin-bottom: 16px; }
+.tf-btn { flex: 1; padding: 16px; background: #0f3460; border: 1px solid #333; border-radius: 6px; cursor: pointer; text-align: center; font-size: 15px; }
+.tf-btn:hover { border-color: #4fc3f7; }
+.tf-btn.selected { border-color: #4fc3f7; background: #16213e; }
+.tf-btn.correct { border-color: #2e7d32; background: #1b5e20; }
+.tf-btn.wrong { border-color: #c62828; background: #b71c1c; }
+
+.explanation { background: #0a0a1e; border-left: 3px solid #4fc3f7; padding: 12px 16px; margin-top: 12px; border-radius: 4px; font-size: 13px; }
+.explanation.correct { border-left-color: #2e7d32; }
+.explanation.wrong { border-left-color: #c62828; }
+
+.drag-pool { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: #0a0a1e; border-radius: 6px; margin-bottom: 16px; min-height: 44px; }
+.drag-token { background: #0f3460; border: 1px solid #4fc3f7; padding: 6px 12px; border-radius: 4px; cursor: grab; user-select: none; font-size: 13px; color: #4fc3f7; }
+.drag-token:active { cursor: grabbing; }
+.drag-token.used { opacity: 0.3; pointer-events: none; }
+
+.feedback { margin-top: 12px; padding: 10px 14px; border-radius: 6px; font-weight: bold; text-align: center; }
+.feedback.correct { background: #1b5e20; color: #a5d6a7; }
+.feedback.wrong { background: #b71c1c; color: #ef9a9a; }
+
+.nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 20px; }
+
+.overview-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 100; padding: 20px; overflow: auto; }
+.overview-modal.show { display: block; }
+.overview-content { max-width: 900px; margin: 0 auto; background: #16213e; border-radius: 12px; padding: 20px; border: 1px solid #4fc3f7; }
+.overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.overview-header h2 { color: #4fc3f7; }
+.filter-group { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btn { padding: 6px 12px; font-size: 12px; }
+.filter-btn.active { background: #4fc3f7; color: #1a1a2e; }
+.thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.thumb { background: #0f3460; border: 2px solid #333; border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.2s; }
+.thumb:hover { border-color: #4fc3f7; }
+.thumb.correct { border-color: #2e7d32; }
+.thumb.wrong { border-color: #c62828; }
+.thumb.partial { border-color: #ff9800; }
+.thumb-type { font-size: 10px; color: #888; margin-bottom: 4px; }
+.thumb-num { font-size: 14px; font-weight: bold; color: #4fc3f7; margin-bottom: 6px; }
+.thumb-q { font-size: 12px; color: #b0b0b0; line-height: 1.4; max-height: 80px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
+.thumb-status { font-size: 11px; margin-top: 6px; }
+
+@media (max-width: 600px) {
+  body { padding: 8px; }
+  .container { padding: 0; }
+  header { padding: 14px; }
+  h1 { font-size: 18px; }
+  .card-area { padding: 14px; }
+  .question-text { font-size: 14px; }
+  .option, .tf-btn { font-size: 13px; padding: 10px; }
+  .tabs { gap: 2px; }
+  .tab { padding: 8px 10px; font-size: 12px; flex: 1; text-align: center; }
+  .stats-bar { gap: 6px; }
+  .stat { min-width: 70px; padding: 6px; }
+  .stat-value { font-size: 14px; }
+  .thumb-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>UE5.8 MegaLights 随机光照 — 面试卡牌</h1>
+<div class="subtitle">模块卡牌 · 单选/多选/判断/拖拽填空 · 自包含离线可用</div>
+<div class="header-links">
+<a href="UE5.8-MegaLights-随机光照.md">📄 配套源码笔记</a>
+<a href="#" onclick="toggleOverview();return false;">📊 题目总览</a>
+<a href="#" onclick="reshuffleAll();return false;">🔄 随机打乱</a>
+<a href="#" onclick="resetAll();return false;">🔄 重置所有分数</a>
+</div>
+</header>
+
+<div class="stats-bar">
+<div class="stat"><div class="stat-label">进度</div><div class="stat-value" id="stat-progress">0/0</div></div>
+<div class="stat"><div class="stat-label">得分</div><div class="stat-value" id="stat-score">0</div></div>
+<div class="stat"><div class="stat-label">正确</div><div class="stat-value" id="stat-correct">0</div></div>
+<div class="stat"><div class="stat-label">错误</div><div class="stat-value" id="stat-wrong">0</div></div>
+</div>
+
+<div class="tabs">
+<div class="tab active" data-mode="drag" onclick="switchMode('drag')">拖拽填空</div>
+<div class="tab" data-mode="single" onclick="switchMode('single')">单选题</div>
+<div class="tab" data-mode="multi" onclick="switchMode('multi')">多选题</div>
+<div class="tab" data-mode="tf" onclick="switchMode('tf')">判断题</div>
+</div>
+
+<div class="card-area" id="card-area"></div>
+
+<div class="nav">
+<button onclick="prevQuestion()">⬅ 上一题</button>
+<button onclick="checkAnswer()" class="primary" id="check-btn">检查答案</button>
+<button onclick="resetQuestion()">重置</button>
+<button onclick="nextQuestion()">下一题 ➡</button>
+</div>
+</div>
+
+<div class="overview-modal" id="overview-modal">
+<div class="overview-content">
+<div class="overview-header">
+<h2>📊 题目总览</h2>
+<button onclick="toggleOverview()">关闭</button>
+</div>
+<div class="filter-group">
+<button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+<button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">✅ 正确</button>
+<button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">❌ 错误</button>
+<button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+</div>
+<div class="thumb-grid" id="thumb-grid"></div>
+</div>
+</div>
+
+<script>
+// ============== QUESTION DATA ==============
+
+const dragQuestions = [
+  {
+    text: "MegaLights 默认使用 [0] 渲染模式（启用项目设置后），单帧流程包含 Setup/TileClassify/[1]/RayTrace/Resolve/[2] 这几个阶段。",
+    answers: ["RT", "Sample", "Denoise"],
+    options: ["RT", "VSM", "Sample", "Trace", "Resolve", "Denoise", "Compose", "Tile"],
+    explanations: [
+      "RT (Hardware Ray Tracing) 是默认模式，r.MegaLights.DefaultShadowMethod=0。",
+      "GenerateSamples 在 GenerateLightSamplesCS 里产生候选 light sample。",
+      "DenoiseLighting 做 spatial+temporal 去噪，最后写到 SceneColor。"
+    ]
+  },
+  {
+    text: "Tile Classification 按 13 种 [0] 分类，分桶到 [1] buffer，每个 tile 类型用 [2] 派生 dispatch 参数。",
+    answers: ["ETileType", "TileAllocator", "InitTileIndirectArgs"],
+    options: ["ETileType", "TileAllocator", "InitTileIndirectArgs", "TileData", "IndirectArgs", "FGenerateLightSamplesCS", "FMegaLightsParameters", "TileBitmask"],
+    explanations: [
+      "ETileType 13 种变体：Simple/Complex/Single × 无 Rect/Rect/TexturedRect + Empty + Substrate 特殊。",
+      "TileAllocator 是 structured buffer，每个 tile type 一份。",
+      "FInitTileIndirectArgsCS 从 TileAllocator 派生 IndirectArgs。"
+    ]
+  },
+  {
+    text: "MegaLights 支持 3 种 input pipeline: GBuffer / HairStrands / [0]，分别对应 opaque / hair / [1] 表面。HairStrands tile 只用 [2] 类 tile。",
+    answers: ["FrontLayerTranslucency", "FrontLayer 透明", "Complex"],
+    options: ["FrontLayerTranslucency", "FrontLayer 透明", "Complex", "Simple", "Volume", "Subsurface", "Substrate", "Rect"],
+    explanations: [
+      "EMegaLightsInput 枚举第三个值是 FrontLayerTranslucency。",
+      "Front Layer Translucency 是透明材质最前面那一层。",
+      "HairStrands 的 GetShadingTileTypes 只取 ComplexShading / ComplexShading_Rect / ComplexShading_Rect_Textured。"
+    ]
+  },
+  {
+    text: "MegaLights 默认 half-resolution 采样（[0]=2），每像素默认 [1] 个 sample，整个管线把 N 个光源降为 [2] 个 tile-bucketed 候选。",
+    answers: ["DownsampleMode", "4", "13"],
+    options: ["DownsampleMode", "4", "13", "TileSize", "1", "7", "DownsampleFactor", "8"],
+    explanations: [
+      "r.MegaLights.DownsampleMode=2 是 half-resolution 默认值。",
+      "r.MegaLights.NumSamplesPerPixel=4 是默认每像素 sample 数。",
+      "13 种 ETileType 是候选光样本的 tile 桶数。"
+    ]
+  },
+  {
+    text: "FMegaLightsParameters 是跨 7 个 pass 共享的 [0]，包含 [1]+50 个字段，[2] 把光线追踪结果累加成 raw lighting。",
+    answers: ["UniformBuffer", "ViewUB", "FShadeLightSamplesCS"],
+    options: ["UniformBuffer", "ViewUB", "FShadeLightSamplesCS", "FGenerateLightSamplesCS", "InitTileIndirectArgs", "Resolve", "Texture2D", "StructuredBuffer"],
+    explanations: [
+      "BEGIN_SHADER_PARAMETER_STRUCT(FMegaLightsParameters) 就是一个 RDG uniform buffer。",
+      "50+ 个字段跨所有 7 个 pass 共享。",
+      "Resolve 阶段 FShadeLightSamplesCS 把 trace 结果评估成 DiffuseLighting + SpecularLighting。"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    text: "MegaLights 默认依赖哪种光追方式？",
+    options: [
+      "A. Software Ray Tracing (SWR)",
+      "B. Hardware Ray Tracing (HWRT)",
+      "C. 仅 Virtual Shadow Map",
+      "D. 仅 Lumen"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误：SWR 是 fallback 选项，但默认走 HWRT（成本更低）。",
+      "✅ 正确：GetMegaLightsMode 默认 EMegaLightsMode::EnabledRT 走硬件光追。",
+      "❌ 错误：VSM 是另一条分支（EMegaLightsShadowMethod::VirtualShadowMap），不是默认。",
+      "❌ 错误：Lumen 是间接光，不解决直接光照。"
+    ]
+  },
+  {
+    text: "r.MegaLights.DownsampleMode=2 是什么意思？",
+    options: [
+      "A. Disabled (1x1)",
+      "B. Checkerboard (2x1)",
+      "C. Half-resolution (2x2)",
+      "D. Quarter-resolution (4x4)"
+    ],
+    correct: 2,
+    optionExplanations: [
+      "❌ 错误：Disabled 是 mode=0。",
+      "❌ 错误：Checkerboard 是 mode=1。",
+      "✅ 正确：Mode=2 是默认的 Half-resolution，sample 总数降为 1/4。",
+      "❌ 错误：没有 quarter 这个选项。"
+    ]
+  },
+  {
+    text: "一次 ShadingPass 包含多少种 ETileType 变体（GBuffer 输入）？",
+    options: [
+      "A. 7 种（Simple/Complex/Empty + Rect × 2 + TexturedRect × 2）",
+      "B. 13 种（7 + Substrate-Blendable 3 + Substrate-Adaptive 3）",
+      "C. 4 种",
+      "D. 16 种"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误：7 种是 legacy 上界 SHADING_MAX_LEGACY，不含 Substrate 变体。",
+      "✅ 正确：13 种 = 7 legacy + 3 Substrate-Blendable (Single/Single_Rect/Single_Rect_Textured) + 3 Substrate-Adaptive (ComplexSpecial × 3)。",
+      "❌ 错误：4 种太少。",
+      "❌ 错误：16 种超过了枚举定义。"
+    ]
+  },
+  {
+    text: "r.MegaLights.DefaultShadowMethod=1 时走哪条路径？",
+    options: [
+      "A. 关闭 MegaLights",
+      "B. 走 Hardware Ray Tracing",
+      "C. 走 Virtual Shadow Map（需 Nanite）",
+      "D. 走 Software Ray Tracing"
+    ],
+    correct: 2,
+    optionExplanations: [
+      "❌ 错误：不会关闭，只是切换路径。",
+      "❌ 错误：=0 才走 HWRT。",
+      "✅ 正确：=1 走 VSM 路径，由 bUseVSM 标志 + MarkVSMPages 流程支持。",
+      "❌ 错误：SWR 不是 ShadowMethod 选项。"
+    ]
+  },
+  {
+    text: "GenerateSamples 阶段 FGenerateLightSamplesCS 的主要输出是？",
+    options: [
+      "A. 完整 BSDF shading 结果",
+      "B. Compacted Trace Texel Data",
+      "C. LightSamples + LightSampleRays（紧凑 light sample）",
+      "D. Final SceneColor"
+    ],
+    correct: 2,
+    optionExplanations: [
+      "❌ 错误：BSDF 评估在 Resolve 阶段的 FShadeLightSamplesCS。",
+      "❌ 错误：Compacted Trace Texel 是 RayTrace 阶段产物。",
+      "✅ 正确：LightSamples 和 LightSampleRays 是 GenerateSamples 写出的候选光样本。",
+      "❌ 错误：Final SceneColor 是 Denoise 之后产物。"
+    ]
+  },
+  {
+    text: "为什么 MegaLights 不支持 Directional Light（默认）？",
+    options: [
+      "A. 算法不支持任何方向光",
+      "B. 方向光是无限远光，每个 tile 要采完整球面，sample 数会爆",
+      "C. 方向光总是免费的",
+      "D. 方向光只用 Lumen 处理"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误：算法本身支持，但默认关闭（r.MegaLights.DirectionalLights=0）。",
+      "✅ 正确：GetMegaLightsMode 里 LightType != LightType_Directional 才允许；打开需开 Forward Light Buffer。",
+      "❌ 错误：方向光仍然需要计算。",
+      "❌ 错误：Lumen 是间接光，跟直接光方向光无关。"
+    ]
+  },
+  {
+    text: "Resolve 阶段的 ShadingConfidence 纹理格式是什么？",
+    options: [
+      "A. R11G11B10F",
+      "B. R32_FLOAT",
+      "C. R16F",
+      "D. R8G8B8A8_UNORM"
+    ],
+    correct: 2,
+    optionExplanations: [
+      "❌ 错误：R11G11B10F 是 lighting data 默认格式。",
+      "❌ 错误：R32F 一般用于 depth。",
+      "✅ 正确：ShadingConfidence 是 R16F 单通道，每像素评估置信度。",
+      "❌ 错误：UNORM 不用于 confidence。"
+    ]
+  },
+  {
+    text: "SetupStageTwo 中哪个 CS 负责把 TileAllocator 转换成 IndirectArgs？",
+    options: [
+      "A. FMegaLightsTileClassificationBuildListsCS",
+      "B. FGenerateLightSamplesCS",
+      "C. FInitTileIndirectArgsCS",
+      "D. FShadeLightSamplesCS"
+    ],
+    correct: 2,
+    optionExplanations: [
+      "❌ 错误：BuildListsCS 是分桶，把 tile 按 13 种 ETileType 分桶。",
+      "❌ 错误：GenerateSamples 是 produce light sample。",
+      "✅ 正确：FInitTileIndirectArgsCS 单 dispatch 把 TileAllocator 转成 13 份 IndirectArgs。",
+      "❌ 错误：ShadeLightSamples 在 Resolve 阶段。"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    text: "MegaLights 支持哪些 Light Type？（多选）",
+    options: [
+      "A. Point Light",
+      "B. Spot Light",
+      "C. Rect Light",
+      "D. Directional Light (需开启)",
+      "E. Sky Light",
+      "F. Textured Rect Light"
+    ],
+    correct: [0, 1, 2, 3, 5],
+    optionExplanations: [
+      "✅ Point Light 是 MegaLights 主要受益对象。",
+      "✅ Spot Light 完全支持。",
+      "✅ Rect Light 有专属 ETileType 分类（SimpleShading_Rect 等）。",
+      "✅ Directional Light 默认关（r.MegaLights.DirectionalLights=0），但可开启。",
+      "❌ Sky Light 不在 MegaLights 范畴，走 SkyAtmosphere LUT 路径。",
+      "✅ Textured Rect Light 也有专属 tile type。"
+    ]
+  },
+  {
+    text: "MegaLights 的 3 种 input pipeline 包含哪些？（多选）",
+    options: [
+      "A. GBuffer（不透明）",
+      "B. HairStrands（头发）",
+      "C. FrontLayerTranslucency（前面一层透明）",
+      "D. VolumetricFog",
+      "E. Subsurface",
+      "F. Substrate"
+    ],
+    correct: [0, 1, 2],
+    optionExplanations: [
+      "✅ GBuffer 是主要 opaque 输入。",
+      "✅ HairStrands 是头发专用 input pipeline。",
+      "✅ FrontLayerTranslucency 是最前面一层透明材质。",
+      "❌ VolumetricFog 是 volume 输出，不是 input pipeline。",
+      "❌ Subsurface 不是 input type，是材质特性。",
+      "❌ Substrate 是材质系统，不是 input pipeline。"
+    ]
+  },
+  {
+    text: "MegaLights 一次 ShadingPass 包含哪些 sub-step？（多选）",
+    options: [
+      "A. TileClassificationMark",
+      "B. SetupStageTwo",
+      "C. GenerateSamples",
+      "D. RayTrace",
+      "E. Resolve",
+      "F. DenoiseLighting"
+    ],
+    correct: [0, 1, 2, 3, 4, 5],
+    optionExplanations: [
+      "✅ TileClassificationMark 是每个 shading pass 入口（除 Pass 0 复用 Lumen 产物）。",
+      "✅ SetupStageTwo 分配 tile buffers 和 IndirectArgs。",
+      "✅ GenerateSamples 产生候选 light sample。",
+      "✅ RayTrace 走 HWRT 或 VSM。",
+      "✅ Resolve 评估 BSDF 写入 ResolvedDiffuse/Specular。",
+      "✅ DenoiseLighting 是 spatial+temporal 去噪。"
+    ]
+  },
+  {
+    text: "下列哪些是 FGenerateLightSamplesCS 的 permutation 维度？（多选）",
+    options: [
+      "A. FTileType",
+      "B. FNumSamplesPerPixel1d",
+      "C. FInputType",
+      "F. FHairComplexTransmittance",
+      "G. FDebugMode",
+      "H. FShadingPassIndex"
+    ],
+    correct: [0, 1, 2, 3, 4],
+    optionExplanations: [
+      "✅ FTileType 是 13 种变体。",
+      "✅ FNumSamplesPerPixel1d: 1/2/4。",
+      "✅ FInputType: GBuffer/Hair/FrontLayer。",
+      "✅ FHairComplexTransmittance: hair 必开。",
+      "✅ FDebugMode: bool。",
+      "❌ FShadingPassIndex 不是 permutation 维度。"
+    ]
+  },
+  {
+    text: "MegaLights 的 VolumetricFog + TranslucencyVolume 路径涉及哪些资源？（多选）",
+    options: [
+      "A. VolumeLightSamples (3D texture)",
+      "B. VolumeLightSampleRays (3D texture)",
+      "C. FMegaLightsVolume 输出结构",
+      "D. TranslucencyVolumeLightSamples[TVC_MAX]",
+      "E. HZB（用于 occlusion culling）",
+      "F. BasePass normal"
+    ],
+    correct: [0, 1, 2, 3, 4],
+    optionExplanations: [
+      "✅ VolumeLightSamples 是 3D texture 存 compact light sample。",
+      "✅ VolumeLightSampleRays 是对应的 3D ray 纹理。",
+      "✅ FMegaLightsVolume 是输出结构（Texture + TranslucencyAmbient/Directional）。",
+      "✅ TranslucencyVolumeLightSamples[TVC_MAX] 是 TLV cascade 数组。",
+      "✅ r.MegaLights.Volume.HZBOcclusionTest 用 HZB 跳过被遮挡 voxel。",
+      "❌ BasePass normal 不直接喂 volume（用 DownsampledSceneWorldNormal）。"
+    ]
+  },
+  {
+    text: "r.MegaLights.AsyncCompute.* CVar 控制哪些 Pass 跑 Async Compute？（多选）",
+    options: [
+      "A. GenerateSamples",
+      "B. Volume Pass",
+      "C. RayTrace",
+      "D. TileClassification",
+      "E. Resolve",
+      "F. Denoise"
+    ],
+    correct: [0, 1],
+    optionExplanations: [
+      "✅ r.MegaLights.AsyncCompute.GenerateSamples 控制 Sample 阶段。",
+      "✅ r.MegaLights.AsyncCompute.Volume 控制 Volume 阶段。",
+      "❌ RayTrace 默认走 graphics queue（要 TLAS + shadow ray）。",
+      "❌ TileClassification 默认 graphics queue。",
+      "❌ Resolve 默认 graphics queue（依赖 SceneColor）。",
+      "❌ Denoise 默认 graphics queue。"
+    ]
+  },
+  {
+    text: "下列哪些是 FMegaLightsParameters 的字段分组？（多选）",
+    options: [
+      "A. View & Scene UB 引用",
+      "B. Sample geometry (SampleViewMin/Size 等)",
+      "C. Tile metadata (TileBitmask, TileDataStride)",
+      "D. History / state (StateFrameIndex, History textures)",
+      "E. Camera matrices (Unjittered Clip matrices)",
+      "F. RenderTarget Output"
+    ],
+    correct: [0, 1, 2, 3, 4],
+    optionExplanations: [
+      "✅ View & Scene 是公共依赖。",
+      "✅ Sample geometry 决定 sample 位置。",
+      "✅ Tile metadata 是 classification 产物。",
+      "✅ History / state 跨帧累积。",
+      "✅ Camera matrices 给 TAA 用。",
+      "❌ RenderTarget Output 不是 UB 字段，是 pass 参数。"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    text: "MegaLights 完全取代了传统 deferred light 渲染。",
+    correct: false,
+    explanation: "❌ 错误：MegaLights 是补充不是替代。GetMegaLightsMode 在 !IsEnabled || !bLightAllowsMegaLights 时返回 Disabled，回退到传统 deferred light 路径。MegaLights 只处理被 bMegaLights=true 标记的 light。"
+  },
+  {
+    text: "MegaLights 需要 Hardware Ray Tracing 才能正常工作。",
+    correct: true,
+    explanation: "✅ 正确：IsRequiredTracingData 同时检查 HWRT 和 SWRT（CVarMegaLightsProjectSetting 描述明确说 requires Hardware Ray Tracing）。没光追就回退到传统 deferred。"
+  },
+  {
+    text: "ETileType 总共只有 7 种 tile 分类。",
+    correct: false,
+    explanation: "❌ 错误：总共 13 种 ETileType 变体。SHADING_MAX_LEGACY=7 是 legacy 上界，加上 Substrate-Blendable 3 种 + Substrate-Adaptive 3 种 = 13 种。"
+  },
+  {
+    text: "GenerateSamples 和 ClearLightSamplesCS 共享同一份 IndirectArgs buffer。",
+    correct: true,
+    explanation: "✅ 正确：FGenerateLightSamplesCS 和 FClearLightSamplesCS 都用 DownsampledTileIndirectArgs，只是用 byte offset 区分不同 tile type（(int32)ETileType::Empty * sizeof(...)）。"
+  },
+  {
+    text: "MegaLights 的 r.MegaLights.DownsampleMode=2 是默认的 quarter-resolution 模式。",
+    correct: false,
+    explanation: "❌ 错误：Mode=2 是 Half-resolution (2x2)，不是 quarter。quarter-resolution 根本没有这个选项。Mode=0 是 1x1 (Disabled)，Mode=1 是 Checkerboard (2x1)。"
+  },
+  {
+    text: "MegaLights 的 Reference Mode（r.MegaLights.Reference.NumShadingPass>1）会让 downsample 失效。",
+    correct: true,
+    explanation: "✅ 正确：GetDownsampleFactorXY 末尾判断 bReferenceMode 时强制 DownsampleFactorXY=(1,1)。Reference 模式要每像素精确采样，跟 downsample 互斥。"
+  },
+  {
+    text: "HairStrands 输入只产生 ComplexShading 这一种 tile 类型。",
+    correct: false,
+    explanation: "❌ 错误：HairStrands 用 3 种 tile：ComplexShading / ComplexShading_Rect / ComplexShading_Rect_Textured（GetShadingTileTypes InputType=HairStrands 分支）。"
+  },
+  {
+    text: "MegaLights 的 tile classification 在 SetupStageTwo 时执行一次（除非 bReferenceMode）。",
+    correct: true,
+    explanation: "✅ 正确：SetupStageTwo 调一次 TileClassificationBuildListsCS + InitTileIndirectArgsCS；Reference 模式多 shading pass 时 TileClassificationMark 会被 re-run，但 BuildLists 仍只跑一次（per ShadingPassIndex 注释见 TileClassificationMark line 1304）。"
+  },
+  {
+    text: "MegaLights 的 DirectionalLight 支持跟 SpotLight 一样完善。",
+    correct: false,
+    explanation: "❌ 错误：DirectionalLight 默认关（r.MegaLights.DirectionalLights=0），开启需要 Forward Light Buffer（r.Forward.LightBuffer.Mode=1），且 Spot 是完整支持。"
+  },
+  {
+    text: "FMegaLightsViewContext 在 MegaLights 系统里是单 view 单 frame 的上下文类。",
+    correct: true,
+    explanation: "✅ 正确：FMegaLightsViewContext（MegaLightsInternal.h:375）是单 view 单 frame 上下文，FMegaLightsFrameTemporaries 是每帧多个 view context 的容器。"
+  }
+];
+
+// ============== STATE ==============
+
+let _origDrag = JSON.parse(JSON.stringify(dragQuestions));
+let _origSingle = JSON.parse(JSON.stringify(singleQuestions));
+let _origMulti = JSON.parse(JSON.stringify(multiQuestions));
+let _origTF = JSON.parse(JSON.stringify(trueFalseQuestions));
+
+let dragQ = JSON.parse(JSON.stringify(_origDrag));
+let singleQ = JSON.parse(JSON.stringify(_origSingle));
+let multiQ = JSON.parse(JSON.stringify(_origMulti));
+let tfQ = JSON.parse(JSON.stringify(_origTF));
+
+let currentMode = 'drag';
+let currentIndex = 0;
+let userAnswer = null;
+let checked = false;
+let answered = {}; // { "drag-0": {correct: true, wrong: false, partial: false}, ... }
+let score = 0;
+let currentFilter = 'all';
+
+// ============== UTIL ==============
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleOptions(q) {
+  const indices = q.options.map((_, i) => i);
+  const shuffledIndices = shuffleArray(indices);
+  const newOptions = shuffledIndices.map(i => q.options[i]);
+  const newExplanations = shuffledIndices.map(i => q.optionExplanations ? q.optionExplanations[i] : '');
+  const newCorrect = Array.isArray(q.correct)
+    ? q.correct.map(oldIdx => shuffledIndices.indexOf(oldIdx)).filter(i => i >= 0).sort((a,b)=>a-b)
+    : shuffledIndices.indexOf(q.correct);
+  return { ...q, options: newOptions, optionExplanations: newExplanations, correct: newCorrect };
+}
+
+function getCurrentArray() {
+  if (currentMode === 'drag') return dragQ;
+  if (currentMode === 'single') return singleQ;
+  if (currentMode === 'multi') return multiQ;
+  return tfQ;
+}
+
+function getCurrentQuestion() {
+  return getCurrentArray()[currentIndex];
+}
+
+function updateStats() {
+  const total = dragQ.length + singleQ.length + multiQ.length + tfQ.length;
+  const answeredCount = Object.keys(answered).length;
+  const correctCount = Object.values(answered).filter(a => a.correct).length;
+  const wrongCount = Object.values(answered).filter(a => a.wrong).length;
+  document.getElementById('stat-progress').textContent = answeredCount + '/' + total;
+  document.getElementById('stat-score').textContent = score;
+  document.getElementById('stat-correct').textContent = correctCount;
+  document.getElementById('stat-wrong').textContent = wrongCount;
+}
+
+function updateProgressBar() {
+  const total = getCurrentArray().length;
+  const pct = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
+  document.querySelector('.progress-fill').style.width = pct + '%';
+  document.querySelector('.progress-text').textContent = (currentIndex + 1) + ' / ' + total;
+}
+
+function setAnswered(qKey, correct, wrong, partial) {
+  answered[qKey] = { correct, wrong, partial };
+}
+
+function getAnswered(qKey) {
+  return answered[qKey];
+}
+
+// ============== RENDERING ==============
+
+function renderDrag() {
+  const q = getCurrentQuestion();
+  const area = document.getElementById('card-area');
+  const qKey = 'drag-' + currentIndex;
+  const state = getAnswered(qKey);
+
+  // Parse text with blanks
+  let html = '<div class="q-type">拖拽填空</div>';
+  html += '<div class="question-text">';
+  const parts = q.text.split(/(\[\d+\])/);
+  let blankIdx = 0;
+  parts.forEach(p => {
+    const m = p.match(/\[(\d+)\]/);
+    if (m) {
+      const idx = parseInt(m[1]);
+      const filled = (userAnswer && userAnswer[idx]) || '';
+      let cls = 'blank';
+      if (state && state.answeredBlanks) {
+        if (state.answeredBlanks[idx] === true) cls += ' correct';
+        else if (state.answeredBlanks[idx] === false) cls += ' wrong';
+        else cls += '';
+      } else if (filled) {
+        cls += ' filled';
+      }
+      html += '<span class="' + cls + '" data-blank="' + idx + '" ondragover="event.preventDefault()" ondrop="dropOnBlank(event,' + idx + ')" ondragenter="highlightBlank(event,true)" ondragleave="highlightBlank(event,false)">' + (filled || '___') + '</span>';
+      blankIdx++;
+    } else {
+      html += p;
+    }
+  });
+  html += '</div>';
+
+  // Drag pool
+  html += '<div class="drag-pool" id="drag-pool">';
+  q.options.forEach((opt, i) => {
+    const used = userAnswer && Object.values(userAnswer).includes(opt);
+    html += '<div class="drag-token' + (used ? ' used' : '') + '" draggable="true" data-opt="' + opt + '" ondragstart="dragStart(event,\'' + opt.replace(/'/g, "\\'") + '\')">' + opt + '</div>';
+  });
+  html += '</div>';
+
+  // Check button
+  html += '<div style="margin-top:12px;"><button onclick="checkDrag()" class="primary">检查答案</button> <button onclick="resetDrag()">重置</button></div>';
+
+  // Feedback
+  if (state) {
+    html += '<div class="feedback ' + (state.correct ? 'correct' : 'wrong') + '">' + (state.correct ? '✅ 全部正确！' : '❌ 有错误') + '</div>';
+    html += '<div class="explanation ' + (state.correct ? 'correct' : 'wrong') + '">';
+    q.answers.forEach((ans, i) => {
+      html += '<div><strong>[' + i + ']</strong> ' + ans + ' — ' + q.explanations[i] + '</div>';
+    });
+    html += '</div>';
+  }
+
+  area.innerHTML = html;
+  updateProgressBar();
+}
+
+function renderSingle() {
+  const q = getCurrentQuestion();
+  const area = document.getElementById('card-area');
+  const qKey = 'single-' + currentIndex;
+  const state = getAnswered(qKey);
+
+  let html = '<div class="q-type">单选题</div>';
+  html += '<div class="question-text">' + q.text + '</div>';
+  html += '<div class="options">';
+  q.options.forEach((opt, i) => {
+    let cls = 'option';
+    if (userAnswer === i) cls += ' selected';
+    if (state) {
+      if (i === q.correct) cls += ' correct';
+      else if (userAnswer === i) cls += ' wrong';
+    }
+    html += '<div class="' + cls + '" onclick="selectSingle(' + i + ')">' + opt + '</div>';
+  });
+  html += '</div>';
+
+  if (state) {
+    html += '<div class="feedback ' + (state.correct ? 'correct' : 'wrong') + '">' + (state.correct ? '✅ 正确' : '❌ 错误，正确答案是 ' + q.options[q.correct]) + '</div>';
+    html += '<div class="explanation ' + (state.correct ? 'correct' : 'wrong') + '">';
+    q.options.forEach((opt, i) => {
+      html += '<div>' + q.optionExplanations[i] + '</div>';
+    });
+    html += '</div>';
+  }
+
+  area.innerHTML = html;
+  updateProgressBar();
+}
+
+function renderMulti() {
+  const q = getCurrentQuestion();
+  const area = document.getElementById('card-area');
+  const qKey = 'multi-' + currentIndex;
+  const state = getAnswered(qKey);
+
+  let html = '<div class="q-type">多选题</div>';
+  html += '<div class="question-text">' + q.text + '</div>';
+  html += '<div class="options">';
+  q.options.forEach((opt, i) => {
+    let cls = 'option';
+    const selected = userAnswer && userAnswer.includes(i);
+    if (selected) cls += ' selected';
+    if (state) {
+      const isCorrect = q.correct.includes(i);
+      const userSelected = userAnswer && userAnswer.includes(i);
+      if (isCorrect && userSelected) cls += ' correct';
+      else if (isCorrect && !userSelected) cls += ' correct';
+      else if (!isCorrect && userSelected) cls += ' wrong';
+    }
+    html += '<div class="' + cls + '" onclick="toggleMulti(' + i + ')">' + opt + '</div>';
+  });
+  html += '</div>';
+
+  if (state) {
+    const correctCount = q.correct.length;
+    const userCount = userAnswer ? userAnswer.length : 0;
+    const intersect = userAnswer ? userAnswer.filter(x => q.correct.includes(x)).length : 0;
+    const extras = userAnswer ? userAnswer.filter(x => !q.correct.includes(x)).length : 0;
+    const missing = q.correct.filter(x => !userAnswer || !userAnswer.includes(x)).length;
+    if (intersect === correctCount && extras === 0) {
+      html += '<div class="feedback correct">✅ 全部正确！</div>';
+    } else {
+      html += '<div class="feedback wrong">❌ ' + intersect + '/' + correctCount + ' 正确（多选 ' + extras + '，漏选 ' + missing + '）</div>';
+    }
+    html += '<div class="explanation">';
+    q.options.forEach((opt, i) => {
+      html += '<div>' + q.optionExplanations[i] + '</div>';
+    });
+    html += '</div>';
+  }
+
+  area.innerHTML = html;
+  updateProgressBar();
+}
+
+function renderTF() {
+  const q = getCurrentQuestion();
+  const area = document.getElementById('card-area');
+  const qKey = 'tf-' + currentIndex;
+  const state = getAnswered(qKey);
+
+  let html = '<div class="q-type">判断题</div>';
+  html += '<div class="question-text">' + q.text + '</div>';
+  html += '<div class="tf-options">';
+  ['✅ 正确 (True)', '❌ 错误 (False)'].forEach((label, i) => {
+    let cls = 'tf-btn';
+    const v = (i === 0);
+    if (userAnswer === v) cls += ' selected';
+    if (state) {
+      if (q.correct === v) cls += ' correct';
+      else if (userAnswer === v) cls += ' wrong';
+    }
+    html += '<div class="' + cls + '" onclick="selectTF(' + v + ')">' + label + '</div>';
+  });
+  html += '</div>';
+
+  if (state) {
+    html += '<div class="feedback ' + (state.correct ? 'correct' : 'wrong') + '">' + (state.correct ? '✅ 正确' : '❌ 错误，正确答案是 ' + (q.correct ? 'True' : 'False')) + '</div>';
+    html += '<div class="explanation ' + (state.correct ? 'correct' : 'wrong') + '">' + q.explanation + '</div>';
+  }
+
+  area.innerHTML = html;
+  updateProgressBar();
+}
+
+function render() {
+  if (currentMode === 'drag') renderDrag();
+  else if (currentMode === 'single') renderSingle();
+  else if (currentMode === 'multi') renderMulti();
+  else renderTF();
+  updateStats();
+}
+
+// ============== ACTIONS ==============
+
+function switchMode(mode) {
+  currentMode = mode;
+  currentIndex = 0;
+  userAnswer = null;
+  checked = false;
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode);
+  });
+  render();
+}
+
+function nextQuestion() {
+  const arr = getCurrentArray();
+  if (currentIndex < arr.length - 1) {
+    currentIndex++;
+    userAnswer = null;
+    checked = false;
+    render();
+  }
+}
+
+function prevQuestion() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    userAnswer = null;
+    checked = false;
+    render();
+  }
+}
+
+function selectSingle(i) {
+  if (getAnswered(currentMode + '-' + currentIndex)) return;
+  userAnswer = i;
+  render();
+}
+
+function toggleMulti(i) {
+  if (getAnswered(currentMode + '-' + currentIndex)) return;
+  if (!userAnswer) userAnswer = [];
+  const idx = userAnswer.indexOf(i);
+  if (idx >= 0) userAnswer.splice(idx, 1);
+  else userAnswer.push(i);
+  render();
+}
+
+function selectTF(v) {
+  if (getAnswered('tf-' + currentIndex)) return;
+  userAnswer = v;
+  render();
+}
+
+function checkAnswer() {
+  if (currentMode === 'drag') checkDrag();
+  else if (currentMode === 'single') checkSingle();
+  else if (currentMode === 'multi') checkMulti();
+  else checkTF();
+}
+
+function checkSingle() {
+  if (userAnswer === null) return;
+  const q = getCurrentQuestion();
+  const qKey = 'single-' + currentIndex;
+  const correct = userAnswer === q.correct;
+  setAnswered(qKey, correct, !correct, false);
+  if (correct) score++;
+  render();
+}
+
+function checkMulti() {
+  if (!userAnswer || userAnswer.length === 0) return;
+  const q = getCurrentQuestion();
+  const qKey = 'multi-' + currentIndex;
+  const intersect = userAnswer.filter(x => q.correct.includes(x)).length;
+  const extras = userAnswer.filter(x => !q.correct.includes(x)).length;
+  const isAllCorrect = intersect === q.correct.length && extras === 0;
+  const isPartial = intersect > 0 && !isAllCorrect;
+  setAnswered(qKey, isAllCorrect, !isAllCorrect && !isPartial, isPartial);
+  if (isAllCorrect) score += 2;
+  else if (isPartial) score += 1;
+  render();
+}
+
+function checkTF() {
+  if (userAnswer === null) return;
+  const q = getCurrentQuestion();
+  const qKey = 'tf-' + currentIndex;
+  const correct = userAnswer === q.correct;
+  setAnswered(qKey, correct, !correct, false);
+  if (correct) score++;
+  render();
+}
+
+function checkDrag() {
+  const q = getCurrentQuestion();
+  const qKey = 'drag-' + currentIndex;
+  if (!userAnswer) return;
+  let allCorrect = true;
+  const answeredBlanks = {};
+  q.answers.forEach((ans, i) => {
+    const u = userAnswer[i];
+    if (u === ans) {
+      answeredBlanks[i] = true;
+    } else {
+      answeredBlanks[i] = false;
+      allCorrect = false;
+    }
+  });
+  setAnswered(qKey, allCorrect, !allCorrect, false);
+  if (allCorrect) score += 2;
+  setAnswered(qKey, allCorrect, !allCorrect, false);
+  // Update answered record with blanks
+  answered[qKey].answeredBlanks = answeredBlanks;
+  render();
+}
+
+function resetQuestion() {
+  if (currentMode === 'drag') resetDrag();
+  else {
+    userAnswer = null;
+    const qKey = currentMode + '-' + currentIndex;
+    delete answered[qKey];
+    render();
+  }
+}
+
+function resetDrag() {
+  userAnswer = null;
+  const qKey = 'drag-' + currentIndex;
+  delete answered[qKey];
+  render();
+}
+
+function resetAll() {
+  if (!confirm('确认清空所有答题记录和分数？')) return;
+  answered = {};
+  score = 0;
+  userAnswer = null;
+  currentIndex = 0;
+  render();
+}
+
+// ============== DRAG & DROP ==============
+
+let draggedToken = null;
+
+function dragStart(e, opt) {
+  draggedToken = opt;
+  e.dataTransfer.setData('text/plain', opt);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function dropOnBlank(e, idx) {
+  e.preventDefault();
+  highlightBlank(e, false);
+  const opt = e.dataTransfer.getData('text/plain');
+  if (!opt) return;
+  if (!userAnswer) userAnswer = {};
+  userAnswer[idx] = opt;
+  render();
+}
+
+function highlightBlank(e, on) {
+  if (e.target.classList) {
+    if (on) e.target.style.background = '#16213e';
+    else e.target.style.background = '';
+  }
+}
+
+// ============== OVERVIEW ==============
+
+function toggleOverview() {
+  const modal = document.getElementById('overview-modal');
+  modal.classList.toggle('show');
+  if (modal.classList.contains('show')) renderOverview();
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === f);
+  });
+  renderOverview();
+}
+
+function renderOverview() {
+  const grid = document.getElementById('thumb-grid');
+  grid.innerHTML = '';
+  const allQ = [
+    ...dragQ.map((q, i) => ({ type: 'drag', idx: i, q, key: 'drag-' + i })),
+    ...singleQ.map((q, i) => ({ type: 'single', idx: i, q, key: 'single-' + i })),
+    ...multiQ.map((q, i) => ({ type: 'multi', idx: i, q, key: 'multi-' + i })),
+    ...tfQ.map((q, i) => ({ type: 'tf', idx: i, q, key: 'tf-' + i }))
+  ];
+  const typeNames = { drag: '拖拽', single: '单选', multi: '多选', tf: '判断' };
+  allQ.forEach(item => {
+    const a = answered[item.key];
+    let status = 'unanswered';
+    if (a) {
+      if (a.correct) status = 'correct';
+      else if (a.partial) status = 'partial';
+      else status = 'wrong';
+    }
+    if (currentFilter !== 'all' && currentFilter !== status) return;
+    const div = document.createElement('div');
+    div.className = 'thumb ' + status;
+    div.onclick = () => { switchMode(item.type); currentIndex = item.idx; userAnswer = null; render(); toggleOverview(); };
+    div.innerHTML = '<div class="thumb-type">' + typeNames[item.type] + '</div><div class="thumb-num">#' + (item.idx + 1) + '</div><div class="thumb-q">' + item.q.text.substring(0, 60) + '...</div><div class="thumb-status">' + ({correct:'✅ 正确', wrong:'❌ 错误', partial:'🟡 部分', unanswered:'⚪ 未答'})[status] + '</div>';
+    grid.appendChild(div);
+  });
+}
+
+// ============== RESHUFFLE ==============
+
+function reshuffleAll() {
+  if (!confirm('确认随机打乱所有题目顺序和选项？此操作会清空当前答题记录。')) return;
+  answered = {};
+  score = 0;
+  userAnswer = null;
+  currentIndex = 0;
+
+  dragQ = shuffleArray(JSON.parse(JSON.stringify(_origDrag)));
+  singleQ = shuffleArray(JSON.parse(JSON.stringify(_origSingle))).map(shuffleOptions);
+  multiQ = shuffleArray(JSON.parse(JSON.stringify(_origMulti))).map(shuffleOptions);
+  tfQ = shuffleArray(JSON.parse(JSON.stringify(_origTF)));
+
+  render();
+}
+
+// ============== INIT ==============
+
+document.addEventListener('DOMContentLoaded', () => {
+  render();
+  updateStats();
+});
+</script>
+</body>
+</html>

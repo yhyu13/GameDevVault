@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5.8 Substrate 材质系统 · 互动式面试卡牌</title>
+<style>
+:root{--bg:#1a1a2e;--card-bg:#262647;--primary:#b388ff;--primary-dim:#7c4dff;--accent:#b388ff;--accent-wrong:#ff6b9d;--text:#e0e0e0;--text-light:#9a9ab0;--border:#3d3d6b;--shadow:rgba(0,0,0,.4);--drop-zone:#2d2d52;--draggable:#34345e;--status-correct:#1f3d2d;--status-wrong:#3d1f2d;--status-unanswered:#2d2d52}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+header{background:linear-gradient(135deg,#2d1b4e,#1a1a2e);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 12px var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;border-bottom:1px solid var(--primary-dim)}
+header h1{margin:0;font-size:1.3rem;font-weight:500;color:#fff}
+header p{margin:.2rem 0 0;opacity:.85;font-size:.85rem}
+.header-left{flex:1;min-width:260px}
+.header-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.header-btn{padding:.5rem 1rem;background:rgba(179,136,255,.15);border:1px solid rgba(179,136,255,.4);border-radius:8px;color:#fff;cursor:pointer;transition:all .2s;font-size:.88rem;text-decoration:none;display:inline-block}
+.header-btn:hover{background:rgba(179,136,255,.3);border-color:var(--primary)}
+.container{max-width:820px;margin:0 auto;padding:1.5rem}
+.nav-tabs{display:flex;gap:.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+.nav-tab{flex:1;min-width:90px;padding:.6rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:.85rem;transition:all .2s;color:var(--text-light)}
+.nav-tab.active{background:var(--primary);color:#1a1a2e;border-color:var(--primary);box-shadow:0 2px 8px rgba(179,136,255,.4);font-weight:600}
+.nav-tab:hover:not(.active){background:#34345e;color:var(--text)}
+.score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:.6rem;flex-wrap:wrap;padding:.7rem 1rem;background:var(--card-bg);border-radius:8px;border:1px solid var(--border)}
+.score-mini{font-size:.85rem;color:var(--text-light);white-space:nowrap}
+.score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+.progress-text{text-align:right;font-size:.8rem;color:var(--text-light);margin-bottom:.3rem}
+.progress-bar{height:6px;background:#0f0f1f;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+.progress-fill{height:100%;background:linear-gradient(90deg,#b388ff,#7c4dff);border-radius:3px;transition:width .3s ease}
+.card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem;border:1px solid var(--border)}
+.card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#1a1a2e;border-radius:50%;text-align:center;line-height:26px;font-size:.8rem;font-weight:700;margin-right:.5rem}
+.card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5;color:var(--text)}
+.q-type{font-size:.75rem;color:var(--primary);background:rgba(179,136,255,.15);padding:2px 8px;border-radius:4px;margin-left:.4rem;border:1px solid rgba(179,136,255,.3)}
+.drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem;color:var(--text)}
+.drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all .2s;padding:0 6px;font-size:.95rem;color:var(--text-light)}
+.drop-zone.drag-over{background:#3d3d6b;border-color:var(--primary)}
+.drop-zone.filled{border-style:solid;border-color:var(--primary);background:#34345e;cursor:pointer;color:#fff}
+.drop-zone.correct{border-color:#4caf50;background:var(--status-correct);color:#4caf50}
+.drop-zone.wrong{border-color:var(--accent-wrong);background:var(--status-wrong);color:var(--accent-wrong)}
+.drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+.drop-zone.correct .dropped-text{color:#4caf50}
+.drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+.drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:.5rem;padding:.8rem;background:var(--drop-zone);border-radius:8px;border:1px solid var(--border)}
+.draggable{padding:.4rem .9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all .15s;font-size:.92rem;color:var(--text)}
+.draggable:hover{background:#3d3d6b;border-color:var(--primary);transform:translateY(-1px)}
+.draggable.used{opacity:.35;cursor:default;pointer-events:none}
+.options-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.0rem}
+.option{padding:.7rem 1.0rem;background:#1f1f3d;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.6rem;font-size:.95rem;line-height:1.45;color:var(--text)}
+.option:hover{border-color:var(--primary);background:#2d2d52}
+.option.selected{border-color:var(--primary);background:rgba(179,136,255,.15)}
+.option.correct-mark{border-color:#4caf50;background:var(--status-correct);color:#4caf50}
+.option.wrong-mark{border-color:var(--accent-wrong);background:var(--status-wrong);color:var(--accent-wrong)}
+.option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;flex-shrink:0;background:#1a1a2e;color:var(--text-light)}
+.option.selected .opt-marker{background:var(--primary);color:#1a1a2e;border-color:var(--primary)}
+.option.correct-mark .opt-marker{background:#4caf50;color:#fff;border-color:#4caf50}
+.option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+.tf-options{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.0rem}
+.tf-btn{padding:.9rem;border:1.5px solid var(--border);border-radius:8px;background:#1f1f3d;cursor:pointer;transition:all .15s;font-size:.95rem;text-align:center;color:var(--text)}
+.tf-btn:hover{border-color:var(--primary);background:#2d2d52}
+.tf-btn.selected{border-color:var(--primary);background:rgba(179,136,255,.15)}
+.tf-btn.correct-mark{border-color:#4caf50;background:var(--status-correct);color:#4caf50}
+.tf-btn.wrong-mark{border-color:var(--accent-wrong);background:var(--status-wrong);color:var(--accent-wrong)}
+.feedback{margin-top:1.0rem;padding:.9rem 1.1rem;border-radius:8px;background:#1f1f3d;border-left:3px solid var(--primary);font-size:.92rem;line-height:1.6;display:none;color:var(--text)}
+.feedback.show{display:block}
+.feedback.feedback-correct{border-left-color:#4caf50;background:var(--status-correct)}
+.feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:var(--status-wrong)}
+.feedback-title{font-weight:600;margin-bottom:.3rem;display:block}
+.feedback ul{margin:.4rem 0 0 0;padding-left:1.2rem}
+.feedback li{margin-bottom:.3rem}
+.action-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.0rem}
+.btn{padding:.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.9rem;transition:all .15s}
+.btn:hover{background:#3d3d6b;border-color:var(--primary)}
+.btn-primary{background:var(--primary);color:#1a1a2e;border-color:var(--primary);font-weight:600}
+.btn-primary:hover{background:#9d6fff;border-color:#9d6fff;color:#1a1a2e}
+.btn-accent{background:var(--accent);color:#1a1a2e;border-color:var(--accent)}
+.btn-accent:hover{filter:brightness(.95)}
+.nav-row{display:flex;justify-content:space-between;margin-top:.8rem;gap:.6rem}
+.overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem;border:1px solid var(--border)}
+.overview-panel.show{display:block}
+.overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:.5rem}
+.overview-header h2{margin:0;font-size:1.15rem;font-weight:500;color:var(--text)}
+.overview-stats{display:flex;gap:.5rem;flex-wrap:wrap}
+.filter-btn{padding:.4rem .8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .15s;color:var(--text-light)}
+.filter-btn.active{background:var(--primary);color:#1a1a2e;border-color:var(--primary);font-weight:600}
+.filter-btn:hover:not(.active){background:#3d3d6b;color:var(--text)}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:.5rem}
+.overview-item{aspect-ratio:1;border-radius:8px;background:var(--status-unanswered);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:.78rem;text-align:center;padding:.2rem;color:var(--text-light)}
+.overview-item.correct{background:var(--status-correct);border-color:#4caf50;color:#4caf50}
+.overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong);color:var(--accent-wrong)}
+.overview-item:hover{transform:scale(1.04);box-shadow:0 2px 8px var(--shadow)}
+.overview-item .ov-num{font-weight:700;font-size:1.0rem;margin-bottom:.1rem}
+.overview-item .ov-type{font-size:.65rem;opacity:.75;text-transform:uppercase;letter-spacing:.5px}
+.hidden{display:none}
+@media (max-width:600px){.container{padding:1rem}.card{padding:1.2rem 1.0rem}header{padding:1rem}header h1{font-size:1.1rem}.nav-tab{font-size:.78rem;padding:.5rem .3rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>UE5.8 Substrate 材质系统 · 互动式面试卡牌</h1>
+    <p>UE 5.8 · 共 30 题（拖拽 6 + 单选 9 + 多选 7 + 判断 8）· <a class="header-btn" href="UE5.8-Substrate-材质系统.md" target="_blank">📄 配套源码笔记</a></p>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" id="btn-overview">📊 题目总览</button>
+    <button class="header-btn" id="btn-reshuffle">🔄 随机打乱</button>
+    <button class="header-btn" id="btn-reset-all">🔄 重置全部</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-type="all">全部</div>
+    <div class="nav-tab" data-type="drag">拖拽填空</div>
+    <div class="nav-tab" data-type="single">单选题</div>
+    <div class="nav-tab" data-type="multi">多选题</div>
+    <div class="nav-tab" data-type="tf">判断题</div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-mini">已答 <span class="score-num" id="answered-num">0</span> / <span id="total-num">30</span></div>
+    <div class="score-mini">正确 <span class="score-num" id="correct-num" style="color:#4caf50">0</span></div>
+    <div class="score-mini">错误 <span class="score-num" id="wrong-num" style="color:var(--accent-wrong)">0</span></div>
+    <div class="score-mini">得分率 <span class="score-num" id="score-pct">0%</span></div>
+  </div>
+
+  <div class="progress-text" id="progress-text">第 1 题 / 共 30 题</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:3%"></div></div>
+
+  <div id="overview-panel" class="overview-panel">
+    <div class="overview-header">
+      <h2>题目总览</h2>
+      <div class="overview-stats">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="unanswered">未答</button>
+        <button class="filter-btn" data-filter="correct">正确</button>
+        <button class="filter-btn" data-filter="wrong">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <div id="questions-container"></div>
+
+</div>
+
+<script>
+const _origDrag = [
+  {
+    text: "Substrate 把像素分成 4 种 tile:Simple / <span class='drop-zone' data-idx='0'></span> / Complex / <span class='drop-zone' data-idx='1'></span>。StencilBit_Complex = <span class='drop-zone' data-idx='2'></span>(十六进制)。",
+    answers: ["Single", "ComplexSpecial", "0x40"],
+    pool: ["Single", "ComplexSpecial", "0x40", "Fast", "0x10", "0x20", "0x80", "OpaqueRough"],
+    explanations: [
+      "✅ Single tile: 单 closure 走 fast path(对应 StencilBit_Single=0x20)",
+      "✅ ComplexSpecial tile: 多层 closure + 完整 BSDF 评估(对应 StencilBit_ComplexSpecial=0x80)",
+      "✅ StencilBit_Complex = 0x40(Substrate.h:212),用 trailing bits 避免污染 shadow mask"
+    ]
+  },
+  {
+    text: "材质分类主入口是 Substrate::<span class='drop-zone' data-idx='0'></span>(Substrate.cpp:1701),Rough Refraction 入口是 Substrate::<span class='drop-zone' data-idx='1'></span>(SubstrateRoughRefraction.cpp:79)。",
+    answers: ["AddSubstrateMaterialClassificationPass", "AddSubstrateOpaqueRoughRefractionPasses"],
+    pool: ["AddSubstrateMaterialClassificationPass", "AddSubstrateOpaqueRoughRefractionPasses", "AddSubstrateStencilPass", "BindSubstrateGlobalUniformParameters", "InitialiseSubstrateFrameSceneData"],
+    explanations: [
+      "✅ AddSubstrateMaterialClassificationPass 是 tile 分类入口(读 TopLayerTexture → 写 ClassificationTileListBuffer)",
+      "✅ AddSubstrateOpaqueRoughRefractionPasses 是 basepass 期间独立 tile 的折射合成,3 个 PSO:H→V→SSS"
+    ]
+  },
+  {
+    text: "Substrate 用 <span class='drop-zone' data-idx='0'></span> 描述材质(替代 legacy GBuffer 8 槽位),所有 closure 数据打包到 <span class='drop-zone' data-idx='1'></span>。StencilBit 4 个值是 0x10/0x20/0x40/<span class='drop-zone' data-idx='2'></span>。",
+    answers: ["closure 图", "MaterialTextureArray", "0x80"],
+    pool: ["closure 图", "MaterialTextureArray", "0x80", "TopLayerTexture", "GBufferA", "0x08", "1 个"],
+    explanations: [
+      "✅ Closure 图:任意深度的材质树,支持无限层(对比 legacy GBuffer 8 层硬上限)",
+      "✅ MaterialTextureArray:Texture2DArray<uint>,每像素所有 closure 数据打包成 uint32 数组",
+      "✅ StencilBit_ComplexSpecial = 0x80(Substrate.h:214),对应最复杂 tile"
+    ]
+  },
+  {
+    text: "FSubstrateCommonParameters 包含 6 个字段:MaxBytesPerPixel / MaxClosurePerPixel / bRoughDiffuse / PeelLayersAboveDepth / <span class='drop-zone' data-idx='0'></span> / <span class='drop-zone' data-idx='1'></span>。其中 <span class='drop-zone' data-idx='2'></span> 决定 light sample 的随机性。",
+    answers: ["bRoughnessTracking", "bStochasticLighting", "bStochasticLighting"],
+    pool: ["bRoughnessTracking", "bStochasticLighting", "bIsMobile", "bIsReflection", "TileCount", "MaxBytesPerFragment"],
+    explanations: [
+      "✅ bRoughnessTracking:上层 roughness 影响下层(模拟散射),r.Substrate.Debug.RoughnessTracking 控制",
+      "✅ bStochasticLighting:随机 light sampling 减少 light count(r.Substrate.StochasticLighting.Active)",
+      "✅ bStochasticLighting 决定 light sample 的随机性,默认 0,启用可大幅减少 light count"
+    ]
+  },
+  {
+    text: "FSubstrateSceneData 拆分 <span class='drop-zone' data-idx='0'></span>(跨帧单调递增,避免 realloc)和 <span class='drop-zone' data-idx='1'></span>(当前帧实际需求)。默认用 AllocationMode=<span class='drop-zone' data-idx='2'></span> 决定 slice 数。",
+    answers: ["PersistentMaxBytesPerPixel", "EffectiveMaxBytesPerPixel", "1"],
+    pool: ["PersistentMaxBytesPerPixel", "EffectiveMaxBytesPerPixel", "1", "0", "2", "MaxBytesPerPixel", "MaxClosurePerPixel"],
+    explanations: [
+      "✅ PersistentMaxBytesPerPixel:跨帧历史最大值,跨帧单调递增,避免回退场景时 realloc",
+      "✅ EffectiveMaxBytesPerPixel:当前帧实际需求,初始为 ViewsMaxBytesPerPixel",
+      "✅ AllocationMode=1 (默认):max(views, persistent),只增不减,避免 GPU 资源抖动"
+    ]
+  },
+  {
+    text: "Substrate 默认 MaterialTextureArray 格式是 <span class='drop-zone' data-idx='0'></span>,每像素所有 closure 数据打包成 <span class='drop-zone' data-idx='1'></span>。TopLayerTexture 存的是 <span class='drop-zone' data-idx='2'></span>。",
+    answers: ["Texture2DArray<uint>", "uint32 packed", "顶层 BSDF 参数(normal/roughness/baseColor)"],
+    pool: ["Texture2DArray<uint>", "uint32 packed", "顶层 BSDF 参数(normal/roughness/baseColor)", "Texture2D<float4>", "half packed", "GBufferA 的值"],
+    explanations: [
+      "✅ MaterialTextureArray 是 Texture2DArray<uint>,每个 texel = uint32 packed data",
+      "✅ 所有 closure 数据打包成 uint32(节省带宽、texture 采样简单)",
+      "✅ TopLayerTexture 存顶层材质的 BSDF:normal / roughness / baseColor / F0"
+    ]
+  }
+];
+
+const _origSingle = [
+  {
+    q: "Substrate 取代的是哪个老的材质系统?",
+    options: [
+      "Legacy GBuffer slot model + Strata-pre",
+      "Forward+ 渲染管线",
+      "MegaLights / Lumen 直接光照",
+      "BentNormal AO 方案"
+    ],
+    correct: 0,
+    explanations: [
+      "✅ Substrate 取代 legacy GBuffer 8 槽位 + Strata-pre,把材质建模换成 closure 图",
+      "❌ Forward+ 跟 Substrate 是独立维度(forward vs deferred)",
+      "❌ MegaLights 是独立 light sampling 优化,Substrate 不取代它",
+      "❌ BentNormal AO 是 SSAO 升级,跟材质系统无关"
+    ]
+  },
+  {
+    q: "StencilBit_Complex 的十六进制值是?",
+    options: ["0x10", "0x20", "0x40", "0x80"],
+    correct: 2,
+    explanations: [
+      "❌ 0x10 是 StencilBit_Fast(Simple tile)",
+      "❌ 0x20 是 StencilBit_Single(Single tile)",
+      "✅ StencilBit_Complex = 0x40(Substrate.h:212)",
+      "❌ 0x80 是 StencilBit_ComplexSpecial(最复杂 tile)"
+    ]
+  },
+  {
+    q: "FSubstrateGlobalUniformParameters 用 RENDERER_API 标记的原因是?",
+    options: [
+      "强制 shader compiler 走 RENDERER_API 路径",
+      "Workaround other modules doing 'private include' of the Renderer module",
+      "让 Mesh Pass Processor 直接访问",
+      "对齐 shader 版本号"
+    ],
+    correct: 1,
+    explanations: [
+      "❌ RENDERER_API 跟 shader compiler 无关",
+      "✅ Substrate.h:60-62 注释明确:workaround other modules doing 'private include' of the Renderer module,让外部模块能直接访问这个 UB",
+      "❌ Mesh Pass Processor 访问不需要 RENDERER_API",
+      "❌ 跟 shader 版本无关"
+    ]
+  },
+  {
+    q: "AddSubstrateMaterialClassificationPass 位于源文件哪行?",
+    options: ["Substrate.cpp:460", "Substrate.cpp:900", "Substrate.cpp:1497", "Substrate.cpp:1701"],
+    correct: 3,
+    explanations: [
+      "❌ :460 是 InitialiseSubstrateFrameSceneData",
+      "❌ :900 是 BindSubstrateGlobalUniformParameters",
+      "❌ :1497 是 AddSubstrateStencilPass",
+      "✅ AddSubstrateMaterialClassificationPass 在 Substrate.cpp:1701"
+    ]
+  },
+  {
+    q: "FSubstrateCommonParameters 包含多少个字段?",
+    options: ["4 个", "6 个", "10 个", "14 个"],
+    correct: 1,
+    explanations: [
+      "❌ 太少(漏了 roughness tracking / stochastic lighting)",
+      "✅ 6 个:MaxBytesPerPixel / MaxClosurePerPixel / bRoughDiffuse / PeelLayersAboveDepth / bRoughnessTracking / bStochasticLighting",
+      "❌ 10 个是 FSubstrateGlobalUniformParameters 之外其他 Substrate UB 的子集",
+      "❌ 14+ 个是 FSubstrateGlobalUniformParameters 全字段数"
+    ]
+  },
+  {
+    q: "Opaque Rough Refraction 的入口函数在哪?",
+    options: [
+      "Substrate.cpp:1497 (AddSubstrateStencilPass)",
+      "SubstrateRoughRefraction.cpp:79",
+      "Substrate.cpp:2027 (AddSubstrateSampleMaterialPass)",
+      "SubstrateVisualize.cpp"
+    ],
+    correct: 1,
+    explanations: [
+      "❌ :1497 是 Stencil pass,跟 refraction 无关",
+      "✅ AddSubstrateOpaqueRoughRefractionPasses 在 SubstrateRoughRefraction.cpp:79",
+      "❌ :2027 是 Sample Material pass(最终合成)",
+      "❌ SubstrateVisualize.cpp 只负责 debug 可视化"
+    ]
+  },
+  {
+    q: "Substrate 的 tile 大小 (SUBSTRATE_TILE_SIZE) 是?",
+    options: ["4", "8", "16", "32"],
+    correct: 1,
+    explanations: [
+      "❌ 4 太小,closure 数据填不满 1 个 tile",
+      "✅ SUBSTRATE_TILE_SIZE = 8(SubstrateDefinitions.h),可通过 SUBSTRATE_CLASSIFICATION_TILE_SIZE_16 permutation 升到 16",
+      "❌ 16 是另一种可选 tile size(permutation 切换)",
+      "❌ 32 太大,atomic tile 内 closure 数据放不下"
+    ]
+  },
+  {
+    q: "SUBSTRATE_TILE_ENCODING_16BITS 的含义是?",
+    options: [
+      "每个 tile 用 16 字节编码",
+      "每个 tile 坐标用 16 bit 编码(8 bit x + 8 bit y)",
+      "每像素用 16 bit 编码",
+      "TextureArray 用 16 bit slice"
+    ],
+    correct: 1,
+    explanations: [
+      "❌ 16 字节不对(tile 数据可能更大)",
+      "✅ 16 bit = 8 bit x + 8 bit y 坐标编码(tile coord 8 bits 模式,r.Substrate.TileCoord8bits=1 默认)",
+      "❌ 跟 per-pixel encoding 无关",
+      "❌ 跟 slice 维度无关"
+    ]
+  },
+  {
+    q: "Opaque Rough Refraction 的 3 个 PSO 顺序是?",
+    options: [
+      "SSS → H Blur → V Blur",
+      "H Blur → V Blur → SSS Without Rough Refraction",
+      "V Blur → H Blur → Sample",
+      "Sample → H Blur → V Blur"
+    ],
+    correct: 1,
+    explanations: [
+      "❌ SSS 是最后一步,不能在 blur 前(还没 blur 完)",
+      "✅ SubstrateRoughRefraction.cpp:142 / 201 / 260:H Blur → V Blur → SSS 加性混合",
+      "❌ 顺序反了,vertical blur 必须等 horizontal blur 完成",
+      "❌ Sample Material pass 是另外的独立 pass,不是 refraction 的一部分"
+    ]
+  }
+];
+
+const _origMulti = [
+  {
+    q: "Substrate 的 4 类 tile 类型是?(多选)",
+    options: [
+      "Simple / Fast",
+      "Single",
+      "Complex",
+      "ComplexSpecial",
+      "OpaqueRough",
+      "TranslucentRough"
+    ],
+    correct: [0, 1, 2, 3],
+    explanations: [
+      "✅ Simple(Fast path,StencilBit_Fast=0x10)",
+      "✅ Single(StencilBit_Single=0x20)",
+      "✅ Complex(StencilBit_Complex=0x40)",
+      "✅ ComplexSpecial(StencilBit_ComplexSpecial=0x80)",
+      "❌ OpaqueRough 是个额外的 refraction tile(EOpaqueRoughRefraction),不是 4 类之一",
+      "❌ TranslucentRough 不是 Substrate tile 类型,Substrate 主要管 opaque"
+    ]
+  },
+  {
+    q: "Substrate 的 4 个 Stencil Bit 是?(多选)",
+    options: [
+      "StencilBit_Fast = 0x10",
+      "StencilBit_Single = 0x20",
+      "StencilBit_Complex = 0x40",
+      "StencilBit_ComplexSpecial = 0x80",
+      "StencilBit_Translucent = 0x100",
+      "StencilBit_DBuffer = 0x200"
+    ],
+    correct: [0, 1, 2, 3],
+    explanations: [
+      "✅ StencilBit_Fast = 0x10(Substrate.h:209)",
+      "✅ StencilBit_Single = 0x20(Substrate.h:210)",
+      "✅ StencilBit_Complex = 0x40(Substrate.h:211)",
+      "✅ StencilBit_ComplexSpecial = 0x80(Substrate.h:212)",
+      "❌ StencilBit_Translucent 不是 Substrate bit",
+      "❌ DBuffer 是 decal 系统,不占 Substrate stencil bit"
+    ]
+  },
+  {
+    q: "FSubstrateGlobalUniformParameters 包含哪些纹理?(多选)",
+    options: [
+      "MaterialTextureArray",
+      "TopLayerTexture",
+      "OpaqueRoughRefractionTexture",
+      "ClosureOffsetTexture",
+      "TransmittanceLut",
+      "SkyAtmosphereVolume"
+    ],
+    correct: [0, 1, 2, 3],
+    explanations: [
+      "✅ MaterialTextureArray — 所有 closure 数据打包的 2D 纹理数组",
+      "✅ TopLayerTexture — 顶层 BSDF",
+      "✅ OpaqueRoughRefractionTexture — 折射像素 RGB 单独存",
+      "✅ ClosureOffsetTexture — closure 偏移表",
+      "❌ TransmittanceLut 是 SkyAtmosphere 的,不在 Substrate UB",
+      "❌ SkyAtmosphereVolume 是大气散射,跟 Substrate 无关"
+    ]
+  },
+  {
+    q: "Substrate 的 5 个核心 Pass 是?(多选)",
+    options: [
+      "InitialiseSubstrateFrameSceneData(资源分配)",
+      "AddSubstrateMaterialClassificationPass(tile 分类)",
+      "AddSubstrateDBufferPass(decal 应用)",
+      "AddSubstrateStencilPass(stencil 写位)",
+      "AddSubstrateOpaqueRoughRefractionPasses(折射合成)",
+      "RenderShadowMaps(阴影)"
+    ],
+    correct: [0, 1, 2, 3, 4],
+    explanations: [
+      "✅ InitialiseSubstrateFrameSceneData 是入口,分配所有 RDG 资源(Substrate.cpp:460)",
+      "✅ AddSubstrateMaterialClassificationPass tile 分类(Substrate.cpp:1701)",
+      "✅ AddSubstrateDBufferPass DBuffer 应用(Substrate.cpp:1857)",
+      "✅ AddSubstrateStencilPass stencil 写位(Substrate.cpp:1497)",
+      "✅ AddSubstrateOpaqueRoughRefractionPasses 折射合成(SubstrateRoughRefraction.cpp:79)",
+      "❌ RenderShadowMaps 是独立 shadow pass,不在 Substrate 5 个核心 pass 范围内"
+    ]
+  },
+  {
+    q: "FSubstrateViewData 包含哪些 dispatch / indirect buffer?(多选)",
+    options: [
+      "ClassificationTileListBuffer",
+      "ClassificationTileDrawIndirectBuffer",
+      "ClassificationTileDispatchIndirectBuffer",
+      "ClosureTileBuffer",
+      "ClosureTileCountBuffer",
+      "ShadowTileIndirectBuffer"
+    ],
+    correct: [0, 1, 2, 3, 4],
+    explanations: [
+      "✅ ClassificationTileListBuffer — 每个 tile type 的 tile 列表",
+      "✅ ClassificationTileDrawIndirectBuffer — draw indirect args",
+      "✅ ClassificationTileDispatchIndirectBuffer — dispatch indirect args",
+      "✅ ClosureTileBuffer — closure tile 数据",
+      "✅ ClosureTileCountBuffer — closure tile 计数",
+      "❌ ShadowTileIndirectBuffer 不是 Substrate 概念"
+    ]
+  },
+  {
+    q: 'StencilBit 4 个值的"trailing bits"设计目的是?(多选)',
+    options: [
+      "避免跟 shadow mask stencil bit 冲突",
+      "避免 incr/decr 操作污染 Substrate 分类",
+      "让 lighting pass 用 stencil mask 选 shader permutation",
+      "提高 stencil 写入带宽",
+      "节省 stencil 显存"
+    ],
+    correct: [0, 1, 2],
+    explanations: [
+      "✅ Substrate.h:207-208 注释明确:trailing bits 不跟其他 stencil shadow bits 冲突",
+      "✅ 避免 shadow mask 的 incr/decr 操作误改 Substrate 分类 bit",
+      "✅ lighting pass 用 stencil mask O(1) 选 shader permutation,无需额外 dispatch",
+      "❌ trailing bits 跟 stencil 写入带宽无关",
+      "❌ stencil bit 总数固定,4 bit 占 1 byte 内的 4 个,跟显存无关"
+    ]
+  },
+  {
+    q: "Substrate 跟 Legacy GBuffer 相比的关键改进?(多选)",
+    options: [
+      "支持无限层 closure",
+      "Roughness-aware lighting",
+      "Stochastic light sampling",
+      "4 类 tile 分档 shader cost",
+      "更低显存占用",
+      "强制 Mesh Pass 改用 GPU-driven"
+    ],
+    correct: [0, 1, 2, 3],
+    explanations: [
+      "✅ Legacy 最多 8 层 closure,Substrate 无限层",
+      "✅ bRoughnessTracking 让上层 roughness 传递影响下层(模拟散射)",
+      "✅ bStochasticLighting 随机采样减少 light count",
+      "✅ 4 类 tile 让 shader cost 按复杂度分摊",
+      "❌ Substrate 显存反而更高(MaterialTextureArray ~128MB vs GBuffer ~30MB)",
+      "❌ Substrate 跟 Mesh Pass GPU-driven 没有强制关系"
+    ]
+  }
+];
+
+const _origTF = [
+  {
+    q: "Substrate 不支持超过 8 层材质。",
+    correct: false,
+    explanation: "❌ 错误:Substrate 用 closure 图描述材质,支持「无限层」(对比 legacy GBuffer 8 层硬上限)。`SUBSTRATE_MAX_CLOSURE_COUNT ≤ 8` static_assert(Substrate.cpp:102)只是 `UsesTileTypeMask` 用 8bit 编码(1 bit/tile type)的限制,跟 closure 深度无关。"
+  },
+  {
+    q: "Opaque Rough Refraction 是 basepass 期间独立 tile 的合成,不是 post pass。",
+    correct: true,
+    explanation: "✅ 正确:SubstrateRoughRefraction.cpp:79 的 AddSubstrateOpaqueRoughRefractionPasses 在 basepass 期间跑,3 个 PSO(H Blur → V Blur → SSS 加性混合),输入是 SeparatedOpaqueRoughRefractionSceneColor(不是 SceneColor),所以不会污染主 SceneColor。"
+  },
+  {
+    q: "FSubstrateCommonParameters 的 bRoughDiffuse 是 per-material 的。",
+    correct: false,
+    explanation: "❌ 错误:bRoughDiffuse 是「per-scene」(存于 FSubstrateSceneData,通过 GetSubstrateCommonParameter 注入到所有 view UB)。Per-material 的配置在 FMaterial 编译期通过 permutation(粗/细 bsdf)处理,跟 bRoughDiffuse 是两个维度。"
+  },
+  {
+    q: "FSubstrateSceneData::PersistentMaxBytesPerPixel 是当前帧实际需求。",
+    correct: false,
+    explanation: "❌ 错误:PersistentMaxBytesPerPixel 是「跨帧单调递增的历史最大值」,避免回退场景时 realloc 卡顿。「当前帧实际需求」是 EffectiveMaxBytesPerPixel(Substrate.cpp:466-471)。AllocationMode=1 时用 max(views, persistent) 决定 slice 数。"
+  },
+  {
+    q: "StencilBit_Fast = 0x10 用 trailing bits 是为了不污染 shadow mask。",
+    correct: true,
+    explanation: "✅ 正确:Substrate.h:207-208 注释明确 — 4 个 stencil bit 选 0x10/0x20/0x40/0x80 是 trailing bits,目的是不跟 shadow mask 的 incr/decr 操作冲突(否则 shadow 的 +=1 会污染 Substrate 分类 bit,导致 lighting pass 误判 tile 类型)。"
+  },
+  {
+    q: "FSubstrateGlobalUniformParameters 用 RENDERER_API 标记是为了让 Shader Compiler 跨模块。",
+    correct: false,
+    explanation: "❌ 错误:RENDERER_API 跟 Shader Compiler 无关。Substrate.h:60-62 注释明确说是「workaround other modules doing 'private include' of the Renderer module」——其他模块可能 #include \"Renderer/Private/...\"来访问这个 UB,RENDERER_API 兜底让符号能跨 DLL 找到。"
+  },
+  {
+    q: "Substrate 默认启用 stochastic lighting。",
+    correct: false,
+    explanation: "❌ 错误:`r.Substrate.StochasticLighting.Active` 默认「0」,stochastic 路径默认关闭。启用条件:`r.Substrate.StochasticLighting`(platform read-only setting 决定)+ `r.Substrate.StochasticLighting.Active > 0`(runtime toggle)。默认走非 stochastic 精确路径。"
+  },
+  {
+    q: "MegaLights 和 Opaque Rough Refraction 完全兼容,无冲突。",
+    correct: false,
+    explanation: "❌ 错误:SubstrateRoughRefraction.cpp:95-100 有 `UE_LOGF(LogRenderer, Warning, ...)` 硬警告 —「MegaLights + OpaqueRoughRefraction 启用时,visual output might be incorrect」。两者目前不兼容,启用 MegaLights 时 refraction 可能错乱。"
+  }
+];
+
+let dragQuestions = JSON.parse(JSON.stringify(_origDrag));
+let singleQuestions = JSON.parse(JSON.stringify(_origSingle));
+let multiQuestions = JSON.parse(JSON.stringify(_origMulti));
+let trueFalseQuestions = JSON.parse(JSON.stringify(_origTF));
+let currentMode = 'all';
+let currentIndex = 0;
+const results = {};
+let overviewOpen = false;
+let activeFilter = 'all';
+
+function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function shuffleOptions(q){const idx=q.options.map((_,i)=>i);const si=shuffleArray(idx);return{...q,options:si.map(i=>q.options[i]),optionExplanations:si.map(i=>q.optionExplanations[i]),correct:Array.isArray(q.correct)?q.correct.map(o=>si.indexOf(o)).filter(i=>i>=0).sort((a,b)=>a-b):si.indexOf(q.correct)}}
+function reshuffleAll(){resetAll();dragQuestions=shuffleArray(_origDrag);singleQuestions=shuffleArray(_origSingle).map(shuffleOptions);multiQuestions=shuffleArray(_origMulti).map(shuffleOptions);trueFalseQuestions=shuffleArray(_origTF);currentIndex=0;renderCurrent()}
+function getAllQuestions(){const all=[];dragQuestions.forEach((q,i)=>all.push({type:'drag',idx:i,data:q,mode:'drag',originalIndex:q._origIdx!==undefined?q._origIdx:i}));singleQuestions.forEach((q,i)=>all.push({type:'single',idx:i,data:q,mode:'single',originalIndex:q._origIdx!==undefined?q._origIdx:i}));multiQuestions.forEach((q,i)=>all.push({type:'multi',idx:i,data:q,mode:'multi',originalIndex:q._origIdx!==undefined?q._origIdx:i}));trueFalseQuestions.forEach((q,i)=>all.push({type:'tf',idx:i,data:q,mode:'tf',originalIndex:q._origIdx!==undefined?q._origIdx:i}));return all}
+function setMode(mode){currentMode=mode;currentIndex=0;renderCurrent();document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.type===mode))}
+function totalCount(){return dragQuestions.length+singleQuestions.length+multiQuestions.length+trueFalseQuestions.length}
+function answeredCount(){return Object.keys(results).filter(k=>results[k]!==null).length}
+function correctCount(){return Object.values(results).filter(r=>r&&r.correct).length}
+function wrongCount(){return Object.values(results).filter(r=>r&&!r.correct).length}
+function updateScore(){document.getElementById('answered-num').textContent=answeredCount();document.getElementById('correct-num').textContent=correctCount();document.getElementById('wrong-num').textContent=wrongCount();const t=totalCount();document.getElementById('score-pct').textContent=answeredCount()===0?'0%':Math.round(correctCount()/answeredCount()*100)+'%';const cur=getFilteredQuestions().length;document.getElementById('progress-text').textContent=`第 ${Math.min(currentIndex+1,cur)} 题 / 共 ${cur} 题`;document.getElementById('progress-fill').style.width=(cur>0?(Math.min(currentIndex+1,cur)/cur*100)+'%':'0%')}
+function getFilteredQuestions(){if(currentMode==='all')return getAllQuestions();return getAllQuestions().filter(q=>q.mode===currentMode)}
+function renderCurrent(){const qs=getFilteredQuestions();if(qs.length===0){document.getElementById('questions-container').innerHTML='<div class="card"><p>该题型暂无题目。</p></div>';updateScore();return}currentIndex=Math.max(0,Math.min(currentIndex,qs.length-1));const q=qs[currentIndex];document.getElementById('questions-container').innerHTML='';if(q.mode==='drag')renderDrag(q);else if(q.mode==='single')renderSingle(q);else if(q.mode==='multi')renderMulti(q);else if(q.mode==='tf')renderTrueFalse(q);updateScore()}
+function recordResult(type,idx,correct,userAnswer){results[`${type}-${idx}`]={correct,userAnswer};updateScore()}
+function resetAll(){for(const k in results)delete results[k];currentIndex=0;renderCurrent();updateOverview()}
+function renderDrag(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">拖拽填空</span><h3>${q.data.text}</h3><div class="drag-pool">${q.data.pool.map(p=>`<span class="draggable" data-term="${p}">${p}</span>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;setupDragDrop(q);setupNav();setupCheckReset(q,'drag')}
+function renderSingle(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">单选题</span><h3>${q.data.q}</h3><div class="options-list">${q.data.options.map((o,i)=>`<div class="option" data-idx="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${o}</span></div>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;q.data.options.forEach((_,i)=>{document.querySelector(`.option[data-idx="${i}"]`).addEventListener('click',()=>{document.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));document.querySelector(`.option[data-idx="${i}"]`).classList.add('selected')})});setupNav();setupCheckReset(q,'single')}
+function renderMulti(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">多选题</span><h3>${q.data.q}</h3><div class="options-list">${q.data.options.map((o,i)=>`<div class="option" data-idx="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${o}</span></div>`).join('')}</div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;q.data.options.forEach((_,i)=>{document.querySelector(`.option[data-idx="${i}"]`).addEventListener('click',()=>{document.querySelector(`.option[data-idx="${i}"]`).classList.toggle('selected')})});setupNav();setupCheckReset(q,'multi')}
+function renderTrueFalse(q){const html=`<div class="card"><span class="card-number">${currentIndex+1}</span><span class="q-type">判断题</span><h3>${q.data.q}</h3><div class="tf-options"><div class="tf-btn" data-val="true">✅ 正确</div><div class="tf-btn" data-val="false">❌ 错误</div></div><div class="action-row"><button class="btn btn-primary" id="check-btn">检查答案</button><button class="btn" id="reset-btn">重置</button></div><div class="feedback" id="fb"></div></div><div class="nav-row"><button class="btn" id="prev-btn">← 上一题</button><button class="btn" id="next-btn">下一题 →</button></div>`;document.getElementById('questions-container').innerHTML=html;document.querySelectorAll('.tf-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tf-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')}));setupNav();setupCheckReset(q,'tf')}
+function setupDragDrop(q){const fills=document.querySelectorAll('.drop-zone');fills.forEach((z,i)=>{z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag-over')});z.addEventListener('dragleave',()=>z.classList.remove('drag-over'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('drag-over');const term=e.dataTransfer.getData('text/plain');if(term){z.innerHTML=`<span class="dropped-text">${term}</span>`;z.dataset.filled=term;z.classList.add('filled');document.querySelectorAll('.draggable').forEach(d=>{if(d.dataset.term===term)d.classList.add('used')})}})});document.querySelectorAll('.draggable').forEach(d=>{d.setAttribute('draggable','true');d.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',d.dataset.term)})})}
+function setupNav(){const prev=document.getElementById('prev-btn');const next=document.getElementById('next-btn');if(prev)prev.addEventListener('click',()=>{if(currentIndex>0){currentIndex--;renderCurrent()}});if(next)next.addEventListener('click',()=>{const qs=getFilteredQuestions();if(currentIndex<qs.length-1){currentIndex++;renderCurrent()}})}
+function setupCheckReset(q,mode){const cb=document.getElementById('check-btn');const rb=document.getElementById('reset-btn');if(cb)cb.addEventListener('click',()=>{if(mode==='drag')checkDrag(q);else if(mode==='single')checkSingle(q);else if(mode==='multi')checkMulti(q);else if(mode==='tf')checkTF(q);updateOverview()});if(rb)rb.addEventListener('click',()=>renderCurrent())}
+function showFeedback(correct,explanations){const fb=document.getElementById('fb');fb.className='feedback show '+(correct?'feedback-correct':'feedback-wrong');fb.innerHTML=`<span class="feedback-title">${correct?'✅ 回答正确！':'❌ 回答错误'}</span><ul>${explanations.map(e=>`<li>${e}</li>`).join('')}</ul>`}
+function checkDrag(q){const fills=document.querySelectorAll('.drop-zone');let allCorrect=true;const exp=[];fills.forEach((z,i)=>{const user=z.dataset.filled||'';const expect=q.data.answers[i];const ok=user===expect;if(!ok)allCorrect=false;z.classList.remove('correct','wrong');z.classList.add(ok?'correct':'wrong');exp.push(q.data.explanations[i])});recordResult('drag',q.originalIndex,allCorrect,null);showFeedback(allCorrect,exp)}
+function checkSingle(q){const sel=document.querySelector('.option.selected');if(!sel){alert('请先选择答案');return}const i=parseInt(sel.dataset.idx);const correct=i===q.data.correct;document.querySelectorAll('.option').forEach((o,j)=>{o.classList.remove('correct-mark','wrong-mark');if(j===q.data.correct)o.classList.add('correct-mark');else if(j===i&&!correct)o.classList.add('wrong-mark')});recordResult('single',q.originalIndex,correct,i);showFeedback(correct,q.data.explanations)}
+function checkMulti(q){const sels=Array.from(document.querySelectorAll('.option.selected')).map(o=>parseInt(o.dataset.idx));if(sels.length===0){alert('请先选择答案');return}const corr=q.data.correct.slice().sort((a,b)=>a-b);const user=sels.slice().sort((a,b)=>a-b);const ok=JSON.stringify(corr)===JSON.stringify(user);document.querySelectorAll('.option').forEach((o,j)=>{o.classList.remove('correct-mark','wrong-mark');if(corr.includes(j))o.classList.add('correct-mark');else if(sels.includes(j)&&!ok)o.classList.add('wrong-mark')});recordResult('multi',q.originalIndex,ok,sels);showFeedback(ok,q.data.explanations)}
+function checkTF(q){const sel=document.querySelector('.tf-btn.selected');if(!sel){alert('请先选择');return}const v=sel.dataset.val==='true';const ok=v===q.data.correct;document.querySelectorAll('.tf-btn').forEach(b=>{b.classList.remove('correct-mark','wrong-mark')});document.querySelector(`.tf-btn[data-val="${q.data.correct?'true':'false'}"]`).classList.add('correct-mark');if(!ok)sel.classList.add('wrong-mark');recordResult('tf',q.originalIndex,ok,v);showFeedback(ok,[q.data.explanation])}
+function updateOverview(){const grid=document.getElementById('overview-grid');if(!grid)return;grid.innerHTML='';const all=getAllQuestions();all.forEach((q,i)=>{const item=document.createElement('div');item.className='overview-item';const r=results[`${q.type}-${q.idx}`];if(r){item.classList.add(r.correct?'correct':'wrong')}item.innerHTML=`<div class="ov-num">${i+1}</div><div class="ov-type">${q.type}</div>`;item.addEventListener('click',()=>{setMode(q.type);const qs=getFilteredQuestions();currentIndex=qs.findIndex(x=>x.type===q.type&&x.idx===q.idx);overviewOpen=false;document.getElementById('overview-panel').classList.remove('show');renderCurrent()});grid.appendChild(item)})}
+document.getElementById('btn-overview').addEventListener('click',()=>{overviewOpen=!overviewOpen;document.getElementById('overview-panel').classList.toggle('show',overviewOpen);if(overviewOpen)updateOverview()});
+document.getElementById('btn-reshuffle').addEventListener('click',reshuffleAll);
+document.getElementById('btn-reset-all').addEventListener('click',()=>{if(confirm('确定重置全部答题记录?'))resetAll()});
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.type)));
+document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;document.querySelectorAll('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));const items=document.querySelectorAll('.overview-item');items.forEach(item=>{const i=parseInt(item.querySelector('.ov-num').textContent)-1;const q=getAllQuestions()[i];const r=results[`${q.type}-${q.idx}`];let show=true;if(activeFilter==='unanswered')show=!r;else if(activeFilter==='correct')show=r&&r.correct;else if(activeFilter==='wrong')show=r&&!r.correct;item.style.display=show?'':'none'})}));
+renderCurrent();
+</script>
+</body>
+</html>
