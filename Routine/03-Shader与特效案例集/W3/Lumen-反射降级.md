@@ -1,6 +1,8 @@
 ---
-tags: [shader/自研, shader/post-process, shader/performance, shader/UE]
+tags: [shader/自研, shader/post-process, shader/performance, shader/UE, shader/lumen, shader/AI-accelerated]
 aliases: [Lumen Reflection, Lumen-Reflection-Fallback, Screen Probe, Surface Cache]
+week: W3
+cycle: A
 ---
 
 # Lumen 反射降级 (Lumen Reflection Fallback)
@@ -12,7 +14,7 @@ aliases: [Lumen Reflection, Lumen-Reflection-Fallback, Screen Probe, Surface Cac
 | **平台** | PC / Console (Mobile 不支持) |
 | **创建日期** | 2026-07-01 |
 | **参考来源** | 参考自 UE5 Lumen Reflection `ScreenSpaceReflections.cpp` + GDC 2022 "Lumen: Real-time Global Illumination" + SIGGRAPH 2021 "Hardware-Accelerated Ray Tracing in Unreal Engine 5" |
-| **前置阅读** | [[屏幕空间反射-SSR]] |
+| **前置阅读** | [[99-归档/屏幕空间反射-SSR]] |
 
 ---
 
@@ -276,11 +278,11 @@ float3 PS_LumenSurfaceCache(VS_OUTPUT input) : SV_Target
 
 ## 关联知识库
 
-- [[屏幕空间反射-SSR]] — T1 前置阅读
+- [[99-归档/屏幕空间反射-SSR]] — T1 前置阅读
 - [[Hi-Z-Buffer-Construction]] — T1 的 Hi-Z 加速,Screen Probe 也复用
 - [[TAA-History-Reprojection]] — temporal 累积去噪
-- [[Lumen-GI-漫反射]] (待写) — T2/T3 的 GI 漫反射版本
-- [[VSM-Virtual-Shadow-Map]] (待写) — Lumen 配套的虚拟阴影
+- [[../W4/Lumen-GI-漫反射]] — T2/T3 的 GI 漫反射版本
+- [[../W6/VSM-Virtual-Shadow-Map]] — Lumen 配套的虚拟阴影
 
 ---
 
@@ -312,5 +314,72 @@ float3 PS_LumenSurfaceCache(VS_OUTPUT input) : SV_Target
 
 ---
 
-*Create date: 2026-07-01*  
-*Last modified: 2026-07-01*
+## AI 加速角度（追加于 2026-07-09）
+
+Lumen 反射降级链路里 T2/T3/T4 的核心瓶颈都是 **probe 数量 / cone trace 步数 / RT bounce 数**——这三个都直接决定显存带宽和 GPU cycle。AI 加速方案的核心思路是 **"用神经网络学反射 lookup，把多次离散采样替换成一次 forward"**。
+
+### 1. AI 加速的 3 个层次（按 ROI 排序）
+
+| 层次 | 替换对象 | 网络规模 | 性能收益 | 视觉收益 |
+|------|----------|----------|----------|----------|
+| **L1 Probe Densification** | T2 256 probe → 64 probe + 神经网络补全 | 5→64→64→3 (~10k params) | 4× probe 减少 | 视觉等价 |
+| **L2 Neural Cone Trace** | T2/T3 cone trace 8 step → MLP 直接出结果 | 6→128→128→3 (~50k params) | 8× step 减少 | 视觉略降（5%） |
+| **L3 NeRF Reflection Cache** | 整个反射 lookup → neural radiance field query | 8 layer × 256 dim (~500k params) | 完全替代 cone trace | 视觉更好（多次弹射自然） |
+
+### 2. L1 Probe Densification 工程实现要点（day-job 重点）
+
+```hlsl
+// 简化版:把 256 probe → 64 probe,缺的部分用 MLP 补
+StructuredBuffer<float3> SparseProbes;       // 64 个
+StructuredBuffer<float3> NeuralWeights;       // [5 → 64 → 64 → 3]
+
+float3 NeuralProbeInterpolate(float2 UV, StructuredBuffer<float3> SparseProbes) {
+    // 找最近的 4 个 probe
+    int2 ProbeGridSize = int2(8, 8);  // 8x8 = 64 probe
+    float2 ProbeUV = UV * float2(ProbeGridSize);
+    int2 Probe00 = int2(floor(ProbeUV));
+    float2 Frac = frac(ProbeUV);
+
+    float3 P00 = SparseProbes[Probe00.y * ProbeGridSize.x + Probe00.x];
+    float3 P10 = SparseProbes[Probe00.y * ProbeGridSize.x + min(Probe00.x + 1, ProbeGridSize.x - 1)];
+    float3 P01 = SparseProbes[min(Probe00.y + 1, ProbeGridSize.y - 1) * ProbeGridSize.x + Probe00.x];
+    float3 P11 = SparseProbes[min(Probe00.y + 1, ProbeGridSize.y - 1) * ProbeGridSize.x + min(Probe00.x + 1, ProbeGridSize.x - 1)];
+
+    // 双线性插值 + MLP refine
+    float3 Bilinear = lerp(lerp(P00, P10, Frac.x), lerp(P01, P11, Frac.x), Frac.y);
+
+    // MLP refine: 输入 (uv_x, uv_y, depth, normal_dot_view, roughness) → 输出 residual
+    float Input[5] = { UV.x, UV.y, 0.5, 0.5, 0.5 };  // 简化
+    float3 Residual = MLPForward(Input, NeuralWeights);
+
+    return Bilinear + Residual * 0.1;  // 残差修正
+}
+```
+
+### 3. L3 NeRF Reflection Cache（day-job 长期目标）
+
+- **思路**: 把整个场景的反射 radiance 编码到一个 NeRF 网络（位置 + 反射方向 → radiance）
+- **论文参照**: NeRF Re-rendering (Mildenhall 2021), NeRV (Srinivasan 2021), Instant-NGP (Müller 2022)
+- **关键创新**: 用 hash grid + small MLP，单场景训练 < 5s，单像素推理 < 5ms
+- **对比 Lumen Surface Cache**: VRAM 从 50 MB → 5 MB（MLP 权重），多次弹射隐式编码
+- **trade-off**: 静态场景表现好，动态光源响应差（MLP 重新训练需要时间）
+
+### 4. 与 day-job RAG 的关联
+
+Lumen 反射降级链路是 day-job **神经 BRDF / 神经材质** 训练数据的主要载体:
+- **L1 工具描述**: `Lumen.Reflection.NeuralProbeDensify(probes, mlp_weights) → reflection_radiance`
+- **L3 工具描述**: `Lumen.Reflection.NeRFCache(position, direction) → reflection_radiance`
+- **RAG 检索应用**: 用户问"为什么反射闪烁" → 检索到 L2 神经 cone trace，输出解决方案
+
+### 5. 已知问题与限制（AI 加速版）
+
+1. **训练数据稀缺** — 反射 radiance ground truth 难收集（需要 64+ spp 离线 RT）
+2. **动态光照响应** — L3 NeRF 训练一次固定，动态光源变化需要重训
+3. **Fallback 链路** — 网络推理失败时必须自动回退到 T1 SSR，不能让画面空白
+4. **内存 / 显存换性能** — MLP 权重虽小，但推理中间层需要 GPU registers，FP32 推理占用大
+5. **能量守恒** — 神经网络输出可能不满足 ∫BRDF dΩ ≤ 1，需要后处理 normalize
+
+---
+
+*Create date: 2026-07-01*
+*Last modified: 2026-07-09*

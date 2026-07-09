@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE5.8 InstanceCulling GPU 裁剪 · 源码面试卡牌</title>
+<style>
+  :root {
+    --bg: #0e1411;
+    --card: #182521;
+    --card-2: #1f2e29;
+    --text: #e6ede9;
+    --muted: #8aa39a;
+    --accent: #66bb6a;
+    --accent-light: #1f3d2a;
+    --accent-2: #43a047;
+    --accent-3: #88cfa0;
+    --correct: #66bb6a;
+    --correct-bg: #1f3d2a;
+    --wrong: #ef5350;
+    --wrong-bg: #3d1f1f;
+    --border: #2c3d36;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 920px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+  .header-link { margin-top: 12px; font-size: 0.85rem; }
+  .header-link a { color: var(--accent-3); text-decoration: none; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--accent); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-3)); width: 0%; transition: width 0.4s ease; }
+
+  .mode-tabs {
+    display: flex; gap: 4px; margin-bottom: 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 6px;
+  }
+  .mode-tab {
+    flex: 1; padding: 8px 12px; background: transparent; border: none;
+    border-radius: 8px; cursor: pointer; color: var(--muted);
+    font-size: 0.9rem; font-weight: 600; transition: all 0.2s;
+  }
+  .mode-tab:hover { color: var(--text); }
+  .mode-tab.active { background: var(--accent); color: var(--bg); }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-3); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; background: var(--card-2);
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: var(--card-2); color: var(--text); transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--card-2); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: var(--bg); display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 6px 12px; background: var(--card); border: 1px solid var(--accent);
+    border-radius: 16px; cursor: grab; user-select: none; font-size: 0.9rem; color: var(--accent-3); font-weight: 500;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.35; cursor: default; }
+
+  .btn {
+    display: inline-block; padding: 10px 24px; border: none; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { background: var(--accent-2); }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-secondary:hover { background: #3d4d45; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .explanation {
+    margin-top: 16px; padding: 16px; border-radius: 8px; font-size: 0.9rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { background: var(--correct-bg); border-left: 4px solid var(--correct); }
+  .explanation.wrong-ex { background: var(--wrong-bg); border-left: 4px solid var(--wrong); }
+  .explanation strong { color: var(--text); }
+  .explanation .followup { margin-top: 12px; padding-top: 12px; border-top: 1px dashed currentColor; }
+  .explanation .followup h4 { margin: 0 0 6px; font-size: 0.85rem; color: var(--accent-3); }
+  .explanation .followup ol { margin: 0; padding-left: 20px; font-size: 0.85rem; }
+  .explanation .followup li { margin-bottom: 4px; }
+  .explanation .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 12px; }
+  .nav-hint { font-size: 0.8rem; color: var(--muted); }
+
+  /* Overview panel */
+  .overview-panel {
+    display: none; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .overview-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .overview-filter {
+    padding: 4px 10px; border-radius: 16px; border: 1px solid var(--border);
+    background: var(--card-2); cursor: pointer; font-size: 0.8rem; color: var(--muted);
+  }
+  .overview-filter.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; border: 2px solid var(--border); border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; background: var(--card-2); color: var(--text);
+  }
+  .overview-tile:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .overview-tile .ot-num { font-weight: 700; font-size: 1rem; }
+  .overview-tile .ot-type { font-size: 0.62rem; color: var(--muted); margin-top: 2px; }
+  .overview-tile.correct .ot-type { color: var(--correct); }
+  .overview-tile.wrong .ot-type { color: var(--wrong); }
+
+  .empty-note { text-align: center; color: var(--muted); padding: 40px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>UE5.8 InstanceCulling / GPUScene GPU 裁剪</h1>
+    <p>LoadBalancer · Bin 分桶 · FPackedBatch/Item 位域 · 互动卡牌</p>
+    <div class="header-meta">基于 Epic UE 5.8 主线源码 · <code>Engine/Source/Runtime/Renderer/Private/InstanceCulling/</code></div>
+    <div class="header-link"><a href="UE5.8-InstanceCulling-GPU裁剪.md">📄 配套源码笔记</a></div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="stat">题目: <strong id="statTotal">0</strong></span>
+      <span class="stat">已答: <strong id="statAnswered">0</strong></span>
+      <span class="stat">正确: <strong id="statCorrect" style="color:var(--accent)">0</strong></span>
+      <span class="stat">得分: <strong id="statScore">0</strong>/100</span>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="reshuffleAll()">🔄 随机打乱</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="drag" onclick="switchMode('drag')">🧩 拖拽填空</button>
+    <button class="mode-tab" data-mode="single" onclick="switchMode('single')">🔘 单选</button>
+    <button class="mode-tab" data-mode="multi" onclick="switchMode('multi')">☑️ 多选</button>
+    <button class="mode-tab" data-mode="tf" onclick="switchMode('tf')">✓✗ 判断</button>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div id="questionContainer"></div>
+
+  <div class="nav-bar">
+    <button class="btn btn-secondary" onclick="prevQuestion()">← 上一题</button>
+    <span class="nav-hint" id="navHint">第 1 题 / 共 0 题</span>
+    <button class="btn btn-primary" onclick="nextQuestion()">下一题 →</button>
+  </div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <h3 style="margin:0;color:var(--accent)">📊 题目总览</h3>
+      <div class="overview-filters">
+        <span class="overview-filter active" data-filter="all" onclick="setOverviewFilter('all')">全部</span>
+        <span class="overview-filter" data-filter="unanswered" onclick="setOverviewFilter('unanswered')">未答</span>
+        <span class="overview-filter" data-filter="correct" onclick="setOverviewFilter('correct')">正确</span>
+        <span class="overview-filter" data-filter="wrong" onclick="setOverviewFilter('wrong')">错误</span>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+</div>
+
+<script>
+// ========== QUESTION DATA ==========
+
+const dragQuestions = [
+  {
+    text: "InstanceCulling 的 LoadBalancer 每 batch 处理 [0] 个线程,bin 0 是 [1] batch,bins ≥ 1 是按 [2] 分桶。",
+    answers: ["64", "UnCulled", "HZB"],
+    pool: ["64", "UnCulled", "HZB", "View", "Bin", "Payload", "32", "Mip"],
+    slotExplanations: [
+      "✅ <code>ThreadGroupSize = 64</code>:每个 batch 就是一个 wave 的 64 个 GPU thread(<code>InstanceCullingLoadBalancer.h:22</code>)",
+      "✅ Bin 0 固定给 <code>EBatchProcessingMode::UnCulled</code>(单 instance mode,跳过 occlusion cull)",
+      "✅ Bin ≥ 1 按 view 的 PrevHZB 分桶,不同 HZB 各自 dispatch"
+    ]
+  },
+  {
+    text: "FPackedItem 的 <code>InstanceDataOffset_NumInstances</code> word 中,<code>NumInstances</code> 占 [0] 位,<code>InstanceDataOffset</code> 占 [1] 位,上限 [2]。",
+    answers: ["7", "25", "127"],
+    pool: ["7", "25", "127", "6", "26", "64", "128"],
+    slotExplanations: [
+      "✅ <code>NumInstancesItemBits = PrefixBits + 1 = 7</code>(<code>InstanceCullingLoadBalancer.h:29</code>)",
+      "✅ 32 - 7 = 25 位给 Offset,上限 2^25 = 33,554,432",
+      "✅ (1<<7) - 1 = 127 是 NumInstances 上限"
+    ]
+  },
+  {
+    text: "PackItem 中 Payload + BatchPrefixSum word 里,Payload 占 [0] 位(对应一个 payload 表的 index),BatchPrefixSum 占 [1] 位(对应 wave 内 thread [2])。",
+    answers: ["26", "6", "编号 0..63"],
+    pool: ["26", "6", "编号 0..63", "7", "8", "无编号"],
+    slotExplanations: [
+      "✅ Payload 占 26 位(32 - PrefixBits=6)",
+      "✅ PrefixBits=6 由 ILog2(64)=6 决定,<code>InstanceCullingLoadBalancer.h:25</code>",
+      "✅ Wave 内 thread 编号 0..63,所以 prefix sum 也用 6 bit"
+    ]
+  },
+  {
+    text: "FInstanceCullingMergedContext 中 bin 0 是 [0] 专用,bins ≥ 1 是 [1] 专用,GenericBinIndex 由 view 的 [2] 计算得到。",
+    answers: ["UnCulled", "Generic(可 occlusion cull)", "PrevHZB"],
+    pool: ["UnCulled", "Generic(可 occlusion cull)", "PrevHZB", "num instances", "view index"],
+    slotExplanations: [
+      "✅ Bin 0 = EBatchProcessingMode::UnCulled(<code>InstanceCullingMergedContext.h:38</code>)",
+      "✅ Bin ≥ 1 = EBatchProcessingMode::Generic,带 HZB occlusion",
+      "✅ GenericBinIndex 来自 <code>FInstanceCullingManager::GetBinIndex(Mode, HZB)</code>(<code>InstanceCullingManager.cpp:55</code>)"
+    ]
+  },
+  {
+    text: "FInstanceCullingGlobalUniforms 包含 InstanceIdsBuffer([0] 类型)、PageInfoBuffer(同类型)、BufferCapacity ([1])。",
+    answers: ["StructuredBuffer<uint>", "uint32"],
+    pool: ["StructuredBuffer<uint>", "uint32", "StructuredBuffer<float4>", "uint64"],
+    slotExplanations: [
+      "✅ <code>SHADER_PARAMETER_RDG_BUFFER_SRV(StructuredBuffer<uint>, InstanceIdsBuffer)</code>",
+      "✅ <code>SHADER_PARAMETER(uint32, BufferCapacity)</code>(<code>InstanceCullingContext.h:23-27</code>)"
+    ]
+  },
+  {
+    text: "FInstanceCullingManager 在 cull 时调用 AddGPUSkinCache [0] 等待 skin cache,FlushRegisteredViews 上传 view [1],然后创建 FInstanceCullingDeferredContext 用于 [2] 多个 mesh pass 的 batch。",
+    answers: ["AsyncComputeWait", "matrix", "合并收集"],
+    pool: ["AsyncComputeWait", "matrix", "合并收集", "RasterWait", "transform", "丢弃"],
+    slotExplanations: [
+      "✅ <code>Scene.AddGPUSkinCacheAsyncComputeWait(GraphBuilder)</code>(<code>InstanceCullingManager.cpp:104</code>)",
+      "✅ <code>ViewDataManager.FlushRegisteredViews</code> 把 view matrix 上传 GPU",
+      "✅ <code>FInstanceCullingDeferredContext</code> 一次性收集所有 pass 的 BuildRenderingCommands"
+    ]
+  },
+  {
+    text: "Mobile UB-view 路径下 BATCHED_INSTANCE_DATA_STRIDE = [0] 字节,BATCHED_PRIMITIVE_DATA_STRIDE = [1] 字节,来自 Shaders/Shared/SceneDefinitions.h:119-120。",
+    answers: ["256", "512"],
+    pool: ["256", "512", "128", "1024"],
+    slotExplanations: [
+      "✅ <code>#define BATCHED_INSTANCE_DATA_STRIDE 256u</code>",
+      "✅ <code>#define BATCHED_PRIMITIVE_DATA_STRIDE 512u</code>"
+    ]
+  },
+  {
+    text: "FInstanceCullingOcclusionQueryRenderer 用 8 个 bit 表示 per-instance visibility,每 view 占 [0] bit,最多 [1] view;buffer 格式取自 [2]。",
+    answers: ["1", "8", "InstanceOcclusionQueryBufferFormat"],
+    pool: ["1", "8", "InstanceOcclusionQueryBufferFormat", "16", "4", "InstanceIdBufferFormat"],
+    slotExplanations: [
+      "✅ 每 view 1 bit(visibility mask 是 uint8)",
+      "✅ <code>MaxViews = 8</code>(<code>InstanceCullingOcclusionQuery.h:77</code>)",
+      "✅ Format 自适应 R8_UINT 或 R32_UINT(<code>InstanceOcclusionQuery.h:59</code>)"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    text: "FInstanceCullingLoadBalancer 的 <code>ThreadGroupSize</code> 是多少?",
+    options: [
+      "32(对应 Lumen / Substrate)",
+      "64(对应一个 wave 的 thread 数)",
+      "128(对应现代 GPU 的 SIMD 宽度)",
+      "256(对应 max payload)"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误:32 是另一类经典 GPU 优化值;InstanceCulling 用 64",
+      "✅ 正确:<code>static constexpr uint32 ThreadGroupSize = 64U;</code>(<code>InstanceCullingLoadBalancer.h:22</code>)",
+      "❌ 错误:128 是 RDG 内部 dispatch 单元,与 LoadBalancer 无关",
+      "❌ 错误:256 = BATCHED_INSTANCE_DATA_STRIDE 字节,不相关"
+    ],
+    followup: "面试官追问:<code>PrefixBits</code> 为什么是 6?\n→ 答:<code>PrefixBits = ILog2(ThreadGroupSize) = ILog2(64) = 6</code>。Math.log2(64)=6,这是要把 0..63 的 thread 编号装进一个 uint 的低 6 位。"
+  },
+  {
+    text: "<code>BeginDeferredCulling</code> 调用后,如果该 scene 没有 instance(<code>GPUScene.GetNumInstances()==0</code>)会发生什么?",
+    options: [
+      "抛 fatal log error",
+      "静默退出,不创建 DeferredContext",
+      "创建一个空 DeferredContext 保留 placeholder",
+      "fallback 到 CPU cull 路径"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误:UE 不会因为 0 instance 而抛 fatal",
+      "✅ 正确:<code>if (GPUScene.GetNumInstances() == 0 || ... == 0) return;</code>(<code>InstanceCullingManager.cpp:116-119</code>)直接 early-return,不创建 DeferredContext",
+      "❌ 错误:UE 选择不创建节省内存",
+      "❌ 错误:GPU cull 路径不会自动 fallback 到 CPU"
+    ],
+    followup: "追问:那 cull disable 后走什么路径?\n→ 答:走 FInstanceCullingContext::SetupDrawCommands 的 bCullInstances=false 分支,只做 visible mesh draw 直接路径,不进 LoadBalancer。"
+  },
+  {
+    text: "<code>FInstanceCullingManager</code> 实例在哪一阶段被销毁?",
+    options: [
+      "InitViews 之后立刻析构",
+      "FSceneRenderer 离开 scope 时析构(~析构函数为空)",
+      "RDG Execute 之后由 RDG 析构",
+      "永远不析构,跟随 PIE 进程"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误:整个 InitViews 阶段 Manager 都存活",
+      "✅ 正确:<code>~FInstanceCullingManager()</code> 是空函数(line 40),真正的销毁发生在 FSceneRenderer 值对象离开 scope;Manager 是 FSceneRenderer 的值成员",
+      "❌ 错误:Manager 不是 RDG-allocation 的,不会被 RDG 回收",
+      "❌ 错误:PIE 切换场景时 Manager 会重建"
+    ]
+  },
+  {
+    text: "<code>FInstanceCullingLoadBalancerBase::FPackedItem</code> 的 Payload 字段用来做什么?",
+    options: [
+      "装载 instance 的 transform 数据",
+      "指向 <code>FInstanceCullingDrawParams::PayloadData</code> 表的 index",
+      "GPU thread 编号",
+      "HZB bin 编号"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误:transform 走 GPUScene,不进 LoadBalancer",
+      "✅ 正确:Payload 是 generic index,GPU shader 端读 <code>FInstanceCullingDrawParams::PayloadData</code> 表(<code>bDynamicInstanceDataOffset_IndirectArgsIndex</code> 等)",
+      "❌ 错误:thread 编号是 BatchPrefixSum 字段",
+      "❌ 错误:HZB bin 由 LoadBalancer 的 BinIndex 决定,跟 Payload 字段无关"
+    ]
+  },
+  {
+    text: "Nanite mesh 的 culling 走哪条路径?",
+    options: [
+      "走 FInstanceCullingManager,batch 一起合并",
+      "走 Nanite 自己的 <code>FCoarseMeshCullingTask</code>,不通过 InstanceCulling",
+      "既走 InstanceCulling 又走 Nanite,双重 cull",
+      "完全跳过 culling(Nanite 是虚拟几何)"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误:Nanite 不参与 InstanceCulling batching",
+      "✅ 正确:Nanite 是独立路径,在自己的 <code>Nanite::FCoarseMeshCullingTask</code> 内做 mesh shading 前置,共享 GPUScene 但走另一套 dispatch",
+      "❌ 错误:双重 cull 会浪费 GPU",
+      "❌ 错误:Nanite 仍然需要 cull,只是颗粒度细到 meshlet"
+    ]
+  },
+  {
+    text: "<code>FInstanceCullingOcclusionQueryRenderer</code> 的 <code>MaxViews = 8</code> 含义?",
+    options: [
+      "Scene 最多 8 个 view",
+      "Visibility mask 装在 uint8 里,所以最多 8 个 view 各自的可见位",
+      "Occlusion buffer 容量 8 MB",
+      "Render thread 数量上限 8"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误:Scene 允许更多 view,只 occlusion 路径限制 8",
+      "✅ 正确:<code>static constexpr uint32 MaxViews = 8; // Visibility mask is stored as uint8</code>(<code>InstanceCullingOcclusionQuery.h:77</code>)",
+      "❌ 错误:8 没有 buffer 容量含义",
+      "❌ 错误:RT 数量跟这里无关"
+    ]
+  },
+  {
+    text: "<code>FInstanceCullingMergedContext</code> 至少需要几个 bin?",
+    options: [
+      "1(只有 UnCulled)",
+      "2(UnCulled + 至少 1 个 Generic)",
+      "4(对应 4 primary view)",
+      "动态计算"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误:cull 路径不能少 Generic",
+      "✅ 正确:<code>check(InNumBins >= 2);</code>(<code>InstanceCullingMergedContext.cpp:13</code>)至少要 UnCulled + 1 Generic(对应首个 HZB)",
+      "❌ 错误:bin 数取决于 HZB 数,默认是 2",
+      "❌ 错误:有默认 InNumBins=2,但 HZB 数动态变化也算"
+    ]
+  },
+  {
+    text: "<code>SubmitDrawCommands</code> 路径下,如果 <code>IsEnabled()</code> 为 false 走哪条路径?",
+    options: [
+      "返回错误",
+      "走 <code>SubmitMeshDrawCommandsRange</code> 传统 RHI 路径",
+      "自动打开 GPU cull",
+      "skip 所有 draw"
+    ],
+    correct: 1,
+    optionExplanations: [
+      "❌ 错误:不会报错,fallback 到旧路径",
+      "✅ 正确:<code>else { ... SubmitMeshDrawCommandsRange(...); }</code>(<code>InstanceCullingContext.cpp:1811</code>)"
+    ]
+  },
+  {
+    text: "为什么 <code>FPackedItem</code> 的 NumInstances 用 7 bit 而不是 6?",
+    options: [
+      "7 = 6 + 1,允许单个 item 包含 64 个 instance",
+      "7 是个 magic number 没特别含义",
+      "UE 内部规格要求最少 7 bit",
+      "为了对齐"
+    ],
+    correct: 0,
+    optionExplanations: [
+      "✅ 正确:<code>static constexpr uint32 NumInstancesItemBits = PrefixBits + 1U;</code>(<code>InstanceCullingLoadBalancer.h:29</code>)——单个 item 必须能容纳 ThreadGroupSize=64 个 instance,所以多 1 bit",
+      "❌ 错误:有明确数学依据",
+      "❌ 错误:不是规格要求",
+      "❌ 错误:不是对齐"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    text: "哪些是 <code>FInstanceCullingLoadBalancerBase::FPackedBatch</code> 的字段?(多选)",
+    options: [
+      "FPackedBatch::FirstItem_NumItems",
+      "FPackedBatch::BatchPrefixSum",
+      "FPackedBatch::Payload",
+      "FPackedBatch::ItemCount"
+    ],
+    correct: [0],
+    optionExplanations: [
+      "✅ 正确:只有这 1 个 uint32 字段,packed 为 (FirstItem << 7 | NumItems)",
+      "❌ 错误:BatchPrefixSum 在 FPackedItem 里",
+      "❌ 错误:Payload 也在 FPackedItem 里",
+      "❌ 错误:ItemCount 不在 FPackedBatch 里"
+    ]
+  },
+  {
+    text: "<code>FInstanceCullingManager</code> 提供的 bin 分类有哪几种?(多选)",
+    options: [
+      "UnCulled bin(单 instance,跳过 cull)",
+      "按 PrevHZB 划分的 Generic bin",
+      "按 primitive type 分的 Static bin",
+      "按 material 分的 BatchedPrimitive bin"
+    ],
+    correct: [0, 1],
+    optionExplanations: [
+      "✅ 正确:bin 0 始终给 UnCulled(<code>InstanceCullingManager.cpp:57</code>)",
+      "✅ 正确:bin ≥ 1 按 PrevHZB 分配(<code>InstanceCullingManager.cpp:75-78</code>)",
+      "❌ 错误:InstanceCulling 不按 primitive type 分 bin",
+      "❌ 错误:BatchedPrimitive 是 UB 路径的概念,不是 bin"
+    ]
+  },
+  {
+    text: "<code>FInstanceCullingGlobalUniforms</code>(<code>InstanceCullingContext.h:23</code>)包含哪些 shader parameter?(多选)",
+    options: [
+      "<code>InstanceIdsBuffer</code>(StructuredBuffer&lt;uint&gt; SRV)",
+      "<code>PageInfoBuffer</code>(StructuredBuffer&lt;uint&gt; SRV)",
+      "<code>BufferCapacity</code>(uint32)",
+      "<code>IndirectArgsBuffer</code>(RDG buffer access)"
+    ],
+    correct: [0, 1, 2],
+    optionExplanations: [
+      "✅ 正确:<code>SHADER_PARAMETER_RDG_BUFFER_SRV(StructuredBuffer&lt;uint&gt;, InstanceIdsBuffer)</code>",
+      "✅ 正确:<code>SHADER_PARAMETER_RDG_BUFFER_SRV(StructuredBuffer&lt;uint&gt;, PageInfoBuffer)</code>",
+      "✅ 正确:<code>SHADER_PARAMETER(uint32, BufferCapacity)</code>",
+      "❌ 错误:IndirectArgsBuffer 在 <code>FInstanceCullingDrawParams</code>,不是 GlobalUniforms"
+    ]
+  },
+  {
+    text: "<code>BuildRenderingCommandsInternal</code> 在 deferred culling 路径下做哪些事情?(多选)",
+    options: [
+      "Memzero InstanceCullingDrawParams",
+      "从 InstanceCullingManager 拿 Scene UB",
+      "把 batch add 到 FInstanceCullingDeferredContext",
+      "实际 dispatch GPU Compute Shader"
+    ],
+    correct: [0, 1, 2],
+    optionExplanations: [
+      "✅ 正确:<code>FMemory::Memzero(*InstanceCullingDrawParams);</code>(<code>InstanceCullingContext.cpp:710</code>)",
+      "✅ 正确:<code>InstanceCullingDrawParams->Scene = InstanceCullingManager->SceneUniforms.GetBuffer(GraphBuilder);</code>(line 714)",
+      "✅ 正确:<code>DeferredContext->AddBatch(GraphBuilder, this, InstanceCullingDrawParams);</code>(line 728)",
+      "❌ 错误:dispatch 发生在 ProcessBatched 时,不在 BuildRenderingCommandsInternal 阶段"
+    ]
+  },
+  {
+    text: "<code>FPackedItem</code> 中 <code>Payload_BatchPrefixOffset</code> word 的合法边界检查包括哪些?(多选)",
+    options: [
+      "<code>NumInstances < (1U &lt;&lt; NumInstancesItemBits)</code>",
+      "<code>InstanceDataOffset < (1U &lt;&lt; (32U - NumInstancesItemBits))</code>",
+      "<code>BatchPrefixSum < (1U &lt;&lt; PrefixBits)</code>",
+      "<code>Payload < (1U &lt;&lt; (32U - PrefixBits))</code>"
+    ],
+    correct: [0, 1, 2, 3],
+    optionExplanations: [
+      "✅ 正确:line 55 NumInstances &lt; 128",
+      "✅ 正确:line 56 InstanceDataOffset &lt; 2^25",
+      "✅ 正确:line 57 BatchPrefixSum &lt; 64",
+      "✅ 正确:line 58 Payload &lt; 2^26"
+    ]
+  },
+  {
+    text: "下面哪些是 InstanceCulling 系统的 shader permutation 维度?(多选)",
+    options: [
+      "<code>FSingleInstanceModeDim</code>(单 instance / Generic)",
+      "<code>FCullInstancesDim</code>(cull on / off)",
+      "<code>FStereoModeDim</code>(左右眼)",
+      "<code>FBatchProcessingModeGENERIC / UNCULLED define</code>"
+    ],
+    correct: [0, 1, 3],
+    optionExplanations: [
+      "✅ 正确:line 889 <code>Set&lt;FSingleInstanceModeDim&gt;(EBatchProcessingMode(Mode) == EBatchProcessingMode::UnCulled);</code>",
+      "✅ 正确:line 890 <code>Set&lt;FCullInstancesDim&gt;(bCullInstances && ...);</code>",
+      "❌ 错误:FStereoMode 是 cull mode,EInstanceCullingMode 枚举值,不是 permutation",
+      "✅ 正确:line 551-553 设 BATCH_PROCESSING_MODE_GENERIC / UNCULLED / NUM defines"
+    ]
+  },
+  {
+    text: "<code>FInstanceCullingMergedContext</code> 的 batch 收集分成哪两个数组?(多选)",
+    options: [
+      "<code>Batches</code>(同步 batch)",
+      "<code>AsyncBatches</code>(异步 batch,有 SyncPrerequisitesFunc)",
+      "<code>PreBatches</code>(预处理 batch)",
+      "<code>LateBatches</code>(延迟 batch)"
+    ],
+    correct: [0, 1],
+    optionExplanations: [
+      "✅ 正确:<code>TArray&lt;FBatchItem, ...&gt; Batches</code>(<code>InstanceCullingMergedContext.h:41</code>)",
+      "✅ 正确:<code>TArray&lt;FBatchItem, ...&gt; AsyncBatches</code>(line 44)",
+      "❌ 错误:无 PreBatches",
+      "❌ 错误:无 LateBatches"
+    ]
+  },
+  {
+    text: "<code>FInstanceCullingManager::GetBinIndex</code> 在以下哪些场景返回 0?(多选)",
+    options: [
+      "当 Mode == EBatchProcessingMode::UnCulled",
+      "当 Mode == EBatchProcessingMode::Generic 但 HZB 无效",
+      "当 HZB 不在 ViewPrevHZBs 注册表里",
+      "当 HZB 注册到 ViewPrevHZBs 第 0 个位置"
+    ],
+    correct: [0],
+    optionExplanations: [
+      "✅ 正确:line 57-60 <code>if (Mode == EBatchProcessingMode::UnCulled) return 0;</code>",
+      "❌ 错误:HZB 无效返回 1(line 65-66)",
+      "❌ 错误:HZB 不在注册表 → 返回 -1(line 72)",
+      "❌ 错误:HZB 在第 0 位 +1 = bin 1"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    text: "InstanceCulling 完全在 CPU 上完成,GPU 只是最后执行 draw。",
+    correct: false,
+    explanation: "❌ 错误 — 这正是 UE4 的 cull 范式。<strong>UE5.8 InstanceCulling 把 frustum / HZB / triangle-level cull 全搬到了 GPU</strong>(通过 BuildInstanceIdBufferAndCommandsFromPrimitiveIdsCS dispatch)。CPU 端只做 batch 收集(收集哪些 primitive 要 cull),真正的 cull + indirect args 写回都是 GPU。"
+  },
+  {
+    text: "<code>FInstanceCullingLoadBalancer</code> 处理的 payload 字段是固定语义的(transform / bounds 之类)。",
+    correct: false,
+    explanation: "❌ 错误 — Payload 是<strong>通用 index</strong>,指向上层注册时定义的 <code>FInstanceCullingDrawParams::PayloadData</code> 表。LoadBalancer 不理解 payload 含义,只知道它是个 26-bit index。在 BuildInstanceIdBufferAndCommandsFromPrimitiveIdsCS 里 shader 才把 index 解码成实际语义。"
+  },
+  {
+    text: "<code>BeginDeferredCulling</code> 必须在每次 BuildRenderingCommands 调用前都执行一次。",
+    correct: false,
+    explanation: "❌ 错误 — 实际只在<strong>第一次</strong> BuildRenderingCommands 之前调用一次(在 <code>BuildRenderingCommandsInternal</code> 里检测到 <code>IsDeferredCullingActive()==false</code> 时自动调)。后续 BuildRenderingCommands 都直接 add batch 到同一个 <code>FInstanceCullingDeferredContext</code>。"
+  },
+  {
+    text: "<code>FInstanceCullingManager::DeferredContext</code> 在 RDG Execute 或 Drain 时由 <code>ProcessBatched</code> 触发处理。",
+    correct: true,
+    explanation: "✅ 正确 — <code>DeferredContext->bProcessed</code> 在 <code>ProcessBatched</code> 内被设 true,之后 <code>BuildRenderingCommandsInternal</code> 检测到 <code>bProcessed==true</code> 就跳出 batch 收集走同步路径(因为 GPU 上已经在跑了,后续 RDG pass 不能改了)。"
+  },
+  {
+    text: "Bin 0 固定用于 UnCulled batch,bins ≥ 1 用于不同 HZB 的 Generic batch。",
+    correct: true,
+    explanation: "✅ 正确 — <code>FInstanceCullingManager::GetBinIndex</code>(line 57)显式 <code>if (Mode == EBatchProcessingMode::UnCulled) return 0;</code>,然后其余按 PrevHZB 在 ViewPrevHZBs 里的顺序映射到 bin 1..N。"
+  },
+  {
+    text: "<code>FPackedBatch</code> 内 item 数无上限,只要 NumItems 单字段 ≤ 127 即可。",
+    correct: false,
+    explanation: "❌ 错误 — <strong>虽然 NumItems 单字段上限 127</strong>,但一个 batch 内<strong>所有 item 的 prefix sum 累加 ≤ ThreadGroupSize=64</strong>(否则填不下 wave)。LoadBalancer::Add() 里 <code>CurrentBatchPrefixSum >= ThreadGroupSize</code> 会 flush 当前 batch(line 157)。这是设计上的关键不变量。"
+  },
+  {
+    text: "<code>FInstanceCullingManager</code> 是 RDG-allocation 的,跟随 GraphBuilder 生命周期销毁。",
+    correct: false,
+    explanation: "❌ 错误 — <code>FInstanceCullingManager</code> 是 <code>FSceneRenderer</code> 的<strong>值成员</strong>,跟随 FSceneRenderer 的 scope 析构。<strong>不是 RDG 资源</strong>(它的 <code>~FInstanceCullingManager()</code> 是空函数,line 40)。FInstanceCullingDeferredContext 里的 buffer 才进 RDG。"
+  },
+  {
+    text: "Mobile 平台走 UB-view 路径,desktop 走 StructuredBuffer 路径,两者都用同一份 InstanceCulling 代码。",
+    correct: true,
+    explanation: "✅ 正确 — <code>bUsesUniformBufferView</code>(<code>InstanceCullingContext.h:352</code>)就是分支开关;Mobile UB-view 用 <code>BATCHED_INSTANCE_DATA_STRIDE=256u</code> / <code>BATCHED_PRIMITIVE_DATA_STRIDE=512u</code>(<code>Shaders/Shared/SceneDefinitions.h:119-120</code>),desktop 用 StructuredBuffer&lt;uint&gt;。"
+  },
+  {
+    text: "HZB occlusion 必须 atlas 共享,否则 InstanceCulling 系统会拒绝处理。",
+    correct: false,
+    explanation: "❌ 错误 — 系统<strong>不会</strong>拒绝,但<strong>只支持多个 bin(每个 HZB 一个 bin)</strong>(<code>GetBinIndex</code> 给 HZB 分配 bin 1..N)。<code>InstanceCullingContext.h:102-103</code> 注释明确\"only one PrevHZB target is allowed across all passes currently, so either must be atlased or otherwise the same\" —— 实际工程上要么 atlas、要么禁用 occlusion(<code>r.InstanceCulling.OcclusionCull 0</code>)。"
+  },
+  {
+    text: "<code>FInstanceCullingOcclusionQueryRenderer</code> 同一帧内能并行处理最多 8 个 view 的 occlusion mask。",
+    correct: true,
+    explanation: "✅ 正确 — <code>static constexpr uint32 MaxViews = 8;</code>(<code>InstanceCullingOcclusionQuery.h:77</code>),因为 visibility mask 装在 uint8 里(每 view 1 bit)。注册超过 8 view 的 view slot 会返回 0,系统 fallback 到无 occlusion query 路径。"
+  },
+  {
+    text: "Nanite mesh 走 InstanceCulling 系统的 batching 路径,因为它们都共享 GPUScene。",
+    correct: false,
+    explanation: "❌ 错误 — Nanite 走 <strong>独立</strong>的 <code>Nanite::FCoarseMeshCullingTask</code>,使用 Nanite 自己的 mesh shading 路径。<strong>它们共享数据层(GPUScene 的 primitive/instance transform)</strong>,但走的是不同的 dispatch 通道。InstanceCulling 是 ISMC / ISM / 静态 mesh 的 batched GPU cull。"
+  },
+  {
+    text: "<code>IsDeferredCullingActive()</code> 在 <code>BeginDeferredCulling</code> 返回后变 true。",
+    correct: true,
+    explanation: "✅ 正确 — <code>bool IsDeferredCullingActive() const { return DeferredContext != nullptr; }</code>(<code>InstanceCullingManager.h:78</code>)。<code>BeginDeferredCulling</code> 创建 <code>FInstanceCullingDeferredContext</code>(line 121)→ <code>DeferredContext != nullptr</code>。<strong>但</strong>如果场景无 instance (<code>GPUScene.GetNumInstances()==0</code>),<code>BeginDeferredCulling</code> 直接 return,不会创建 DeferredContext,Active 仍是 false。"
+  }
+];
+
+// ========== STATE ==========
+let _origDrag = JSON.parse(JSON.stringify(dragQuestions));
+let _origSingle = JSON.parse(JSON.stringify(singleQuestions));
+let _origMulti = JSON.parse(JSON.stringify(multiQuestions));
+let _origTF = JSON.parse(JSON.stringify(trueFalseQuestions));
+
+let dragQ = JSON.parse(JSON.stringify(_origDrag));
+let singleQ = JSON.parse(JSON.stringify(_origSingle));
+let multiQ = JSON.parse(JSON.stringify(_origMulti));
+let tfQ = JSON.parse(JSON.stringify(_origTF));
+
+let currentMode = 'drag';
+let currentIndex = 0;
+let allQuestions = [];
+let userAnswers = {}; // {qid: {selected: [...], checked: bool, correct: bool}}
+let overviewFilter = 'all';
+let overviewOpen = false;
+
+function rebuildAllQuestions() {
+  allQuestions = [
+    ...dragQ.map((q, i) => ({ mode: 'drag', originalIndex: i, q })),
+    ...singleQ.map((q, i) => ({ mode: 'single', originalIndex: i, q })),
+    ...multiQ.map((q, i) => ({ mode: 'multi', originalIndex: i, q })),
+    ...tfQ.map((q, i) => ({ mode: 'tf', originalIndex: i, q }))
+  ].map((item, idx) => ({ ...item, id: `${item.mode}_${item.originalIndex}` , globalIdx: idx }));
+}
+rebuildAllQuestions();
+
+function questionCount() { return allQuestions.length; }
+
+// ========== STATS ==========
+function updateStats() {
+  const total = questionCount();
+  const answered = Object.values(userAnswers).filter(a => a.checked).length;
+  const correct = Object.values(userAnswers).filter(a => a.checked && a.correct).length;
+  const score = total > 0 ? Math.round((correct / total) * 100) : 0;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statAnswered').textContent = answered;
+  document.getElementById('statCorrect').textContent = correct;
+  document.getElementById('statScore').textContent = score;
+}
+
+// ========== UTIL ==========
+function qid() { return allQuestions[currentIndex]?.id; }
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleOptions(q) {
+  const indices = q.options.map((_, i) => i);
+  const shuffled = shuffleArray(indices);
+  const newOptions = shuffled.map(i => q.options[i]);
+  const newExpls = shuffled.map(i => q.optionExplanations[i]);
+  const newCorrect = Array.isArray(q.correct)
+    ? q.correct.map(oldIdx => shuffled.indexOf(oldIdx)).sort((a,b)=>a-b)
+    : shuffled.indexOf(q.correct);
+  return { ...q, options: newOptions, optionExplanations: newExpls, correct: newCorrect };
+}
+
+// ========== MODE SWITCH ==========
+function switchMode(mode) {
+  currentMode = mode;
+  // Find first question in this mode
+  const idx = allQuestions.findIndex(q => q.mode === mode);
+  if (idx >= 0) currentIndex = idx;
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode);
+  });
+  renderCurrent();
+}
+
+// ========== RENDERERS ==========
+function renderCurrent() {
+  const container = document.getElementById('questionContainer');
+  container.innerHTML = '';
+  if (!allQuestions[currentIndex]) {
+    container.innerHTML = '<div class="empty-note">没有题目</div>';
+    return;
+  }
+  const item = allQuestions[currentIndex];
+  const ans = userAnswers[item.id] || { selected: null, checked: false, correct: false };
+  const progress = ((currentIndex + 1) / questionCount()) * 100;
+  document.getElementById('progressFill').style.width = progress + '%';
+  document.getElementById('navHint').textContent = `第 ${currentIndex + 1} 题 / 共 ${questionCount()} 题`;
+
+  if (item.mode === 'drag') renderDrag(item.q, ans, item.id);
+  else if (item.mode === 'single') renderSingle(item.q, ans, item.id);
+  else if (item.mode === 'multi') renderMulti(item.q, ans, item.id);
+  else if (item.mode === 'tf') renderTrueFalse(item.q, ans, item.id);
+
+  updateStats();
+}
+
+function renderHeader(num, type) {
+  return `<div class="q-number">第 ${num + 1} 题 · ${type}</div>`;
+}
+
+function explanation(ans, body, followup) {
+  const cls = ans.checked ? (ans.correct ? 'correct-ex' : 'wrong-ex') : 'wrong-ex';
+  return `
+    <div class="explanation show ${cls}">
+      <strong>${ans.checked ? (ans.correct ? '✅ 回答正确' : '❌ 回答错误') : '📋 参考解析'}</strong>
+      ${body}
+      ${followup ? `<div class="followup"><h4>面试官追问</h4><ol><li>${followup.replace(/\n/g, '</li><li>')}</li></ol></div>` : ''}
+    </div>`;
+}
+
+// ----- Drag -----
+function renderDrag(q, ans, id) {
+  const fill = ans.selected || q.answers.map(() => null);
+  const slots = q.text.split(/(\[\d+\])/g);
+  let slotIdx = 0;
+  const html = slots.map(part => {
+    const m = /\[(\d+)\]/.exec(part);
+    if (m) {
+      const i = parseInt(m[1]);
+      const val = fill[i];
+      const filled = val != null;
+      let cls = filled ? 'filled' : '';
+      if (ans.checked) {
+        if (val === q.answers[i]) cls = 'correct';
+        else cls = 'wrong';
+      }
+      return `<span class="drag-slot ${cls}" data-slot="${i}">${filled ? val : `[空 ${i}]`}</span>`;
+    }
+    return part;
+  }).join('');
+
+  const chips = q.pool.map(c => {
+    const used = fill.includes(c);
+    return `<span class="drag-chip ${used ? 'used' : ''}" draggable="${!used}" data-value="${c}">${c}</span>`;
+  }).join('');
+
+  let allFilled = fill.every(x => x != null);
+  const body = document.getElementById('questionContainer');
+  body.innerHTML = `
+    <div class="question-card ${ans.checked ? 'answered' : ''}">
+      ${renderHeader(currentIndex, '🧩 拖拽填空')}
+      <div class="q-text">${html}</div>
+      <div class="drag-zone" id="dragZone">把上方 chip 拖到目标位置(或点击 chip、点击 slot)</div>
+      <div class="drag-pool" id="dragPool">${chips}</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        ${ans.checked
+          ? `<button class="btn btn-secondary" onclick="resetCurrent()">🔄 重置本题</button>`
+          : `<button class="btn btn-primary" onclick="checkDrag()" ${!allFilled ? 'disabled' : ''}>检查答案</button>`}
+      </div>
+      ${ans.checked ? renderDragExplanation(q, fill) : ''}
+    </div>
+  `;
+
+  setupDragHandlers(id);
+}
+
+function renderDragExplanation(q, fill) {
+  const ans = userAnswers[allQuestions[currentIndex].id];
+  const correct = q.answers.every((a, i) => fill[i] === a);
+  const slotHtml = q.answers.map((correctAnswer, i) => {
+    const userVal = fill[i];
+    const ok = userVal === correctAnswer;
+    return `<div style="margin-top:8px;"><strong>空 [${i}]</strong>: ${ok ? '✅ ' + correctAnswer : `❌ 你填了 "<em>${userVal || '(空)'}</em>",正确是 "${correctAnswer}"`}<br>${q.slotExplanations[i]}</div>`;
+  }).join('');
+  return explanation(ans, slotHtml, q.followup || null);
+}
+
+function setupDragHandlers(id) {
+  const slots = document.querySelectorAll('.drag-slot');
+  const chips = document.querySelectorAll('.drag-chip');
+
+  slots.forEach(slot => {
+    slot.addEventListener('click', () => {
+      const ans = userAnswers[id] || { selected: q.answers(q).map(() => null), checked: false, correct: false };
+      const fill = ans.selected || (() => { const item = allQuestions[currentIndex]; const q = item.q; return q.answers.map(() => null); })();
+      const i = parseInt(slot.dataset.slot);
+      if (fill[i] != null) {
+        fill[i] = null;
+      }
+      ans.selected = fill;
+      userAnswers[id] = ans;
+      renderCurrent();
+    });
+    slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('drag-over'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+    slot.addEventListener('drop', e => {
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      const chipValue = e.dataTransfer.getData('text/plain');
+      const ans = userAnswers[id];
+      if (!ans) return;
+      const item = allQuestions[currentIndex];
+      const q = item.q;
+      const fill = ans.selected || q.answers.map(() => null);
+      const i = parseInt(slot.dataset.slot);
+      fill[i] = chipValue;
+      ans.selected = fill;
+      ans.checked = false;
+      userAnswers[id] = ans;
+      renderCurrent();
+    });
+  });
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (chip.classList.contains('used')) return;
+      const ans = userAnswers[id] || { selected: null, checked: false, correct: false };
+      const item = allQuestions[currentIndex];
+      const q = item.q;
+      const fill = ans.selected || q.answers.map(() => null);
+      const firstEmpty = fill.findIndex(x => x == null);
+      if (firstEmpty < 0) return;
+      fill[firstEmpty] = chip.dataset.value;
+      ans.selected = fill;
+      ans.checked = false;
+      userAnswers[id] = ans;
+      renderCurrent();
+    });
+    chip.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', chip.dataset.value);
+    });
+  });
+}
+
+function checkDrag() {
+  const item = allQuestions[currentIndex];
+  const id = item.id;
+  const q = item.q;
+  const ans = userAnswers[id] || { selected: q.answers.map(() => null), checked: false, correct: false };
+  if (!ans.selected || ans.selected.some(x => x == null)) return;
+  const fill = ans.selected;
+  const correct = q.answers.every((a, i) => fill[i] === a);
+  ans.checked = true;
+  ans.correct = correct;
+  userAnswers[id] = ans;
+  renderCurrent();
+}
+
+// ----- Single -----
+function renderSingle(q, ans, id) {
+  const optsHtml = q.options.map((opt, i) => {
+    let cls = '';
+    if (ans.checked) {
+      if (i === q.correct) cls = 'correct';
+      else if (ans.selected === i) cls = 'wrong';
+    } else if (ans.selected === i) cls = 'selected';
+    return `<div class="option ${cls}" data-idx="${i}" onclick="${ans.checked ? '' : `selectSingle(${i})`}">
+      <span class="option-key">${String.fromCharCode(65 + i)}</span>
+      <span>${opt}</span>
+    </div>`;
+  }).join('');
+
+  const body = document.getElementById('questionContainer');
+  body.innerHTML = `
+    <div class="question-card ${ans.checked ? 'answered' : ''}">
+      ${renderHeader(currentIndex, '🔘 单选题')}
+      <div class="q-text">${q.text}</div>
+      <div class="options">${optsHtml}</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        ${ans.checked
+          ? `<button class="btn btn-secondary" onclick="resetCurrent()">🔄 重置本题</button>`
+          : `<button class="btn btn-primary" onclick="checkSingle()" ${ans.selected == null ? 'disabled' : ''}>检查答案</button>`}
+      </div>
+      ${ans.checked ? renderSingleExplanation(q, ans) : ''}
+    </div>
+  `;
+}
+
+function renderSingleExplanation(q, ans) {
+  const body = q.optionExplanations.map((exp, i) => {
+    const mark = i === q.correct ? '✅ 正确' : (i === ans.selected ? '❌ 你的选择' : '— ');
+    return `<div style="margin-top:6px;"><strong>${mark}</strong>: ${exp}</div>`;
+  }).join('');
+  return explanation(ans, body, q.followup);
+}
+
+function selectSingle(i) {
+  const item = allQuestions[currentIndex];
+  const id = item.id;
+  const ans = userAnswers[id] || { selected: null, checked: false, correct: false };
+  ans.selected = i;
+  userAnswers[id] = ans;
+  renderCurrent();
+}
+
+function checkSingle() {
+  const item = allQuestions[currentIndex];
+  const id = item.id;
+  const q = item.q;
+  const ans = userAnswers[id];
+  if (ans.selected == null) return;
+  ans.checked = true;
+  ans.correct = ans.selected === q.correct;
+  userAnswers[id] = ans;
+  renderCurrent();
+}
+
+// ----- Multi -----
+function renderMulti(q, ans, id) {
+  const sel = ans.selected || [];
+  const optsHtml = q.options.map((opt, i) => {
+    const isSel = sel.includes(i);
+    let cls = '';
+    if (ans.checked) {
+      const isCorrect = q.correct.includes(i);
+      if (isCorrect) cls = 'correct';
+      else if (isSel) cls = 'wrong';
+    } else if (isSel) cls = 'selected';
+    return `<div class="option ${cls}" data-idx="${i}" onclick="${ans.checked ? '' : `toggleMulti(${i})`}">
+      <input type="checkbox" ${isSel ? 'checked' : ''} ${ans.checked ? 'disabled' : ''} style="margin-right:8px;">
+      <span>${opt}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('questionContainer').innerHTML = `
+    <div class="question-card ${ans.checked ? 'answered' : ''}">
+      ${renderHeader(currentIndex, '☑️ 多选题')}
+      <div class="q-text">${q.text}</div>
+      <div class="options">${optsHtml}</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        ${ans.checked
+          ? `<button class="btn btn-secondary" onclick="resetCurrent()">🔄 重置本题</button>`
+          : `<button class="btn btn-primary" onclick="checkMulti()" ${sel.length === 0 ? 'disabled' : ''}>检查答案</button>`}
+      </div>
+      ${ans.checked ? renderMultiExplanation(q, ans) : ''}
+    </div>
+  `;
+}
+
+function renderMultiExplanation(q, ans) {
+  const sel = ans.selected || [];
+  const body = q.optionExplanations.map((exp, i) => {
+    const isCorrect = q.correct.includes(i);
+    const isSel = sel.includes(i);
+    let mark = '— ';
+    if (isCorrect && isSel) mark = '✅ 正确且你选了';
+    else if (isCorrect && !isSel) mark = '✅ 正确但你漏了';
+    else if (!isCorrect && isSel) mark = '❌ 你选了但不对';
+    return `<div style="margin-top:6px;"><strong>${mark}</strong>: ${exp}</div>`;
+  }).join('');
+  return explanation(ans, body, q.followup);
+}
+
+function toggleMulti(i) {
+  const item = allQuestions[currentIndex];
+  const id = item.id;
+  const ans = userAnswers[id] || { selected: [], checked: false, correct: false };
+  const sel = ans.selected || [];
+  const idx = sel.indexOf(i);
+  if (idx >= 0) sel.splice(idx, 1);
+  else sel.push(i);
+  ans.selected = sel;
+  ans.checked = false;
+  userAnswers[id] = ans;
+  renderCurrent();
+}
+
+function checkMulti() {
+  const item = allQuestions[currentIndex];
+  const id = item.id;
+  const q = item.q;
+  const ans = userAnswers[id];
+  if (!ans.selected || ans.selected.length === 0) return;
+  const sel = [...ans.selected].sort();
+  const correct = [...q.correct].sort();
+  ans.checked = true;
+  ans.correct = sel.length === correct.length && sel.every((v, i) => v === correct[i]);
+  userAnswers[id] = ans;
+  renderCurrent();
+}
+
+// ----- True / False -----
+function renderTrueFalse(q, ans, id) {
+  const optsHtml = ['✓ 正确', '✗ 错误'].map((label, i) => {
+    const isTrue = i === 0;
+    let cls = '';
+    if (ans.checked) {
+      if (isTrue === q.correct) cls = 'correct';
+      else if (ans.selected === i) cls = 'wrong';
+    } else if (ans.selected === i) cls = 'selected';
+    return `<button class="tf-btn ${cls}" ${ans.checked ? 'disabled' : ''} onclick="${ans.checked ? '' : `selectTF(${i})`}">${label}</button>`;
+  }).join('');
+
+  document.getElementById('questionContainer').innerHTML = `
+    <div class="question-card ${ans.checked ? 'answered' : ''}">
+      ${renderHeader(currentIndex, '✓✗ 判断题')}
+      <div class="q-text">${q.text}</div>
+      <div class="tf-buttons">${optsHtml}</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        ${ans.checked
+          ? `<button class="btn btn-secondary" onclick="resetCurrent()">🔄 重置本题</button>`
+          : `<button class="btn btn-primary" onclick="checkTF()" ${ans.selected == null ? 'disabled' : ''}>检查答案</button>`}
+      </div>
+      ${ans.checked ? explanation(ans, `<div style="margin-top:6px;">${q.explanation}</div>`, null) : ''}
+    </div>
+  `;
+}
+
+function selectTF(i) {
+  const item = allQuestions[currentIndex];
+  const id = item.id;
+  const ans = userAnswers[id] || { selected: null, checked: false, correct: false };
+  ans.selected = i;
+  userAnswers[id] = ans;
+  renderCurrent();
+}
+
+function checkTF() {
+  const item = allQuestions[currentIndex];
+  const id = item.id;
+  const q = item.q;
+  const ans = userAnswers[id];
+  if (ans.selected == null) return;
+  ans.checked = true;
+  const isTrue = ans.selected === 0;
+  ans.correct = isTrue === q.correct;
+  userAnswers[id] = ans;
+  renderCurrent();
+}
+
+// ========== NAVIGATION ==========
+function nextQuestion() {
+  if (currentIndex < questionCount() - 1) {
+    currentIndex++;
+    renderCurrent();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function prevQuestion() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    renderCurrent();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function resetCurrent() {
+  const id = qid();
+  userAnswers[id] = { selected: null, checked: false, correct: false };
+  delete userAnswers[id];
+  renderCurrent();
+  updateStats();
+}
+
+function resetAll() {
+  if (!confirm('确认重置所有答题记录?')) return;
+  userAnswers = {};
+  renderCurrent();
+  if (overviewOpen) renderOverview();
+}
+
+function reshuffleAll() {
+  if (!confirm('随机打乱全部题序 + 选项?已答记录将清空')) return;
+  userAnswers = {};
+  dragQ = shuffleArray(_origDrag);
+  singleQ = shuffleArray(_origSingle).map(shuffleOptions);
+  multiQ = shuffleArray(_origMulti).map(shuffleOptions);
+  tfQ = shuffleArray(_origTF);
+  rebuildAllQuestions();
+  currentIndex = 0;
+  switchMode(currentMode);
+  if (overviewOpen) renderOverview();
+}
+
+// ========== OVERVIEW ==========
+function toggleOverview() {
+  overviewOpen = !overviewOpen;
+  const panel = document.getElementById('overviewPanel');
+  panel.classList.toggle('show', overviewOpen);
+  if (overviewOpen) renderOverview();
+}
+
+function setOverviewFilter(f) {
+  overviewFilter = f;
+  document.querySelectorAll('.overview-filter').forEach(el => {
+    el.classList.toggle('active', el.dataset.filter === f);
+  });
+  renderOverview();
+}
+
+function renderOverview() {
+  const grid = document.getElementById('overviewGrid');
+  grid.innerHTML = '';
+  const typeLabel = { drag: '填', single: '单', multi: '多', tf: '判' };
+  allQuestions.forEach((item, idx) => {
+    const ans = userAnswers[item.id];
+    let cls = '';
+    if (ans && ans.checked) {
+      cls = ans.correct ? 'correct' : 'wrong';
+    } else if (overviewFilter === 'unanswered') {
+      // show all but unmatched will be filtered later
+    }
+    if (overviewFilter === 'correct' && (!ans || !ans.checked || !ans.correct)) return;
+    if (overviewFilter === 'wrong' && (!ans || !ans.checked || ans.correct)) return;
+    if (overviewFilter === 'unanswered' && ans && ans.checked) return;
+
+    const tile = document.createElement('div');
+    tile.className = `overview-tile ${cls}`;
+    tile.innerHTML = `<span class="ot-num">${idx + 1}</span><span class="ot-type">${typeLabel[item.mode]}</span>`;
+    tile.onclick = () => {
+      currentIndex = idx;
+      currentMode = item.mode;
+      document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === item.mode));
+      overviewOpen = false;
+      document.getElementById('overviewPanel').classList.remove('show');
+      renderCurrent();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    grid.appendChild(tile);
+  });
+}
+
+// ========== INIT ==========
+renderCurrent();
+updateStats();
+</script>
+</body>
+</html>

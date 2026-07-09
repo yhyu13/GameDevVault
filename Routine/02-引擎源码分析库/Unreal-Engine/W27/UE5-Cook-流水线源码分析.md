@@ -14,7 +14,7 @@ aliases: [UE5-Cook-Pipeline, UE5-Cook-CallChain, Cook-Pipeline-Source-Tracing]
 | **问题定义** | ① Cook 命令从 `UCookCommandlet` 入口到最终 `.pak` 写出，调用链是什么？② Shader 编译（`FShaderCompileManager`）和纹理压缩（`FTextureCompressorModule`）如何并行化？③ Cook 速度瓶颈的 Top 3 在哪里？④ `DefaultEngine.ini` 的 Cook 旋钮有哪些？⑤ Cook 并行度（Worker / IO / Task）怎么调？ |
 | **源码版本** | UnrealEngine @ UE5-Latest（Epic 公开仓库 `Engine/Source/Editor/UnrealEd/Private/Cook*`） |
 
-> **声明**：本分析基于 Epic Games 公开的 UnrealEngine 主线代码 + Tim Dobson GDC 2018 "Mastering Cook" 演讲 + Epic 官方 "Cooking and Chunking" Wiki + 已公开的 cook 性能分析资料。本机 `Unreal/LearningUnrealEngine` 子模块未初始化（参见 [[../../../AGENTS|AGENTS]]），但 Cook 管线在 5.3 → 5.5 之间没有破坏性重构，调用链稳定。
+> **声明**：本分析基于 Epic Games 公开的 UnrealEngine 主线代码 + Tim Dobson GDC 2018 "Mastering Cook" 演讲 + Epic 官方 "Cooking and Chunking" Wiki + 已公开的 cook 性能分析资料。本机 `Unreal/LearningUnrealEngine` 子模块未初始化（参见 [[../../../../AGENTS|AGENTS]]），但 Cook 管线在 5.3 → 5.5 之间没有破坏性重构，调用链稳定。
 
 ---
 
@@ -465,7 +465,7 @@ bShareMaterialShaderCode=True                  ; 共享材质 Shader 二进制
 
 ; ===== DDC =====
 [DDC]
-SharedDDCPath=../../../Engine/DerivedDataCache   ; 团队共享 DDC 路径
+SharedDDCPath=../../../../Engine/DerivedDataCache   ; 团队共享 DDC 路径
 
 [/Script/UnrealEd.CookerSettings]
 bDisableHardDriveDDC=False                       ; 是否禁硬盘 DDC
@@ -626,9 +626,9 @@ struct FTexturePlatformData {
 
 ## 与工作的关联
 
-- **直接关联**：M3-M5 milestone 的 Cook 流水线优化需要定位瓶颈函数，本笔记提供调用链作为 trace → 源码的桥梁。→ [[../../../90-输出milestones/Lumen性能分析/00-README|Lumen 性能分析 milestone]]
+- **直接关联**：M3-M5 milestone 的 Cook 流水线优化需要定位瓶颈函数，本笔记提供调用链作为 trace → 源码的桥梁。→ [[../../../../90-输出milestones/Lumen性能分析/00-README|Lumen 性能分析 milestone]]
 - **横向关联**：Cook 与 Shader/Nanite/Lumen 编译都依赖 DDC，可对比 DDC 在不同子系统的 Key 设计。→ [[../Unreal-Engine/UE5-Nanite-虚拟几何管线|Nanite 虚拟几何管线]]
-- **源码基础**：先看 [[../../../Career/Kimi/UE5_Lumen_timlly|UE5 Lumen timlly 整理]] 建立概念地图，再回看本文的 Cook 细节。
+- **源码基础**：先看 [[../../../../Career/Kimi/UE5_Lumen_timlly|UE5 Lumen timlly 整理]] 建立概念地图，再回看本文的 Cook 细节。
 
 ---
 

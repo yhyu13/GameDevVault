@@ -1,6 +1,8 @@
 ---
-tags: [shader/自研, shader/nanite, shader/material, shader/performance]
+tags: [shader/自研, shader/nanite, shader/material, shader/performance, shader/UE, shader/AI-accelerated]
 aliases: []
+week: W5
+cycle: C
 ---
 
 # Nanite 材质管线 — 虚拟几何 + 持久化 Material ID + Shading Bin
@@ -280,8 +282,8 @@ void MaterialEvaluateCS(
 
 - [[../../../02-引擎源码分析库/Unreal-Engine/UE5-Nanite-虚拟几何管线|Nanite 虚拟几何管线]]（UE5.3 老版,但 page-table 部分一致）
 - [[../../../02-引擎源码分析库/Unreal-Engine/UE5.8-VolumetricCloud-体积云|VolumetricCloud 体积云]]（Voxel bin 跟 Lumen 共享）
-- [[../后处理效果/Lumen-反射降级|Lumen 反射降级]]（5-bin 的 Triangle / Voxel 复用）
-- [[../后处理效果/Lumen-GI-漫反射|Lumen GI 漫反射]]（Voxel ShadingBin 用法）
+- [[../W3/Lumen-反射降级|Lumen 反射降级]]（5-bin 的 Triangle / Voxel 复用）
+- [[../W4/Lumen-GI-漫反射|Lumen GI 漫反射]]（Voxel ShadingBin 用法）
 
 ---
 
@@ -298,5 +300,139 @@ void MaterialEvaluateCS(
 
 ---
 
-*Create date: 2026-07-02*  
-*Last modified: 2026-07-02*
+## AI 加速角度（追加于 2026-07-09）
+
+Nanite 材质管线的瓶颈不在 compute throughput，而在 **Material Bin dispatch overhead + Persistent Material Buffer 索引带宽**。AI 加速的核心思路是 **"用神经网络替换传统 material evaluation，把 5-bin dispatch 折叠成单次 MLP forward"**。
+
+### 1. AI 加速的 3 个层次
+
+| 层次 | 替换对象 | 网络规模 | 性能收益 | 视觉收益 |
+|------|----------|----------|----------|----------|
+| **L1 Neural Material Eval** | 5-bin dispatch → 单 MLP forward 出 PBR | 8→64→64→4 (~10k params) | 5× bin dispatch 减少 | 视觉等价 |
+| **L2 Neural PBR Compression** | Material Constant Buffer → MLP 隐式编码 | 32→128→128→16 (~50k params) | 8× constant buffer 减小 | 视觉略降（<2%） |
+| **L3 Latent Material Code** | Material UUID → 16-dim latent code（动态切换材质） | Variational Autoencoder (~200k params) | 支持运行时材质插值 | 视觉更好（材质过渡） |
+
+### 2. L1 Neural Material Evaluation 工程实现
+
+```hlsl
+// 简化版:把 5-bin dispatch 折叠成单 MLP forward
+// 输入: 当前 triangle 的 materialId + vertex attributes
+// 输出: BaseColor, Metallic, Roughness, Normal (4 个 PBR 通道)
+
+// 真实 Nanite 用 (proxy, shader, UB, flags) 决定 pipeline
+// AI 版本: latent code + vertex → MLP → PBR
+
+StructuredBuffer<float> MLP_W1;  // [12 → 64] (latent 8 + vertex normal/uv/tangent 4)
+StructuredBuffer<float> MLP_B1;  // [64]
+StructuredBuffer<float> MLP_W2;  // [64 → 64]
+StructuredBuffer<float> MLP_B2;
+StructuredBuffer<float> MLP_W3;  // [64 → 4] = BaseColor.rgb (scaled) + Roughness
+StructuredBuffer<float> MLP_B3;
+
+StructuredBuffer<float> MaterialLatent;  // [materialId × 8] latent code per material
+
+struct FMaterialOutput {
+    float3 BaseColor;
+    float  Metallic;
+    float  Roughness;
+    float3 Normal;
+};
+
+FMaterialOutput NeuralMaterialEval(uint MaterialId, float3 VertexPos, float3 VertexNormal, float2 VertexUV) {
+    FMaterialOutput Out;
+
+    // 1. 拼 features: 8 latent + 3 pos + 3 normal + 2 uv = 16
+    float Latent[8];
+    [unroll]
+    for (int i = 0; i < 8; ++i) {
+        Latent[i] = MaterialLatent[MaterialId * 8 + i];
+    }
+
+    float Input[16] = {
+        Latent[0], Latent[1], Latent[2], Latent[3],
+        Latent[4], Latent[5], Latent[6], Latent[7],
+        VertexNormal.x, VertexNormal.y, VertexNormal.z,
+        VertexPos.x * 0.01, VertexPos.y * 0.01, VertexPos.z * 0.01,
+        VertexUV.x, VertexUV.y
+    };
+
+    // 2. MLP forward: 16 → 64 → 64 → 4
+    float Hidden1[64];
+    [unroll]
+    for (int h = 0; h < 64; ++h) {
+        float Sum = MLP_B1[h];
+        [unroll]
+        for (int f = 0; f < 16; ++f) {
+            Sum += Input[f] * MLP_W1[h * 16 + f];
+        }
+        Hidden1[h] = max(Sum, 0.0);  // ReLU
+    }
+
+    float Hidden2[64];
+    [unroll]
+    for (int h = 0; h < 64; ++h) {
+        float Sum = MLP_B2[h];
+        [unroll]
+        for (int f = 0; f < 64; ++f) {
+            Sum += Hidden1[f] * MLP_W2[h * 64 + f];
+        }
+        Hidden2[h] = max(Sum, 0.0);
+    }
+
+    // 3. Output projection
+    Out.BaseColor = float3(MLP_B3[0], MLP_B3[1], MLP_B3[2]);
+    Out.Metallic = 0.0;
+    Out.Roughness = MLP_B3[3];
+
+    [unroll]
+    for (int h = 0; h < 64; ++h) {
+        Out.BaseColor.r += Hidden2[h] * MLP_W3[h * 4 + 0];
+        Out.BaseColor.g += Hidden2[h] * MLP_W3[h * 4 + 1];
+        Out.BaseColor.b += Hidden2[h] * MLP_W3[h * 4 + 2];
+        Out.Roughness += Hidden2[h] * MLP_W3[h * 4 + 3];
+    }
+
+    Out.BaseColor = saturate(Out.BaseColor);
+    Out.Roughness = saturate(Out.Roughness);
+    Out.Normal = normalize(VertexNormal);  // 简化:直接用 vertex normal
+
+    return Out;
+}
+```
+
+### 3. L3 Latent Material Code（day-job 长期目标）
+
+- **思路**: 把每个 material UUID 编码到 16-dim latent space
+- **训练**: Variational Autoencoder (VAE) 训练，把 50+ PBR 参数压到 16 dim
+- **推理**: 运行时换材质 = 改 latent code，不需要重新编译 PSO
+- **关键收益**: 1 个 shared MLP 评估所有材质，无需 5-bin dispatch
+
+**对比表（Nanite + AI 加速 vs 传统）**:
+
+| 维度 | 传统 Nanite 5-bin | Nanite + Neural Material Eval |
+|------|---------------------|-------------------------------|
+| Bin dispatch 开销 | 5 dispatch / frame | 1 dispatch / frame |
+| Material Constant Buffer | 4 MB (50 material × 80KB) | 800 KB (50 × 16 latent × 4 bytes) |
+| Pipeline switch 开销 | 高（PSO 重编译） | 低（latent code 切换） |
+| 运行时材质插值 | 不支持 | 支持（latent 线性插值） |
+| 训练数据需求 | 无 | 50+ 材质 × 1000 角度 |
+
+### 4. 与 day-job RAG 的关联
+
+Nanite 材质管线是 day-job **神经材质** 主线的核心数据源:
+- **L1 工具描述**: `Nanite.Material.NeuralEval(materialId, vertex) → pbr_output`
+- **L3 工具描述**: `Nanite.Material.LatentInterpolation(materialIdA, materialIdB, t) → pbr_output`
+- **RAG 检索应用**: 用户问"如何让材质过渡" → 检索到 L3 latent interpolation 方案
+
+### 5. 已知问题与限制（AI 加速版）
+
+1. **MLP 推理开销** — 每 triangle 一次 forward，百万 triangle 量级下仍需 batch
+2. **latent 训练数据** — 需要 ground truth PBR 参数训练 VAE，5000+ 材质起步
+3. **精度损失** — L2 Neural PBR Compression 视觉略降（<2%），L3 Latent 需 fine-tune
+4. **Fallback 链路** — 推理失败时必须回退到传统 5-bin dispatch
+5. **不支持自定义 shader** — Neural 版本只能预测 PBR，自定义 emissive / anisotropy 难
+
+---
+
+*Create date: 2026-07-02*
+*Last modified: 2026-07-09*

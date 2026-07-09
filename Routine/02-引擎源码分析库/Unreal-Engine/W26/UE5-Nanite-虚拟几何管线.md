@@ -14,7 +14,7 @@ aliases: [UE5-Nanite-CallChain, Nanite-Virtualized-Geometry, Nanite-Source-Traci
 | **问题定义** | Nanite 从 `UStaticMesh` 的离线构建入口到 GPU 上最后一个 Raster Pass 的完整调用链是什么？Cluster / Page / DAG 三层数据结构如何在 CPU 与 GPU 之间流转？硬件光栅化与软件光栅化（Compute Shader）如何分流？ |
 | **源码版本** | UnrealEngine @ UE-5.3-Latest（Epic 公开仓库 `Engine/Source/Runtime/Renderer/Private/Nanite/`） |
 
-> **代码来源声明**：本分析基于 Epic Games 公开的 UnrealEngine 主线代码 + SIGGRAPH 2021 *"Nanite: A Deep Dive"* + GDC 2021 *Nanite* talk + 已公开的 timlly 源码分析（`[[../../../Career/Kimi/UE5/UE5_Nanite_timlly]]`）。本机 `Unreal/LearningUnrealEngine` 子模块**未初始化**（参见 [[../../../AGENTS|AGENTS]]，doc repo 不再以子模块形式引入外部引擎），因此**所有源码文件路径均基于公开主线结构，未做 `Read` 验证**。若后续 `git submodule update --init` 拉下子模块，需要核对 `FStaticMeshRenderData::NaniteResources`、`FNaniteSceneProxy` 等结构体的字段是否与本笔记一致。
+> **代码来源声明**：本分析基于 Epic Games 公开的 UnrealEngine 主线代码 + SIGGRAPH 2021 *"Nanite: A Deep Dive"* + GDC 2021 *Nanite* talk + 已公开的 timlly 源码分析（`[[../../../../Career/Kimi/UE5/UE5_Nanite_timlly]]`）。本机 `Unreal/LearningUnrealEngine` 子模块**未初始化**（参见 [[../../../../AGENTS|AGENTS]]，doc repo 不再以子模块形式引入外部引擎），因此**所有源码文件路径均基于公开主线结构，未做 `Read` 验证**。若后续 `git submodule update --init` 拉下子模块，需要核对 `FStaticMeshRenderData::NaniteResources`、`FNaniteSceneProxy` 等结构体的字段是否与本笔记一致。
 
 ---
 
@@ -420,19 +420,19 @@ mindmap
 
 ## 关联 / 输出产物
 
-- **配套面试卡牌**：[`Career/Kimi/html/nanite/callchain.html`](../../../Career/Kimi/html/nanite/callchain.html) — 10 题互动卡牌（拖拽填空 / 单选 / 多选 / 判断）
+- **配套面试卡牌**：[`Career/Kimi/html/nanite/callchain.html`](../../../../Career/Kimi/html/nanite/callchain.html) — 10 题互动卡牌（拖拽填空 / 单选 / 多选 / 判断）
 - **原始资料整理**：
-  - [[../../../Career/Kimi/UE5/UE5_Nanite_timlly|UE5_Nanite_timlly]] — timlly 源码分析 Part 1
-  - [[../../../Career/Kimi/UE5/UE5_Concept_Cards|UE5_Concept_Cards]] — UE5 一句话答案索引
-  - [[../../../Career/Kimi/UE5/UE5_Detail|UE5_Detail]] — UE5 技术详情（含 Nanite / Lumen / VSM）
+  - [[../../../../Career/Kimi/UE5/UE5_Nanite_timlly|UE5_Nanite_timlly]] — timlly 源码分析 Part 1
+  - [[../../../../Career/Kimi/UE5/UE5_Concept_Cards|UE5_Concept_Cards]] — UE5 一句话答案索引
+  - [[../../../../Career/Kimi/UE5/UE5_Detail|UE5_Detail]] — UE5 技术详情（含 Nanite / Lumen / VSM）
 - **同模块 Lumen 对比**：
   - [[UE5-Lumen-源码调用链|UE5-Lumen-源码调用链]] — Lumen 调用链，Nanite 的主要消费端之一
 - **理论依据**：
-  - [[../../01-论文笔记库/Karras-2012-Mesh-Clustering]] — Mesh 分割理论基础
-  - [[../../01-论文笔记库/Fatahalian-2010-Reducing-Shading]] — VisBuffer 延迟着色理论
+  - [[../../../01-论文笔记库/Karras-2012-Mesh-Clustering]] — Mesh 分割理论基础
+  - [[../../../01-论文笔记库/Fatahalian-2010-Reducing-Shading]] — VisBuffer 延迟着色理论
 - **相关 Shader / 优化**：
-  - [[../../03-Shader与特效案例集/Sample-VisBuffer-64bit-Atomic]] — 64-bit 原子写入示例
-  - [[../../04-性能优化备忘录/Nanite-Software-Rasterization-Overhead]] — 软件光栅化开销分析
+  - [[../../../03-Shader与特效案例集/Sample-VisBuffer-64bit-Atomic]] — 64-bit 原子写入示例
+  - [[../../../04-性能优化备忘录/Nanite-Software-Rasterization-Overhead]] — 软件光栅化开销分析
 - **可改进 / 后续待办**：
   - 待 `Unreal/LearningUnrealEngine` 子模块初始化后，逐文件 `Read` 验证本笔记中的字段定义
   - 待补充 `r.Nanite 0/1` 切换时的 fallback 路径（传统 forward path 怎么接手）
@@ -443,7 +443,7 @@ mindmap
 
 - [x] 已画流程图 / 类图（线程视角 + Pass 视角 + 脑图）
 - [x] 已写分析笔记（本文）
-- [x] 已写配套面试卡牌（[`Career/Kimi/html/nanite/callchain.html`](../../../Career/Kimi/html/nanite/callchain.html)）
+- [x] 已写配套面试卡牌（[`Career/Kimi/html/nanite/callchain.html`](../../../../Career/Kimi/html/nanite/callchain.html)）
 - [x] 已画源码速查表
 - [x] 已写面试谈资（30s / 2min 双版本）
 - [ ] 已应用到工作中（待结合项目性能 profile 数据回填）

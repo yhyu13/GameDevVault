@@ -1,6 +1,8 @@
 ---
-tags: [shader/自研, shader/post-process, shader/performance, shader/UE, shader/compute]
+tags: [shader/自研, shader/post-process, shader/performance, shader/UE, shader/compute, shader/lumen, shader/AI-accelerated]
 aliases: [Lumen GI, Diffuse GI, Voxel Cone Tracing, Surface Cache, Final Gather]
+week: W4
+cycle: B
 ---
 
 # Lumen GI 漫反射 (Lumen Global Illumination — Diffuse)
@@ -12,7 +14,7 @@ aliases: [Lumen GI, Diffuse GI, Voxel Cone Tracing, Surface Cache, Final Gather]
 | **平台** | PC / Console (Mobile 不支持) |
 | **创建日期** | 2026-07-01 |
 | **参考来源** | 参考自 UE5 Lumen Global Illumination `LumenSceneRendering.cpp` + GDC 2022 "Lumen: Global Illumination" + SIGGRAPH 2021 "Hardware-Accelerated Ray Tracing in Unreal Engine 5" + Crassin et al. "Aggregate G-Buffer Anti-Aliasing" 论文 |
-| **前置阅读** | [[Lumen-反射降级]] [[体积云-Volumetric-Cloud]] |
+| **前置阅读** | [[../W3/Lumen-反射降级]] [[../99-归档/体积云-Volumetric-Cloud]] |
 
 ---
 
@@ -284,8 +286,8 @@ float3 PS_FinalGather(VS_OUTPUT input) : SV_Target
 
 ## 关联知识库
 
-- [[Lumen-反射降级]] — 同架构的反射版本
-- [[体积云-Volumetric-Cloud]] — 大气散射与 GI 的合成
+- [[../W3/Lumen-反射降级]] — 同架构的反射版本
+- [[../99-归档/体积云-Volumetric-Cloud]] — 大气散射与 GI 的合成
 - [[VSM-Virtual-Shadow-Map]] (待写) — GI 漫反射需要的 shadow 信息源
 - [[Nanite-材质管线]] (待写) — Nanite mesh 如何参与 Surface Cache
 - [[Hi-Z-Buffer-Construction]] — VCT 的 early-out 优化
@@ -301,7 +303,7 @@ float3 PS_FinalGather(VS_OUTPUT input) : SV_Target
 3. **屏幕探针采样** — 每帧在屏幕空间采 256 个探针,写入 probe atlas
 4. **Final Gather** — pixel shader 里 k-NN + 加权插值
 5. **Voxel Cone Trace** — 探针稀疏区域兜底
-6. **合成** — GI + 直接光 (Deferred Lighting) + 反射 ([[Lumen-反射降级]]) + 雾
+6. **合成** — GI + 直接光 (Deferred Lighting) + 反射 ([[../W3/Lumen-反射降级]]) + 雾
 
 > 提示：自研 mini-GI 的 MVP 版本 = **2 个探针 + cubemap blur**,30 行 HLSL,性能 < 0.5ms。Lumen 是豪华版,先 MVP 验证需求再上 Lumen。
 
@@ -322,5 +324,106 @@ float3 PS_FinalGather(VS_OUTPUT input) : SV_Target
 
 ---
 
-*Create date: 2026-07-01*  
-*Last modified: 2026-07-01*
+## AI 加速角度（追加于 2026-07-09）
+
+Lumen GI 漫反射链路的瓶颈是 **Surface Cache 内存 + Final Gather k-NN 搜索 + Voxel Cone Trace 步数**。AI 加速的核心思路是 **"用神经网络学 GI radiance，把离屏存储替换为在线推理"**——这条路径直接对应 day-job 主线之一。
+
+### 1. AI 加速的 3 个层次
+
+| 层次 | 替换对象 | 网络规模 | VRAM 节省 | 视觉收益 |
+|------|----------|----------|-----------|----------|
+| **L1 FG k-NN 加速** | 256 probe → 64 probe + MLP refine | 8→64→64→3 (~10k params) | probe atlas 4× 小 | 视觉等价 |
+| **L2 Neural Cone Trace** | VCT 16 step → MLP 出 radiance | 6→128→128→3 (~50k params) | 不需要 voxel atlas | 视觉略降（5%） |
+| **L3 Neural Radiance Cache** | 整个 GI lookup → NeRF query | 8 layer × 64 dim (~33k params) | VRAM 50 MB → 150 KB | 多次弹射更好 |
+
+### 2. L3 Neural Radiance Cache 详解（参见 [[../W9/神经辐射缓存-Neural-Radiance-Cache]]）
+
+直接复用 W9 NRC 的方案——一个 8 hidden layer × 64 dim MLP，输入 (position, direction, scene_scale) → RGB radiance：
+
+- **每像素 16 次 query**（半球积分），每次 ~100K GPU cycles
+- **每帧 8K sample 训练**（用 path trace 拿 ground truth）
+- **替代 Lumen Surface Cache 的 50 MB voxel atlas + Final Gather**
+
+**对比表（day-job 决策依据）**:
+
+| 维度 | Lumen Surface Cache | NRC |
+|------|---------------------|-----|
+| VRAM | ~50 MB | ~150 KB |
+| 收敛帧数 | 1 frame | 30+ frames |
+| 多次弹射 | 显式 screen probe | 隐式 MLP |
+| 动态光源响应 | 1 frame | 1-2 sec（fine-tune） |
+| 室内表现 | 好 | 优 |
+| 室外表现 | 好 | 一般 |
+
+### 3. L1 FG k-NN 加速工程实现
+
+```hlsl
+// 把 256 probe → 64 probe,用 MLP 学补全的 radiance
+// 输入: 当前像素的 (position, normal, viewDir) + 64 个 probe 的 radiance
+// 输出: refined GI radiance (跟 256 probe 的结果对齐)
+
+StructuredBuffer<float3> SparseProbes64;  // 64 个
+StructuredBuffer<float3> ProbeWeights;    // MLP weights, 8→64→64→3
+
+float3 NeuralFGRefine(
+    float3 WorldPos,
+    float3 WorldNormal,
+    float3 ViewDir,
+    StructuredBuffer<float3> SparseProbes64
+) {
+    // 1. 找最近的 8 个 probe (k-NN)
+    float Distances[8];
+    int Indices[8];
+    FindKNN(WorldPos, SparseProbes64, 8, Distances, Indices);
+
+    // 2. 加权插值（inverse distance weight）
+    float3 IDW = 0.0;
+    float WeightSum = 0.0;
+    [unroll]
+    for (int i = 0; i < 8; ++i) {
+        float W = 1.0 / (Distances[i] + 0.01);
+        IDW += SparseProbes64[Indices[i]] * W;
+        WeightSum += W;
+    }
+    IDW /= WeightSum;
+
+    // 3. MLP refine: 输入 (8 probe radiance × 3 channel) + (normal × 3) + (viewDir × 3) = 33 features
+    // 输出: residual
+    float Features[33];
+    [unroll]
+    for (int p = 0; p < 8; ++p) {
+        Features[p * 3 + 0] = SparseProbes64[Indices[p]].r;
+        Features[p * 3 + 1] = SparseProbes64[Indices[p]].g;
+        Features[p * 3 + 2] = SparseProbes64[Indices[p]].b;
+    }
+    Features[24] = WorldNormal.x; Features[25] = WorldNormal.y; Features[26] = WorldNormal.z;
+    Features[27] = ViewDir.x; Features[28] = ViewDir.y; Features[29] = ViewDir.z;
+    Features[30] = WorldPos.x * 0.01;  // scale down
+    Features[31] = WorldPos.y * 0.01;
+    Features[32] = WorldPos.z * 0.01;
+
+    float3 Residual = MLPForward33to3(Features, ProbeWeights);
+
+    return IDW + Residual * 0.1;  // 残差修正
+}
+```
+
+### 4. 与 day-job RAG 的关联
+
+Lumen GI 是 day-job **神经 BRDF / 神经 GI** 主线的核心研究对象:
+- **L1 工具描述**: `Lumen.GI.NeuralFGRefine(probes_64, weights) → gi_radiance`
+- **L3 工具描述**: `Lumen.GI.NeuralRadianceCache(position, direction) → gi_radiance`
+- **RAG 检索应用**: 用户问"为什么室内 GI 闪烁" → 检索到 L2 神经 cone trace，输出解决方案
+
+### 5. 已知问题与限制（AI 加速版）
+
+1. **冷启动延迟** — NRC 需要 30+ 帧收敛，期间 GI 闪烁
+2. **训练数据需求** — Path tracer 1 spp 收集需要 1024+ spp 离线 RT 拿 ground truth
+3. **动态光源响应慢** — NRC 微调 MLP 需要 1-2 秒
+4. **能量守恒** — 神经网络输出可能不满足物理约束，需要后处理 normalize
+5. **Fallback 链路** — 网络推理失败必须回退到 Surface Cache
+
+---
+
+*Create date: 2026-07-01*
+*Last modified: 2026-07-09*

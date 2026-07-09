@@ -357,7 +357,7 @@ struct FVolumetricCloudShadowMap {
 - **云阴影 + SkyAO 反向喂给大气**：云 → 天空遮挡。→ [[UE5.8-SkyAtmosphere-大气散射]]
 - **云投到地物的阴影**：跟 Lumen Surface Cache 协作。→ [[UE5-Lumen-源码调用链]]
 - **移动端必须走 PS 兜底 + 配 SkyPass**：否则云不显示。→ [[UE5.8-SkyPass-天空-pass]]
-- **历史经典对照**：跟 [[../../03-Shader与特效案例集/后处理效果/体积云-Volumetric-Cloud|自研 W1 体积云]] 的简化 ray-march 对比——UE 实现多了 EmptySpaceSkip / Reproject / AP 注入 3 个核心优化。
+- **历史经典对照**：跟 [[../../../03-Shader与特效案例集/后处理效果/体积云-Volumetric-Cloud|自研 W1 体积云]] 的简化 ray-march 对比——UE 实现多了 EmptySpaceSkip / Reproject / AP 注入 3 个核心优化。
 
 ---
 
