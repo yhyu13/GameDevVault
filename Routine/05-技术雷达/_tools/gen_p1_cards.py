@@ -1,0 +1,1001 @@
+# -*- coding: utf-8 -*-
+"""
+生成 05-技术雷达/P1-持续关注/ 下每条目的 Q&A 互动卡 HTML。
+模板紧贴 interview-card-system 规范:拖拽填空 / 单选 / 多选 / 判断题 / 总览 / 打分。
+基于 gen_p0_cards.py 改造:换 OUT_DIR + 换 3 个 P1 条目。
+
+用法:
+    python gen_p1_cards.py
+
+输出:
+    Routine/05-技术雷达/P1-持续关注/<basename>.html
+"""
+import os
+import json
+
+OUT_DIR = r"C:\Git-repo-my\GameDevVault\Routine\05-技术雷达\P1-持续关注"
+
+# 3 个 P1 条目的题目数据
+# 每个 entry 含: title / subtitle / topic / dragQ / singleQ / multiQ / tfQ / source_md
+ENTRIES = [
+    {
+        "basename": "StableDiffusion-FLUX-AI美术",
+        "title": "Stable Diffusion / FLUX — AI 美术管线(贴图/概念图/Icon)",
+        "subtitle": "P1-持续关注 | 美术主管导,但你要懂 — RTX 加速 3x,出图速度革命",
+        "source_md": "StableDiffusion-FLUX-AI美术.md",
+        "drag": [
+            {
+                "sentence": "SD 1.5 / SDXL 生态最 {0},FLUX.2 32B 出自 {1},生产 UI 框架首选 {2}。",
+                "answers": ["大", "黑森林实验室", "ComfyUI"],
+                "pool": ["大", "小", "黑森林实验室", "OpenAI", "ComfyUI", "A1111"],
+                "per_slot_analysis": [
+                    "SD 1.5/SDXL 生态最大(LoRA 多、社区活跃),是行业基线。",
+                    "FLUX.2 (2025 末) 由黑森林实验室(Black Forest Labs)出,最大 32B 参数,文字渲染、上下文编辑一流。",
+                    "ComfyUI 是节点式工作流 UI,适合生产流水线;A1111 是更早的 WebUI,单图交互更友好。"
+                ]
+            },
+            {
+                "sentence": "NVIDIA RTX 在 ComfyUI 中集成 {0} 优化 + NVFP4/FP8 量化,出图速度提升 {1} 倍,显存省 {2} %。",
+                "answers": ["PyTorch-CUDA", "3", "60"],
+                "pool": ["PyTorch-CUDA", "TensorRT", "DirectML", "2", "3", "5", "30", "60", "90"],
+                "per_slot_analysis": [
+                    "PyTorch-CUDA 优化是 NVIDIA 在 ComfyUI 中集成的核心加速路径。",
+                    "出图速度 3 倍提升是 NVIDIA 官方数据。",
+                    "显存省 60% — 8K 出图 / 大 batch 也能跑。"
+                ]
+            }
+        ],
+        "single": [
+            {
+                "question": "FLUX.2 (2025 末) 来自哪家公司?",
+                "options": [
+                    "A. OpenAI",
+                    "B. 黑森林实验室(Black Forest Labs)",
+                    "C. 谷歌 DeepMind",
+                    "D. Meta"
+                ],
+                "correct": 1,
+                "analysis": [
+                    "❌ OpenAI 没出 FLUX。",
+                    "✅ FLUX 系列由德国 Black Forest Labs 出,2025 末发布的 FLUX.2 最大 32B 参数,文字渲染、上下文编辑一流,本地可跑 8-13GB 显存版。",
+                    "❌ 谷歌出的是 Imagen,不是 FLUX。",
+                    "❌ Meta 出的是 Emu,不是 FLUX。"
+                ]
+            },
+            {
+                "question": "Steam 2024 起对'使用生成式 AI'游戏的强制要求是?",
+                "options": [
+                    "A. 标注'使用生成式 AI'",
+                    "B. 标注'包含内购'",
+                    "C. 标注'暴力内容'",
+                    "D. 强制下架"
+                ],
+                "correct": 0,
+                "analysis": [
+                    "✅ Steam 自 2024 起要求所有使用生成式 AI 训练内容的游戏必须在商店页标注'使用生成式 AI'——这是合规硬要求,Steam 上 1 万+ 游戏已标注。",
+                    "❌ '包含内购'是另一个独立字段,跟 AI 无关。",
+                    "❌ '暴力内容'是 ESRB 评级,跟 AI 标注无关。",
+                    "❌ 没有强制下架,只是要求披露。"
+                ]
+            },
+            {
+                "question": "LoRA 训练的'素材量 + 训练时间'经验值是?",
+                "options": [
+                    "A. 5 张图训 10 分钟",
+                    "B. 20-50 张图训 1-2 小时",
+                    "C. 1000 张图训 1 周",
+                    "D. 1 张图训 1 小时"
+                ],
+                "correct": 1,
+                "analysis": [
+                    "❌ 5 张素材太少,学不到画风。",
+                    "✅ 20-50 张图训 1-2 小时是 LoRA 微调的经验值 — 素材质量比数量更重要。",
+                    "❌ 1000 张 + 1 周是 Fine-tuning 全量,不是 LoRA。",
+                    "❌ 1 张图训 1 小时 = 过拟合,无法泛化。"
+                ]
+            }
+        ],
+        "multi": [
+            {
+                "question": "AI 美术生成'稳定出想要图'的三大控制工具是?(多选)",
+                "options": [
+                    "A. LoRA(画风/角色微调)",
+                    "B. ControlNet(Pose / Depth / Canny 控制构图)",
+                    "C. IPAdapter(参考图控制)",
+                    "D. 物理引擎",
+                    "E. Substance Designer",
+                    "F. 音频合成"
+                ],
+                "correct": [0, 1, 2],
+                "analysis": [
+                    "✅ LoRA = 画风/角色微调,20-50 张图训 1-2 小时,稳定输出统一画风。",
+                    "✅ ControlNet = 用 pose/depth/canny 锁定构图,避免 AI 乱画。",
+                    "✅ IPAdapter = 用参考图控制风格/角色,出'同一个角色不同姿势'。",
+                    "❌ 物理引擎跟 AI 美术无关。",
+                    "❌ Substance Designer 是材质工具,跟生图无关。",
+                    "❌ 音频合成是音频方向,不是图像。"
+                ]
+            },
+            {
+                "question": "商业可用 AI 美术的合规要求是?(多选)",
+                "options": [
+                    "A. 训练数据来源清晰可商用",
+                    "B. 选用 FLUX / Adobe Firefly / Shutterstock 等合规平台",
+                    "C. Steam 标注'使用生成式 AI'",
+                    "D. 欧盟 AI 法案要求训练数据披露",
+                    "E. 商业项目必须完全免费",
+                    "F. 任何模型都能直接商用"
+                ],
+                "correct": [0, 1, 2, 3],
+                "analysis": [
+                    "✅ 训练数据来源清晰可商用是商业项目硬要求,训练数据来源不清的素材有法律风险。",
+                    "✅ FLUX / Adobe Firefly / Shutterstock 这类平台有商用授权 + 训练数据合规。",
+                    "✅ Steam 2024 起强制标注'使用生成式 AI',不标注可能被下架。",
+                    "✅ 欧盟 AI 法案对训练数据有披露要求,影响在欧洲发行的产品。",
+                    "❌ '商业项目必须完全免费'是误解,合规是付费买训练数据授权,不是免费。",
+                    "❌ 不是任何模型都能直接商用,要看训练数据来源 + 授权协议。"
+                ]
+            }
+        ],
+        "tf": [
+            {
+                "question": "SD/FLUX 直接出 8K 贴图是默认能力,不需要任何后处理。",
+                "answer": False,
+                "analysis": "✅ 正确理解:SD/FLUX 出图分辨率有限(SDXL 1024x1024,FLUX 也能 2K 上下),8K 贴图需要 upscale 后处理(real-ESRGAN / SD Upscale)或 Tile 拼接 + 后期 Substance 加工。\n\n❌ 常见误解:以为 AI 直接出 8K PBR 贴图——其实'AI 出 base color + 人工接 Substance 流程'是更靠谱的链路。"
+            },
+            {
+                "question": "LoRA 训练 20-50 张图 1-2 小时,稳定出统一画风。",
+                "answer": True,
+                "analysis": "✅ 正确理解:LoRA 微调的经验值,20-50 张高质量素材训 1-2 小时就能稳定出统一画风/角色。\n\n❌ 常见误解:以为'素材越多越好'——其实 100+ 张素材容易过拟合,反而降低泛化能力。"
+            },
+            {
+                "question": "ComfyUI 是节点式工作流,适合'草图→精修→放大→局部修复'生产流水线。",
+                "answer": True,
+                "analysis": "✅ 正确理解:ComfyUI 把每一步生成拆成节点,流水线模式适合生产;A1111 是 WebUI,单图交互更友好。\n\n❌ 常见误解:以为 ComfyUI 只是'另一种 UI'——其实是工作流引擎,生产团队靠它批量出图。"
+            }
+        ]
+    },
+    {
+        "basename": "Meshy-LumaGenie-Text-to-3D",
+        "title": "Meshy / Luma Genie / Tripo3D — Text/Image-to-3D 资产生成",
+        "subtitle": "P1-持续关注 | Meshy ARR 4000 万,3D 资产生成已过玩具线",
+        "source_md": "Meshy-LumaGenie-Text-to-3D.md",
+        "drag": [
+            {
+                "sentence": "Meshy 首创 {0} 模式,Luma Genie {1} 秒出模型,Hunyuan3D 核心突破是 {2}。",
+                "answers": ["3D Agent", "10", "专业拓扑布线结构"],
+                "pool": ["3D Agent", "Point Cloud", "NeRF", "10", "60", "600", "专业拓扑布线结构", "物理模拟"],
+                "per_slot_analysis": [
+                    "Meshy 首创 3D Agent 模式 = 多轮对话 + 持续迭代,像和设计师协作。",
+                    "Luma Genie 10 秒出模型,是目前最快的 Text-to-3D 之一。",
+                    "Hunyuan3D 核心突破是带'专业拓扑布线结构'的 mesh(已独立 P0 条目)。"
+                ]
+            }
+        ],
+        "single": [
+            {
+                "question": "Meshy 2025 年 ARR(年度经常性收入)大约是?",
+                "options": [
+                    "A. 400 万美元",
+                    "B. 4000 万美元",
+                    "C. 4 亿美元",
+                    "D. 40 亿美元"
+                ],
+                "correct": 1,
+                "analysis": [
+                    "❌ 400 万太小,Meshy 是这个量级 100 倍。",
+                    "✅ Meshy 2025 年 ARR 约 4000 万美元、月活 800 万、欧美市占率 60%,A16Z 评为'最受欢迎 3D AI 工具'。",
+                    "❌ 4 亿美元是更大的体量,Meshy 还没到。",
+                    "❌ 40 亿美元是头部 SaaS 才有的体量。"
+                ]
+            },
+            {
+                "question": "Luma Genie 出一个模型的典型时长是?",
+                "options": [
+                    "A. 1 秒",
+                    "B. 10 秒",
+                    "C. 10 分钟",
+                    "D. 1 小时"
+                ],
+                "correct": 1,
+                "analysis": [
+                    "❌ 1 秒太快,Text-to-3D 不可能。",
+                    "✅ Luma Genie 10 秒出模型 — 是目前最快的 Text-to-3D 之一。",
+                    "❌ 10 分钟是 Meshy/Tripo3D 的量级,不是 Luma Genie。",
+                    "❌ 1 小时是离线 NeRF 训练的量级。"
+                ]
+            },
+            {
+                "question": "Meshy 3D Agent 的核心创新是?",
+                "options": [
+                    "A. 单次生成更快",
+                    "B. 多轮对话 + 持续迭代",
+                    "C. 只支持文本输入",
+                    "D. 完全免费"
+                ],
+                "correct": 1,
+                "analysis": [
+                    "❌ 单次生成速度不是核心创新点。",
+                    "✅ Meshy 首创 3D Agent 模式 = 多轮对话 + 持续迭代,像和设计师协作(不是单次 prompt 完事)。",
+                    "❌ 不只文本,也支持 Image 输入。",
+                    "❌ 不免费,按量计费 ~$1/模型。"
+                ]
+            }
+        ],
+        "multi": [
+            {
+                "question": "AI 生成的 3D 资产后处理必要步骤是?(多选)",
+                "options": [
+                    "A. Retopo(重拓扑)",
+                    "B. UV 重展",
+                    "C. LOD 生成",
+                    "D. 物理碰撞体添加",
+                    "E. 直接进游戏",
+                    "F. 跳过所有步骤"
+                ],
+                "correct": [0, 1, 2, 3],
+                "analysis": [
+                    "✅ Retopo(重拓扑)是后处理关键步骤,AI 出的 mesh 一般拓扑很差,Instant Meshes / Quad Remesher 工具。",
+                    "✅ UV 重展决定贴图能不能正确展开。",
+                    "✅ LOD 生成是游戏性能关键。",
+                    "✅ 物理碰撞体是游戏可玩性关键(角色要能被撞、物品要能拾取)。",
+                    "❌ 不能直接进游戏,后处理占整个流程 60% 时间。",
+                    "❌ 跳过所有步骤 = 进游戏后模型错乱、贴图错位。"
+                ]
+            },
+            {
+                "question": "主流 3D 资产生成平台支持的输出格式是?(多选)",
+                "options": [
+                    "A. FBX",
+                    "B. OBJ",
+                    "C. GLB",
+                    "D. USDZ",
+                    "E. 仅 .max",
+                    "F. 仅 .blend"
+                ],
+                "correct": [0, 1, 2, 3],
+                "analysis": [
+                    "✅ FBX = 主流游戏引擎的通用格式。",
+                    "✅ OBJ = 老牌通用格式,任何 3D 工具都吃。",
+                    "✅ GLB = glTF 二进制,Web 3D 标配。",
+                    "✅ USDZ = Apple AR Quick Look 格式,iOS 生态。",
+                    "❌ 没有任何平台'仅支持 .max'。",
+                    "❌ 没有任何平台'仅支持 .blend'。"
+                ]
+            }
+        ],
+        "tf": [
+            {
+                "question": "AI 3D 资产生成已过玩具线,但还没到全自动线 — 后处理占 60% 时间。",
+                "answer": True,
+                "analysis": "✅ 正确理解:AI 出的 mesh 一般要 retopo / UV / LOD,后处理占整个流程 60% 时间 — 这是真正落地的形态。\n\n❌ 常见误解:以为'一键 AI 3D 资产'已经成熟 — 还没到全自动,人工后处理不可省。"
+            },
+            {
+                "question": "Hunyuan3D 是闭源按量付费的商业 API。",
+                "answer": False,
+                "analysis": "✅ 正确理解:Hunyuan3D 是腾讯开源协议(MIT/Apache),商业项目免授权费;具体协议范围首次商用前查清。\n\n❌ 常见误解:以为大厂出品一定闭源 — 腾讯混元系列开源 + 商业可商用是 2026 H1 的明确信号,这是 day-job 主力选择。"
+            },
+            {
+                "question": "短期策略:Hunyuan3D 优先(腾讯开源 + 拓扑好),Luma/Meshy 留作快速验证。",
+                "answer": True,
+                "analysis": "✅ 正确理解:Hunyuan3D 拓扑好 + 开源可商用,适合主力;Luma/Meshy 适合 quick prototype + 快速验证。\n\n❌ 常见误解:以为'贵的就是好的' — 商业平台按量计费成本高,Hunyuan3D 自托管成本可控。"
+            }
+        ]
+    },
+    {
+        "basename": "LLM-NPC-Inworld-Convai",
+        "title": "LLM-NPC 平台 — Inworld / Convai / Charisma.AI",
+        "subtitle": "P1-持续关注 | 长期记忆生产可用,UE 插件齐全,ACE 的 partner 们",
+        "source_md": "LLM-NPC-Inworld-Convai.md",
+        "drag": [
+            {
+                "sentence": "Inworld 核心是 {0} + {1} + {2} 的人格化 NPC,Convai 是 NVIDIA 拉面 demo 的合作伙伴。",
+                "answers": ["性格", "长期记忆", "情绪"],
+                "pool": ["性格", "长期记忆", "情绪", "物理", "骨骼", "贴图"],
+                "per_slot_analysis": [
+                    "性格 = System Prompt 定义的 NPC 人格(口头禅、弱点、过去)。",
+                    "长期记忆 = Inworld 的核心卖点,跨会话记住玩家行为(PUBG Ally 同款技术)。",
+                    "情绪 = 情绪变化驱动的 NPC 反应(非机械式),比纯 LLM 输出更自然。"
+                ]
+            }
+        ],
+        "single": [
+            {
+                "question": "Inworld 长期记忆'已生产可用'的标志是?",
+                "options": [
+                    "A. 只能记 1 句话",
+                    "B. 记玩家过往战术表现(PUBG Ally 同款技术)",
+                    "C. 只记 1 局",
+                    "D. 不支持长期记忆"
+                ],
+                "correct": 1,
+                "analysis": [
+                    "❌ 只能记 1 句话 = 没记忆。",
+                    "✅ Inworld 长期记忆已生产可用,记玩家过往战术表现(NVIDIA ACE 的 PUBG Ally demo 用的是同款长期记忆技术)。",
+                    "❌ '只记 1 局' = 短期记忆,不是长期。",
+                    "❌ Inworld 主打的就是长期记忆,不是不支持。"
+                ]
+            },
+            {
+                "question": "100 个并发 NPC 持续对话 1 小时的 LLM 成本是?",
+                "options": [
+                    "A. $1",
+                    "B. $10",
+                    "C. $30-100",
+                    "D. $1000"
+                ],
+                "correct": 2,
+                "analysis": [
+                    "❌ $1 不可能,LLM 推理 + ASR + TTS 加起来不是这个数。",
+                    "✅ LLM 调一次 1-3 美分,100 个并发 NPC 持续对话 1 小时 ≈ $30-100 — 做产品必须算账。",
+                    "❌ $10 偏低,除非用极小模型 + 短上下文。",
+                    "❌ $1000 是 SaaS 平台按量计费的总成本(含平台费),不是 LLM 单独成本。"
+                ]
+            },
+            {
+                "question": "LLM-NPC 平台 vs NVIDIA ACE 的关系是?",
+                "options": [
+                    "A. 平台 = 底层微服务",
+                    "B. ACE = 底层微服务(ASR/LLM/TTS/A2F 拆开卖),平台 = 包装好的产品",
+                    "C. 完全没关系",
+                    "D. 平台比 ACE 更底层"
+                ],
+                "correct": 1,
+                "analysis": [
+                    "❌ 不是平台=底层,平台是上层。",
+                    "✅ ACE = 底层微服务(ASR/LLM/TTS/A2F 拆开卖),平台 = 包装好的产品(Inworld/Convai 这样的 SDK)。中小项目用平台更快,大厂可能 ACE + 自研。",
+                    "❌ 完全没关系是错的,ACE 的 partner 名单里就有 Convai / Inworld / Charisma.AI / UneeQ 四家。",
+                    "❌ 平台比 ACE 更上层,不是更底层。"
+                ]
+            }
+        ],
+        "multi": [
+            {
+                "question": "LLM-NPC 的关键技能是?(多选)",
+                "options": [
+                    "A. System Prompt 写作(人格 + 知识 + 说话风格 + 决策规则)",
+                    "B. RAG(检索增强)知识库接入",
+                    "C. Fallback 设计(超时/敏感内容降级)",
+                    "D. 成本控制",
+                    "E. 必须从零写 LLM",
+                    "F. 跳过成本计算"
+                ],
+                "correct": [0, 1, 2, 3],
+                "analysis": [
+                    "✅ System Prompt 写作 = 定义 NPC 的'人格 + 知识边界 + 说话风格 + 决策规则'。",
+                    "✅ RAG = 把游戏世界的 lore / 任务 / 物品知识喂给 NPC,让他真的'知道'。",
+                    "✅ Fallback = LLM 输出不合规/超时/敏感内容时怎么降级 — 产品稳定性关键。",
+                    "✅ 成本控制 = 100 个并发 NPC 1 小时 $30-100,做产品必须算账。",
+                    "❌ '必须从零写 LLM'是误解,平台时代直接用 Inworld/Convai 即可。",
+                    "❌ 跳过成本计算 = 产品上线后破产。"
+                ]
+            },
+            {
+                "question": "NVIDIA ACE 的 LLM-NPC partner 包括?(多选)",
+                "options": [
+                    "A. Convai",
+                    "B. Inworld AI",
+                    "C. Charisma.AI",
+                    "D. UneeQ",
+                    "E. 仅 Epic Games",
+                    "F. 仅米哈游"
+                ],
+                "correct": [0, 1, 2, 3],
+                "analysis": [
+                    "✅ Convai 是 NVIDIA 拉面 demo 的合作方。",
+                    "✅ Inworld AI 是长期记忆 NPC 平台合作伙伴。",
+                    "✅ Charisma.AI 是故事驱动 NPC 合作伙伴。",
+                    "✅ UneeQ 是数字人 + 实时对话合作伙伴。",
+                    "❌ 不'仅 Epic',NVIDIA ACE 的 partner 名单横跨多家。",
+                    "❌ 不'仅米哈游',米哈游是自研不是 ACE partner。"
+                ]
+            }
+        ],
+        "tf": [
+            {
+                "question": "Inworld 长期记忆是'已生产可用'等级,Inworld Studio 可视化配置门槛低。",
+                "answer": True,
+                "analysis": "✅ 正确理解:Inworld 长期记忆 + 情绪 + 性格生产可用,Inworld Studio 可视化配置门槛低 — 2 天上手。\n\n❌ 常见误解:以为 LLM-NPC 还在实验阶段 — Inworld / Convai / Charisma.AI 都已经商业部署。"
+            },
+            {
+                "question": "100 个并发 NPC 持续对话 1 小时 ≈ $30-100,做产品必须算账。",
+                "answer": True,
+                "analysis": "✅ 正确理解:LLM 调一次 1-3 美分,100 个并发 NPC 持续对话 1 小时 ≈ $30-100,产品设计阶段必须算清。\n\n❌ 常见误解:以为'LLM 很便宜' — 持续对话 + 多 NPC 时成本快速放大,产品定位必须考虑。"
+            },
+            {
+                "question": "ACE = 底层微服务,Inworld/Convai = 包装好的产品;中小项目用平台更划算。",
+                "answer": True,
+                "analysis": "✅ 正确理解:ACE 是 ASR/LLM/TTS/A2F 拆开卖的底层微服务,需要自己组合;Inworld/Convai 是包装好的产品,中小项目直接用更划算。\n\n❌ 常见误解:以为 ACE 和 Inworld 是竞争关系 — 实际是上下游关系(ACE 提供底层,平台在它之上包装)。"
+            }
+        ]
+    }
+]
+
+
+def make_html(entry):
+    """根据 entry 数据生成单个 HTML 卡牌。"""
+    base = entry["basename"]
+    title = entry["title"]
+    subtitle = entry["subtitle"]
+    source_md = entry["source_md"]
+    drag_json = json.dumps(entry["drag"], ensure_ascii=False, indent=2)
+    single_json = json.dumps(entry["single"], ensure_ascii=False, indent=2)
+    multi_json = json.dumps(entry["multi"], ensure_ascii=False, indent=2)
+    tf_json = json.dumps(entry["tf"], ensure_ascii=False, indent=2)
+    template = HTML_TEMPLATE
+    out = (template
+        .replace("__TITLE__", title)
+        .replace("__SUBTITLE__", subtitle)
+        .replace("__SOURCE_MD__", source_md)
+        .replace("__DRAG_JSON__", drag_json)
+        .replace("__SINGLE_JSON__", single_json)
+        .replace("__MULTI_JSON__", multi_json)
+        .replace("__TF_JSON__", tf_json))
+    return out
+
+
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__TITLE__ — 互动式面试卡牌</title>
+<style>
+  :root {
+    --bg:#f5f5f0; --card-bg:#fff; --primary:#3a5a7c; --accent:#6b9e75; --accent-wrong:#c45c5c;
+    --text:#2c3e50; --text-light:#5d6d7e; --border:#d0d5dd; --shadow:rgba(0,0,0,0.08);
+    --drop-zone:#eef2f7; --draggable:#f0f4f8;
+    --status-correct:#e8f5e9; --status-wrong:#fce8e8; --status-unanswered:#f8f9fa;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+  header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow)}
+  header h1{margin:0;font-size:1.2rem;font-weight:500}
+  header p{margin:0.2rem 0 0;opacity:0.85;font-size:0.85rem}
+  .container{max-width:820px;margin:0 auto;padding:1.5rem}
+  .nav-tabs{display:flex;gap:0.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+  .nav-tab{flex:1;min-width:90px;padding:0.6rem 0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.85rem;transition:all 0.2s;color:var(--text-light)}
+  .nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+  .nav-tab:hover:not(.active){background:var(--drop-zone)}
+  .score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.6rem;flex-wrap:wrap}
+  .score-mini{font-size:0.85rem;color:var(--text-light);white-space:nowrap}
+  .score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+  .progress-text{text-align:right;font-size:0.8rem;color:var(--text-light);margin-bottom:0.3rem}
+  .progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+  .card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:26px;font-size:0.8rem;font-weight:600;margin-right:0.5rem}
+  .card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5}
+  .q-type{font-size:0.75rem;color:var(--text-light);background:#eef2f7;padding:2px 8px;border-radius:4px;margin-left:0.4rem}
+  .drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem}
+  .drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all 0.2s;padding:0 6px;font-size:0.95rem}
+  .drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+  .drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8;cursor:pointer}
+  .drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+  .drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+  .drop-zone.correct .dropped-text{color:var(--accent)}
+  .drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+  .drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.8rem;background:var(--drop-zone);border-radius:8px}
+  .draggable{padding:0.4rem 0.9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all 0.15s;font-size:0.92rem}
+  .draggable:hover{background:#dbe4ee;border-color:var(--primary);transform:translateY(-1px)}
+  .draggable.used{opacity:0.35;cursor:default;pointer-events:none}
+  .options-list{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.0rem}
+  .option{padding:0.7rem 1.0rem;background:var(--card-bg);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.6rem;font-size:0.95rem;line-height:1.45}
+  .option:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .option.selected{border-color:var(--primary);background:#e8f0f8}
+  .option.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .option.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:600;flex-shrink:0;background:#fff}
+  .option.selected .opt-marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .option.correct-mark .opt-marker{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+  .tf-options{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.0rem}
+  .tf-btn{padding:0.9rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;transition:all 0.15s;font-size:0.95rem;text-align:center}
+  .tf-btn:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .tf-btn.selected{border-color:var(--primary);background:#e8f0f8}
+  .tf-btn.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .tf-btn.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .feedback{margin-top:1.0rem;padding:0.9rem 1.1rem;border-radius:8px;background:#f0f4f8;border-left:3px solid var(--primary);font-size:0.92rem;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback.feedback-correct{border-left-color:var(--accent);background:#e8f5e9}
+  .feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:#fce8e8}
+  .feedback-title{font-weight:600;margin-bottom:0.3rem;display:block}
+  .feedback ul{margin:0.4rem 0 0 0;padding-left:1.2rem}
+  .feedback li{margin-bottom:0.3rem}
+  .action-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1.0rem}
+  .btn{padding:0.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:0.9rem;transition:all 0.15s}
+  .btn:hover{background:var(--drop-zone);border-color:var(--primary)}
+  .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn-primary:hover{background:#2c4661;border-color:#2c4661;color:#fff}
+  .nav-row{display:flex;justify-content:space-between;margin-top:0.8rem;gap:0.6rem}
+  .overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .overview-panel.show{display:block}
+  .overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:0.5rem}
+  .overview-header h2{margin:0;font-size:1.15rem;font-weight:500}
+  .overview-stats{display:flex;gap:0.5rem;flex-wrap:wrap}
+  .filter-btn{padding:0.4rem 0.8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.82rem;transition:all 0.15s}
+  .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .filter-btn:hover:not(.active){background:#dbe4ee}
+  .overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:0.5rem}
+  .overview-item{aspect-ratio:1;border:1.5px solid var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--status-unanswered);transition:all 0.15s;font-size:0.85rem}
+  .overview-item.correct{background:var(--status-correct);border-color:var(--accent);color:var(--accent)}
+  .overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong);color:var(--accent-wrong)}
+  .overview-item:hover{transform:scale(1.05);box-shadow:0 2px 6px var(--shadow)}
+  .overview-item .ov-num{font-weight:600;font-size:0.95rem}
+  .overview-item .ov-type{font-size:0.7rem;opacity:0.7;margin-top:2px}
+  .source-link{display:inline-block;margin-top:1.0rem;padding:0.5rem 1.0rem;background:var(--drop-zone);border-radius:6px;color:var(--primary);text-decoration:none;font-size:0.88rem;border:1px solid var(--border)}
+  .source-link:hover{background:#dbe4ee}
+</style>
+</head>
+<body>
+<header>
+  <h1>__TITLE__</h1>
+  <p>__SUBTITLE__</p>
+</header>
+<div class="container">
+
+<div class="nav-tabs">
+  <div class="nav-tab active" data-type="all">全部</div>
+  <div class="nav-tab" data-type="drag">拖拽填空</div>
+  <div class="nav-tab" data-type="single">单选题</div>
+  <div class="nav-tab" data-type="multi">多选题</div>
+  <div class="nav-tab" data-type="tf">判断题</div>
+</div>
+
+<div class="score-bar">
+  <div class="score-mini">已答:<span class="score-num" id="answered-num">0</span> / <span id="total-num">0</span></div>
+  <div class="score-mini">正确:<span class="score-num" id="correct-num">0</span></div>
+  <div class="score-mini">错误:<span class="score-num" id="wrong-num">0</span></div>
+  <div class="score-mini">得分:<span class="score-num" id="score-pct">0%</span></div>
+  <div style="flex:1"></div>
+  <button class="btn" id="btn-overview">📊 题目总览</button>
+  <button class="btn" id="btn-reset-all">🔄 重置所有分数</button>
+</div>
+<div class="progress-text" id="progress-text">第 1 题 / 共 0 题</div>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+<div class="overview-panel" id="overview-panel">
+  <div class="overview-header">
+    <h2>题目总览</h2>
+    <div class="overview-stats">
+      <div class="filter-btn active" data-filter="all">全部</div>
+      <div class="filter-btn" data-filter="unanswered">未答</div>
+      <div class="filter-btn" data-filter="correct">正确</div>
+      <div class="filter-btn" data-filter="wrong">错误</div>
+    </div>
+  </div>
+  <div class="overview-grid" id="overview-grid"></div>
+</div>
+
+<div id="q-container"></div>
+
+<div class="nav-row">
+  <button class="btn btn-primary" id="btn-prev">← 上一题</button>
+  <button class="btn btn-primary" id="btn-next">下一题 →</button>
+</div>
+
+<a class="source-link" href="./__SOURCE_MD__">📄 查看原始笔记(MD)</a>
+
+</div>
+
+<script>
+// 题目数据
+const dragQuestions = __DRAG_JSON__;
+const singleQuestions = __SINGLE_JSON__;
+const multiQuestions = __MULTI_JSON__;
+const trueFalseQuestions = __TF_JSON__;
+
+const allQuestions = [
+  ...dragQuestions.map((q,i)=>({type:'drag', index:i})),
+  ...singleQuestions.map((q,i)=>({type:'single', index:i})),
+  ...multiQuestions.map((q,i)=>({type:'multi', index:i})),
+  ...trueFalseQuestions.map((q,i)=>({type:'tf', index:i}))
+];
+
+let currentQ = 0;
+let currentType = 'all';
+let overviewOpen = false;
+let overviewFilter = 'all';
+let answeredSet = new Map();
+
+function qKey(type, idx) { return type + '_' + idx; }
+function getTotal() { return allQuestions.length; }
+function getFilteredIndices() {
+  if (currentType === 'all') return allQuestions.map((_,i)=>i);
+  return allQuestions.map((q,i)=>q.type===currentType?i:-1).filter(i=>i>=0);
+}
+
+function getCurrentQDef() {
+  const def = allQuestions[currentQ];
+  if (def.type === 'drag') return { def: dragQuestions[def.index], type: 'drag', num: def.index+1 };
+  if (def.type === 'single') return { def: singleQuestions[def.index], type: 'single', num: def.index+1 };
+  if (def.type === 'multi') return { def: multiQuestions[def.index], type: 'multi', num: def.index+1 };
+  return { def: trueFalseQuestions[def.index], type: 'tf', num: def.index+1 };
+}
+
+function setAnswered(type, idx, result) {
+  answeredSet.set(qKey(type, idx), result);
+  updateScoreBar();
+  updateOverviewGrid();
+}
+
+function updateScoreBar() {
+  const total = getTotal();
+  let correct = 0, wrong = 0;
+  for (const v of answeredSet.values()) {
+    if (v === 'correct') correct++;
+    else if (v === 'wrong') wrong++;
+  }
+  const answered = correct + wrong;
+  document.getElementById('answered-num').textContent = answered;
+  document.getElementById('correct-num').textContent = correct;
+  document.getElementById('wrong-num').textContent = wrong;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  document.getElementById('score-pct').textContent = pct + '%';
+}
+
+function updateProgress() {
+  const filtered = getFilteredIndices();
+  const pos = filtered.indexOf(currentQ);
+  const total = filtered.length;
+  document.getElementById('progress-text').textContent = `第 ${pos+1} 题 / 共 ${total} 题`;
+  document.getElementById('progress-fill').style.width = (total > 0 ? ((pos+1)/total)*100 : 0) + '%';
+  document.getElementById('total-num').textContent = total;
+}
+
+function updateOverviewGrid() {
+  const grid = document.getElementById('overview-grid');
+  grid.innerHTML = '';
+  allQuestions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'overview-item';
+    const status = answeredSet.get(qKey(q.type, q.index));
+    if (status === 'correct') div.classList.add('correct');
+    else if (status === 'wrong') div.classList.add('wrong');
+    if (i === currentQ) div.style.outline = '3px solid var(--primary)';
+    if (overviewFilter === 'unanswered' && status) { div.style.display = 'none'; return; }
+    if (overviewFilter === 'correct' && status !== 'correct') { div.style.display = 'none'; return; }
+    if (overviewFilter === 'wrong' && status !== 'wrong') { div.style.display = 'none'; return; }
+    const typeMap = { drag: '拖', single: '单', multi: '多', tf: '判' };
+    div.innerHTML = `<div class="ov-num">${i+1}</div><div class="ov-type">${typeMap[q.type]}</div>`;
+    div.onclick = () => { currentQ = i; renderQuestion(); toggleOverview(false); };
+    grid.appendChild(div);
+  });
+}
+
+function toggleOverview(force) {
+  const panel = document.getElementById('overview-panel');
+  if (typeof force === 'boolean') { overviewOpen = force; panel.classList.toggle('show', force); }
+  else { overviewOpen = !overviewOpen; panel.classList.toggle('show', overviewOpen); }
+  if (overviewOpen) updateOverviewGrid();
+}
+
+// 拖拽填空
+function renderDrag(def) {
+  const container = document.getElementById('q-container');
+  const parts = def.sentence.split(/(\\{\\d+\\})/g);
+  let slotsHTML = '';
+  let slotIdx = 0;
+  for (const p of parts) {
+    const m = p.match(/^\\{(\\d+)\\}$/);
+    if (m) { slotsHTML += `<span class="drop-zone" data-slot="${slotIdx}" data-empty="true">　</span>`; slotIdx++; }
+    else { slotsHTML += p; }
+  }
+  const shuffled = [...def.pool].sort(()=>Math.random()-0.5);
+  let poolHTML = '<div class="drag-pool">';
+  for (const term of shuffled) {
+    poolHTML += `<div class="draggable" draggable="true" data-term="${term}">${term}</div>`;
+  }
+  poolHTML += '</div>';
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.sentence.replace(/[{}]/g,'').substring(0,40)}…<span class="q-type">拖拽填空</span></h3>
+      <div class="drag-sentence">${slotsHTML}</div>
+      ${poolHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+  const fillState = Array(def.answers.length).fill(null);
+  const draggables = container.querySelectorAll('.draggable');
+  const dropZones = container.querySelectorAll('.drop-zone');
+  draggables.forEach(d => {
+    d.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', d.dataset.term);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+  dropZones.forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const term = e.dataTransfer.getData('text/plain');
+      const slot = parseInt(zone.dataset.slot);
+      const existingSlot = fillState.indexOf(term);
+      if (existingSlot >= 0 && existingSlot !== slot) {
+        fillState[existingSlot] = null;
+        const oldZone = container.querySelector(`[data-slot="${existingSlot}"]`);
+        oldZone.textContent = '　';
+        oldZone.dataset.empty = 'true';
+        oldZone.classList.remove('filled', 'correct', 'wrong');
+      }
+      fillState[slot] = term;
+      zone.innerHTML = `<span class="dropped-text">${term}</span>`;
+      zone.dataset.empty = 'false';
+      zone.classList.add('filled');
+      zone.classList.remove('correct', 'wrong');
+      const sourceDraggable = Array.from(draggables).find(d => d.dataset.term === term);
+      if (sourceDraggable) sourceDraggable.classList.add('used');
+      hideFeedback();
+    });
+    zone.addEventListener('click', () => {
+      if (zone.dataset.empty === 'true' || !fillState[parseInt(zone.dataset.slot)]) return;
+      const slot = parseInt(zone.dataset.slot);
+      const term = fillState[slot];
+      fillState[slot] = null;
+      zone.textContent = '　';
+      zone.dataset.empty = 'true';
+      zone.classList.remove('filled', 'correct', 'wrong');
+      const sourceDraggable = Array.from(draggables).find(d => d.dataset.term === term);
+      if (sourceDraggable) sourceDraggable.classList.remove('used');
+      hideFeedback();
+    });
+  });
+  document.getElementById('btn-check').onclick = () => {
+    let allCorrect = true;
+    fillState.forEach((term, i) => {
+      const zone = container.querySelector(`[data-slot="${i}"]`);
+      zone.classList.remove('correct', 'wrong');
+      if (term === def.answers[i]) zone.classList.add('correct');
+      else { zone.classList.add('wrong'); allCorrect = false; }
+    });
+    const isFull = fillState.every(t => t !== null);
+    if (!isFull) { showFeedback(false, '<b>未填完</b><br>请把所有空位都填上后再检查。'); return; }
+    let html = '<span class="feedback-title">' + (allCorrect ? '✅ 完全正确！' : '❌ 有错误') + '</span><ul>';
+    fillState.forEach((term, i) => {
+      const ok = term === def.answers[i];
+      html += `<li>第 ${i+1} 空：<b>${ok?'✅ 正确':'❌ 错误'}</b> —— 你的答案：<code>${term}</code>；正确答案：<code>${def.answers[i]}</code>。${def.per_slot_analysis[i]}</li>`;
+    });
+    html += '</ul>';
+    showFeedback(allCorrect, html);
+    setAnswered('drag', dragQuestions.indexOf(def), allCorrect ? 'correct' : 'wrong');
+  };
+  document.getElementById('btn-reset').onclick = () => renderDrag(def);
+}
+
+// 单选
+function renderSingle(def) {
+  const container = document.getElementById('q-container');
+  let optsHTML = '<div class="options-list">';
+  def.options.forEach((opt, i) => {
+    const label = opt.length > 1 && opt[1] === '.' ? opt.substring(2) : opt;
+    optsHTML += `<div class="option" data-opt="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${label}</span></div>`;
+  });
+  optsHTML += '</div>';
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">单选题</span></h3>
+      ${optsHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+  let selected = null;
+  const opts = container.querySelectorAll('.option');
+  opts.forEach(o => {
+    o.onclick = () => { if (selected !== null) return; selected = parseInt(o.dataset.opt); o.classList.add('selected'); hideFeedback(); };
+  });
+  document.getElementById('btn-check').onclick = () => {
+    if (selected === null) { showFeedback(false, '<b>未选择</b><br>请先选一个选项。'); return; }
+    const ok = selected === def.correct;
+    opts.forEach((o, i) => {
+      if (i === def.correct) o.classList.add('correct-mark');
+      if (i === selected && i !== def.correct) o.classList.add('wrong-mark');
+    });
+    let html = '<span class="feedback-title">' + (ok ? '✅ 回答正确！' : '❌ 回答错误') + '</span><ul>';
+    def.analysis.forEach((a, i) => html += `<li>${a}</li>`);
+    html += '</ul>';
+    showFeedback(ok, html);
+    setAnswered('single', singleQuestions.indexOf(def), ok ? 'correct' : 'wrong');
+  };
+  document.getElementById('btn-reset').onclick = () => renderSingle(def);
+}
+
+// 多选
+function renderMulti(def) {
+  const container = document.getElementById('q-container');
+  let optsHTML = '<div class="options-list">';
+  def.options.forEach((opt, i) => {
+    const label = opt.length > 1 && opt[1] === '.' ? opt.substring(2) : opt;
+    optsHTML += `<div class="option" data-opt="${i}"><span class="opt-marker">${String.fromCharCode(65+i)}</span><span>${label}</span></div>`;
+  });
+  optsHTML += '</div>';
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">多选题</span></h3>
+      ${optsHTML}
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+  const selected = new Set();
+  const opts = container.querySelectorAll('.option');
+  opts.forEach(o => {
+    o.onclick = () => {
+      const i = parseInt(o.dataset.opt);
+      if (selected.has(i)) { selected.delete(i); o.classList.remove('selected'); }
+      else { selected.add(i); o.classList.add('selected'); }
+      hideFeedback();
+    };
+  });
+  document.getElementById('btn-check').onclick = () => {
+    if (selected.size === 0) { showFeedback(false, '<b>未选择</b><br>多选题必须至少选 1 项。'); return; }
+    const correctSet = new Set(def.correct);
+    const isExactMatch = selected.size === correctSet.size && [...selected].every(i => correctSet.has(i));
+    opts.forEach((o, i) => {
+      if (correctSet.has(i)) o.classList.add('correct-mark');
+      if (selected.has(i) && !correctSet.has(i)) o.classList.add('wrong-mark');
+    });
+    let html = '<span class="feedback-title">' + (isExactMatch ? '✅ 完全正确！' : '❌ 有错误 / 漏选') + '</span><ul>';
+    def.analysis.forEach((a, i) => html += `<li>${a}</li>`);
+    html += '</ul>';
+    showFeedback(isExactMatch, html);
+    setAnswered('multi', multiQuestions.indexOf(def), isExactMatch ? 'correct' : 'wrong');
+  };
+  document.getElementById('btn-reset').onclick = () => renderMulti(def);
+}
+
+// 判断
+function renderTF(def) {
+  const container = document.getElementById('q-container');
+  container.innerHTML = `
+    <div class="card">
+      <h3><span class="card-number">${currentQ+1}</span>${def.question}<span class="q-type">判断题</span></h3>
+      <div class="tf-options">
+        <div class="tf-btn" data-tf="true">✅ 正确(True)</div>
+        <div class="tf-btn" data-tf="false">❌ 错误(False)</div>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-check">检查答案</button>
+        <button class="btn" id="btn-reset">重置本题</button>
+      </div>
+    </div>
+  `;
+  let selected = null;
+  const btns = container.querySelectorAll('.tf-btn');
+  btns.forEach(b => {
+    b.onclick = () => { btns.forEach(x => x.classList.remove('selected')); b.classList.add('selected'); selected = b.dataset.tf === 'true'; hideFeedback(); };
+  });
+  document.getElementById('btn-check').onclick = () => {
+    if (selected === null) { showFeedback(false, '<b>未选择</b><br>请先选 True 或 False。'); return; }
+    const ok = selected === def.answer;
+    btns.forEach(b => {
+      const v = b.dataset.tf === 'true';
+      if (v === def.answer) b.classList.add('correct-mark');
+      if (v === selected && v !== def.answer) b.classList.add('wrong-mark');
+    });
+    const analysisParts = def.analysis.split('\\n\\n');
+    let html = '<span class="feedback-title">' + (ok ? '✅ 判断正确！' : '❌ 判断错误') + '</span>';
+    html += '<div style="white-space:pre-line;margin-top:0.3rem">' + analysisParts[0] + '</div>';
+    if (analysisParts.length > 1) {
+      html += '<div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px dashed var(--border);white-space:pre-line;color:var(--text-light)">' + analysisParts.slice(1).join('\\n\\n') + '</div>';
+    }
+    showFeedback(ok, html);
+    setAnswered('tf', trueFalseQuestions.indexOf(def), ok ? 'correct' : 'wrong');
+  };
+  document.getElementById('btn-reset').onclick = () => renderTF(def);
+}
+
+function renderQuestion() {
+  const { def, type } = getCurrentQDef();
+  if (type === 'drag') renderDrag(def);
+  else if (type === 'single') renderSingle(def);
+  else if (type === 'multi') renderMulti(def);
+  else renderTF(def);
+  updateProgress();
+  updateOverviewGrid();
+}
+
+function showFeedback(ok, html) {
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = html;
+  fb.classList.add('show');
+  fb.classList.toggle('feedback-correct', ok);
+  fb.classList.toggle('feedback-wrong', !ok);
+}
+
+function hideFeedback() {
+  const fb = document.getElementById('feedback');
+  if (fb) { fb.classList.remove('show'); fb.innerHTML = ''; }
+}
+
+function navTo(direction) {
+  const filtered = getFilteredIndices();
+  if (filtered.length === 0) return;
+  const pos = filtered.indexOf(currentQ);
+  let newPos = pos + direction;
+  if (newPos < 0) newPos = filtered.length - 1;
+  if (newPos >= filtered.length) newPos = 0;
+  currentQ = filtered[newPos];
+  renderQuestion();
+}
+
+document.getElementById('btn-prev').onclick = () => navTo(-1);
+document.getElementById('btn-next').onclick = () => navTo(1);
+document.getElementById('btn-overview').onclick = () => toggleOverview();
+document.getElementById('btn-reset-all').onclick = () => {
+  if (!confirm('确认重置全部答题记录？')) return;
+  answeredSet.clear();
+  updateScoreBar();
+  updateOverviewGrid();
+  currentQ = 0;
+  renderQuestion();
+};
+
+document.querySelectorAll('.nav-tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentType = t.dataset.type;
+    const filtered = getFilteredIndices();
+    if (filtered.length > 0) currentQ = filtered[0];
+    renderQuestion();
+  };
+});
+
+document.querySelectorAll('.filter-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    overviewFilter = b.dataset.filter;
+    updateOverviewGrid();
+  };
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') navTo(-1);
+  else if (e.key === 'ArrowRight') navTo(1);
+  else if (e.key === 'o' || e.key === 'O') toggleOverview();
+});
+
+updateScoreBar();
+renderQuestion();
+updateOverviewGrid();
+</script>
+
+</body>
+</html>
+"""
+
+
+def main():
+    os.makedirs(OUT_DIR, exist_ok=True)
+    for entry in ENTRIES:
+        base = entry["basename"]
+        out_path = os.path.join(OUT_DIR, base + ".html")
+        html = make_html(entry)
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(html)
+        size_kb = len(html.encode("utf-8")) / 1024
+        n_total = len(entry["drag"]) + len(entry["single"]) + len(entry["multi"]) + len(entry["tf"])
+        print(f"✓ {base}.html  ({size_kb:.1f} KB, {n_total} 题)")
+    print(f"\n全部 {len(ENTRIES)} 个文件生成完成 → {OUT_DIR}")
+
+
+if __name__ == "__main__":
+    main()
