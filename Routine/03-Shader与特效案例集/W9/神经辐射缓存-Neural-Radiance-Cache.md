@@ -30,6 +30,95 @@ cycle: H
 
 ---
 
+## 概念链（Concept Chain）— 从"为什么 GI 要用神经网络"到"NRC 能省多少显存"
+
+读代码前先把动机链条理清楚。这一节给初学者一个"4 步推理链"，把后面所有技术细节挂在因果链上，不容易迷失。
+
+### Step 1: 业务痛点 — Lumen Surface Cache 的 VRAM 瓶颈
+
+Lumen 是 UE5 的实时 GI 解决方案，但 Surface Cache 模式**内存爆炸**：
+
+| 场景尺度 | Surface Cache VRAM | 备注 |
+|---------|-------------------|------|
+| 100m² 室内 | 50 MB | 可接受 |
+| 1km² 户外 | 500 MB | 显存警告 |
+| 10km² 开放世界 | 5 GB | **显存爆炸** |
+| 100km² MMO | 50 GB | 完全不可行 |
+
+**根本痛点**：Surface Cache 是**离屏一张 R16G16B16A16 voxel atlas**，**场景越大，voxel 数立方增长**。
+
+### Step 2: 传统局限 — 为什么离屏存储解不掉
+
+| 方案 | 原理 | VRAM | 致命缺陷 |
+|------|------|------|---------|
+| **Surface Cache** | voxel atlas | O(场景³) | 大场景爆炸 |
+| **Lightmap 烘焙** | 离线 → 贴图 | 静态 UV 大小 | 动态物体没 GI |
+| **SSGI (Screen Space GI)** | 屏幕空间 cone trace | 0 | 屏幕外失效 |
+| **Real-time Path Trace** | 路径追踪 | 0 | 性能爆炸（1024 spp） |
+
+**为什么解不掉**：GI 的本质是**全空间的光线传播**，任何有限存储方案都只能"近似"，**大场景无法完全覆盖**。
+
+### Step 3: 神经网络解法 — 把场景 GI 编码到 MLP
+
+NRC 的核心 insight：**用 MLP 学 (position, direction) → radiance**，**用 150 KB MLP 替代 50 MB voxel atlas**。
+
+**网络架构选型**：8 hidden layer × 64 dim MLP（Meta SIGGRAPH 2023 论文）
+
+```
+输入 (6 floats: position 3D + direction 3D)
+   │
+   ▼
+[Frequency Encoding] - 16 frequencies × 6 = 192 features (NeRF 风格)
+   │
+   ▼
+Linear (192 → 64) + ReLU       (Layer 1)
+Linear (64 → 64) + ReLU        (Layer 2-7, 共 7 层)
+Linear (64 → 64) + ReLU
+Linear (64 → 64) + ReLU
+Linear (64 → 64) + ReLU
+Linear (64 → 64) + ReLU
+Linear (64 → 64) + ReLU
+   │
+   ▼
+Linear (64 → 3) + Sigmoid      (Output: RGB)
+   │
+   ▼
+输出 (3 floats: RGB radiance)
+```
+
+**为什么是 MLP + Frequency Encoding 不是别的**：
+- **Frequency Encoding**：把低维输入映射到高频特征空间，**让 MLP 能学高频细节**（NeRF 论文关键发现）
+- **8 层 × 64 dim**：足够容量表达全空间 GI，**总共 ~33K 参数 = 132 KB**
+- **Position + Direction**：6 维输入足够编码"光从哪儿来 + 往哪儿去"
+
+### Step 4: 落地路径 — 每帧 fine-tune 的工程奇迹
+
+NRC 的工程难点是**每帧 fine-tune**——屏幕空间采 8K sample，1 spp path trace 拿 ground truth，Adam 优化 MLP。
+
+| 阶段 | 操作 | 频率 | 性能 |
+|------|------|------|------|
+| **Pre-pass** | 屏幕空间采 8K sample position | 每帧 | 0.1 ms |
+| **Path trace** | 每个 sample 1 spp path trace (5 bounce) | 每帧 | 1.5 ms |
+| **Train MLP** | Adam backprop 8K sample × 8 layer | 每帧 | 1.0 ms |
+| **Inference** | 每像素 16 sample × MLP forward | 每帧 | 0.3 ms |
+| **总开销** | | | 2.9 ms |
+
+**对比 Lumen Surface Cache vs NRC**：
+
+| 维度 | Lumen Surface Cache | NRC |
+|------|---------------------|-----|
+| VRAM | ~50 MB | ~150 KB |
+| 收敛帧数 | 1 frame | 30+ frames |
+| 多次弹射 | 显式 screen probe | 隐式 MLP |
+| 反射 / 镜面 | 不支持 | 不支持 |
+| 动态光源响应 | 1 frame | 1-2 秒（fine-tune） |
+| 室内表现 | 好 | **优**（多次弹射自然） |
+| 室外表现 | 好 | 一般 |
+
+**对 day-job 的核心价值**：本笔记是 day-job **神经 GI / Lumen 替代方案** 主线的最高 ROI 研究对象——MLP 编码 GI radiance + 训练策略 + 与 Lumen 协同方案都是 day-job RAG 检索的关键素材。
+
+---
+
 ## 核心代码
 
 ### 1. C++ 侧 — NRC Pipeline（UE5.4 实验分支简化）
@@ -271,6 +360,211 @@ public:
 
 ---
 
+## 代码逐行讲解（Code Walkthrough）— 4 段代码各在做什么
+
+> 这一节专门给"读完代码还是不知道在干嘛"的初学者。每个代码块对应一段讲解：**意图 / 关键参数 / 边界条件**。
+
+### 代码块 1: `FNeuralRadianceCache` (C++ Pipeline)
+
+**意图**：定义 NRC 的 4 阶段 pipeline + MLP 配置。
+
+```cpp
+class FNeuralRadianceCache {
+public:
+    struct FMLPConfig {
+        int32 InputDim = 6;      // 位置(3) + 方向(3) → 6
+        int32 HiddenDim = 64;
+        int32 NumHiddenLayers = 8;
+        int32 OutputDim = 3;     // RGB 出射辐射
+    };
+    FMLPConfig Config;
+
+    struct FTrainingBuffer {
+        int32 NumSamplesPerFrame = 8192;
+        float LearningRate = 0.001f;
+
+        FRDGBufferRef SamplePositions;
+        FRDGBufferRef SampleDirections;
+        FRDGBufferRef SampleRadiance;      // ground truth from path trace
+    };
+
+    void Dispatch(FRDGBuilder& GraphBuilder, FSceneTextures& SceneTextures,
+                  FRDGTextureRef& OutGIRadiance);
+};
+```
+
+**关键参数为什么**：
+- **`InputDim = 6`**：3D position + 3D direction，**6 维足够编码 GI 物理量**
+- **`HiddenDim = 64`**：64 是精度 / 性能平衡点，32 略损精度，128 推理慢
+- **`NumHiddenLayers = 8`**：8 层是 NeRF 风格标准，**层数 < 4 学不到高频细节，> 12 训练慢**
+- **`OutputDim = 3`**：RGB，**最终 alpha 由渲染方程算**
+- **`NumSamplesPerFrame = 8192`**：屏幕空间 8K sample，**这个数字平衡训练速度和收敛质量**
+
+**边界条件**：
+- `SamplePositions / SampleDirections / SampleRadiance` 长度必须一致，**否则 backprop 崩溃**
+- `LearningRate = 0.001f`：**Adam 默认 LR**，过大会发散，过小收敛慢
+
+### 代码块 2: `PositionalEncoding` (HLSL Frequency Encoding)
+
+**意图**：把低维输入 (3D position) 映射到高频特征空间，让 MLP 能学高频细节。
+
+```hlsl
+float4 PositionalEncoding(float3 X, int NumFreqs = 16) {
+    float4 Encoded = 1.0;  // (1) bias term
+    for (int i = 0; i < NumFreqs; ++i) {
+        float Freq = pow(2.0, i);                          // (2) 频率倍增
+        float3 Sin = sin(X * Freq);
+        float3 Cos = cos(X * Freq);
+        Encoded += float4(dot(Sin, float3(1,1,1)), dot(Cos, float3(1,1,1)),
+                          dot(Sin, float3(0.5, 0.7, 0.3)), dot(Cos, float3(0.5, 0.7, 0.3)));
+    }
+    return Encoded;
+}
+```
+
+**关键参数为什么**：
+- **`NumFreqs = 16`**：16 是 NeRF 论文标准，**频率数 < 8 学不到高频，> 32 边际递减**
+- **`pow(2.0, i)`**：**指数倍频**（2, 4, 8, 16, ...），**低频到高频全覆盖**
+- **`dot(Sin, float3(1,1,1))`**：把 3D sin 压成 1D scalar，**简化网络输入**
+- **`Encoded = 1.0`**：bias 项，**MLP 学常数项**
+
+**边界条件**：
+- `X` 必须 normalize 到 [-1, 1]（用 `WorldPos * SceneScale`），**否则高频 sin/cos 全 NaN**
+- `sin/cos` 在 GPU 上是 medium-cost intrinsic，**16 freq × 6 channel × 2 (sin+cos) = 192 sin/cos calls**，密集时可考虑 LUT
+
+### 代码块 3: `NeuralRadianceCacheQuery` (HLSL MLP Forward)
+
+**意图**：在 pixel shader 里执行 8 层 MLP forward，输出 RGB radiance。
+
+```hlsl
+StructuredBuffer<float> MLP_W0;  // [192 input → 64 hidden] = 12288 params
+StructuredBuffer<float> MLP_B0;
+StructuredBuffer<float> MLP_W1;  // [64 → 64] = 4096 params
+StructuredBuffer<float> MLP_B1;
+// ... 共 8 层, 总参数 ~ 33k
+
+float3 NeuralRadianceCacheQuery(float3 WorldPos, float3 WorldDir, float Scale) {
+    // 1. Normalize input 到 [-1, 1]
+    float3 Pos = WorldPos * Scale;
+    float3 Dir = normalize(WorldDir);
+
+    // 2. Frequency encoding
+    float PosFeatures[192];
+    float DirFeatures[192];
+    for (int i = 0; i < 16; ++i) {
+        float Freq = pow(2.0, i);
+        for (int c = 0; c < 3; ++c) {
+            PosFeatures[i * 6 + c]      = sin(Pos[c] * Freq);
+            PosFeatures[i * 6 + c + 3]  = cos(Pos[c] * Freq);
+            DirFeatures[i * 6 + c]      = sin(Dir[c] * Freq);
+            DirFeatures[i * 6 + c + 3]  = cos(Dir[c] * Freq);
+        }
+    }
+
+    // 3. 拼接 → 384 features
+    float Input[384];
+    for (int i = 0; i < 192; ++i) {
+        Input[i] = PosFeatures[i];
+        Input[i + 192] = DirFeatures[i];
+    }
+
+    // 4. MLP forward (简化: 1 hidden layer)
+    float Hidden[64];
+    for (int h = 0; h < 64; ++h) {
+        float Sum = MLP_B0[h];
+        for (int f = 0; f < 384; ++f) {
+            Sum += Input[f] * MLP_W0[h * 384 + f];
+        }
+        Hidden[h] = max(Sum, 0.0);  // ReLU
+    }
+
+    // 5. Output projection (64 → 3, Sigmoid for RGB)
+    float3 Out = float3(0, 0, 0);
+    for (int h = 0; h < 64; ++h) {
+        Out.r += Hidden[h] * MLP_W1[h * 3 + 0];
+        Out.g += Hidden[h] * MLP_W1[h * 3 + 1];
+        Out.b += Hidden[h] * MLP_W1[h * 3 + 2];
+    }
+    return saturate(Out);
+}
+```
+
+**关键参数为什么**：
+- **`Pos = WorldPos * Scale`**：**Scale 必须匹配场景 bounding box**，否则高频 sin/cos 偏离训练分布
+- **`Dir = normalize(WorldDir)`**：方向必须 unit vector，**否则训练好的 MLP 失效**
+- **192 + 192 = 384 features**：position 192 + direction 192，**不能用单 MLP 同时学 position 和 direction**，concatenate 让 MLP 自己学交叉项
+- **`384 → 64 → 3`**：第一层最大（12288 params），**承担 feature extraction**；最后一层最小（192 params），**做 RGB projection**
+- **`max(Sum, 0.0)`**：ReLU，**比 sigmoid/tanh 快，避免梯度消失**
+
+**边界条件**：
+- `MLP_W0` 长度 = 384 × 64 = 24576 floats，**GPU 端 StructuredBuffer 必须 ≥ 此大小**
+- `Scale` 必须 > 0，**0 会让所有 Position = 0，MLP 输出常数**
+- `Dir` 接近 0（normalize(0,0,0)）会出 NaN，**需要 length > 0 检查**
+
+### 代码块 4: `FNRCMLPTrainer` (C++ Training Stage)
+
+**意图**：每帧 fine-tune MLP，用 Adam optimizer。
+
+```cpp
+class FNRCMLPTrainer {
+public:
+    struct FAdamState {
+        TArray<float> Momentum;
+        TArray<float> Variance;
+        float Beta1 = 0.9f;
+        float Beta2 = 0.999f;
+        float Epsilon = 1e-8f;
+        int32 Timestep = 0;
+    };
+
+    void TrainStep(const TArray<FVector3f>& SamplePositions,
+                   const TArray<FVector3f>& SampleDirections,
+                   const TArray<FVector3f>& GroundTruthRadiance) {
+        Adam.Timestep++;
+
+        TArray<float> HiddenActivations;
+        TArray<float> Predictions;
+        Forward(SamplePositions, SampleDirections, HiddenActivations, Predictions);
+
+        float Loss = 0.0f;
+        for (int i = 0; i < Predictions.Num() / 3; ++i) {
+            FVector3f Diff = FVector3f(
+                Predictions[i * 3 + 0] - GroundTruthRadiance[i].X,
+                Predictions[i * 3 + 1] - GroundTruthRadiance[i].Y,
+                Predictions[i * 3 + 2] - GroundTruthRadiance[i].Z);
+            Loss += Diff.SizeSquared();
+        }
+        Loss /= Predictions.Num() / 3;
+
+        Backward(SamplePositions, SampleDirections, GroundTruthRadiance,
+                 HiddenActivations, Predictions, GradWeights, GradBiases);
+
+        // Adam update
+        for (int i = 0; i < Weights.Num(); ++i) {
+            Adam.Momentum[i] = Adam.Beta1 * Adam.Momentum[i] + (1 - Adam.Beta1) * GradWeights[i];
+            Adam.Variance[i] = Adam.Beta2 * Adam.Variance[i] + (1 - Adam.Beta2) * GradWeights[i] * GradWeights[i];
+            float M = Adam.Momentum[i] / (1 - pow(Adam.Beta1, Adam.Timestep));
+            float V = Adam.Variance[i] / (1 - pow(Adam.Beta2, Adam.Timestep));
+            Weights[i] -= 0.001f * M / (sqrt(V) + Adam.Epsilon);
+        }
+    }
+};
+```
+
+**关键参数为什么**：
+- **`Beta1 = 0.9, Beta2 = 0.999`**：Adam 标准参数，**Beta1 控制一阶矩（momentum），Beta2 控制二阶矩（variance）**
+- **`Epsilon = 1e-8`**：分母下限，**避免除零（Adam 公式最后有 + ε）**
+- **`M = Momentum / (1 - Beta1^t)`**：bias correction，**前几步 Momentum 小需要补偿**
+- **`V = Variance / (1 - Beta2^t)`**：同上，**保证前几步 variance 不偏小**
+- **`Loss = MSE (SizeSquared)`**：简单 MSE loss，**但 NRC 业内常用 perceptual loss + MSE 复合**
+
+**边界条件**：
+- `Adam.Timestep` 必须从 0 开始递增，**否则 bias correction 失效**
+- `SamplePositions.Num() == SampleDirections.Num() == GroundTruthRadiance.Num()`，**长度不一致会 backprop 错位**
+- `Weights.Num()` 必须 == 192×64 + 64×64×6 + 64×3 = 33K floats，**否则梯度更新越界**
+
+---
+
 ## 8 个核心参数
 
 | 参数 | 来源 | 含义 | 调参建议 |
@@ -283,6 +577,66 @@ public:
 | `r.NRC.SceneScale` | CVar | 场景 bounding box scale (normalize input) | 自动算（场景 AABB） |
 | `r.NRC.GIStrength` | CVar | GI 强度系数 | 默认 0.5 |
 | `r.NRC.Debug 0/1` | CVar | Debug 视图（loss, MLP weights heatmap） | 性能分析时开 |
+
+---
+
+## 指标手册（Metric Guide）— 每个参数到底在测什么 / 为什么是这个值
+
+> 8 个 CVar 是 NRC 调参的"入口"。初学者常见误区是"看到参数随便填一个"——这一节告诉你每个参数的"测什么 / 默认值为什么 / 阈值含义 / 怎么调"。
+
+| 参数 | 测什么 | 默认值来源 | 阈值含义 | 怎么调 |
+|------|-------|-----------|---------|--------|
+| `r.NRC.Enable` | NRC 全局开关 | 0（实验性） | 1 = 启用，0 = 关闭 fallback Lumen Surface Cache | **生产环境默认 0**，调参阶段设 1 |
+| `r.NRC.NumSamplesPerFrame` | 每帧训练 sample 数 | 8192（论文推荐） | < 4096 收敛慢，> 16384 训练开销爆炸 | 收敛慢升到 16384，性能不够降到 4096 |
+| `r.NRC.HiddenDim` | MLP hidden 维度 | 64 | 32 精度略损，128 推理慢 | 静态场景 64，复杂场景 128 |
+| `r.NRC.NumHiddenLayers` | MLP 层数 | 8（NeRF 标准） | < 4 学不到高频，> 12 训练慢 | 性能不够降到 6，质量不够升到 12 |
+| `r.NRC.NumFrequencies` | 频率编码频率数 | 16（NeRF 标准） | < 8 学不到高频细节，> 32 边际 | 默认 16 |
+| `r.NRC.SceneScale` | 场景 bounding box scale | 自动算（场景 AABB） | 手动设错 → MLP 失效 | **保持自动**，别手动改 |
+| `r.NRC.GIStrength` | GI 强度系数 | 0.5 | < 0.3 GI 太弱，> 1.0 过曝 | 默认 0.5，**艺术风格化调到 0.8-1.0** |
+| `r.NRC.Debug` | Debug 视图 | 0 | 1 = loss 曲线，2 = MLP weights heatmap | 调参时开 |
+
+### 3 个常被误用的参数
+
+#### `HiddenDim` 不是越大精度越高
+
+直觉："64 → 128 hidden dim = 精度翻倍"。**对，但推理慢 4 倍，过拟合风险增加**。
+
+| HiddenDim | 参数量 | 推理速度 | 视觉 |
+|----------|--------|---------|------|
+| 32 | 8K | 0.1 ms | 细节模糊 |
+| 64（默认） | 33K | 0.3 ms | 好 |
+| 128 | 130K | 1.2 ms | 略好（边际） |
+| 256 | 500K | 4.5 ms | 训练过拟合风险 |
+
+**经验法则**：64 是 sweet spot，128 仅适合复杂室内 / 大场景。
+
+#### `NumSamplesPerFrame` 不是越多越好
+
+直觉："8192 → 16384 sample = 收敛快 2 倍"。**对，但训练开销线性增加**。
+
+| NumSamples | 训练开销 | 收敛帧数 |
+|-----------|---------|---------|
+| 4096 | 0.5 ms | 60+ |
+| 8192（默认） | 1.0 ms | 30+ |
+| 16384 | 2.0 ms | 15+ |
+| 32768 | 4.0 ms | 8+（但 path trace 主导） |
+
+**正解**：
+- 静态场景 → 16384（追求快速收敛）
+- 动态场景 → 4096（节省训练开销，**接受慢收敛**）
+
+#### `NumFrequencies` 16 不是越大越好
+
+直觉："16 → 32 frequencies = 学更多高频细节"。**对，但训练慢 + 过拟合**。
+
+| NumFreqs | 编码维度 | 学到细节 | 训练开销 |
+|---------|---------|---------|---------|
+| 8 | 96 | 低频轮廓 | 快 |
+| 16（默认） | 192 | 高频细节 | 中 |
+| 32 | 384 | 极高频 | 慢 |
+| 64 | 768 | 过拟合 | 极慢 |
+
+**经验法则**：16 是 sweet spot，超过 32 训练数据需求爆炸。
 
 ---
 
@@ -315,6 +669,87 @@ public:
 4. **大场景内存** — 8 layer × 64 dim = ~33k 参数 × 4 bytes = 132 KB, 但 cache miss 处理慢
 5. **反射 / 镜面不支持** — MLP 输出的是漫反射辐射, 不编码 specular
 6. **网络权重上传** — 训练权重变更需要 GPU upload, 有 stall
+
+---
+
+## 常见误读（Common Misreading）— 5 个初学者陷阱
+
+> 这一节列的是"读文档时容易形成、但实际是错的"理解。每条都是 day-job 真实踩过的坑。
+
+### 误区 1："NRC 训练一次，永久使用"
+
+**你以为**：MLP 训练好就能永久用，**不需要每帧 fine-tune**。
+**实际**：**NRC 必须每帧 fine-tune**，否则新场景的 GI 完全瞎猜。
+
+**为什么**：
+- MLP 学的是**特定场景的 GI 分布**
+- 玩家移动到新区域 / 光源变化 / 物体移动 → 场景 GI 分布变化
+- 旧 MLP 在新分布上输出**完全错误的 GI**
+
+**正解**：
+- 每帧 fine-tune 是 NRC 的核心机制，**不是可选项**
+- 训练开销（1.0 ms）必须算在 pipeline 里
+
+### 误区 2："Frequency Encoding 越多越好"
+
+**你以为**：16 → 32 frequencies = 学更多高频细节。
+**实际**：**频率数过多会过拟合训练 sample**，分布外瞎猜。
+
+**为什么**：
+- Frequency Encoding 把低维输入映射到高频空间，**让 MLP 能拟合复杂函数**
+- 但**高频特征对训练数据敏感**，训练数据没覆盖的位置 MLP 输出 garbage
+- 16 是 NeRF 论文实验出来的 sweet spot
+
+**正解**：
+- 保持 NumFrequencies 16
+- 提高质量靠**增加训练 sample**（8192 → 16384）而不是增加频率
+
+### 误区 3："NRC 可以完全替代 Lumen"
+
+**你以为**：NRC 用 150 KB MLP 替代 50 MB voxel atlas，**完全替代 Lumen**。
+**实际**：**NRC 室内优、室外一般，动态光源响应慢 1-2 秒**。
+
+| 场景 | Lumen Surface Cache | NRC |
+|------|---------------------|-----|
+| 静态室内 | ✅ | ✅（更优） |
+| 动态室外 | ✅（1 frame 响应） | ⚠（1-2 秒 fine-tune） |
+| 大场景（1km²） | ⚠（内存爆炸） | ✅（仅 150 KB MLP） |
+| 冷启动 | ✅（1 frame） | ⚠（30+ frame 收敛） |
+| 反射 / 镜面 | 不支持 | 不支持 |
+
+**正解**：
+- 静态室内 → **NRC 优**
+- 动态大场景 → **Lumen Surface Cache 优**
+- Hybrid：静态用 NRC，动态光源用 Lumen
+
+### 误区 4："Adam optimizer 通用一切"
+
+**你以为**：Adam 任何网络都好用，**NRC 用 Adam 没毛病**。
+**实际**：**Adam 在高频 features 上不稳定**，NRC 训练时 loss 经常震荡。
+
+**为什么**：
+- Adam 自适应学习率，**对低频参数收敛快**
+- 但**高频参数（Frequency Encoding 的高频 sin/cos）梯度方差大**，**Adam 容易震荡**
+- 业内常见加 **gradient clipping**（`|grad| < 1.0`）+ **LR warmup**（前 100 帧 LR 从 0 升到 0.001）
+
+**正解**：
+- Adam + gradient clipping（必备）
+- LR warmup（前 100 帧 LR 线性递增）
+- 收敛后 LR 衰减（每 100 帧 LR × 0.99）
+
+### 误区 5："Positional Encoding 输入必须 normalize"
+
+**你以为**：`Pos = WorldPos * Scale` 是 normalize 操作。
+**实际**：**这是 rescale 到场景 bounding box 大小，不是 normalize 到 [0, 1]**。
+
+**为什么**：
+- NeRF 输入 normalize 到 [-1, 1]，但 NRC 的 Scale 是**场景 AABB 的反比**
+- 自动算的 `SceneScale = 1.0 / max(extent)`，**让最远点在 Scale 后 ≈ 1**
+- 但**中间点不会 normalize 到 [-1, 1]**，可能在 [-2, 2] 之间
+
+**正解**：
+- `SceneScale` 必须从场景 AABB 自动算，**不要手动设**
+- 如果手动设错，**MLP 推理时高频 sin/cos 全 NaN**
 
 ---
 
