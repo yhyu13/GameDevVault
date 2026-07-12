@@ -28,11 +28,12 @@
 
 ---
 
-## 当前雷达（2026-07-03 更新 — 深度重构版）
+## 当前雷达（2026-07-12 更新 — P0 渲染特性补丁）
 
-> 本批次从 12 项调整为 13 项：把 [[Hunyuan3D-Tencent-Topology]] 从 [[Meshy-LumaGenie-Text-to-3D]] 拆出独立条目；把 [[Rust-GameDev]] 从 P0 降为 P2；新建 `已掌握/` 和 `已放弃/` 两个 bucket。
+> **本批次（2026-07-12）**：在 7-03 深度重构基础上，**新增 P0-渲染特性 3 项**（[[Lumen]] / [[Nanite]] / [[VSM]]）作为独立子节。原因：day-job = RAG + Mac Game Harness（LLM-driven UE on Mac），渲染三大特性是 LLM 能否正确调用 UE 渲染管线的核心知识；7-05 三能力对账反复点名缺位。
+> **上批次（2026-07-03）**：从 12 项调整为 13 项：把 [[Hunyuan3D-Tencent-Topology]] 从 [[Meshy-LumaGenie-Text-to-3D]] 拆出独立条目；把 [[Rust-GameDev]] 从 P0 降为 P2；新建 `已掌握/` 和 `已放弃/` 两个 bucket。
 
-### P0-立即学习（7 项）
+### P0-立即学习（7 项 — 工具链轴）
 
 | 技术 | 简介 | 关联工作 | 截止日期 | 下次回顾 |
 |------|------|----------|----------|----------|
@@ -43,6 +44,17 @@
 | [[UnrealMCP-N1UnrealMCP]] | MCP 协议让 AI Agent 直接操控 UE Editor | day-job "读 + 改 + 验证" 闭环 | — | 2026-07-26 |
 | [[UE-NNE-TensorRT-Plugin]] | UE NNE + NVIDIA TensorRT for RTX — 自定义神经网络官方入口 | 自定义降噪 / 超分 / 神经压缩 / NPC 决策 | — | 2026-07-26 |
 | [[Hunyuan3D-Tencent-Topology]] ⭐ NEW | 腾讯 Hunyuan3D — 拓扑 mesh + 开源可商用 | day-job 主力 AI 资产生成选择 | — | 2026-08-03 |
+
+### P0-渲染特性（3 项 — day-job 必考）⭐ NEW 2026-07-12
+
+> **为什么独立成子节**：day-job = RAG + Mac Game Harness（LLM-driven UE on Mac），**渲染三大特性是 LLM 能否正确调用 UE 渲染管线的核心知识**。与上方"工具链轴"7 项**正交**——工具=怎么用引擎，特性=引擎内部机制。本批次（P0 渲染特性）弥补 [[2026-07-05-三能力对账]] 反复点名的 day-job 必考缺位。
+> **补位来源**：`5469a3f` 5 篇性能瓶颈 + `fbf5131` shader 重组 + W28 W5/W6 shader 已落盘（VSM 763 行）。**Lumen 是"已可掌握"候选，Nanite/VSM 仍在补完中**。
+
+| 技术 | 简介 | 当前 vault 状态 | 关联工作 | 下次回顾 |
+|------|------|----------------|----------|----------|
+| [[Lumen]] ⭐ | UE5 全局光照 + 反射（SSGI 替代） | ✅ **厚**：3 论文 + 2 shader（W3 反射降级 / W4 GI 漫反射）+ 2 性能（反射开销/调优）| day-job RAG 索引主轴 / Mac Metal RHI 适配 | 2026-08-07 |
+| [[Nanite]] ⭐ | UE5 虚拟几何 + 材质管线 | ⚠️ **中**：1 shader（W5 材质管线 763 行）+ 2 性能（WPO 禁用距离 / 性能调优）+ W27 mini-README；**缺源码分析** | day-job RAG 索引 + 虚拟几何 shader 适配 | 2026-08-14 |
+| [[VSM]] ⭐ | UE5 虚拟阴影映射（页表 + Moments） | ⚠️ **中**：1 shader（W6, 763 行）+ 1 性能（页溢出）+ 1 QA 卡；**缺源码分析** | day-job RAG 索引 + 阴影 LRU 调优 | 2026-08-14 |
 
 ### P1-持续关注（3 项）
 
@@ -62,7 +74,7 @@
 
 ### 已掌握（暂无）
 
-> 占位 — 等第一批 P0 项完成时填入。预期顺序：DLSS-FSR > AI-Code-Assistant > UnrealMCP > 3DGS > UE-NNE > NVIDIA-ACE > Hunyuan3D
+> 占位 — 等第一批 P0 项完成时填入。预期顺序：**[[Lumen]]（最厚候选）** > DLSS-FSR > AI-Code-Assistant > UnrealMCP > 3DGS > UE-NNE > NVIDIA-ACE > Hunyuan3D
 
 ### 已放弃（暂无）
 
@@ -74,9 +86,11 @@
 
 ### 本季度核心目标
 
-- **完成 P0 全部 7 项的"上手"阶段**（每个至少跑通一次 demo / 在工程里见过一次效果）
+- **完成 P0 全部 10 项的"上手"阶段**（7 工具 + 3 渲染特性；每个至少跑通一次 demo / 在工程里见过一次效果）
 - **Hunyuan3D demo 闭环**：跑通 Image-to-3D → 拓扑 mesh → UE 导入 → 挂骨骼动画
 - **AI-Code-Assistant + UnrealMCP 联动**：用 MCP 让 AI Agent 自动跑 PIE 验证
+- **[[Lumen]] 升"已掌握"**：3 论文 + 2 shader + 2 性能已厚，Q3 末升入"已掌握"作为 day-job 渲染知识主轴
+- **[[Nanite]] + [[VSM]] 补完**：W29 把 VSM 升到 source-analysis 级（≥ 600 行）；W30 把 Nanite 补源码分析
 - **Rust 终审**：9 月底评估，决定"继续 P2"还是"移入已放弃"
 
 ### 季度回顾日历
@@ -90,14 +104,15 @@
 
 ### 季度成功标准（OKR 风格）
 
-- **O1**:P0 七项全部完成"上手"阶段（每项都有 1 个可展示的 demo 或工程证据）
+- **O1**:P0 十项全部完成"上手"阶段（每项都有 1 个可展示的 demo 或工程证据）
 - **O2**:Routine 雷达具备"季度复盘"形态（README / 状态迁移 / 季度日历 三件套跑通）
-- **O3**:至少 1 项 P0 升入"已掌握"（如果季度内 AI-Code-Assistant / DLSS-FSR 已能日常用，就算达成）
+- **O3**:至少 1 项 P0 升入"已掌握"（**[[Lumen]] 是首选目标**；如果季度内 AI-Code-Assistant / DLSS-FSR 已能日常用，就算达成）
 
 ### 季度风险
 
-- **P0 项过多（7 项）**:每周 1 项都满负荷,任何一项卡壳都会拖累整体进度 → 缓解：优先保 AI-Code-Assistant + UnrealMCP（day-job 直接杠杆）
+- **P0 项过多（10 项 — 7 工具 + 3 渲染特性）**:每周 1 项都满负荷,任何一项卡壳都会拖累整体进度 → 缓解：渲染特性 3 项已有 vault 积累（无需从零研究），重点是 W29/W30 补完源码分析；工具链优先保 AI-Code-Assistant + UnrealMCP（day-job 直接杠杆）
 - **Hunyuan3D API 限制**:腾讯云 API 可能有 QPS / 月配额 → 缓解：提前查清限制,准备 fallback 到 Luma
+- **Lumen 升"已掌握"门槛**:虽然 vault 笔记最厚，但 Lumen 内部机制（Surface Cache / Probe Densification / 反射 tier / Fallback Stack）要在 Mac Metal RHI 上跑通才算"已掌握" → 缓解：Mac 平台 vault 子目录 W29 必建（哪怕 5 行也行）
 
 ---
 
@@ -107,14 +122,18 @@
 
 ### 本周（W28: 7/6 - 7/12）— 7/10 是 4 个 P0 的"2 周后回顾"到期日
 
+- [x] **雷达 P0 渲染特性补丁**：Lumen / Nanite / VSM 加入 P0（**2026-07-12 完成**）
 - [ ] 复评 [[AI-Code-Assistant-Cursor-ClaudeCode]]:是否已在 day-job 日常用？
 - [ ] 复评 [[NVIDIA-ACE-AI-NPC]]:是否跑通一个 demo？
 - [ ] 复评 [[DLSS-FSR-AI超分辨率]]:Lyra 项目是否已开 DLSS 4.5？
 - [ ] 复评 [[3DGS-Gaussian-Splatting]]:是否用过 Luma UE 插件拍场景？
 - [ ] Hunyuan3D:注册账号 + 跑 5 张图看拓扑质量
 
-### 下周（W29: 7/13 - 7/19）
+### 下周（W29: 7/13 - 7/19）— 渲染特性补位 + Mac 起头
 
+- [ ] **[[VSM]] 升级到 source-analysis 级**：`Routine/02-引擎源码分析库/Unreal-Engine/W29/UE5-VSM-源码追踪.md`（页表 + Cache + Nanite 集成 ≥ 600 行）
+- [ ] **[[Nanite]] 起头 source-analysis**：从 W27 mini-README 起，写 W29/W30 两周的 Mesh Pass / Cluster DAG / Page Streaming 源码笔记
+- [ ] **Mac 平台 vault 子目录**：`Routine/Mac-平台/00-README.md` + 3-5 个待办锚点（哪怕只填 5 行）
 - [ ] Hunyuan3D:接 API 进工程 + 出一个挂骨骼 demo 角色
 - [ ] AI-Code-Assistant + UnrealMCP 联动：试 ping → spawn_actor → create_blueprint
 - [ ] 评估是否把 [[NVIDIA-ACE-AI-NPC]] 升到"已掌握"
@@ -123,6 +142,7 @@
 
 - [ ] 复评 [[UnrealMCP-N1UnrealMCP]]:是否已用于真实 day-job 工作流？
 - [ ] 复评 [[UE-NNE-TensorRT-Plugin]]:是否跑通 ONNX 加载 demo？
+- [ ] **[[Lumen]] 升"已掌握"预审**：Mac Metal RHI 上跑通 Lumen 反射降级 / GI 漫反射 → 8/7 月度回顾时决定
 - [ ] 月度盘点：把完成度同步到 [[季度复盘（2026-Q3）]]
 
 ---
@@ -234,4 +254,4 @@ P2 / P1 / P0 (按评估决定)
 ---
 
 *Create date: 2026-06-25*
-*Last modified: 2026-07-03（深度重构：Hunyuan3D 独立 + Rust 降级 + 已掌握/已放弃 bucket + 季度复盘 Routine 启动）*
+*Last modified: 2026-07-12（P0 渲染特性补丁：Lumen / Nanite / VSM 加入 P0 作为独立子节）*
