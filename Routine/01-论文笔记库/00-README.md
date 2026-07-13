@@ -46,6 +46,23 @@
 > 4. **2025-NVIDIA-RTXKit-UE5** — Mega Geometry vs Nanite 对照；AI 资产的下游解放
 > 5. **2025-NVIDIA-NeuralShading-DirectX** — Mac 平台 CoopVec 跟进是关键风险点
 
+#### GDC 2026 — AI Harness / LLM 驱动游戏引擎 (新增)
+
+> 这组 5 篇把视角从**"AI 在游戏里的内容（神经渲染 / 资产生成 / world model）"切换到"AI 接管/驱动游戏开发本身（harness / agent / 工具链）"**——是 day-job "LLM-driven UE on Mac" 主线的直接参考。每篇都给出 day-job Mac Game Harness 的具体启发（P0）。
+
+- [[GDC/2026-Tencent-Timi-AgenticAI-GameDev-98pct]] — **天美工作室 (余煜/牟骞) 可微智能 Agentic AI**：AAA 工程 98% 自动化编程；"降低对模型能力要求" 反共识判断；"AI Native 团队"组织探索
+- [[GDC/2026-Bitmagic-AINativeGameEngine]] — **Bitmagic (Jani Penttinen) AI-Native 引擎**："prompt-玩-迭代" 闭环 UX；"创作者 vs 消费用户" 明确分流；"99% 的人不会编程" 产品定位元命题
+- [[GDC/2026-GlassBeadGames-MultiAgentGameStudio]] — **Glass Bead Games (Kuangye Guo) 4 人 + 8 agents**："agents 性能 = 文档质量" 元命题；"prompt 清晰度检验" hard standard；"AI 接管决策表" 团队管理工具
+- [[GDC/2026-Microsoft-VS2026-Copilot-GameDev]] — **微软 Visual Studio 2026 + Copilot Agent Mode + MCP**："AI-Native IDE" 范式；MCP 协议作为 harness 工具暴露事实标准；MCP 双重信任验证 + Token 用量追踪
+- [[GDC/2026-GoogleDeepMind-SIMA2-GenericGameAgent]] — **DeepMind SIMA 2 通用游戏 agent**：基于 Gemini 2.5 Flash-lite 轻量模型；"理解从未见过的环境" 范式；"self-improvement loop" 作为 day-job harness 核心机制；SIMA 2 + Genie 3 组合 = day-job 长期 "AI 测试 harness" vision
+
+> **5 篇对应的 day-job P0 主线（按"AI harness in game engine"维度）：**
+> 1. **Tencent 天美 (98% 自动化)** — harness 终极形态参考；"可微智能"作为术语直接借用
+> 2. **Bitmagic (AI-native 引擎)** — 路线选择论据（day-job 押 UE 加固，不押 AI-native 引擎）；"prompt-玩-迭代" 作为 harness UX 核心
+> 3. **Glass Bead (4 人 + 8 agents)** — day-job harness 团队组织演化的真实参考；"agents 性能 = 文档质量" 提示 LLM 训练数据策略
+> 4. **Microsoft (VS 2026 + MCP)** — MCP 作为 day-job harness 工具暴露事实标准；Agent 模式 = harness 目标架构
+> 5. **DeepMind (SIMA 2)** — "RAG > fine-tune" + "self-improvement loop" + "轻量模型 + 良好 harness" 三件套作为 day-job 训练策略元命题
+
 ---
 
 ## 标签体系
@@ -66,6 +83,11 @@
 | `#paper/已应用到工作` | 笔记内容已迁移到 routine / 输出 |
 | `#paper/待复现` | 标记为后续实现目标 |
 | `#paper/已放弃` | 评估后不值得深入（如 world model shipping-grade） |
+| `#paper/AI-harness` | AI 接管/驱动游戏开发的 harness / agent / 工具链 |
+| `#paper/agentic-AI` | Agentic AI / 可微智能 / multi-agent 系统 |
+| `#paper/MCP` | Model Context Protocol / harness 工具暴露协议 |
+| `#paper/AI-native-engine` | AI-Native 引擎（从头为 AI 集成设计） |
+| `#paper/team-org` | 团队组织演化（AI Native 团队 / 4人+8 agents） |
 
 ---
 
