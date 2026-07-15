@@ -1,7 +1,7 @@
 ---
 tags: [shader/AI, shader/BRDF, shader/PBR, shader/neural-network, shader/UE, shader/GGX]
 aliases: [Neural BRDF, NeuralGGX, BRDF Approximation, Disney Replacement, GGX Neural]
-week: W2
+case: C02
 cycle: new
 ---
 
@@ -504,7 +504,7 @@ UMaterialExpression* CreateNeuralBRDFNode() {
 
 **网络权重怎么进 GPU**（关键难点）：
 - 4 层权重 × bias = 8 个 buffer（4 个 W + 4 个 B）
-- W1 = 5×64 = 320 floats, W2/W3 = 64×64 = 4096 floats, W4 = 64×3 = 192 floats
+- W1 = 5×64 = 320 floats, C02/W3 = 64×64 = 4096 floats, W4 = 64×3 = 192 floats
 - 总参数量 ≈ 8.7K floats = 35 KB
 - 启动时一次性 upload 到 GPU StructuredBuffer（`RHICreateStructuredBuffer`）
 
@@ -744,10 +744,10 @@ BRDF.NeuralEval(
 
 ## 关联知识库
 
-- [[W1/神经材质-NeuralPBR]]（NeuralPBR 输出 PBR 参数, NeuralGGX 用这些参数）
-- [[W7/DLSS-神经超分-时域重建]]（DLSS 解决空间, Neural BRDF 解决 shading 频率）
-- [[W8/神经降噪-RT-Denoiser]]（神经降噪 vs 神经 BRDF 都是 MLP 在 GPU 上的应用）
-- [[W9/神经辐射缓存-Neural-Radiance-Cache]]（NRC 学的是 GI radiance, NeuralGGX 学的是单光源 BRDF）
+- [[C01/神经材质-NeuralPBR]]（NeuralPBR 输出 PBR 参数, NeuralGGX 用这些参数）
+- [[C07/DLSS-神经超分-时域重建]]（DLSS 解决空间, Neural BRDF 解决 shading 频率）
+- [[C08/神经降噪-RT-Denoiser]]（神经降噪 vs 神经 BRDF 都是 MLP 在 GPU 上的应用）
+- [[C09/神经辐射缓存-Neural-Radiance-Cache]]（NRC 学的是 GI radiance, NeuralGGX 学的是单光源 BRDF）
 - [[../../../01-论文笔记库/2021-Neural-BRDF-Representation|Neural BRDF 论文精读]]
 - [[../../../05-技术雷达/Neural-BRDF-工具对照|神经 BRDF 工具雷达]]
 

@@ -1,7 +1,7 @@
 ---
 tags: [shader/自研, shader/post-process, shader/performance, shader/UE, shader/compute, shader/lumen, shader/AI-accelerated]
 aliases: [Lumen GI, Diffuse GI, Voxel Cone Tracing, Surface Cache, Final Gather]
-week: W4
+case: C04
 cycle: B
 ---
 
@@ -14,7 +14,7 @@ cycle: B
 | **平台** | PC / Console (Mobile 不支持) |
 | **创建日期** | 2026-07-01 |
 | **参考来源** | 参考自 UE5 Lumen Global Illumination `LumenSceneRendering.cpp` + GDC 2022 "Lumen: Global Illumination" + SIGGRAPH 2021 "Hardware-Accelerated Ray Tracing in Unreal Engine 5" + Crassin et al. "Aggregate G-Buffer Anti-Aliasing" 论文 |
-| **前置阅读** | [[../W3/Lumen-反射降级]] [[../99-归档/体积云-Volumetric-Cloud]] |
+| **前置阅读** | [[../C03/Lumen-反射降级]] [[../99-归档/体积云-Volumetric-Cloud]] |
 
 ---
 
@@ -663,7 +663,7 @@ float3 PS_FinalGather(VS_OUTPUT input) : SV_Target
 
 ## 关联知识库
 
-- [[../W3/Lumen-反射降级]] — 同架构的反射版本
+- [[../C03/Lumen-反射降级]] — 同架构的反射版本
 - [[../99-归档/体积云-Volumetric-Cloud]] — 大气散射与 GI 的合成
 - [[VSM-Virtual-Shadow-Map]] (待写) — GI 漫反射需要的 shadow 信息源
 - [[Nanite-材质管线]] (待写) — Nanite mesh 如何参与 Surface Cache
@@ -680,7 +680,7 @@ float3 PS_FinalGather(VS_OUTPUT input) : SV_Target
 3. **屏幕探针采样** — 每帧在屏幕空间采 256 个探针,写入 probe atlas
 4. **Final Gather** — pixel shader 里 k-NN + 加权插值
 5. **Voxel Cone Trace** — 探针稀疏区域兜底
-6. **合成** — GI + 直接光 (Deferred Lighting) + 反射 ([[../W3/Lumen-反射降级]]) + 雾
+6. **合成** — GI + 直接光 (Deferred Lighting) + 反射 ([[../C03/Lumen-反射降级]]) + 雾
 
 > 提示：自研 mini-GI 的 MVP 版本 = **2 个探针 + cubemap blur**,30 行 HLSL,性能 < 0.5ms。Lumen 是豪华版,先 MVP 验证需求再上 Lumen。
 
@@ -713,7 +713,7 @@ Lumen GI 漫反射链路的瓶颈是 **Surface Cache 内存 + Final Gather k-NN 
 | **L2 Neural Cone Trace** | VCT 16 step → MLP 出 radiance | 6→128→128→3 (~50k params) | 不需要 voxel atlas | 视觉略降（5%） |
 | **L3 Neural Radiance Cache** | 整个 GI lookup → NeRF query | 8 layer × 64 dim (~33k params) | VRAM 50 MB → 150 KB | 多次弹射更好 |
 
-### 2. L3 Neural Radiance Cache 详解（参见 [[../W9/神经辐射缓存-Neural-Radiance-Cache]]）
+### 2. L3 Neural Radiance Cache 详解（参见 [[../C09/神经辐射缓存-Neural-Radiance-Cache]]）
 
 直接复用 W9 NRC 的方案——一个 8 hidden layer × 64 dim MLP，输入 (position, direction, scene_scale) → RGB radiance：
 

@@ -1,7 +1,7 @@
 ---
 tags: [shader/AI, shader/material, shader/PBR, shader/neural-network, shader/UE]
 aliases: [Neural Material, NeuralPBR, Material Parameterization, Material Synthesis, BRDF Prediction]
-week: W1
+case: C01
 cycle: new
 ---
 
@@ -757,9 +757,9 @@ Material.NeuralPBR(
 
 ## 关联知识库
 
-- [[W2/神经BRDF-NeuralGGX]]（NeuralPBR 预测 PBR 参数, NeuralGGX 拟合 BRDF 公式）
-- [[W7/DLSS-神经超分-时域重建]]（NeuralPBR 输出低分辨率 + DLSS 超分 = 神经材质）
-- [[W8/神经降噪-RT-Denoiser]]（神经材质预测 vs 神经降噪都是 MLP 在 GPU 上的应用）
+- [[C02/神经BRDF-NeuralGGX]]（NeuralPBR 预测 PBR 参数, NeuralGGX 拟合 BRDF 公式）
+- [[C07/DLSS-神经超分-时域重建]]（NeuralPBR 输出低分辨率 + DLSS 超分 = 神经材质）
+- [[C08/神经降噪-RT-Denoiser]]（神经材质预测 vs 神经降噪都是 MLP 在 GPU 上的应用）
 - [[../../../01-论文笔记库/2023-NeuralPBR-Material-Prediction|NeuralPBR 论文精读]]
 - [[../../../05-技术雷达/Neural-Material-工具对照|神经材质工具雷达]]
 

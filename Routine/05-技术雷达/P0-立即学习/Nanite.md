@@ -26,7 +26,7 @@ quarterly_review: 2026-Q3
 
 | 类型 | 文件 | 行数 / 摘要 |
 |------|------|-------------|
-| Shader 案例 | [[03-Shader与特效案例集/W5/Nanite-材质管线]] | 5-bin material + Neural Eval + Latent Code（763 行）|
+| Shader 案例 | [[03-Shader与特效案例集/C05/Nanite-材质管线]] | 5-bin material + Neural Eval + Latent Code（763 行）|
 | 性能优化 | [[04-性能优化备忘录/知识参考/Nanite 性能调优]] | 性能调优方法论 |
 | 性能瓶颈 | [[04-性能优化备忘录/瓶颈案例/Nanite-WPO禁用距离-破面修复]] | WPO 距离问题 |
 | 源码分析 | [[02-引擎源码分析库/Unreal-Engine/W27/Nanite-Card-Pack]] | W27 mini-README（卡片集）|

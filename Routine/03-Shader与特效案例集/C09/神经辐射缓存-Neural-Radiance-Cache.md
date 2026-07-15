@@ -1,7 +1,7 @@
 ---
 tags: [shader/AI, shader/GI, shader/neural-network, shader/raytracing, shader/UE, shader/lumen-alternative]
 aliases: [Neural Radiance Cache, NRC, NeRF GI, GI Caching, Path-Space Caching]
-week: W9
+case: C09
 cycle: H
 ---
 
@@ -806,9 +806,9 @@ NRC.Query(
 
 ## 关联知识库
 
-- [[W4/Lumen-GI-漫反射]]（NRC 是 Lumen GI 的 AI 替代方案）
-- [[W8/神经降噪-RT-Denoiser]]（NRD 降噪 GI sample, NRC 是 GI 本身的神经化）
-- [[W7/DLSS-神经超分-时域重建]]（DLSS 解决空间分辨率, NRC 解决 GI 频率）
+- [[C04/Lumen-GI-漫反射]]（NRC 是 Lumen GI 的 AI 替代方案）
+- [[C08/神经降噪-RT-Denoiser]]（NRD 降噪 GI sample, NRC 是 GI 本身的神经化）
+- [[C07/DLSS-神经超分-时域重建]]（DLSS 解决空间分辨率, NRC 解决 GI 频率）
 - [[../../../01-论文笔记库/2023-Neural-Radiance-Cache|Neural Radiance Cache 论文精读]]
 - [[../../../05-技术雷达/NRC-vs-Lumen|NRC vs Lumen 对照]]
 

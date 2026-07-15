@@ -26,9 +26,9 @@ quarterly_review: 2026-Q3
 
 | 类型 | 文件 | 行数 / 摘要 |
 |------|------|-------------|
-| Shader 案例 | [[03-Shader与特效案例集/W6/VSM-Virtual-Shadow-Map]] | 页表 + Moments + Neural Variance Filter（763 行）⭐ W28 落盘 |
+| Shader 案例 | [[03-Shader与特效案例集/C06/VSM-Virtual-Shadow-Map]] | 页表 + Moments + Neural Variance Filter（763 行）⭐ W28 落盘 |
 | 性能瓶颈 | [[04-性能优化备忘录/瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] | 页溢出案例 |
-| QA 卡牌 | `03-Shader与特效案例集/W6/VSM-Virtual-Shadow-Map.html` | 12 题互动卡（711 行）|
+| QA 卡牌 | `03-Shader与特效案例集/C06/VSM-Virtual-Shadow-Map.html` | 12 题互动卡（711 行）|
 
 > **历史状态**：W28 前**只有 1 篇性能瓶颈**，无完整技术笔记 → [[2026-07-05-三能力对账]] 评为"极薄、最大缺位"
 > **当前状态**：W28 落盘 W6 shader 763 行 + QA 卡，补到"中" → **仍缺源码分析**
@@ -74,7 +74,7 @@ quarterly_review: 2026-Q3
 
 - [[2026-07-05-三能力对账-是否满足-AI训练pipeline-UE5垂直领域-工程化]] — 推动 VSM 入 P0（极薄 → 必补）
 - [[Lumen]] / [[Nanite]] — 渲染三大特性同批次入 P0
-- [[03-Shader与特效案例集/W6/VSM-Virtual-Shadow-Map]] — W28 落盘起点
+- [[03-Shader与特效案例集/C06/VSM-Virtual-Shadow-Map]] — W28 落盘起点（2026-07-15 编号重组 W6→C06）
 
 ---
 

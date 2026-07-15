@@ -1,7 +1,7 @@
 ---
 tags: [shader/AI, shader/denoise, shader/temporal, shader/upsample, shader/neural-network, shader/UE]
 aliases: [DLSS, FSR, XeSS, TAA-Upsample, Neural Super Resolution, NSR]
-week: W7
+case: C07
 cycle: E
 ---
 
@@ -745,9 +745,9 @@ NSR.Upscale(
 
 ## 关联知识库
 
-- [[W6/VSM-Virtual-Shadow-Map]]（阴影也是 temporal 重建可优化点）
-- [[W8/神经降噪-RT-Denoiser]]（NSR 跟 RT Denoiser 共享 temporal + neural 思路）
-- [[W9/神经辐射缓存-Neural-Radiance-Cache]]（NSR 解决空间分辨率, NRC 解决 GI 频率）
+- [[C06/VSM-Virtual-Shadow-Map]]（阴影也是 temporal 重建可优化点）
+- [[C08/神经降噪-RT-Denoiser]]（NSR 跟 RT Denoiser 共享 temporal + neural 思路）
+- [[C09/神经辐射缓存-Neural-Radiance-Cache]]（NSR 解决空间分辨率, NRC 解决 GI 频率）
 - [[../../../01-论文笔记库/2024-DLSS-3-Ray-Reconstruction|DLSS 3 Ray Reconstruction 论文]]
 - [[../../../05-技术雷达/FSR3-vs-DLSS3|FSR3 vs DLSS3 对比]]
 

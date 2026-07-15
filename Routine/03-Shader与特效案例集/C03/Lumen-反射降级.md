@@ -1,7 +1,7 @@
 ---
 tags: [shader/自研, shader/post-process, shader/performance, shader/UE, shader/lumen, shader/AI-accelerated]
 aliases: [Lumen Reflection, Lumen-Reflection-Fallback, Screen Probe, Surface Cache]
-week: W3
+case: C03
 cycle: A
 ---
 
@@ -638,8 +638,8 @@ float3 PS_LumenSurfaceCache(VS_OUTPUT input) : SV_Target
 - [[99-归档/屏幕空间反射-SSR]] — T1 前置阅读
 - [[Hi-Z-Buffer-Construction]] — T1 的 Hi-Z 加速,Screen Probe 也复用
 - [[TAA-History-Reprojection]] — temporal 累积去噪
-- [[../W4/Lumen-GI-漫反射]] — T2/T3 的 GI 漫反射版本
-- [[../W6/VSM-Virtual-Shadow-Map]] — Lumen 配套的虚拟阴影
+- [[../C04/Lumen-GI-漫反射]] — T2/T3 的 GI 漫反射版本
+- [[../C06/VSM-Virtual-Shadow-Map]] — Lumen 配套的虚拟阴影
 
 ---
 

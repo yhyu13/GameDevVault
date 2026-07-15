@@ -29,8 +29,8 @@ quarterly_review: 2026-Q3
 | 论文笔记 | [[Lumen/Lumen-SIGGRAPH-2021]] | 官方 SIGGRAPH 2021 演讲 + 10 张 slide + 完整 transcript |
 | 论文笔记 | [[Lumen/Lumen-HowItActuallyWorks-UE5]] | 内部实现机制拆解 |
 | 论文笔记 | [[Lumen/Lumen-实战手册：调试-Profile-定制-跨场景适配指南]] | 工程实战指南 |
-| Shader 案例 | [[03-Shader与特效案例集/W3/Lumen-反射降级]] | 4 档降级 + AI 增强（NeRF Reflection Cache）|
-| Shader 案例 | [[03-Shader与特效案例集/W4/Lumen-GI-漫反射]] | Surface Cache + NRC 替代 |
+| Shader 案例 | [[03-Shader与特效案例集/C03/Lumen-反射降级]] | 4 档降级 + AI 增强（NeRF Reflection Cache）|
+| Shader 案例 | [[03-Shader与特效案例集/C04/Lumen-GI-漫反射]] | Surface Cache + NRC 替代 |
 | 性能优化 | [[04-性能优化备忘录/知识参考/Lumen 性能调优]] | 性能调优方法论 |
 | 性能瓶颈 | [[04-性能优化备忘录/瓶颈案例/Lumen-反射开销过高-平滑材质场景]] | 反射开销案例 |
 

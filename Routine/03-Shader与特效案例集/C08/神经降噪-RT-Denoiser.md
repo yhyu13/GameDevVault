@@ -1,7 +1,7 @@
 ---
 tags: [shader/AI, shader/denoise, shader/neural-network, shader/raytracing, shader/UE]
 aliases: [RT Denoiser, NRD, OIDN, NRDS, Monte Carlo Denoising, Real-time Denoising]
-week: W8
+case: C08
 cycle: G
 ---
 
@@ -850,9 +850,9 @@ Denoiser.Filter(
 
 ## 关联知识库
 
-- [[W7/DLSS-神经超分-时域重建]]（DLSS 解决空间分辨率, NRD 解决 GI 频率）
-- [[W6/VSM-Virtual-Shadow-Map]]（VSM 用 NRD Sigma 降噪阴影）
-- [[W9/神经辐射缓存-Neural-Radiance-Cache]]（NRC 是 NRD 的 GI 版,降噪整个 GI）
+- [[C07/DLSS-神经超分-时域重建]]（DLSS 解决空间分辨率, NRD 解决 GI 频率）
+- [[C06/VSM-Virtual-Shadow-Map]]（VSM 用 NRD Sigma 降噪阴影）
+- [[C09/神经辐射缓存-Neural-Radiance-Cache]]（NRC 是 NRD 的 GI 版,降噪整个 GI）
 - [[../../../01-论文笔记库/2023-NRD4-Multi-Layer-Performance|NRD 4 多层降噪论文]]
 - [[../../../05-技术雷达/RT-Denoising-算法对照|Denoising 算法雷达]]
 

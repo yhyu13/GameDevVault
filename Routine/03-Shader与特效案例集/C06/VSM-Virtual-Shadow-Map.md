@@ -1,7 +1,7 @@
 ---
 tags: [shader/自研, shader/shadow, shader/compute, shader/UE, shader/virtual-geometry, shader/AI-accelerated]
 aliases: [Virtual Shadow Map, VSM, Shadow Page Table, VSM Caching, Moment Shadows]
-week: W6
+case: C06
 cycle: D
 ---
 
@@ -738,10 +738,10 @@ VSM.AIAccelerate(receiver_position: float3, light_direction: float3) → float [
 ## 关联知识库
 
 - [[../../../02-引擎源码分析库/Unreal-Engine/UE5-Nanite-虚拟几何管线|Nanite 虚拟几何管线]]（VSM 跟 Nanite 共享虚拟化思想）
-- [[W3/Lumen-反射降级|Lumen 反射降级]]（反射跟阴影共用 surface cache）
-- [[W4/Lumen-GI-漫反射|Lumen GI 漫反射]]（GI 的间接光也是阴影的一种）
-- [[W5/Nanite-材质管线|Nanite 材质管线]]（VSM 用 page mask 跳过 Nanite mesh）
-- [[W8/神经降噪-RT-Denoiser]]（L1/L2 filter 跟 RT Denoiser 同源）
+- [[C03/Lumen-反射降级|Lumen 反射降级]]（反射跟阴影共用 surface cache）
+- [[C04/Lumen-GI-漫反射|Lumen GI 漫反射]]（GI 的间接光也是阴影的一种）
+- [[C05/Nanite-材质管线|Nanite 材质管线]]（VSM 用 page mask 跳过 Nanite mesh）
+- [[C08/神经降噪-RT-Denoiser]]（L1/L2 filter 跟 RT Denoiser 同源）
 
 ---
 

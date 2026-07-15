@@ -555,9 +555,9 @@ updateOverviewGrid();
 
 # Question definitions per MD - same as before
 CARDS = {
-    "W1/神经材质-NeuralPBR": {
-        "title": "W1 神经材质 NeuralPBR — 互动式面试卡牌",
-        "header_title": "W1 神经材质 NeuralPBR — 图像预测 PBR 4 通道",
+    "C01/神经材质-NeuralPBR": {
+        "title": "C01 神经材质 NeuralPBR — 互动式面试卡牌",
+        "header_title": "C01 神经材质 NeuralPBR — 图像预测 PBR 4 通道",
         "header_subtitle": "AI 神经材质 | U-Net 离线训练 + 实时推理 | day-job 主线 1",
         "drag_questions": [
             {
@@ -700,9 +700,9 @@ CARDS = {
         ]
     },
 
-    "W2/神经BRDF-NeuralGGX": {
-        "title": "W2 神经 BRDF NeuralGGX — 互动式面试卡牌",
-        "header_title": "W2 神经 BRDF NeuralGGX — MLP 拟合 GGX/Disney",
+    "C02/神经BRDF-NeuralGGX": {
+        "title": "C02 神经 BRDF NeuralGGX — 互动式面试卡牌",
+        "header_title": "C02 神经 BRDF NeuralGGX — MLP 拟合 GGX/Disney",
         "header_subtitle": "AI 神经 BRDF | 5→64→64→64→3 MLP + 离线训练 | day-job 主线 2",
         "drag_questions": [
             {
@@ -845,9 +845,9 @@ CARDS = {
         ]
     },
 
-    "W3/Lumen-反射降级": {
-        "title": "W3 Lumen 反射降级 + AI 加速 — 互动式面试卡牌",
-        "header_title": "W3 Lumen 反射降级 + AI 加速",
+    "C03/Lumen-反射降级": {
+        "title": "C03 Lumen 反射降级 + AI 加速 — 互动式面试卡牌",
+        "header_title": "C03 Lumen 反射降级 + AI 加速",
         "header_subtitle": "UE 硬技术 + AI | 4 档降级 + L1/L2/L3 Probe Densification",
         "drag_questions": [
             {
@@ -990,9 +990,9 @@ CARDS = {
         ]
     },
 
-    "W4/Lumen-GI-漫反射": {
-        "title": "W4 Lumen GI 漫反射 + AI 加速 — 互动式面试卡牌",
-        "header_title": "W4 Lumen GI 漫反射 + AI 加速",
+    "C04/Lumen-GI-漫反射": {
+        "title": "C04 Lumen GI 漫反射 + AI 加速 — 互动式面试卡牌",
+        "header_title": "C04 Lumen GI 漫反射 + AI 加速",
         "header_subtitle": "UE 硬技术 + AI | Surface Cache + VCT + L3 NRC 替代",
         "drag_questions": [
             {
@@ -1135,9 +1135,9 @@ CARDS = {
         ]
     },
 
-    "W5/Nanite-材质管线": {
-        "title": "W5 Nanite 材质管线 + AI 加速 — 互动式面试卡牌",
-        "header_title": "W5 Nanite 材质管线 + AI 加速",
+    "C05/Nanite-材质管线": {
+        "title": "C05 Nanite 材质管线 + AI 加速 — 互动式面试卡牌",
+        "header_title": "C05 Nanite 材质管线 + AI 加速",
         "header_subtitle": "UE 硬技术 + AI | 5-bin 分类 + L1 Neural Material Eval",
         "drag_questions": [
             {
@@ -1280,9 +1280,9 @@ CARDS = {
         ]
     },
 
-    "W6/VSM-Virtual-Shadow-Map": {
-        "title": "W6 VSM Virtual Shadow Map + AI 加速 — 互动式面试卡牌",
-        "header_title": "W6 VSM Virtual Shadow Map + AI 加速",
+    "C06/VSM-Virtual-Shadow-Map": {
+        "title": "C06 VSM Virtual Shadow Map + AI 加速 — 互动式面试卡牌",
+        "header_title": "C06 VSM Virtual Shadow Map + AI 加速",
         "header_subtitle": "UE 硬技术 + AI | 页表 + Moments + Neural Variance Filter",
         "drag_questions": [
             {
@@ -1425,9 +1425,9 @@ CARDS = {
         ]
     },
 
-    "W7/DLSS-神经超分-时域重建": {
-        "title": "W7 DLSS 神经超分 + 时域重建 — 互动式面试卡牌",
-        "header_title": "W7 DLSS 神经超分 + 时域重建",
+    "C07/DLSS-神经超分-时域重建": {
+        "title": "C07 DLSS 神经超分 + 时域重建 — 互动式面试卡牌",
+        "header_title": "C07 DLSS 神经超分 + 时域重建",
         "header_subtitle": "AI 神经降噪 DLSS | Halton jitter + 5x5 Feature + MLP | day-job 主线 3",
         "drag_questions": [
             {
@@ -1570,9 +1570,9 @@ CARDS = {
         ]
     },
 
-    "W8/神经降噪-RT-Denoiser": {
-        "title": "W8 神经降噪 RT Denoiser — 互动式面试卡牌",
-        "header_title": "W8 神经降噪 RT Denoiser",
+    "C08/神经降噪-RT-Denoiser": {
+        "title": "C08 神经降噪 RT Denoiser — 互动式面试卡牌",
+        "header_title": "C08 神经降噪 RT Denoiser",
         "header_subtitle": "AI 神经降噪 | NRD / OIDN 4 stage pipeline + 神经 blend weight",
         "drag_questions": [
             {
@@ -1715,9 +1715,9 @@ CARDS = {
         ]
     },
 
-    "W9/神经辐射缓存-Neural-Radiance-Cache": {
-        "title": "W9 神经辐射缓存 NRC — 互动式面试卡牌",
-        "header_title": "W9 神经辐射缓存 NRC (Neural Radiance Cache)",
+    "C09/神经辐射缓存-Neural-Radiance-Cache": {
+        "title": "C09 神经辐射缓存 NRC — 互动式面试卡牌",
+        "header_title": "C09 神经辐射缓存 NRC (Neural Radiance Cache)",
         "header_subtitle": "AI 神经 GI | NeRF 替代 Lumen Surface Cache | day-job 副线",
         "drag_questions": [
             {

@@ -1,7 +1,7 @@
 ---
 tags: [shader/自研, shader/nanite, shader/material, shader/performance, shader/UE, shader/AI-accelerated]
 aliases: []
-week: W5
+case: C05
 cycle: C
 ---
 
@@ -633,8 +633,8 @@ void MaterialEvaluateCS(
 
 - [[../../../02-引擎源码分析库/Unreal-Engine/UE5-Nanite-虚拟几何管线|Nanite 虚拟几何管线]]（UE5.3 老版,但 page-table 部分一致）
 - [[../../../02-引擎源码分析库/Unreal-Engine/UE5.8-VolumetricCloud-体积云|VolumetricCloud 体积云]]（Voxel bin 跟 Lumen 共享）
-- [[../W3/Lumen-反射降级|Lumen 反射降级]]（5-bin 的 Triangle / Voxel 复用）
-- [[../W4/Lumen-GI-漫反射|Lumen GI 漫反射]]（Voxel ShadingBin 用法）
+- [[../C03/Lumen-反射降级|Lumen 反射降级]]（5-bin 的 Triangle / Voxel 复用）
+- [[../C04/Lumen-GI-漫反射|Lumen GI 漫反射]]（Voxel ShadingBin 用法）
 
 ---
 
