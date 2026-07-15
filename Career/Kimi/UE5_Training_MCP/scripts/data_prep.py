@@ -22,7 +22,13 @@ Outputs:
 import argparse
 import json
 import random
+import sys
 from pathlib import Path
+
+# Force UTF-8 stdout/stderr on Windows where the default is GBK.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
 
 
 def conversation_to_alpaca(record: dict) -> dict:

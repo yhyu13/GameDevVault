@@ -25,4 +25,15 @@ __pycache__/
 
 # Large media
 *.mp4
+*.safetensors
+*.pt
+*.bin
+
+# Large model training outputs (15 GB+ Qwen fine-tuning checkpoints)
+Career/Kimi/UE5_Training_MCP/outputs/
+
+# Stray typo folders (accidental names with braces)
+{config,data/
+{raw,processed,splits,eval},scripts,eval,outputs/
+
 
