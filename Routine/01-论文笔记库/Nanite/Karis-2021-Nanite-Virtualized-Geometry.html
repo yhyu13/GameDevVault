@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nanite 虚拟几何管线 — 论文卡牌 (W29)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation {
+    margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg);
+    font-size: 0.92rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup {
+    margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px;
+    border: 1px dashed var(--accent);
+  }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel {
+    display: none; margin-bottom: 16px; padding: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .overview-filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white;
+    cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Nanite 虚拟几何管线 — 论文卡牌</h1>
+    <p>SIGGRAPH 2021 Karis · Nanite: A Virtualized Geometry Pipeline</p>
+    <div class="header-meta">配套笔记: <a href="Karis-2021-Nanite-Virtualized-Geometry.md">[[Karis-2021-Nanite-Virtualized-Geometry]]</a> · W29 配套 · 12 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 12</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <strong>题目总览</strong>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="nav-bar" id="navBar">
+    <span class="nav-hint">← → 切换题目 · 选择后点击「确认答案」提交</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+      <button class="btn btn-secondary" id="finishBtn" onclick="finishQuiz()" style="display:none">完成</button>
+    </div>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 120</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "TF",
+    id: 1,
+    question: "Nanite 离线构建时把高模切分成 128-tri Cluster，Cluster 是 coherent（邻接 + 法线连续 + LOD 兼容）的，不是简单地按三角形数切。",
+    answer: true,
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §核心创新点 1",
+    explanation: "正确。Nanite Cluster 切分是 SIGGRAPH 2021 论文的核心难点——不是简单按三角形数切，要保证 Cluster 内邻接 + 法线连续 + LOD 兼容（不同 LOD 间 Cluster 边界对齐）。128 是经验值：足够小让一个 Cluster 在大多数屏幕距离下退化到亚像素，足够大让 Cluster tree 总层数可控。",
+    followup: [
+      "追问：为什么不是 64 或 256？",
+      "答：128 是 Karis 6 个月工程迭代的经验值。64 → Cluster tree 层数翻倍，遍历开销大；256 → 单个 Cluster 在近场不会退化到亚像素，软件光栅化触发条件失效。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 2,
+    question: "Nanite 用 Visibility Buffer 替代传统 G-Buffer 的根本原因是？",
+    options: [
+      "A. 64-bit 比 32-bit 精度更高，几何定位更准确",
+      "B. 省 5-8x 带宽（1 个 32-bit RT vs 5-8 个 MRT）+ micro-triangle 友好（避免硬件 quad overdraw）",
+      "C. VisBuffer 可以替代深度缓冲，省一张 RT",
+      "D. VisBuffer64 是 D3D12 强制要求的格式"
+    ],
+    answer: 1,
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §核心创新点 3 + 面试谈资 Q2",
+    explanation: "B 正确。G-Buffer 5-8 个 MRT (Albedo / Normal / Roughness / Metallic / Emissive / Depth) → 5-8x 带宽。Visibility Buffer 1 个 32-bit (PrimID + TriID + Barycentric) → material shading 阶段从 VS 重新计算 attribute。**省 5-8x 带宽（Mac / mobile 关键）+ micro-triangle 友好**。A 错：64-bit 不是为了精度；C 错：VisBuffer 不替代深度；D 错：D3D12 没这个要求。",
+    followup: [
+      "追问：64-bit atomic 在不支持的硬件上怎么办？",
+      "答：走 LockBufferFallback 路径——SW 路径用 RWTexture<uint> LockBuffer 模拟 CAS 操作，性能显著下降。D3D11 老硬件走这条。移动端基本不跑 Nanite——移动 GPU 普遍缺少 64-bit atomic 支持。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 3,
+    question: "Nanite 5.4 相比 5.0 做了哪些关键改进？（多选）",
+    options: [
+      "A. 引入 Compute Shader + Bin 合并算法，把 4015 个 shading bin 中的 3675 个空 bin 合并",
+      "B. 减少 80% 空调度（draw call 数从 ~4015 降到 ~340）",
+      "C. WPO（世界位置偏移）支持完整可用（草 / 树 / 风动物体可开 Nanite）",
+      "D. 软件光栅化完全取代硬件光栅化",
+      "E. 引入可编程光栅器（Programmable Rasterizer）",
+      "F. VisBuffer 升级到 128-bit"
+    ],
+    answer: [0, 1, 2, 4],
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §核心创新点 4 + GDC 2024 Karis 演讲",
+    explanation: "A、B、C、E 正确——GDC 2024 Karis 演讲原话：5.4 引入 Compute Shader + Bin 合并算法，把 4015 bin 中 3675 个空 bin 合并，空调度降低 80%。5.4 之前 WPO 不支持（5.4 引入可编程光栅器后才支持）。D 错：5.4 不是软件光栅化取代硬件，是混合调度模式优化（HardwareThenSoftware 默认）。F 错：VisBuffer 仍是 64-bit（5.4 没变）。",
+    followup: [
+      "追问：5.0 升 5.4 之后材质性能会立刻提升吗？",
+      "答：会自动启用新管线，但收益取决于场景的材质多样性——材质数 < 100 的简单场景收益小，材质数 > 1000 的复杂场景收益大（2x+）。"
+    ]
+  },
+  {
+    type: "DRAG",
+    id: 4,
+    question: "Nanite 4 大核心创新：① 离线切 {0}（128-tri coherent）→ ② GPU 运行时 {1}（HZB 裁剪）→ ③ {2} Buffer 替代 G-Buffer → ④ 材质 {3} 调度（5.4 减少 80% 空调度）。",
+    blanks: [
+      { idx: 0, expected: "Cluster" },
+      { idx: 1, expected: "GPU-Driven Culling" },
+      { idx: 2, expected: "Visibility" },
+      { idx: 3, expected: "Bin" }
+    ],
+    pool: ["Cluster", "GPU-Driven Culling", "Visibility", "Bin", "LOD", "Texture", "Page", "Atomic"],
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §核心创新点 1-4",
+    explanation: "正确填空：{0}=Cluster（128-tri coherent 切分）→{1}=GPU-Driven Culling（HZB 视锥 / 遮挡裁剪全部 GPU 并行）→{2}=Visibility Buffer（替代 G-Buffer 省 5-8x 带宽）→{3}=Bin（5.4 材质 bin 合并减少 80% 空调度）。LOD 是运行时决策不是创新、Texture / Page / Atomic 是辅助概念。",
+    followup: [
+      "追问：Cluster 切分 vs NVIDIA Meshlet 的区别？",
+      "答：Meshlet = GPU primitive pipeline 最小单元，'SIMD-coherent 三角形组'。Nanite Cluster = BVH 节点 + 128-tri + 邻接 + LOD 兼容，比 Meshlet 多 LOD 元数据，可以做运行时 GPU 选 LOD。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 5,
+    question: "Nanite 的软件光栅化路径处理 50-80% 的 micro-triangle（< 1 像素），避免硬件光栅的 quad overdraw。",
+    answer: true,
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §实现难点分析 3",
+    explanation: "正确。Karis 自己说 SW 路径处理 50-80% micro-triangle（distant + small material detail 时三角形大量 < 1 像素）。硬件光栅化在亚像素级时 quad overdraw 灾难（4x4 像素 quad 浪费）。SW 路径用 SIMD lane mask 高效处理，**这是 Nanite 性能的关键优化**。",
+    followup: [
+      "追问：为什么不全用软件光栅化？",
+      "答：硬件光栅化在处理大三角形（> 几十像素）时效率远超 SW（直接走 ROP 带宽）。Nanite 走混合模式：HW 处理大三角形，SW 处理小三角形，由 r.Nanite.RasterScheduling 控制。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 6,
+    question: "HZB（Hierarchical Z-Buffer）在 Nanite 中的作用是？",
+    options: [
+      "A. 缓存上一帧的 color buffer 减少 PS 采样",
+      "B. 上一帧 depth 构造 mip 链，本帧做 conservative occlusion 裁剪（< 0.1ms 开销）",
+      "C. 把多个 mesh 的 depth 合并成一张大图减少 RT 数",
+      "D. 是 D3D12 / Vulkan 强制要求的硬件特性"
+    ],
+    answer: 1,
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §核心创新点 2 + 面试谈资 Q4",
+    explanation: "B 正确。HZB 从上一帧 depth 构造 mip chain（5x5 downsample × log2 层）。本帧做 conservative occlusion query——若 Cluster 在屏幕投影后被 HZB 中更近的 depth 遮挡，剔除。**实际开销 < 0.1ms**，是 Nanite 性能的核心优化。A 错：缓存 color 不是 HZB；C 错：不是合并 depth；D 错：HZB 是 Nanite 自建，不是 D3D12 强制。",
+    followup: [
+      "追问：HZB 构造在什么线程跑？",
+      "答：RenderThread 端、Compute Shader 多线程 mip 构造（5x5 downsample），跟 Nanite 的 cull pass 并行。开启 r.Nanite.HZB.AsyncCompute 1 可以走 Async Compute（实验性）。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 7,
+    question: "Nanite 在 Mac 上跑有什么坑？（多选）",
+    options: [
+      "A. Metal RHI 早期版本没有硬件光栅的 wave intrinsics，Software Raster 路径必须支持",
+      "B. 带宽敏感 → 优先选 Visibility Buffer 路径而不是 legacy G-Buffer",
+      "C. Metal RHI 5.0 之前 page residency 有 bug，5.4+ 修复",
+      "D. 移动端 GPU 普遍缺少 64-bit atomic 支持，Nanite 走 LockBufferFallback 性能下降 30-50%",
+      "E. Mac 上完全不能跑 Nanite，没有任何支持",
+      "F. 5.4+ 的材质 bin 调度在 Mac 上会崩溃"
+    ],
+    answer: [0, 1, 2, 3],
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §个人评价-局限性 + 面试谈资 Q5",
+    explanation: "A、B、C、D 正确——这些是 Mac / 移动端跑 Nanite 的实际坑。E 错：Mac 完全可以跑 Nanite（5.0+），只是要关注上述细节。F 错：5.4 材质 bin 调度在 Mac 上稳定，没有崩溃问题。",
+    followup: [
+      "追问：day-job Mac Game Harness 上跑 Nanite 怎么配置？",
+      "答：① Metal RHI 5.4+（5.0/5.1 都有 page residency bug） ② Project Settings → Rendering → 启用 Nanite + Software Raster ③ 监控 r.Nanite.MaxVisibleClusters 不要超 1M ④ 大场景要拆 World Partition。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 8,
+    question: "Nanite 跟 Lumen 是强耦合关系：Lumen 的 Scene Update 强依赖 Nanite 的 MeshCard 数据，没有 Nanite = 没有 MeshCard = Lumen 失效。",
+    answer: true,
+    src: "W27 Nanite-Card-Pack Q3 + Karis-2021-Nanite-Virtualized-Geometry.md §相关论文/前置知识",
+    explanation: "正确。Lumen 的 [[Lumen-实战手册]] 反复强调 Lumen 依赖 Nanite::FSceneProxy::GetMeshCardRepresentation() 提供 MeshCard 数据；没有 Nanite = 没有 MeshCard = Lumen 失效。这是 UE5 默认两者绑定开启的原因。",
+    followup: [
+      "追问：day-job 项目能关 Nanite 单独跑 Lumen 吗？",
+      "答：不能直接关 Nanite 单独跑 Lumen——Lumen 的 SW Ray Tracing 路径依赖 MeshCard。可以走 fallback：关 Nanite 走传统 mesh + Lumen Surface Cache 仍能工作，但 Lumen 质量掉档。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 9,
+    question: "Nanite 运行时一帧的核心 Pass 顺序是？",
+    options: [
+      "A. BasePass → Culling → Visibility",
+      "B. Culling → Visibility（混合光栅化）→ Material Shading（解码 VisBuffer）",
+      "C. Visibility → Culling → Material Shading",
+      "D. Culling → Material Shading → Visibility"
+    ],
+    answer: 1,
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §关键伪代码",
+    explanation: "B 正确。Nanite 一帧的核心顺序：① Culling（视锥 + HZB，Compute Shader 并行，persistent thread + atomic counter）→ ② Visibility（混合光栅化，HW 处理大三角形 / SW 处理小三角形，输出 VisBuffer64）→ ③ Material Shading（Pixel Shader 解码 VisBuffer + 材质 + 光照）。A 错：BasePass 必须在 VisBuffer 写完后才能解码；C 错：Visibility 必须等 Culling 决定哪些 cluster 可见；D 错：顺序错。",
+    followup: [
+      "追问：3 步之间有依赖关系吗？",
+      "答：Culling → Visibility 强依赖（必须 cull 完才能 raster）；Visibility → Material Shading 强依赖（必须 VisBuffer 写完才能解码）。两个依赖都在 RDG（Render Dependency Graph）里显式声明，Graphics Queue 足够覆盖 GPU 时长。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 10,
+    question: "Nanite 不支持或有限支持的特性？（多选）",
+    options: [
+      "A. WPO（5.0-5.3 不支持，5.4+ 完整支持）",
+      "B. Alpha Blend 透明材质（完全不支持，必须 fallback 到传统 forward）",
+      "C. Alpha Test 蒙版材质（5.0+ 有限支持，性能有 cost）",
+      "D. 不透明静态 mesh（核心支持场景）",
+      "E. 双面材质（5.0-5.3 不支持，5.4+ 支持）",
+      "F. 骨骼动画（5.0+ 完整支持）"
+    ],
+    answer: [0, 1, 2, 4],
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §个人评价-局限性",
+    explanation: "A、B、C、E 正确——这些是 Nanite 的真实边界：D 错（不透明静态 mesh 是核心支持场景）；F 错（骨骼动画 5.0+ 完整支持，跟 meshlet 集成）。Alpha Blend 必须 fallback 是个大坑——大量 VFX 粒子 / 玻璃 / 水 都受影响，**项目要把这些资产走传统 forward 路径**。",
+    followup: [
+      "追问：项目里粒子系统 VFX 怎么跟 Nanite 配合？",
+      "答：① 关闭 VFX 材质的 Nanite（r.Nanite.ProjectEnabled 1 + 材质上 allow Nanite 0）② 或者用传统 mesh 路径渲染 VFX ③ Cascade / Niagara 不会自动转 Nanite——必须显式选。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 11,
+    question: "Nanite 5.0 时期的材质管线有什么问题？",
+    options: [
+      "A. 每种材质 1 个全屏 draw call，4015 个 shading bin 中 3675 个是空的（90% 浪费）",
+      "B. 材质参数太多，VS shader 太慢",
+      "C. 材质 Bumpmap 性能太差",
+      "D. 跟 TAA temporal 不兼容"
+    ],
+    answer: 0,
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §核心创新点 4",
+    explanation: "A 正确。GDC 2024 Karis 演讲原话：UE 5.0 时期材质管线每种材质 1 个全屏 draw call，City Sample 4015 个 shading bin 中 3675 个是空的（90% 浪费）。5.4+ 引入 Compute Shader + Bin 合并算法把空调度降低 80%。B 错：参数多不必然慢；C 错：5.0 没特别说 Bumpmap 问题；D 错：TAA 兼容。",
+    followup: [
+      "追问：5.4 之前的项目怎么估算升级收益？",
+      "答：① 数场景 unique material count（用 UE Insights → Asset Audit） ② < 100 = 收益小，可延迟升级 ③ > 1000 = 收益大，优先升级 ④ 复复杂场景（City Sample 规模）实测 2x+。"
+    ]
+  },
+  {
+    type: "DRAG",
+    id: 12,
+    question: "Nanite 渲染管线 5 大核心模块：① {0} 切分（离线）→ ② {1}（HZB 视锥 / 遮挡）→ ③ 混合 {2}（HW 大 / SW 小）→ ④ {3}（PrimID + TriID + Barycentric）→ ⑤ {4}（BasePass 解码）。",
+    blanks: [
+      { idx: 0, expected: "Cluster" },
+      { idx: 1, expected: "GPU Culling" },
+      { idx: 2, expected: "Rasterization" },
+      { idx: 3, expected: "VisBuffer" },
+      { idx: 4, expected: "Material Shading" }
+    ],
+    pool: ["Cluster", "GPU Culling", "Rasterization", "VisBuffer", "Material Shading", "Page Table", "HZB Build", "Atomic Counter"],
+    src: "Karis-2021-Nanite-Virtualized-Geometry.md §关键伪代码",
+    explanation: "正确填空：{0}=Cluster（离线 128-tri 切分）→{1}=GPU Culling（HZB 视锥 / 遮挡裁剪）→{2}=Rasterization（混合 HW + SW）→{3}=VisBuffer（Visibility Buffer 64-bit）→{4}=Material Shading（BasePass 解码）。Page Table / HZB Build / Atomic Counter 是辅助子模块。",
+    followup: [
+      "追问：5 大模块中哪一步是性能瓶颈？",
+      "答：场景不同瓶颈不同。① 几何密集（> 10M tri）→ Culling + Material Shading 是瓶颈 ② 材质多样（> 1000 unique）→ 5.4 之前的 Bin 调度是瓶颈 ③ distant + small detail → Software Rasterization 是瓶颈。用 Insights GPU track 过滤 Nanite* Pass 看具体哪个。"
+    ]
+  }
+];
+
+/* ====== 状态 ====== */
+let current = 0;
+let answers = new Array(quizData.length).fill(null);
+let pendingAnswers = new Array(quizData.length).fill(null);
+let dragState = new Array(quizData.length).fill(null);
+let score = 0;
+let currentFilter = 'all';
+
+/* ====== 渲染 ====== */
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  let html = `<div class="question-card ${answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} <span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'TF') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${selected === true ? 'selected' : ''} ${tfClass(idx, true)}" onclick="selectTF(true)" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${selected === false ? 'selected' : ''} ${tfClass(idx, false)}" onclick="selectTF(false)" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitTF()">确认答案</button>`;
+    }
+  } else if (q.type === 'SC') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const cls = answered ? scClass(idx, i) : (selected === i ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="selectSC(${i})">`;
+      html += `<span class="option-key">${String.fromCharCode(65 + i)}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitSC()">确认答案</button>`;
+    }
+  } else if (q.type === 'MC') {
+    const currentAns = answers[idx] || pendingAnswers[idx] || [];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const sel = currentAns.includes(i);
+      const cls = answered ? mcClass(idx, i) : (sel ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="toggleMC(${i})">`;
+      html += `<span class="option-key">${sel ? '☑' : '☐'}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    const currentDrag = dragState[idx] || new Array(q.blanks.length).fill(null);
+    html += `<div class="drag-zone" id="dragZone">`;
+    q.blanks.forEach((b, i) => {
+      const filled = currentDrag[i];
+      const slotCls = answered ? dragSlotClass(idx, i) : (filled ? 'filled' : '');
+      html += `<div class="drag-slot ${slotCls}" data-slot="${i}" onclick="${answered ? '' : `clearSlot(${i})`}">${filled || '（拖入）'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool">`;
+    q.pool.forEach((term, i) => {
+      const used = currentDrag.includes(term);
+      const chipCls = used ? 'used' : '';
+      html += `<div class="drag-chip ${chipCls}" draggable="${!used && !answered}" ondragstart="dragStart(event, ${i})" onclick="${answered ? '' : `fillSlot(${i})`}">${term}</div>`;
+    });
+    html += `</div>`;
+    if (!answered) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitDRAG()">提交</button>`;
+    }
+  }
+
+  html += `<div class="explanation ${exClass(idx)} ${answered?'show':''}">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}`;
+  if (q.followup && q.followup.length) {
+    html += `<div class="followup"><h4>面试官可能的追问：</h4><ol>`;
+    q.followup.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ol></div>`;
+  }
+  html += `<div class="src">来源：${q.src}</div>`;
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  if (q.type === 'DRAG' && !answered) {
+    const slots = container.querySelectorAll('.drag-slot');
+    slots.forEach(s => {
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('drag-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('drag-over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('drag-over');
+        const termIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        dropOnSlot(termIdx, parseInt(s.dataset.slot));
+      });
+    });
+  }
+
+  updateNav();
+  updateProgress();
+}
+
+/* ====== 答案判定辅助 ====== */
+function tfClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function scClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function mcClass(idx, val) {
+  const ans = answers[idx] || pendingAnswers[idx] || [];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer.includes(val);
+  const chosen = ans.includes(val);
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function dragSlotClass(idx, slot) {
+  if (answers[idx] === null) return '';
+  const expected = quizData[idx].blanks[slot].expected;
+  const actual = (dragState[idx] || [])[slot];
+  return actual === expected ? 'correct' : 'wrong';
+}
+function exClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const q = quizData[idx];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return false;
+  const ans = answers[idx] !== null ? answers[idx] : pendingAnswers[idx];
+  if (q.type === 'TF') return ans === q.answer;
+  if (q.type === 'SC') return ans === q.answer;
+  if (q.type === 'MC') {
+    const a = [...ans].sort().join(',');
+    const c = [...q.answer].sort().join(',');
+    return a === c;
+  }
+  if (q.type === 'DRAG') {
+    const ds = dragState[idx] || [];
+    return q.blanks.every((b, i) => ds[i] === b.expected);
+  }
+  return false;
+}
+
+/* ====== 作答 ====== */
+function selectTF(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitTF() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function selectSC(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitSC() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function toggleMC(val) {
+  if (answers[current] !== null) return;
+  let a = pendingAnswers[current] || [];
+  if (a.includes(val)) a = a.filter(x => x !== val);
+  else a = [...a, val];
+  pendingAnswers[current] = a;
+  renderQuestion(current);
+}
+function submitMC() {
+  if (answers[current] !== null) return;
+  if ((pendingAnswers[current] || []).length === 0) {
+    alert('请至少选择一个选项');
+    return;
+  }
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function dragStart(e, termIdx) {
+  e.dataTransfer.setData('text/plain', termIdx);
+}
+function fillSlot(termIdx) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  for (let i = 0; i < ds.length; i++) {
+    if (ds[i] === null) { ds[i] = term; break; }
+  }
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function clearSlot(slot) {
+  const ds = dragState[current] || [];
+  ds[slot] = null;
+  dragState[current] = ds.filter(x => x !== null);
+  while (dragState[current].length < quizData[current].blanks.length) dragState[current].push(null);
+  renderQuestion(current);
+}
+function dropOnSlot(termIdx, slot) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  ds[slot] = term;
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function submitDRAG() {
+  if (answers[current] !== null) return;
+  const ds = dragState[current] || [];
+  if (ds.filter(x => x !== null).length < quizData[current].blanks.length) {
+    alert('请填满所有空位');
+    return;
+  }
+  answers[current] = ds.slice();
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+
+/* ====== 导航 ====== */
+function goPrev() { if (current > 0) { current--; renderQuestion(current); } }
+function goNext() { if (current < quizData.length - 1) { current++; renderQuestion(current); } }
+function finishQuiz() { showResults(); }
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').style.display = current === quizData.length - 1 ? 'none' : '';
+  document.getElementById('finishBtn').style.display = current === quizData.length - 1 ? '' : 'none';
+  document.getElementById('progressText').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('scoreText').textContent = score;
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+/* ====== 总览面板 ====== */
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) updateOverview();
+}
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  updateOverview();
+}
+function updateOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const ans = answers[i];
+    let cls = '';
+    if (ans !== null) {
+      cls = isCorrect(i) ? 'correct' : 'wrong';
+    }
+    if (currentFilter === 'unanswered' && ans !== null) return;
+    if (currentFilter === 'correct' && (ans === null || !isCorrect(i))) return;
+    if (currentFilter === 'wrong' && (ans === null || isCorrect(i))) return;
+    html += `<div class="overview-tile ${cls}" onclick="jumpTo(${i})">`;
+    html += `<div class="tile-num">${i + 1}</div>`;
+    html += `<div class="tile-type">${TYPE_LABEL[q.type]}</div>`;
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) {
+  current = i;
+  document.getElementById('overviewPanel').classList.remove('show');
+  renderQuestion(current);
+}
+
+/* ====== 重置 / 完成 ====== */
+function resetAll() {
+  if (!confirm('确定要清空所有答题记录并重置分数？')) return;
+  answers = new Array(quizData.length).fill(null);
+  pendingAnswers = new Array(quizData.length).fill(null);
+  dragState = new Array(quizData.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  const pct = score / (quizData.length * 10) * 100;
+  const msg = pct >= 90 ? 'Nanite 大师！可以直接去面试 Epic 了 🎉' :
+              pct >= 70 ? '基础扎实，再过几个细节就能讲清楚管线 💪' :
+              pct >= 50 ? '概念地图建立中，建议先看一遍配套 paper 笔记 📖' :
+                          '回到 [[Karis-2021-Nanite-Virtualized-Geometry]] 重新读一遍，再来！🔁';
+  document.getElementById('resultsMsg').textContent = msg;
+  let review = '';
+  quizData.forEach((q, i) => {
+    if (answers[i] !== null && !isCorrect(i)) {
+      const ansStr = formatAnswer(q, answers[i]);
+      const corrStr = formatAnswer(q, q.answer);
+      review += `<div class="review-item"><h4>第 ${i + 1} 题 · ${TYPE_LABEL[q.type]}：${q.question}</h4>`;
+      review += `<p>你的答案：<span class="your-ans">${ansStr}</span></p>`;
+      review += `<p>正确答案：<span class="correct-ans">${corrStr}</span></p></div>`;
+    }
+  });
+  document.getElementById('reviewSection').innerHTML = review || '<p style="color:var(--muted);text-align:center">全部正确，零错题 🎯</p>';
+}
+function formatAnswer(q, ans) {
+  if (q.type === 'TF') return ans ? 'True' : 'False';
+  if (q.type === 'SC') return String.fromCharCode(65 + ans);
+  if (q.type === 'MC') return ans.map(i => String.fromCharCode(65 + i)).join(', ');
+  if (q.type === 'DRAG') return (ans || []).join(' / ');
+  return String(ans);
+}
+function restartQuiz() { resetAll(); }
+function retryWrong() {
+  const wrongIdx = quizData.map((q, i) => (!isCorrect(i) && answers[i] !== null) ? i : -1).filter(i => i >= 0);
+  if (wrongIdx.length === 0) { alert('没有错题可以重做！'); return; }
+  wrongIdx.forEach(i => { answers[i] = null; pendingAnswers[i] = null; dragState[i] = null; });
+  score = 0;
+  current = wrongIdx[0];
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+renderQuestion(0);
+updateOverview();
+</script>
+</body>
+</html>
