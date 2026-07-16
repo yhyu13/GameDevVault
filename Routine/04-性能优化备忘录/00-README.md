@@ -38,8 +38,10 @@
 | 纹理带宽高 | RenderDoc Texture Viewer | [[知识参考/Unreal Insights 帧分析实战]] |
 | 顶点处理瓶颈 | GPU Profiler | [[知识参考/Nanite 性能调优]] + [[瓶颈案例/植被-过度绘制-Cluster-Tree粒度问题]] |
 | Lumen GI 反射卡 | profilegpu | [[知识参考/Lumen 性能调优]] + [[瓶颈案例/Lumen-反射开销过高-平滑材质场景]] |
-| VSM 阴影棋盘瑕疵 | `r.Shadow.Virtual.ShowStats` | [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] |
+| VSM 阴影棋盘瑕疵 | `r.Shadow.Virtual.ShowStats` | [[知识参考/VSM 性能调优]] (W29 新增) + [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] |
 | Nanite 破面 / 闪烁 | `NaniteStats` | [[知识参考/Nanite 性能调优]] + [[瓶颈案例/Nanite-WPO禁用距离-破面修复]] |
+| Nanite BasePass 5ms+ (5.0/5.1 材质管线) | `ProfileGPU` + 升级 5.4 | [[瓶颈案例/Nanite-5.4-材质管线-空调度削减]] (W29 新增) + [[知识参考/Nanite 性能调优]] |
+| Lumen Surface Cache 大世界显存 (4 层 Atlas) | `r.Lumen.Visualize.CardPlacement` | [[瓶颈案例/Lumen-SurfaceCache-显存与带宽-大世界场景]] (W29 新增) + [[知识参考/Lumen 性能调优]] |
 | GT/RT/RHI 同步 | Insights Timing | [[知识参考/渲染线程瓶颈诊断]] |
 | 大纹理上传卡顿 | Insights RenderThread | [[知识参考/渲染线程瓶颈诊断]] + [[瓶颈案例/大纹理RT申请-Render线程卡顿]] |
 | 物理卡顿 | Insights + Chaos Visual | — （待补 Chaos 笔记） |
@@ -90,6 +92,7 @@
 | [[知识参考/Unreal Insights 帧分析实战]] | UE 官方文档 | 通道 / 面板 / CVar / API 全部 [D] |
 | [[知识参考/Lumen 性能调优]] | UE 5.7 Lumen 文档 + Performance Guide | 可调 CVar / 默认值 / 平台要求 / 官方 troubleshooting |
 | [[知识参考/Nanite 性能调优]] | GDC 2024 Wihlidal + SIGGRAPH 2021 | 三版本时间线 + 真实测量数据 |
+| [[知识参考/VSM 性能调优]] (W29 新增) | UE 官方 VSM 文档 + SIGGRAPH 2020 Karis + UE 5.8 源码 | Page 预算 / Clipmap / MegaLights 5.4+ 集成 / 与 Lumen/Nanite 同源 |
 | [[知识参考/Lyra 性能架构]] | Lyra 公开源码（GitHub） | 类名 / 状态机 / 函数签名 / API |
 | [[知识参考/渲染线程瓶颈诊断]] | UE 官方文档 + UE 源码 | 三线程模型 + stat 命令 + CVar |
 
@@ -100,6 +103,8 @@
 | 笔记 | 现象 | 主要来源 | 状态 |
 |------|------|---------|------|
 | [[瓶颈案例/Lumen-反射开销过高-平滑材质场景]] | 平滑材质下 Lumen 反射占 GPU 大头 | UE Lumen Performance Guide + 知乎 | `perf/待验证` |
+| [[瓶颈案例/Lumen-SurfaceCache-显存与带宽-大世界场景]] (W29 新增) | 4 层 Atlas 显存 200-400 MB / 大世界带宽饱和 | W29 Lumen Surface Cache 源码 + UE 5.8 源码 + 官方文档 | `perf/待验证` |
+| [[瓶颈案例/Nanite-5.4-材质管线-空调度削减]] (W29 新增) | 5.0/5.1 BasePass 90% 空调度 / 4.92→3.05ms | GDC 2024 Wihlidal + W29 论文笔记 | `perf/待验证` |
 | [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] | 阴影棋盘格 / 缓存污染 | UE VSM 官方文档 + GDC 2024 + 知乎 | `perf/待验证` |
 | [[瓶颈案例/植被-过度绘制-Cluster-Tree粒度问题]] | 植被密集 basepass VS 高 / RT occlusion spike | 知乎《UE5性能优化-GPU》 | `perf/待验证` |
 | [[瓶颈案例/Nanite-WPO禁用距离-破面修复]] | Nanite 随机破面 / 画面闪烁 / 阴影错乱 | GDC 2024 Wihlidal + 知乎 + UE 官方 | `perf/待验证` |
@@ -124,6 +129,7 @@
 - [ ] 记录至少 3 个可复用的优化方案（写 [[瓶颈案例/]] ）
 - [ ] M5 专项：跑 Lyra 默认 map 录 30 秒 utrace，按 [[知识参考/Unreal Insights 帧分析实战]] 流程做一遍诊断
 - [ ] **新增（2026-07）**：从 5 篇新案例中挑 1–2 篇（推荐 [[瓶颈案例/Lumen-反射开销过高-平滑材质场景]] 或 [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]]）做 Profile 验证，把 tag 升级到 `perf/已验证`
+- [x] **W29 进度（2026-07-17）**：补齐 1 篇知识参考 ([[VSM 性能调优]]) + 2 篇瓶颈案例 ([[Nanite-5.4-材质管线-空调度削减]] + [[Lumen-SurfaceCache-显存与带宽-大世界场景]]) = 04-性能优化备忘录/ 7月 KPI 从 0% 跳到 **~50%** (3/6)
 
 ---
 
