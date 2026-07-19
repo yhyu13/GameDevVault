@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anthropic Computer Use (arXiv 2410.08193) — 论文卡牌 (W29)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 6px 12px; background: white; border: 1px solid var(--accent);
+    border-radius: 16px; font-size: 0.9rem; cursor: grab; user-select: none;
+    color: var(--accent-2); font-weight: 500; transition: all 0.2s;
+  }
+  .drag-chip:hover { background: var(--accent); color: white; }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: not-allowed; }
+
+  .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.92rem;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-2); }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-secondary:hover:not(:disabled) { background: var(--muted); color: white; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .feedback {
+    margin-top: 16px; padding: 16px; border-radius: 8px;
+    background: var(--accent-light); border-left: 4px solid var(--accent);
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--correct-bg); border-left-color: var(--correct); }
+  .feedback.wrong { background: var(--wrong-bg); border-left-color: var(--wrong); }
+  .feedback-title { font-weight: 700; margin-bottom: 8px; }
+  .feedback-source {
+    font-size: 0.78rem; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+  .feedback-followup {
+    margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);
+  }
+  .feedback-followup ul { margin: 4px 0; padding-left: 20px; }
+  .feedback-followup li { margin: 4px 0; font-size: 0.92rem; }
+
+  .nav { display: flex; gap: 8px; justify-content: space-between; margin-top: 20px; }
+  .nav-btn {
+    padding: 8px 16px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+  }
+  .nav-btn:hover:not(:disabled) { background: var(--accent-light); border-color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Overview panel */
+  .overview { display: none; }
+  .overview.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .overview-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 6px 12px; background: white; border: 1px solid var(--border);
+    border-radius: 16px; font-size: 0.82rem; cursor: pointer;
+  }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .overview-item {
+    background: var(--card); border: 2px solid var(--border); border-radius: 8px;
+    padding: 12px; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .overview-item:hover { border-color: var(--accent); }
+  .overview-item.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .overview-item.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .overview-item.partial { border-color: #f59e0b; background: #fffbeb; }
+  .overview-item.answered { opacity: 0.85; }
+  .overview-num { font-size: 1.1rem; font-weight: 700; color: var(--accent-2); }
+  .overview-status { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  .back-link {
+    display: inline-block; margin-bottom: 12px; color: var(--accent-2);
+    text-decoration: none; font-size: 0.88rem;
+  }
+  .back-link:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .question-card { padding: 16px; }
+    .drag-slot { min-width: 90px; }
+    header h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="2024-Anthropic-ComputerUse-OSAgent.md">← 回到 paper note</a>
+
+  <header>
+    <h1>Anthropic Computer Use (arXiv 2410.08193)</h1>
+    <p>LLM 工业界第一个 GUI-agent 范式 — day-job Mac Game Harness 架构补完的"最后一公里"</p>
+    <div class="header-meta">
+      12 题 · TF 5 + SC 4 + MC 2 + DRAG 2 · 对位 day-job "MCP-first + GUI-fallback" 双轨制
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <span class="stat">已答: <strong id="answeredCount">0</strong> / <strong>12</strong></span>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">得分: <strong id="scoreCount">0</strong> / <strong>12</strong></span>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div id="quizContainer"></div>
+
+  <div class="overview" id="overviewPanel">
+    <div class="overview-header">
+      <h3 style="margin:0;color:var(--accent-2)">题目总览</h3>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="filterOverview('all')">全部 (12)</button>
+        <button class="filter-btn" data-filter="correct" onclick="filterOverview('correct')">✅ 正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="filterOverview('wrong')">❌ 错误</button>
+        <button class="filter-btn" data-filter="partial" onclick="filterOverview('partial')">⚠️ 部分</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="filterOverview('unanswered')">⬜ 未答</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+    <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "TF",
+    id: 1,
+    question: "Anthropic Computer Use 跟 paper 4 (Microsoft MCP) 是同一层概念 —— 都是 LLM 工具调用的协议层标准。",
+    answer: false,
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 1",
+    explanation: "错误。Computer Use 跟 MCP 是**不同层**：① MCP = 协议层 tool-calling（应用暴露 API，agent 调 API，干净但需要应用配合）；② Computer Use = GUI 层 tool-calling（agent 直接操控应用 GUI，不依赖应用暴露 API，脏但通用）。**两者是 day-job harness 工具暴露的两条路线**，**MCP-first，Computer Use fallback**。",
+    followup: [
+      "追问：为什么不能只用 MCP 不用 Computer Use？",
+      "答：80% 的 Mac app 没有 MCP server（UE 5.4+ 部分集成但不全；Xcode / Chrome / Figma / Slack / 任何 legacy app 都没有）。Computer Use 是没 MCP 时的兜底。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 2,
+    question: "Anthropic Computer Use 的 action space 包含多少个 primitive 操作（screenshot + 鼠标 + 键盘）？",
+    options: [
+      "A. 5 个",
+      "B. 8 个",
+      "C. 11 个",
+      "D. 20 个"
+    ],
+    answer: 2,
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 2",
+    explanation: "C 正确。Action space 包含 **screenshot + 11 个 primitive**：鼠标 7 个 (left_click / right_click / middle_click / double_click / triple_click / cursor_position / left_mouse_down + left_mouse_up) + 键盘 4 个 (type / key / hold_key / key_combo) + 辅助 3 个 (scroll / wait / zoom)。day-job harness GUI-agent 实现要照搬这套 action space。",
+    followup: [
+      "追问：day-job harness 要不要照搬 11 个 primitive？",
+      "答：建议先实现 5 个核心 (left_click / type / key / screenshot / scroll)，其余按需扩展。Mac 平台 set-of-mark prompting 优先于精确坐标。"
+    ]
+  },
+  {
+    type: "DRAG",
+    id: 3,
+    question: "Computer Use 的 perceive-reason-act 闭环三阶段填空：① 感知阶段调 {0} 拿到当前屏幕 → ② 推理阶段 LLM {1} 决定下一步 action → ③ 执行阶段 harness 调 {2} 执行 action，每步强制 re-screenshot。",
+    blanks: [
+      { idx: 0, expected: "screenshot" },
+      { idx: 1, expected: "decide" },
+      { idx: 2, expected: "click/type/key" }
+    ],
+    pool: ["screenshot", "decide", "click/type/key", "render", "compile", "compress", "log", "trace"],
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 3 + §整体架构图",
+    explanation: "正确填空：{0}=screenshot（感知，拿到当前屏幕图像）→{1}=decide（推理，LLM 决策下一步 action）→{2}=click/type/key（执行，harness 调对应 primitive）。**关键点**：每步前 re-screenshot（即使 tool 返回 success 也强制 re-screenshot），防止 silent failure。render / compile / compress / log / trace 是辅助机制，不在主 loop。",
+    followup: [
+      "追问：为什么必须每步 re-screenshot？",
+      "答：① 防止 silent failure（工具说成功但 UI 没变）；② 让 LLM 自我纠错（点错位置 → 截图发现 → 撤销重试）；③ 提供 trace 审计素材（出事故能 replay）。max_steps 默认 50 防 infinite loop。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 4,
+    question: "OSWorld benchmark 上 Claude 3.5 Sonnet (Computer Use) 的任务成功率 24%，已经达到「可商用」水平，day-job harness 可以全权委托 GUI-agent 自动操作。",
+    answer: false,
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 4 + §实现难点",
+    explanation: "错误。**24% 离人类基线 (>75%) 差 3 倍**，**远没到可商用**。day-job Mac Game Harness 如果走 Computer Use fallback 路径，**必须接受「成功率只有 1/4」的现实**，**关键操作必须有 human-in-loop 兜底**（让用户截图复核 / 一键接管）。**别被 demo 视频骗了**——demo 都是精心挑过的成功 case，**真实场景失败率 70%+**。",
+    followup: [
+      "追问：24% 准确率怎么在实际 harness 里落地？",
+      "答：① 关键操作 (commit / push / delete / deploy) 必须 human-in-loop 兜底；② 非关键操作 (查看菜单 / 滚动文档) 可以全权；③ 失败要 gracefully degrade (提示用户手动接管 + 把 manual 操作录成 SOP，下次再让 agent 试)；④ 跟踪 Anthropic / OpenAI benchmark 进展（每月都可能涨 1-2%）。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 5,
+    question: "Anthropic Computer Use 让 LLM 输出坐标基于「归一化坐标系」（0-1000）而不是绝对像素，主要原因是？",
+    options: [
+      "A. 速度更快",
+      "B. 适配不同分辨率 / Retina / 多显示器 / 不同 DPI",
+      "C. 节省 token",
+      "D. LLM 不擅长处理绝对数字"
+    ],
+    answer: 1,
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 2 + §实现难点",
+    explanation: "B 正确。**归一化坐标 = 适配 viewport scale**。同一段 LLM prompt（click at (500, 300)）在 4K 屏 / 1080p / Retina / 多显示器下都工作，harness 端做 viewport scale。**别让 LLM 直接出绝对像素**（容易出 viewport 错位 bug）。A（速度）C（token）D（LLM 偏好）都不是主因。",
+    followup: [
+      "追问：归一化坐标还有啥坑？",
+      "答：① 仍有 ±5% 误差，UE Editor 按钮 < 10px 经常点错；② 解决：set-of-mark prompting（在截图上画数字标签，LLM 输出标签号，harness 端查表得坐标）；③ 截图缩放到 1024×576 + JPEG 压缩到 200KB（4K 截图 base64 后 ~2MB，单次 tool call 50+ token）。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 6,
+    question: "Anthropic 列出的 4 步 prompt injection mitigation 包含哪些？（多选）",
+    options: [
+      "A. VM / Docker 隔离（agent 只能访问受限环境）",
+      "B. 工具白名单（禁用高危 bash 命令）",
+      "C. 关键操作前人类确认（弹 dialog）",
+      "D. 全 trace 审计（所有 action 落 trace）",
+      "E. 全自动 trust（不需要人工介入）",
+      "F. 必须用 Anthropic 官方签名"
+    ],
+    answer: [0, 1, 2, 3],
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 5 + §关联 day-job P0 启发 5",
+    explanation: "A、B、C、D 正确——Anthropic 自己列的 4 步 mitigation 是 day-job harness **安全硬约束**，必须全套照搬：① VM / Docker 隔离 ② 工具白名单 ③ 关键操作 human-in-loop ④ 全 trace。**E（全自动 trust）F（必须官方签名）都不是 mitigation**——E 是反 mitigation，F 是 Anthropic 没有的限制。",
+    followup: [
+      "追问：day-job Mac Game Harness 怎么落地这 4 步？",
+      "答：① OrbStack 跑 Ubuntu 24 VM，harness 只能在 VM 内跑；② 工具白名单只允许 UE build / UE editor / Xcode / git 限定子集，禁用 rm -rf / sudo / curl | sh / dd / mkfs；③ 删文件 / 推 master / 提交 / 部署 全部弹 confirm dialog；④ 所有 action 截图 + 决策过程存到 `Routine/04-性能优化备忘录/harness-trace/` 目录。**任何 mitigation 减配都是事故隐患**。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 7,
+    question: "Prompt injection 是 Computer Use 最严重的工程问题 —— 只要部署了 VM 隔离，agent 就 100% 安全了，不需要其它 mitigation。",
+    answer: false,
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 5",
+    explanation: "错误。**VM 隔离是 mitigation 之一，但远不是 100% 防御**——VM 内的屏幕内容仍可能被 prompt inject（VM 内的 web 页面 / 邮件 / PDF / 聊天消息都是攻击向量）。**必须 4 步 mitigation 全套配合**：(a) VM 隔离 + (b) 工具白名单 + (c) 关键操作 human 确认 + (d) 全 trace。**任何「省事」减配都是事故隐患**。",
+    followup: [
+      "追问：Mac Game Harness 走 Computer Use fallback 时的 prompt injection 真实场景？",
+      "答：① UE Editor 内打开一个含恶意指令的 HTML 文档，agent 读后去删文件；② Discord 群里有人发图，OCR 出 'rm -rf ~/'，agent 自动执行；③ 邮件附件是 PDF，PDF 里有 'transfer money to attacker'，agent 触发转账。**Mac Game Harness 关键操作（删文件 / 推 master / 部署）必须 human 确认**——这是 day-job 安全硬约束。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 8,
+    question: "day-job Mac Game Harness 的工具路由策略应该是？",
+    options: [
+      "A. 只走 MCP（干净 / 稳）",
+      "B. 只走 Computer Use（通用）",
+      "C. MCP-first + Computer Use fallback（双轨制）",
+      "D. 随机选（无所谓）"
+    ],
+    answer: 2,
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §关联 day-job P0 启发 1",
+    explanation: "C 正确。**MCP-first + Computer Use fallback 双轨制是 day-job Mac Game Harness 架构补完的「最后一公里」**。理由：① MCP 干净但需应用配合（80% Mac app 没 MCP server）；② Computer Use 脏但通用；③ 双轨制覆盖所有场景；④ Tool Router 根据 `MCP_available?` 决定走哪条。**A（只 MCP）覆盖不全；B（只 GUI）慢 + 贵 + 脏；D（随机）放弃判断**。",
+    followup: [
+      "追问：Tool Router 具体怎么实现？",
+      "答：```python\nfor tool_request in harness.queue:\n    if has_mcp_server(tool_request.tool_name):\n        result = call_mcp(tool_request)   # fast, clean, cheap\n    else:\n        result = call_computer_use(tool_request)  # slow, GUI, expensive\n        # 强制 re-screenshot after each action\n        # 强制 human-in-loop for critical ops\n        # 强制 full trace\n```"
+    ]
+  },
+  {
+    type: "MC",
+    id: 9,
+    question: "Anthropic Computer Use (2024-10) 跟 OpenAI Operator (2025-01) 的区别包括？（多选）",
+    options: [
+      "A. 同范式（screenshot + click + type + multi-step loop）",
+      "B. Anthropic 开放全 OS 操控；OpenAI 绑 Browser / 第三方 sandbox",
+      "C. Anthropic 用通用 Claude Sonnet；OpenAI 用专门 fine-tune 的 CUA 模型",
+      "D. Anthropic 按 API token 计费；OpenAI 月费 $200 (Pro) 订阅",
+      "E. 完全无关 / 范式不同",
+      "F. OpenAI 比 Anthropic 早 3 个月发布"
+    ],
+    answer: [0, 1, 2, 3],
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 7",
+    explanation: "A、B、C、D 正确——**两家同月级同范式 GUI-agent，但实现细节差异显著**。A（同范式）= 行业级范式确立；B（OS 范围）= Anthropic 开放，OpenAI 保守；C（专用模型）= Anthropic 通用，OpenAI 专用；D（计费）= 两种商业模式。E（完全无关）错（太绝对）；F（OpenAI 早 3 个月）错（实际是 OpenAI 晚 3 个月）。",
+    followup: [
+      "追问：day-job harness 怎么应对两家差异？",
+      "答：**Vendor-neutral GUIAgent 抽象层**——抽象出 interface：\n```python\nclass GUIAgent(Protocol):\n    def screenshot(self) -> Image: ...\n    def click(self, x: int, y: int) -> None: ...\n    def type_text(self, text: str) -> None: ...\n```\nAnthropic / OpenAI / 自研 / Selenium / PyAutoGUI 都实现这个 interface，业务层无感切换。**不被任何一家 lock-in**。"
+    ]
+  },
+  {
+    type: "DRAG",
+    id: 10,
+    question: "Mac Game Harness 双层架构填空：Layer 1 (MCP) 走 {0} 层 tool-calling（快 / 稳 / 便宜 / token 友好）；Layer 2 (Computer Use) 走 {1} 层 tool-calling（慢 / 脏 / 贵 / 但通用）。Tool Router 根据 {2} 决定走哪条。",
+    blanks: [
+      { idx: 0, expected: "协议" },
+      { idx: 1, expected: "GUI" },
+      { idx: 2, expected: "MCP_available?" }
+    ],
+    pool: ["协议", "GUI", "MCP_available?", "tool_name", "user_preference", "task_complexity", "cost_budget", "time_limit"],
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 1 + §关联 day-job P0 启发 1",
+    explanation: "正确填空：{0}=协议（layer 1, MCP 协议层，干净）→{1}=GUI（layer 2, Computer Use GUI 层，脏但通用）→{2}=MCP_available?（Tool Router 决策依据）。tool_name / user_preference / task_complexity / cost_budget / time_limit 都是可考虑但不是主决策依据。",
+    followup: [
+      "追问：双层架构的 sandbox 怎么搭？",
+      "答：在 Mac 上用 OrbStack 跑 Ubuntu 24 arm64 VM：\n① VM 里装 UE Editor (Linux build 5.4+) + Xcode CLI + 必备 app\n② VM 通过 VNC (5900) / noVNC (6080) 暴露给 LLM\n③ VM 启动 / 销毁 / snapshot 全 API 化\n④ harness 测试用 disposable VM（不留 state leak）\n⑤ Mac 主机 → VM 走 ssh 桥接，VM → LLM 走 VNC 截图。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 11,
+    question: "Anthropic Computer Use 默认 max_steps = 50，单次 task 成本 0.05-0.50 USD（视截图分辨率 + token 数）。",
+    answer: true,
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §核心创新点 3 + §实现难点",
+    explanation: "正确。max_steps 默认 50 防 infinite loop。**单次 task 成本估算**：50 步 × 50k token/步（截图 + 历史）= 2.5M token ≈ 5-15 USD/task（实际 0.05-0.50 USD 是单步范围）。**关键 token 优化**：① harness 端摘要历史（>20 步后压缩）；② 复用截图 hash（没变不重传）；③ 缩放到 1024×576 + JPEG 压缩到 200KB。",
+    followup: [
+      "追问：day-job harness 怎么控制 token 成本？",
+      "答：① 每个 LLM API call 记录 input_tokens + output_tokens + cache_hit_tokens；② MCP tool 单独追踪 (tool name × token usage matrix)；③ 月度预算 + 实时提醒 (用满 80% 弹警告)；④ token / dollar 双单位显示；⑤ vendor-neutral 抽象可以选最便宜的 vendor。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 12,
+    question: "「Set-of-mark prompting」技术解决 day-job Computer Use fallback 的什么核心问题？",
+    options: [
+      "A. 节省 token（让 LLM 输出更短）",
+      "B. 坐标精度（LLM 输出标签号而不是坐标，harness 端查表）",
+      "C. 提升截图速度（并行截图）",
+      "D. 提升安全性（防 prompt injection）"
+    ],
+    answer: 1,
+    src: "2024-Anthropic-ComputerUse-OSAgent.md §实现难点 + §关键术语表",
+    explanation: "B 正确。**Set-of-Mark (SoM)** 是在截图上画数字标签的 prompting 技术，**LLM 输出「标签号」（如 #3）而不是坐标（如 500, 300）**，harness 端查表得坐标。**解决归一化坐标 ±5% 误差**（UE Editor 按钮 < 10px 经常点错）。A（token）C（速度）D（安全）都不是 SoM 的主功能。",
+    followup: [
+      "追问：Set-of-Mark 在 Mac 平台怎么实现？",
+      "答：① 用 YOLO / DINO / Florence-2 做 object detection；② 给每个检测到的 UI 元素画编号 + 边框；③ 截图 + 编号一起发给 LLM；④ LLM 输出编号；⑤ harness 查编号 → 坐标表 → click。开源库：Ultralytics YOLO + 自写 annotator。Mac 平台用 Apple Neural Engine 加速 detection（<10ms/object）。"
+    ]
+  }
+];
+
+let currentIdx = 0;
+const state = quizData.map(() => ({ answered: false, correct: null, userAnswer: null }));
+
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const s = state[idx];
+
+  let html = `<div class="question-card ${s.answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">第 ${q.id} 题<span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question.replace(/\{(\d+)\}/g, '<span style="color:var(--accent-2);font-weight:700;">___</span>')}</div>`;
+
+  if (q.type === 'TF') {
+    html += `<div class="tf-buttons">
+      <button class="tf-btn ${s.userAnswer === true ? 'selected' : ''}" data-val="true" onclick="selectTF(${idx}, true)" ${s.answered ? 'disabled' : ''}>✅ 正确 (True)</button>
+      <button class="tf-btn ${s.userAnswer === false ? 'selected' : ''}" data-val="false" onclick="selectTF(${idx}, false)" ${s.answered ? 'disabled' : ''}>❌ 错误 (False)</button>
+    </div>`;
+  } else if (q.type === 'SC') {
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      let cls = 'option';
+      if (s.answered) {
+        cls += ' disabled';
+        if (i === q.answer) cls += ' correct';
+        else if (i === s.userAnswer) cls += ' wrong';
+      } else if (s.userAnswer === i) {
+        cls += ' selected';
+      }
+      const key = String.fromCharCode(65 + i);
+      html += `<div class="${cls}" onclick="selectSC(${idx}, ${i})"><span class="option-key">${key}.</span><span>${opt}</span></div>`;
+    });
+    html += `</div>`;
+  } else if (q.type === 'MC') {
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      let cls = 'option';
+      const isSelected = s.userAnswer && s.userAnswer.includes(i);
+      if (s.answered) {
+        cls += ' disabled';
+        if (q.answer.includes(i)) cls += ' correct';
+        else if (isSelected) cls += ' wrong';
+      } else if (isSelected) {
+        cls += ' selected';
+      }
+      const key = String.fromCharCode(65 + i);
+      html += `<div class="${cls}" onclick="selectMC(${idx}, ${i})"><span class="option-key">${key}.</span><span>${opt}</span></div>`;
+    });
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    html += `<div class="drag-zone" id="dragZone-${idx}">`;
+    q.blanks.forEach(b => {
+      const filled = s.userAnswer && s.userAnswer[b.idx];
+      html += `<div class="drag-slot ${filled ? 'filled' : ''}" data-idx="${b.idx}" ondrop="dropOnSlot(event, ${idx}, ${b.idx})" ondragover="allowDrop(event)" ondragleave="leaveSlot(event)">${filled || '拖拽到这里'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool-${idx}">`;
+    q.pool.forEach((chip, i) => {
+      const used = s.userAnswer && Object.values(s.userAnswer).includes(chip);
+      html += `<div class="drag-chip ${used ? 'used' : ''}" draggable="${!used}" data-chip="${chip}" ondragstart="dragStart(event, ${idx}, '${chip}')" onclick="clickChip(${idx}, '${chip}')">${chip}</div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="actions">
+    <button class="btn btn-primary" onclick="checkAnswer(${idx})" ${s.answered ? 'disabled' : ''}>检查答案</button>
+    <button class="btn btn-secondary" onclick="resetQuestion(${idx})" ${!s.answered ? 'disabled' : ''}>重置本题</button>
+  </div>`;
+
+  if (s.answered) {
+    const isCorrect = s.correct === true || (s.correct === 'partial');
+    const isWrong = s.correct === false;
+    html += `<div class="feedback show ${isCorrect ? 'correct' : (isWrong ? 'wrong' : '')}">`;
+    html += `<div class="feedback-title">${s.correct === true ? '✅ 回答正确！' : (s.correct === 'partial' ? '⚠️ 部分正确' : '❌ 回答错误')}</div>`;
+    html += `<div>${q.explanation}</div>`;
+    if (q.followup && q.followup.length > 0) {
+      html += `<div class="feedback-followup"><strong>面试官可能的追问：</strong><ul>`;
+      q.followup.forEach(f => { html += `<li>${f}</li>`; });
+      html += `</ul></div>`;
+    }
+    html += `<div class="feedback-source">📎 来源: ${q.src}</div>`;
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  document.getElementById('prevBtn').disabled = (idx === 0);
+  document.getElementById('nextBtn').disabled = (idx === quizData.length - 1);
+  updateProgress();
+}
+
+function selectTF(idx, val) {
+  if (state[idx].answered) return;
+  state[idx].userAnswer = val;
+  renderQuestion(idx);
+}
+
+function selectSC(idx, val) {
+  if (state[idx].answered) return;
+  state[idx].userAnswer = val;
+  renderQuestion(idx);
+}
+
+function selectMC(idx, val) {
+  if (state[idx].answered) return;
+  const s = state[idx];
+  if (!s.userAnswer) s.userAnswer = [];
+  const i = s.userAnswer.indexOf(val);
+  if (i >= 0) s.userAnswer.splice(i, 1);
+  else s.userAnswer.push(val);
+  renderQuestion(idx);
+}
+
+let dragData = null;
+function dragStart(e, idx, chip) {
+  dragData = { idx, chip };
+  e.dataTransfer.setData('text/plain', chip);
+  e.dataTransfer.effectAllowed = 'move';
+}
+function allowDrop(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); }
+function leaveSlot(e) { e.currentTarget.classList.remove('drag-over'); }
+function dropOnSlot(e, idx, slotIdx) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (state[idx].answered) return;
+  const chip = e.dataTransfer.getData('text/plain');
+  if (!chip) return;
+  if (!state[idx].userAnswer) state[idx].userAnswer = {};
+  // Remove chip from any other slot
+  Object.keys(state[idx].userAnswer).forEach(k => {
+    if (state[idx].userAnswer[k] === chip) delete state[idx].userAnswer[k];
+  });
+  state[idx].userAnswer[slotIdx] = chip;
+  renderQuestion(idx);
+}
+function clickChip(idx, chip) {
+  if (state[idx].answered) return;
+  // Click-to-place: find first empty slot
+  const q = quizData[idx];
+  if (!state[idx].userAnswer) state[idx].userAnswer = {};
+  // If chip already in a slot, remove it
+  let alreadyIn = -1;
+  Object.keys(state[idx].userAnswer).forEach(k => {
+    if (state[idx].userAnswer[k] === chip) alreadyIn = parseInt(k);
+  });
+  if (alreadyIn >= 0) {
+    delete state[idx].userAnswer[alreadyIn];
+    renderQuestion(idx);
+    return;
+  }
+  // Place in first empty slot
+  for (let i = 0; i < q.blanks.length; i++) {
+    if (!state[idx].userAnswer[i]) {
+      state[idx].userAnswer[i] = chip;
+      renderQuestion(idx);
+      return;
+    }
+  }
+}
+
+function checkAnswer(idx) {
+  const q = quizData[idx];
+  const s = state[idx];
+  if (s.answered) return;
+
+  if (q.type === 'TF') {
+    s.correct = (s.userAnswer === q.answer);
+  } else if (q.type === 'SC') {
+    s.correct = (s.userAnswer === q.answer);
+  } else if (q.type === 'MC') {
+    if (!s.userAnswer || s.userAnswer.length === 0) { s.correct = false; }
+    else {
+      const correctSet = new Set(q.answer);
+      const userSet = new Set(s.userAnswer);
+      const allCorrect = q.answer.every(i => userSet.has(i)) && s.userAnswer.every(i => correctSet.has(i));
+      const partial = !allCorrect && q.answer.some(i => userSet.has(i));
+      s.correct = allCorrect ? true : (partial ? 'partial' : false);
+    }
+  } else if (q.type === 'DRAG') {
+    if (!s.userAnswer) { s.correct = false; }
+    else {
+      let allCorrect = true;
+      q.blanks.forEach(b => {
+        if (s.userAnswer[b.idx] !== b.expected) allCorrect = false;
+      });
+      s.correct = allCorrect;
+    }
+  }
+
+  s.answered = true;
+  renderQuestion(idx);
+  updateProgress();
+}
+
+function resetQuestion(idx) {
+  state[idx] = { answered: false, correct: null, userAnswer: null };
+  renderQuestion(idx);
+  updateProgress();
+}
+
+function resetAll() {
+  if (!confirm('确定要重置所有题目的答题记录吗？')) return;
+  for (let i = 0; i < state.length; i++) {
+    state[i] = { answered: false, correct: null, userAnswer: null };
+  }
+  currentIdx = 0;
+  renderQuestion(currentIdx);
+  updateProgress();
+}
+
+function prevQuestion() { if (currentIdx > 0) { currentIdx--; renderQuestion(currentIdx); window.scrollTo({top: 0, behavior: 'smooth'}); } }
+function nextQuestion() { if (currentIdx < quizData.length - 1) { currentIdx++; renderQuestion(currentIdx); window.scrollTo({top: 0, behavior: 'smooth'}); } }
+
+function updateProgress() {
+  const answered = state.filter(s => s.answered).length;
+  const correct = state.filter(s => s.correct === true).length;
+  document.getElementById('answeredCount').textContent = answered;
+  document.getElementById('scoreCount').textContent = correct;
+  document.getElementById('progressFill').style.width = (answered / quizData.length * 100) + '%';
+}
+
+function toggleOverview() {
+  const panel = document.getElementById('overviewPanel');
+  panel.classList.toggle('show');
+  if (panel.classList.contains('show')) renderOverview();
+}
+
+function renderOverview(filter = 'all') {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const s = state[i];
+    let cls = 'overview-item';
+    let status = '⬜ 未答';
+    if (s.answered) {
+      cls += ' answered';
+      if (s.correct === true) { cls += ' correct'; status = '✅ 正确'; }
+      else if (s.correct === 'partial') { cls += ' partial'; status = '⚠️ 部分'; }
+      else { cls += ' wrong'; status = '❌ 错误'; }
+    }
+    if (filter !== 'all') {
+      if (filter === 'correct' && s.correct !== true) return;
+      if (filter === 'wrong' && s.correct !== false) return;
+      if (filter === 'partial' && s.correct !== 'partial') return;
+      if (filter === 'unanswered' && s.answered) return;
+    }
+    html += `<div class="${cls}" onclick="jumpTo(${i})">
+      <div class="overview-num">#${q.id}</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">${TYPE_LABEL[q.type]}</div>
+      <div class="overview-status">${status}</div>
+    </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function filterOverview(filter) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+  renderOverview(filter);
+}
+
+function jumpTo(idx) {
+  currentIdx = idx;
+  renderQuestion(idx);
+  document.getElementById('overviewPanel').classList.remove('show');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// Init
+renderQuestion(0);
+updateProgress();
+</script>
+</body>
+</html>
