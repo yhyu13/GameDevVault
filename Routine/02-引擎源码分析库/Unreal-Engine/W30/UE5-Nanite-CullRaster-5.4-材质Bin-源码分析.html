@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nanite CullRaster + 5.4 Bin 调度 — 源码卡牌 (W30)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation {
+    margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg);
+    font-size: 0.92rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup {
+    margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px;
+    border: 1px dashed var(--accent);
+  }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel {
+    display: none; margin-bottom: 16px; padding: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .overview-filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white;
+    cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Nanite CullRaster + 5.4 Bin 调度 — 源码卡牌</h1>
+    <p>UE 5.8 · NaniteCullRaster.cpp + NaniteShading.cpp</p>
+    <div class="header-meta">配套笔记: <a href="UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md">[[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]]</a> · W30 · 10 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 10</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <strong>题目总览</strong>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="nav-bar" id="navBar">
+    <span class="nav-hint">← → 切换题目 · 选择后点击「确认答案」提交</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+      <button class="btn btn-secondary" id="finishBtn" onclick="finishQuiz()" style="display:none">完成</button>
+    </div>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "TF",
+    id: 1,
+    question: "Nanite 的 Persistent Culling Compute Shader 用 atomic counter 解决「GPU 上不知道前面有多少 thread 命中」的问题——每个 cluster 1 个 thread，命中后 `AtomicAdd(VisibleClustersCounter, 1)` 拿 slot 写 VisibleClusters。",
+    answer: true,
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §代码调用链 Phase 1",
+    explanation: "正确。FNaniteCullCS 内部 `AtomicAdd(VisibleClustersCounter, 1)` 拿 slot，写 `VisibleClusters[Slot] = ClusterIdx`。CPU 不知道具体哪些 cluster 可见，只知道数量。**GPU 上无需 CPU 同步**——atomic counter 是关键。",
+    followup: [
+      "追问：atomic counter 的性能瓶颈？",
+      "答：atomic 竞争——多个 thread 同时 add 同一个 counter 会有 contention。5.4+ 用**前向 + 反馈**双 buffer 减少竞争（先看前几帧是否可见，决定本帧 cull 优先级）。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 2,
+    question: "Nanite 5.0 时期 4015 bin 中 3675 是空的，5.4 修复后是多少 bin？",
+    options: [
+      "A. 4015 bin 全部保留（5.4 没改）",
+      "B. ~340 bin（Compute Shader 合并，空调度减少 80%）",
+      "C. 1000 bin（简单减少，没合并）",
+      "D. 50 bin（合并到极致）"
+    ],
+    answer: 1,
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §诊断 Checklist 问题 1",
+    explanation: "B 正确。GDC 2024 Karis 演讲原话：UE 5.0 时期 City Sample 4015 个 shading bin 中 3675 个是空的（90% 浪费）。5.4+ 引入 `NaniteShading.cpp:2711` `AllocateFixedFunctionBins` Compute Shader 合并 → **340 bin，空调度减少 80%**。",
+    followup: [
+      "追问：5.4 合并算法细节？",
+      "答：收集 unique material bin → 按 (triangle count × material cost) 排序 → 小 bin（< MinBinSize）合并到 material schema 相似的大 bin → 提交 RDG。1 dispatch per bin，dispatch 总数从 4015 降到 340。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 3,
+    question: "Nanite CullRaster 内部 4 阶段是哪些？（多选）",
+    options: [
+      "A. Phase 1: Setup（Cluster / Page Table 准备）",
+      "B. Phase 2: Culling（FNaniteCullCS，Persistent Thread + Atomic）",
+      "C. Phase 3: Rasterization（HW + SW 混合）",
+      "D. Phase 4: Feedback（FNaniteFeedbackStatusCS 跨帧）",
+      "E. Phase 5: Network Sync",
+      "F. Phase 6: Audio Pass"
+    ],
+    answer: [0, 1, 2, 3],
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §模块交互图 Pass 视角",
+    explanation: "A、B、C、D 正确——Nanite CullRaster 内部 4 阶段是 Setup / Culling / Rasterization / Feedback。E（Network Sync）和 F（Audio）不是渲染 Pass，是其他子系统的。",
+    followup: [
+      "追问：Feedback 阶段具体做什么？",
+      "答：`FNaniteFeedbackStatusCS` (`NaniteFeedback.cpp:7487`) 读本帧 GPU state (visible/culled) → 写 PageTable buffer (for next frame)。**跨帧反馈**让 cull pass 更稳定（避免频繁的 visible 状态切换）。"
+    ]
+  },
+  {
+    type: "DRAG",
+    id: 4,
+    question: "Nanite 5.0 → 5.4 Bin 调度演进流程：① 收集所有 {0} bin → ② 按 (triangle count × {1}) 排序 → ③ 小 bin 合并到 {2} schema 相似的大 bin → ④ 提交到 {3}。",
+    blanks: [
+      { idx: 0, expected: "Material" },
+      { idx: 1, expected: "material cost" },
+      { idx: 2, expected: "Material" },
+      { idx: 3, expected: "RDG" }
+    ],
+    pool: ["Material", "material cost", "Material", "RDG", "GPU", "CPU", "Page Table", "Shader"],
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §Phase 2 Rasterization",
+    explanation: "正确填空：{0}=Material（收集所有 material bin）→{1}=material cost（按 cost 排序）→{2}=Material（合并到 schema 相似的大 bin）→{3}=RDG（提交 Render Dependency Graph）。GPU/CPU/Page Table/Shader 不是 bin 合并步骤。",
+    followup: [
+      "追问：合并后 dispatch 数从 4015 降到 340 是哪一步实现的？",
+      "答：第 3 步"小 bin 合并到大 bin"是核心——小 bin（< MinBinSize）数量从 3675 减到 0。dispatch 数 = 最终 bin 数 = 340。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 5,
+    question: "Nanite 5.0 时期 WPO（世界位置偏移）不支持，5.4+ 通过 `r.Nanite.ProgrammableRaster` 1 启用 Programmable Raster 路径才支持。",
+    answer: true,
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §诊断 Checklist 问题 2",
+    explanation: "正确。5.0 行为：HW Raster 不支持 WPO（HW 路径无法执行 Vertex Shader 修改顶点）。5.4 行为：开 `r.Nanite.ProgrammableRaster 1` → 走 SW Raster + Programmable Raster 路径，能执行 WPO vertex displacement。**5.4+ 默认开启**。",
+    followup: [
+      "追问：5.4+ 之前升 5.4 后 WPO 资产要不要重新验证？",
+      "答：需要。WPO 走可编程光栅器后，渲染路径完全不同——之前的 perf 数据 / LOD 设置可能全部失效。建议先在测试场景对比再上生产。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 6,
+    question: "`r.Nanite.ProgrammableRaster` 1 触发哪个光栅化路径？",
+    options: [
+      "A. FNaniteRasterPS (HW Raster)",
+      "B. FNaniteRasterCS (SW Raster)",
+      "C. SW Raster + Programmable Raster（WPO 友好）",
+      "D. 完全不走 rasterization"
+    ],
+    answer: 2,
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §CVar 映射",
+    explanation: "C 正确。`r.Nanite.ProgrammableRaster 1` 走 SW Raster + Programmable Raster 路径，能执行 WPO vertex displacement。HW Raster (A) 不支持 WPO；SW Raster (B) 默认开 (`r.Nanite.ComputeRasterization 1`)，但**不一定支持 WPO**；D 错（必须 rasterize）。",
+    followup: [
+      "追问：Programmable Raster 跟 Compute Shader 光栅化是同一回事吗？",
+      "答：不是。`r.Nanite.ComputeRasterization 1` 走 Compute Shader 光栅化（SIMD lane mask），`r.Nanite.ProgrammableRaster 1` 走可编程光栅器（能执行 vertex displacement）。两者正交，5.4+ 经常同时开。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 7,
+    question: "`r.Nanite.AsyncRasterization` 控制哪些 pass 走 Async Compute？（多选）",
+    options: [
+      "A. Shadow Depths（阴影深度）",
+      "B. Custom Pass（自定义通道）",
+      "C. Lumen Mesh Cards（GI 捕获）",
+      "D. BasePass 主体",
+      "E. Audio",
+      "F. 物理模拟"
+    ],
+    answer: [0, 1, 2],
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §CVar 映射 一",
+    explanation: "A、B、C 正确——`r.Nanite.AsyncRasterize*` 控制 Shadow / Custom / Lumen Mesh Cards 三类 pass 走 Async Compute（4 个 CVar 分别控制：`AsyncRasterizeShadowDepths:58` / `AsyncRasterizeCustomPass:65` / `AsyncRasterizeLumenMeshCards:72`，主开关是 `AsyncRasterization:51`）。D（BasePass）错（BasePass 走 Graphics Queue）；E（Audio）F（物理）不是 Nanite 控制。",
+    followup: [
+      "追问：开 AsyncRasterization 实际收益？",
+      "答：4.x 项目升级 5.4+ 开 `r.Nanite.AsyncRasterization 1` 减少 ~30% GPU 渲染时间（让阴影 / custom pass / Lumen mesh card 跟 BasePass 并行）。代价是显存压力（Async Compute 资源重叠）。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 8,
+    question: "`r.Nanite.VSMInvalidateOnLODDelta 0` 默认——VSM 在 LOD 变化时不主动 invalidate page，靠 VSM 自己的 feedback 机制管理。",
+    answer: true,
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §CVar 映射 一",
+    explanation: "正确。`r.Nanite.VSMInvalidateOnLODDelta 0` 默认（NaniteCullRaster.cpp:111）。VSM 在 LOD 变化时**不主动 invalidate page**——靠 VSM 自己的 feedback 机制（`FNaniteFeedbackStatusCS` + `LastCapturedPageHeap`）管理。开 `1` 会强制 invalidate 变 LOD 的 page，**风险是 page 预算不够**导致阴影闪烁。",
+    followup: [
+      "追问：什么时候开 1？",
+      "答：高速 LOD 切换场景（如 first-person 游戏角色快速靠近物体时 LOD 跳变）。默认 0 是保守策略，避免频繁 invalidate。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 9,
+    question: "Nanite 的跨帧 Feedback CS 在哪个文件:行？",
+    options: [
+      "A. Nanite.cpp:17",
+      "B. NaniteCullRaster.cpp:7487",
+      "C. NaniteShading.cpp:2711",
+      "D. NaniteComposition.cpp:42"
+    ],
+    answer: 1,
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §关键类与文件",
+    explanation: "B 正确。`FNaniteFeedbackStatusCS` 在 `NaniteCullRaster.cpp:7487`，负责跨帧 GPU state 读 + 写 PageTable buffer（让下一帧 cull pass 知道哪些 cluster 上一帧 visible）。A 错（Nanite.cpp:17 是 ShowStats）；C 错（NaniteShading.cpp:2711 是 5.4 Bin 调度）；D 错（NaniteComposition.cpp:42 是 MarkStencil）。",
+    followup: [
+      "追问：Feedback 数据延迟 1-2 帧有什么影响？",
+      "答：1-2 帧延迟对 cull 影响小（cull 决策本身就允许 staleness）。但对 debug 影响大——CPU 端 `r.Nanite.ShowStats 1` 显示的是 1-2 帧前的 GPU state。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 10,
+    question: "Nanite VisBuffer64 输出格式包含哪些字段？（多选）",
+    options: [
+      "A. cluster_id（cluster 索引）",
+      "B. tri_id（三角形索引）",
+      "C. material_id（材质 ID）",
+      "D. barycentric 坐标",
+      "E. 完整 vertex normal（法线）",
+      "F. 完整 vertex albedo（反照率）"
+    ],
+    answer: [0, 1, 2],
+    src: "UE5-Nanite-CullRaster-5.4-材质Bin-源码分析.md §内存布局分析",
+    explanation: "A、B、C 正确——VisBuffer64 是 64-bit packed: cluster_id + tri_id + material_id。E（完整 vertex normal）F（完整 vertex albedo）错——**这些不在 VisBuffer 里**，material shading 阶段从 VS 重新计算 attribute。**省 5-8x 带宽**（相比 G-Buffer）。",
+    followup: [
+      "追问：D（barycentric 坐标）错在哪？",
+      "答：barycentric 坐标**在 8x8 tile 内每个 pixel 重新计算**（从 pixel position + triangle id），不存进 VisBuffer。VisBuffer 只存 cluster/tri/material 三个标量。"
+    ]
+  }
+];
+
+/* ====== 状态 ====== */
+let current = 0;
+let answers = new Array(quizData.length).fill(null);
+let pendingAnswers = new Array(quizData.length).fill(null);
+let dragState = new Array(quizData.length).fill(null);
+let score = 0;
+let currentFilter = 'all';
+
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  let html = `<div class="question-card ${answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} <span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'TF') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${selected === true ? 'selected' : ''} ${tfClass(idx, true)}" onclick="selectTF(true)" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${selected === false ? 'selected' : ''} ${tfClass(idx, false)}" onclick="selectTF(false)" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitTF()">确认答案</button>`;
+    }
+  } else if (q.type === 'SC') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const cls = answered ? scClass(idx, i) : (selected === i ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="selectSC(${i})">`;
+      html += `<span class="option-key">${String.fromCharCode(65 + i)}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitSC()">确认答案</button>`;
+    }
+  } else if (q.type === 'MC') {
+    const currentAns = answers[idx] || pendingAnswers[idx] || [];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const sel = currentAns.includes(i);
+      const cls = answered ? mcClass(idx, i) : (sel ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="toggleMC(${i})">`;
+      html += `<span class="option-key">${sel ? '☑' : '☐'}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    const currentDrag = dragState[idx] || new Array(q.blanks.length).fill(null);
+    html += `<div class="drag-zone" id="dragZone">`;
+    q.blanks.forEach((b, i) => {
+      const filled = currentDrag[i];
+      const slotCls = answered ? dragSlotClass(idx, i) : (filled ? 'filled' : '');
+      html += `<div class="drag-slot ${slotCls}" data-slot="${i}" onclick="${answered ? '' : `clearSlot(${i})`}">${filled || '（拖入）'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool">`;
+    q.pool.forEach((term, i) => {
+      const used = currentDrag.includes(term);
+      const chipCls = used ? 'used' : '';
+      html += `<div class="drag-chip ${chipCls}" draggable="${!used && !answered}" ondragstart="dragStart(event, ${i})" onclick="${answered ? '' : `fillSlot(${i})`}">${term}</div>`;
+    });
+    html += `</div>`;
+    if (!answered) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitDRAG()">提交</button>`;
+    }
+  }
+
+  html += `<div class="explanation ${exClass(idx)} ${answered?'show':''}">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}`;
+  if (q.followup && q.followup.length) {
+    html += `<div class="followup"><h4>面试官可能的追问：</h4><ol>`;
+    q.followup.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ol></div>`;
+  }
+  html += `<div class="src">来源：${q.src}</div>`;
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  if (q.type === 'DRAG' && !answered) {
+    const slots = container.querySelectorAll('.drag-slot');
+    slots.forEach(s => {
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('drag-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('drag-over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('drag-over');
+        const termIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        dropOnSlot(termIdx, parseInt(s.dataset.slot));
+      });
+    });
+  }
+
+  updateNav();
+  updateProgress();
+}
+
+function tfClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function scClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function mcClass(idx, val) {
+  const ans = answers[idx] || pendingAnswers[idx] || [];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer.includes(val);
+  const chosen = ans.includes(val);
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function dragSlotClass(idx, slot) {
+  if (answers[idx] === null) return '';
+  const expected = quizData[idx].blanks[slot].expected;
+  const actual = (dragState[idx] || [])[slot];
+  return actual === expected ? 'correct' : 'wrong';
+}
+function exClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const q = quizData[idx];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return false;
+  const ans = answers[idx] !== null ? answers[idx] : pendingAnswers[idx];
+  if (q.type === 'TF') return ans === q.answer;
+  if (q.type === 'SC') return ans === q.answer;
+  if (q.type === 'MC') {
+    const a = [...ans].sort().join(',');
+    const c = [...q.answer].sort().join(',');
+    return a === c;
+  }
+  if (q.type === 'DRAG') {
+    const ds = dragState[idx] || [];
+    return q.blanks.every((b, i) => ds[i] === b.expected);
+  }
+  return false;
+}
+
+function selectTF(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitTF() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function selectSC(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitSC() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function toggleMC(val) {
+  if (answers[current] !== null) return;
+  let a = pendingAnswers[current] || [];
+  if (a.includes(val)) a = a.filter(x => x !== val);
+  else a = [...a, val];
+  pendingAnswers[current] = a;
+  renderQuestion(current);
+}
+function submitMC() {
+  if (answers[current] !== null) return;
+  if ((pendingAnswers[current] || []).length === 0) {
+    alert('请至少选择一个选项');
+    return;
+  }
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function dragStart(e, termIdx) {
+  e.dataTransfer.setData('text/plain', termIdx);
+}
+function fillSlot(termIdx) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  for (let i = 0; i < ds.length; i++) {
+    if (ds[i] === null) { ds[i] = term; break; }
+  }
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function clearSlot(slot) {
+  const ds = dragState[current] || [];
+  ds[slot] = null;
+  dragState[current] = ds.filter(x => x !== null);
+  while (dragState[current].length < quizData[current].blanks.length) dragState[current].push(null);
+  renderQuestion(current);
+}
+function dropOnSlot(termIdx, slot) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  ds[slot] = term;
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function submitDRAG() {
+  if (answers[current] !== null) return;
+  const ds = dragState[current] || [];
+  if (ds.filter(x => x !== null).length < quizData[current].blanks.length) {
+    alert('请填满所有空位');
+    return;
+  }
+  answers[current] = ds.slice();
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+
+function goPrev() { if (current > 0) { current--; renderQuestion(current); } }
+function goNext() { if (current < quizData.length - 1) { current++; renderQuestion(current); } }
+function finishQuiz() { showResults(); }
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').style.display = current === quizData.length - 1 ? 'none' : '';
+  document.getElementById('finishBtn').style.display = current === quizData.length - 1 ? '' : 'none';
+  document.getElementById('progressText').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('scoreText').textContent = score;
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) updateOverview();
+}
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  updateOverview();
+}
+function updateOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const ans = answers[i];
+    let cls = '';
+    if (ans !== null) {
+      cls = isCorrect(i) ? 'correct' : 'wrong';
+    }
+    if (currentFilter === 'unanswered' && ans !== null) return;
+    if (currentFilter === 'correct' && (ans === null || !isCorrect(i))) return;
+    if (currentFilter === 'wrong' && (ans === null || isCorrect(i))) return;
+    html += `<div class="overview-tile ${cls}" onclick="jumpTo(${i})">`;
+    html += `<div class="tile-num">${i + 1}</div>`;
+    html += `<div class="tile-type">${TYPE_LABEL[q.type]}</div>`;
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) {
+  current = i;
+  document.getElementById('overviewPanel').classList.remove('show');
+  renderQuestion(current);
+}
+
+function resetAll() {
+  if (!confirm('确定要清空所有答题记录并重置分数？')) return;
+  answers = new Array(quizData.length).fill(null);
+  pendingAnswers = new Array(quizData.length).fill(null);
+  dragState = new Array(quizData.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  const pct = score / (quizData.length * 10) * 100;
+  const msg = pct >= 90 ? 'Nanite CullRaster 大师！能去面试 Epic 了 🎉' :
+              pct >= 70 ? '基础扎实，5.4 Bin 调度能讲清楚 💪' :
+              pct >= 50 ? '概念地图建立中，建议先看 [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] 📖' :
+                          '回到配套笔记重新读一遍，再来！🔁';
+  document.getElementById('resultsMsg').textContent = msg;
+  let review = '';
+  quizData.forEach((q, i) => {
+    if (answers[i] !== null && !isCorrect(i)) {
+      const ansStr = formatAnswer(q, answers[i]);
+      const corrStr = formatAnswer(q, q.answer);
+      review += `<div class="review-item"><h4>第 ${i + 1} 题 · ${TYPE_LABEL[q.type]}：${q.question}</h4>`;
+      review += `<p>你的答案：<span class="your-ans">${ansStr}</span></p>`;
+      review += `<p>正确答案：<span class="correct-ans">${corrStr}</span></p></div>`;
+    }
+  });
+  document.getElementById('reviewSection').innerHTML = review || '<p style="color:var(--muted);text-align:center">全部正确，零错题 🎯</p>';
+}
+function formatAnswer(q, ans) {
+  if (q.type === 'TF') return ans ? 'True' : 'False';
+  if (q.type === 'SC') return String.fromCharCode(65 + ans);
+  if (q.type === 'MC') return ans.map(i => String.fromCharCode(65 + i)).join(', ');
+  if (q.type === 'DRAG') return (ans || []).join(' / ');
+  return String(ans);
+}
+function restartQuiz() { resetAll(); }
+function retryWrong() {
+  const wrongIdx = quizData.map((q, i) => (!isCorrect(i) && answers[i] !== null) ? i : -1).filter(i => i >= 0);
+  if (wrongIdx.length === 0) { alert('没有错题可以重做！'); return; }
+  wrongIdx.forEach(i => { answers[i] = null; pendingAnswers[i] = null; dragState[i] = null; });
+  score = 0;
+  current = wrongIdx[0];
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+renderQuestion(0);
+updateOverview();
+</script>
+</body>
+</html>

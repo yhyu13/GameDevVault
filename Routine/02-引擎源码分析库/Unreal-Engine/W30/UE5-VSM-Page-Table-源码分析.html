@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VSM Page Table 源码 — 卡牌 (W30)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation {
+    margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg);
+    font-size: 0.92rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup {
+    margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px;
+    border: 1px dashed var(--accent);
+  }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel {
+    display: none; margin-bottom: 16px; padding: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .overview-filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white;
+    cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>VSM Page Table + Page Allocation — 源码卡牌</h1>
+    <p>UE 5.8 · VirtualShadowMapArray.cpp (284KB / 30+ CVars)</p>
+    <div class="header-meta">配套笔记: <a href="UE5-VSM-Page-Table-源码分析.md">[[UE5-VSM-Page-Table-源码分析]]</a> · W30 · 10 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 10</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <strong>题目总览</strong>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="nav-bar" id="navBar">
+    <span class="nav-hint">← → 切换题目 · 选择后点击「确认答案」提交</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+      <button class="btn btn-secondary" id="finishBtn" onclick="finishQuiz()" style="display:none">完成</button>
+    </div>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "TF",
+    id: 1,
+    question: "VSM 物理 page 大小是 128x128 texel，4-5 级 mip 链。VSM Atlas 默认 ~1 GB（4 light types × 4096 pages × 128x128 × 2 bytes 深度）。",
+    answer: true,
+    src: "UE5-VSM-Page-Table-源码分析.md §内存布局分析 VSM Atlas 大小",
+    explanation: "正确。VSM 物理 page 128x128（来自 Lumen.h:45），mip 链 4-5 级。4 light types × 4096 pages (MaxPhysicalPages) × 128x128 × 2 bytes (深度) ≈ 1 GB。**实测典型项目: 2-4 GB atlas**。",
+    followup: [
+      "追问：4 light types 是哪 4 个？",
+      "答：Directional（cascade）、Spot、Point（cube 6 面）、Rect。各走不同 page pool 路径——Directional 走 Clipmap，Spot/Point/Rect 走 single page pool。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 2,
+    question: "`FVirtualShadowMapArray::BuildPageAllocations` 在哪个文件:行？",
+    options: [
+      "A. VirtualShadowMapArray.cpp:928",
+      "B. VirtualShadowMapArray.cpp:2516",
+      "C. VirtualShadowMapArray.cpp:3227",
+      "D. VirtualShadowMapArray.cpp:4829"
+    ],
+    answer: 2,
+    src: "UE5-VSM-Page-Table-源码分析.md §关键类与文件 关键函数",
+    explanation: "C 正确。`BuildPageAllocations` 在 `VirtualShadowMapArray.cpp:3227`，**Page 分配核心**——每帧根据 camera 位置 + light 投影决定哪些 logical page 分配到 physical page。A 错（:928 是 Initialize）；B 错（:2516 是 BeginMarkPages）；D 错（:4829 是 UpdateHZB）。",
+    followup: [
+      "追问：BuildPageAllocations 跟 BuildPageAllocations 的区别？",
+      "答：BuildPageAllocations = 物理 page 分配（已分配的）；Allocations = 分配请求。两者配合——Allocations 生成请求，Allocations 决定怎么分配。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 3,
+    question: "VSM 30+ CVar 中，哪些是 page budget 类？（多选）",
+    options: [
+      "A. r.Shadow.Virtual.MaxPhysicalPages (4096)",
+      "B. r.Shadow.Virtual.Enable",
+      "C. r.Shadow.Virtual.MarkPixelPages",
+      "D. r.Shadow.Virtual.BuildDynamicHZB",
+      "E. r.Shadow.Virtual.CullBackfacingPixels",
+      "F. r.Shadow.Virtual.ShowStats"
+    ],
+    answer: [0, 2],
+    src: "UE5-VSM-Page-Table-源码分析.md §核心 CVar 全表",
+    explanation: "A、C 正确——`r.Shadow.Virtual.MaxPhysicalPages` (4096) 是物理 page 总数，`r.Shadow.Virtual.MarkPixelPages` (1) 控制 pixel-level 标记（影响 page 数量）。B（Enable）只是开关；D（BuildDynamicHZB）是 HZB 构建；E（CullBackfacingPixels）是背面剔除；F（ShowStats）只是显示。",
+    followup: [
+      "追问：调 page budget CVar 有什么风险？",
+      "答：调小 `MaxPhysicalPages` → page 复用频繁 → 远处大物体阴影闪烁；调小 `MarkPixelPages` → 内存减半但远处阴影精度掉档。**调参前必须用 r.Shadow.Virtual.ShowStats 1 看 page 占用**。"
+    ]
+  },
+  {
+    type: "DRAG",
+    id: 4,
+    question: "VSM 一帧 4 阶段：① {0}（Setup page pool）→ ② {1}（决定哪些 page 要 mark）→ ③ {2}（Page 分配 + evict）→ ④ {3}（Nanite / Non-Nanite 路径渲染 + HZB）。",
+    blanks: [
+      { idx: 0, expected: "Initialize" },
+      { idx: 1, expected: "BeginMarkPages" },
+      { idx: 2, expected: "BuildPageAllocations" },
+      { idx: 3, expected: "Render" }
+    ],
+    pool: ["Initialize", "BeginMarkPages", "BuildPageAllocations", "Render", "Setup", "Cull", "Feedback", "Project"],
+    src: "UE5-VSM-Page-Table-源码分析.md §模块交互图 线程视角",
+    explanation: "正确填空：{0}=Initialize（Setup page pool @ :928）→{1}=BeginMarkPages（决定哪些 page 要 mark @ :2516）→{2}=BuildPageAllocations（Page 分配 + evict @ :3227）→{3}=Render（Nanite @ :4218 / Non-Nanite @ :4389 路径 + HZB @ :4829）。Setup / Cull / Feedback / Project 不是 VSM 阶段。",
+    followup: [
+      "追问：VSM 跟 Lumen Surface Cache 的 4 阶段有什么异同？",
+      "答：阶段类似（setup / mark / allocate / render）但数据不同。Lumen 处理 GI（4 层 Atlas + 6 方向 OBB Card），VSM 处理阴影（128x128 page + 4-5 mip chain）。**底层都是「虚拟页表 + GPU resident state」设计哲学**。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 5,
+    question: "Non-Nanite mesh 走 VSM 默认走 CPU side culling（`r.Shadow.Virtual.NonNaniteVsmUseHzb 0`），开 `1` 走 GPU HZB cull。",
+    answer: true,
+    src: "UE5-VSM-Page-Table-源码分析.md §RenderVirtualShadowMapsNonNanite",
+    explanation: "正确。`RenderVirtualShadowMapsNonNanite` (`:4389`) 默认 CPU side culling，**开 `r.Shadow.Virtual.NonNaniteVsmUseHzb 1` 走 GPU HZB cull**。GPU HZB cull 性能更好（CPU cull 对大量 mesh 慢），但需要 HZB 构建支持。",
+    followup: [
+      "追问：什么时候不开 GPU HZB cull？",
+      "答：CPU 端调试 / profile 时不开（HZB 隐藏了 cull 决策）；小场景（mesh 少）CPU cull 也够用；5.0 之前 HZB cull 还没稳。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 6,
+    question: "Directional Light 走 VSM 走哪条路径？",
+    options: [
+      "A. 跟 Spot / Point 一样的 single page pool",
+      "B. FVirtualShadowMapClipmap (32KB) 8-16 层 cascade",
+      "C. 走 HZB 单独路径",
+      "D. 不支持 VSM"
+    ],
+    answer: 1,
+    src: "UE5-VSM-Page-Table-源码分析.md §4 类光源路径",
+    explanation: "B 正确。Directional Light 走 `FVirtualShadowMapClipmap` (32KB) **8-16 层 cascade**（世界空间），每层独立 page pool，page 跨层共享。A 错（Directional 不能跟 Spot/Point 混 pool，光源类型不同）；C 错（HZB 是 occlusion 工具不是 light 路径）；D 错（UE5 默认 VSM 支持 Directional）。",
+    followup: [
+      "追问：Clipmap 层数怎么选？",
+      "答：8 层适合大多数场景，16 层适合超远视野（飞行游戏），32 层适合超大规模。8→16 显存 ×2，16→32 ×2。**没有通用最优**，按场景 profile 调。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 7,
+    question: "VSM Page eviction 4 层策略是哪些？（多选）",
+    options: [
+      "A. LRU（最久未用 page 先 evict）",
+      "B. Page Locking（重要 page 不 evict）",
+      "C. Page Sharing（不同光源共享 page pool）",
+      "D. 直接清空整个 page pool 重建",
+      "E. 复用远场 / 不重要 page",
+      "F. 按光线优先级 evict（先 evict 远光）"
+    ],
+    answer: [0, 1, 2, 4],
+    src: "UE5-VSM-Page-Table-源码分析.md §BuildPageAllocations",
+    explanation: "A、B、C、E 正确——VSM page eviction 四层：① LRU ② Page Locking ③ Page Sharing（不同光源 / 视图共享 page pool）④ 复用远场 page。D 错（不会清空整个 pool）；F 错（按距离 / 重要性 evict，不是按光线优先级）。",
+    followup: [
+      "追问：Page Locking 太多会怎样？",
+      "答：lock 太多 → page 预算不够 → 远处大物体阴影闪烁。**调 r.Shadow.Virtual.MaxPhysicalPages 加大物理预算**，或减少 lock 数（代码层修改）。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 8,
+    question: "`r.Shadow.Virtual.MaxPhysicalPages` 默认 4096，对应 ~256MB atlas 显存。",
+    answer: true,
+    src: "UE5-VSM-Page-Table-源码分析.md §核心 CVar 全表",
+    explanation: "正确。`r.Shadow.Virtual.MaxPhysicalPages` 默认 4096（4 light types × 4096 pages × 128x128 × 2 bytes 深度 ≈ 1 GB；按单 light type 是 ~256MB）。**实测典型项目: 2-4 GB atlas**（因为 page mip 链 + 多种 light type 叠加）。",
+    followup: [
+      "追问：4096 pages 不够怎么办？",
+      "答：`r.Shadow.Virtual.MaxPhysicalPages 4096 → 8192`（显存翻倍）；或 `r.Shadow.Virtual.Enable 0`（VSM 关 → fallback CSM，内存大降）；或 `r.Shadow.Virtual.MarkPixelPages 0`（pixel-level 标记关 → 内存减半）。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 9,
+    question: "VSM 跟 Lumen / Nanite Page Table 的核心设计哲学是？",
+    options: [
+      "A. 各自独立，无共同点",
+      "B. 同源走「虚拟页表 + GPU resident state + feedback evict」",
+      "C. 走传统 CSM 路径",
+      "D. 完全用 CPU 管理"
+    ],
+    answer: 1,
+    src: "UE5-VSM-Page-Table-源码分析.md §与工作的关联",
+    explanation: "B 正确。VSM 跟 Lumen Surface Cache（128x128 page + sub-alloc）/ Nanite（Page Table）**完全同源**走「虚拟页表 + GPU resident state + feedback evict」设计哲学。**UE5 一致的设计哲学**。A 错（独立但有共同点）；C 错（VSM 是 5.x 主推，CSM 是 fallback）；D 错（page table 在 GPU）。",
+    followup: [
+      "追问：同源设计给 LLM 调参什么启发？",
+      "答：LLM 调阴影 vs 调 GI vs 调几何时，**用同一套「虚拟化」思维模型**——page budget / mip chain / feedback evict / cross-frame residency 是共通概念。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 10,
+    question: "Mac 上 VSM 跑有什么坑？（多选）",
+    options: [
+      "A. Metal RHI 5.0 之前 page residency 有 bug，5.4+ 修复",
+      "B. Contact Shadow 在 Mac 上 ray-march 较慢，角色密集场景要限制",
+      "C. 5.4 之前 VSM 在 Mac 上完全不能跑",
+      "D. Mac 跑 VSM 性能比 Windows 慢 10x",
+      "E. r.Shadow.Virtual.Enable 在 Mac 上不生效",
+      "F. VSM 在 Mac 上比 Windows 快 2x"
+    ],
+    answer: [0, 1],
+    src: "UE5-VSM-Page-Table-源码分析.md §设计评价-可改进点 + 论文痛点 4",
+    explanation: "A、B 正确——Mac 上 VSM 2 个真实坑：① Metal RHI 5.0 之前 page residency 有 bug（page 没正确释放导致显存压力），5.4+ 修复 ② Contact Shadow 在 Mac 上 ray-march 较慢（CPU 端 ray-march 性能受 Apple Silicon 影响），角色密集场景要限制数量或关闭。C（完全不能跑）错；D（慢 10x）错；E（不生效）错；F（快 2x）错。",
+    followup: [
+      "追问：day-job Mac Game Harness 上 VSM 怎么配置？",
+      "答：① Metal RHI 5.4+（5.0/5.1 page residency bug）② r.Shadow.Virtual.MaxPhysicalPages 加大预算 ③ r.Shadow.Virtual.MaxPhysicalPages 加大物理预算 ④ 角色数 > 50 关 Contact Shadow ⑤ Profile 用 Insights → Shadow 过滤。"
+    ]
+  }
+];
+
+let current = 0;
+let answers = new Array(quizData.length).fill(null);
+let pendingAnswers = new Array(quizData.length).fill(null);
+let dragState = new Array(quizData.length).fill(null);
+let score = 0;
+let currentFilter = 'all';
+
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  let html = `<div class="question-card ${answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} <span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'TF') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${selected === true ? 'selected' : ''} ${tfClass(idx, true)}" onclick="selectTF(true)" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${selected === false ? 'selected' : ''} ${tfClass(idx, false)}" onclick="selectTF(false)" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitTF()">确认答案</button>`;
+    }
+  } else if (q.type === 'SC') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const cls = answered ? scClass(idx, i) : (selected === i ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="selectSC(${i})">`;
+      html += `<span class="option-key">${String.fromCharCode(65 + i)}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitSC()">确认答案</button>`;
+    }
+  } else if (q.type === 'MC') {
+    const currentAns = answers[idx] || pendingAnswers[idx] || [];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const sel = currentAns.includes(i);
+      const cls = answered ? mcClass(idx, i) : (sel ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="toggleMC(${i})">`;
+      html += `<span class="option-key">${sel ? '☑' : '☐'}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    const currentDrag = dragState[idx] || new Array(q.blanks.length).fill(null);
+    html += `<div class="drag-zone" id="dragZone">`;
+    q.blanks.forEach((b, i) => {
+      const filled = currentDrag[i];
+      const slotCls = answered ? dragSlotClass(idx, i) : (filled ? 'filled' : '');
+      html += `<div class="drag-slot ${slotCls}" data-slot="${i}" onclick="${answered ? '' : `clearSlot(${i})`}">${filled || '（拖入）'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool">`;
+    q.pool.forEach((term, i) => {
+      const used = currentDrag.includes(term);
+      const chipCls = used ? 'used' : '';
+      html += `<div class="drag-chip ${chipCls}" draggable="${!used && !answered}" ondragstart="dragStart(event, ${i})" onclick="${answered ? '' : `fillSlot(${i})`}">${term}</div>`;
+    });
+    html += `</div>`;
+    if (!answered) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitDRAG()">提交</button>`;
+    }
+  }
+
+  html += `<div class="explanation ${exClass(idx)} ${answered?'show':''}">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}`;
+  if (q.followup && q.followup.length) {
+    html += `<div class="followup"><h4>面试官可能的追问：</h4><ol>`;
+    q.followup.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ol></div>`;
+  }
+  html += `<div class="src">来源：${q.src}</div>`;
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  if (q.type === 'DRAG' && !answered) {
+    const slots = container.querySelectorAll('.drag-slot');
+    slots.forEach(s => {
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('drag-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('drag-over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('drag-over');
+        const termIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        dropOnSlot(termIdx, parseInt(s.dataset.slot));
+      });
+    });
+  }
+
+  updateNav();
+  updateProgress();
+}
+
+function tfClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function scClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function mcClass(idx, val) {
+  const ans = answers[idx] || pendingAnswers[idx] || [];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer.includes(val);
+  const chosen = ans.includes(val);
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function dragSlotClass(idx, slot) {
+  if (answers[idx] === null) return '';
+  const expected = quizData[idx].blanks[slot].expected;
+  const actual = (dragState[idx] || [])[slot];
+  return actual === expected ? 'correct' : 'wrong';
+}
+function exClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const q = quizData[idx];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return false;
+  const ans = answers[idx] !== null ? answers[idx] : pendingAnswers[idx];
+  if (q.type === 'TF') return ans === q.answer;
+  if (q.type === 'SC') return ans === q.answer;
+  if (q.type === 'MC') {
+    const a = [...ans].sort().join(',');
+    const c = [...q.answer].sort().join(',');
+    return a === c;
+  }
+  if (q.type === 'DRAG') {
+    const ds = dragState[idx] || [];
+    return q.blanks.every((b, i) => ds[i] === b.expected);
+  }
+  return false;
+}
+
+function selectTF(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitTF() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function selectSC(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitSC() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function toggleMC(val) {
+  if (answers[current] !== null) return;
+  let a = pendingAnswers[current] || [];
+  if (a.includes(val)) a = a.filter(x => x !== val);
+  else a = [...a, val];
+  pendingAnswers[current] = a;
+  renderQuestion(current);
+}
+function submitMC() {
+  if (answers[current] !== null) return;
+  if ((pendingAnswers[current] || []).length === 0) {
+    alert('请至少选择一个选项');
+    return;
+  }
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function dragStart(e, termIdx) {
+  e.dataTransfer.setData('text/plain', termIdx);
+}
+function fillSlot(termIdx) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  for (let i = 0; i < ds.length; i++) {
+    if (ds[i] === null) { ds[i] = term; break; }
+  }
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function clearSlot(slot) {
+  const ds = dragState[current] || [];
+  ds[slot] = null;
+  dragState[current] = ds.filter(x => x !== null);
+  while (dragState[current].length < quizData[current].blanks.length) dragState[current].push(null);
+  renderQuestion(current);
+}
+function dropOnSlot(termIdx, slot) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  ds[slot] = term;
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function submitDRAG() {
+  if (answers[current] !== null) return;
+  const ds = dragState[current] || [];
+  if (ds.filter(x => x !== null).length < quizData[current].blanks.length) {
+    alert('请填满所有空位');
+    return;
+  }
+  answers[current] = ds.slice();
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+
+function goPrev() { if (current > 0) { current--; renderQuestion(current); } }
+function goNext() { if (current < quizData.length - 1) { current++; renderQuestion(current); } }
+function finishQuiz() { showResults(); }
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').style.display = current === quizData.length - 1 ? 'none' : '';
+  document.getElementById('finishBtn').style.display = current === quizData.length - 1 ? '' : 'none';
+  document.getElementById('progressText').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('scoreText').textContent = score;
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) updateOverview();
+}
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  updateOverview();
+}
+function updateOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const ans = answers[i];
+    let cls = '';
+    if (ans !== null) {
+      cls = isCorrect(i) ? 'correct' : 'wrong';
+    }
+    if (currentFilter === 'unanswered' && ans !== null) return;
+    if (currentFilter === 'correct' && (ans === null || !isCorrect(i))) return;
+    if (currentFilter === 'wrong' && (ans === null || isCorrect(i))) return;
+    html += `<div class="overview-tile ${cls}" onclick="jumpTo(${i})">`;
+    html += `<div class="tile-num">${i + 1}</div>`;
+    html += `<div class="tile-type">${TYPE_LABEL[q.type]}</div>`;
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) {
+  current = i;
+  document.getElementById('overviewPanel').classList.remove('show');
+  renderQuestion(current);
+}
+
+function resetAll() {
+  if (!confirm('确定要清空所有答题记录并重置分数？')) return;
+  answers = new Array(quizData.length).fill(null);
+  pendingAnswers = new Array(quizData.length).fill(null);
+  dragState = new Array(quizData.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  const pct = score / (quizData.length * 10) * 100;
+  const msg = pct >= 90 ? 'VSM 大师！Page Table / Clipmap / Contact Shadow 都能讲 🎉' :
+              pct >= 70 ? '基础扎实，30+ CVar + 4 阶段调度能讲清楚 💪' :
+              pct >= 50 ? '概念地图建立中，建议先看 [[UE5-VSM-Page-Table-源码分析]] 📖' :
+                          '回到配套笔记重新读一遍，再来！🔁';
+  document.getElementById('resultsMsg').textContent = msg;
+  let review = '';
+  quizData.forEach((q, i) => {
+    if (answers[i] !== null && !isCorrect(i)) {
+      const ansStr = formatAnswer(q, answers[i]);
+      const corrStr = formatAnswer(q, q.answer);
+      review += `<div class="review-item"><h4>第 ${i + 1} 题 · ${TYPE_LABEL[q.type]}：${q.question}</h4>`;
+      review += `<p>你的答案：<span class="your-ans">${ansStr}</span></p>`;
+      review += `<p>正确答案：<span class="correct-ans">${corrStr}</span></p></div>`;
+    }
+  });
+  document.getElementById('reviewSection').innerHTML = review || '<p style="color:var(--muted);text-align:center">全部正确，零错题 🎯</p>';
+}
+function formatAnswer(q, ans) {
+  if (q.type === 'TF') return ans ? 'True' : 'False';
+  if (q.type === 'SC') return String.fromCharCode(65 + ans);
+  if (q.type === 'MC') return ans.map(i => String.fromCharCode(65 + i)).join(', ');
+  if (q.type === 'DRAG') return (ans || []).join(' / ');
+  return String(ans);
+}
+function restartQuiz() { resetAll(); }
+function retryWrong() {
+  const wrongIdx = quizData.map((q, i) => (!isCorrect(i) && answers[i] !== null) ? i : -1).filter(i => i >= 0);
+  if (wrongIdx.length === 0) { alert('没有错题可以重做！'); return; }
+  wrongIdx.forEach(i => { answers[i] = null; pendingAnswers[i] = null; dragState[i] = null; });
+  score = 0;
+  current = wrongIdx[0];
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+renderQuestion(0);
+updateOverview();
+</script>
+</body>
+</html>
