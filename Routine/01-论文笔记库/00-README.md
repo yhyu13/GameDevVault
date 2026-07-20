@@ -46,16 +46,16 @@
 > 4. **2025-NVIDIA-RTXKit-UE5** — Mega Geometry vs Nanite 对照；AI 资产的下游解放
 > 5. **2025-NVIDIA-NeuralShading-DirectX** — Mac 平台 CoopVec 跟进是关键风险点
 
-#### GDC 2026 — AI Harness / LLM 驱动游戏引擎 (6 篇，2026-07 累计)
+#### AI Harness / LLM 驱动游戏引擎 (5 GDC 2026 talks + 1 arXiv 工业参考, 2026-07 累计)
 
-> 这组把视角从**"AI 在游戏里的内容（神经渲染 / 资产生成 / world model）"切换到"AI 接管/驱动游戏开发本身（harness / agent / 工具链）"**——是 day-job "LLM-driven UE on Mac" 主线的直接参考。每篇都给出 day-job Mac Game Harness 的具体启发（P0）。**前 5 篇是 GDC 2026 talks，第 6 篇 (Anthropic Computer Use) 是 arXiv 工业参考**——**两者形成 "GDC 演讲叙事 + arXiv 工程底座" 双层 anchor**。
+> 这组把视角从**"AI 在游戏里的内容（神经渲染 / 资产生成 / world model）"切换到"AI 接管/驱动游戏开发本身（harness / agent / 工具链）"**——是 day-job "LLM-driven UE on Mac" 主线的直接参考。每篇都给出 day-job Mac Game Harness 的具体启发（P0）。**5 篇 GDC 2026 talks 提供工业叙事锚点，1 篇 arXiv 工业参考 (Anthropic Computer Use) 提供工程底座**——**两者形成 "GDC 演讲叙事 + arXiv 工程底座" 双层 anchor**。
 
 - [[GDC/2026-Tencent-Timi-AgenticAI-GameDev-98pct]] — **天美工作室 (余煜/牟骞) 可微智能 Agentic AI**：AAA 工程 98% 自动化编程；"降低对模型能力要求" 反共识判断；"AI Native 团队"组织探索
 - [[GDC/2026-Bitmagic-AINativeGameEngine]] — **Bitmagic (Jani Penttinen) AI-Native 引擎**："prompt-玩-迭代" 闭环 UX；"创作者 vs 消费用户" 明确分流；"99% 的人不会编程" 产品定位元命题
 - [[GDC/2026-GlassBeadGames-MultiAgentGameStudio]] — **Glass Bead Games (Kuangye Guo) 4 人 + 8 agents**："agents 性能 = 文档质量" 元命题；"prompt 清晰度检验" hard standard；"AI 接管决策表" 团队管理工具
 - [[GDC/2026-Microsoft-VS2026-Copilot-GameDev]] — **微软 Visual Studio 2026 + Copilot Agent Mode + MCP**："AI-Native IDE" 范式；MCP 协议作为 harness 工具暴露事实标准；MCP 双重信任验证 + Token 用量追踪
 - [[GDC/2026-GoogleDeepMind-SIMA2-GenericGameAgent]] — **DeepMind SIMA 2 通用游戏 agent**：基于 Gemini 2.5 Flash-lite 轻量模型；"理解从未见过的环境" 范式；"self-improvement loop" 作为 day-job harness 核心机制；SIMA 2 + Genie 3 组合 = day-job 长期 "AI 测试 harness" vision
-- [[GDC/2024-Anthropic-ComputerUse-OSAgent]] — **Anthropic Computer Use (arXiv 2410.08193, 2024-10)**：**LLM 工业界第一个 GUI-agent 范式**；**MCP-first + GUI-fallback 双轨制**作为 day-job Mac Game Harness 架构补完的"最后一公里"；**OSWorld 24% 准确率**作为 GUI-agent 期望管理硬约束；**4 步 mitigation (VM 隔离 + 工具白名单 + 关键操作 human-in-loop + 全 trace)** 作为 prompt injection 防护基线；**vendor-neutral 抽象**避免绑死 Anthropic / OpenAI
+- [[arxiv/2024-Anthropic-ComputerUse-OSAgent]] — **Anthropic Computer Use (arXiv 2410.08193, 2024-10)**：**LLM 工业界第一个 GUI-agent 范式**；**MCP-first + GUI-fallback 双轨制**作为 day-job Mac Game Harness 架构补完的"最后一公里"；**OSWorld 24% 准确率**作为 GUI-agent 期望管理硬约束；**4 步 mitigation (VM 隔离 + 工具白名单 + 关键操作 human-in-loop + 全 trace)** 作为 prompt injection 防护基线；**vendor-neutral 抽象**避免绑死 Anthropic / OpenAI
 
 > **6 篇对应的 day-job P0 主线（按"AI harness in game engine"维度）：**
 > 1. **Tencent 天美 (98% 自动化)** — harness 终极形态参考；"可微智能"作为术语直接借用

@@ -355,7 +355,7 @@ Tool Router 决策:
 
 ## 输出产物
 
-- [x] 本 paper note 落盘 `Routine/01-论文笔记库/GDC/2024-Anthropic-ComputerUse-OSAgent.md`
+- [x] 本 paper note 落盘 `Routine/01-论文笔记库/arxiv/2024-Anthropic-ComputerUse-OSAgent.md`
 - [x] 00-README.md 增量：第 6 篇 AI Harness 条目 + 1 段 day-job P0 主线对照表
 - [ ] (后续) 复现 sandbox → `Career/Kimi/UE5_Training_MCP/sandbox/`
 - [ ] (后续) Mac OSWorld 评测 → `Routine/04-性能优化备忘录/Mac-OSWorld-Score.md`
