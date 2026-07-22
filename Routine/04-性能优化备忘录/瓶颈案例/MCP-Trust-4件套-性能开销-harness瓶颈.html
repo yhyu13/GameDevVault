@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP Trust 4 件套性能开销 — 瓶颈案例卡 — 性能卡牌 (W30)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation {
+    margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg);
+    font-size: 0.92rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup {
+    margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px;
+    border: 1px dashed var(--accent);
+  }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel {
+    display: none; margin-bottom: 16px; padding: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .overview-filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white;
+    cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>MCP Trust 4 件套性能开销 — 瓶颈案例卡</h1>
+    <p>Trust 4 件套 / day-job Harness / W30 协议级</p>
+    <div class="header-meta">配套笔记: <a href="MCP-Trust-4件套-性能开销-harness瓶颈.md">[[MCP-Trust-4件套-性能开销-harness瓶颈]]</a> · 瓶颈案例 · W30 配套 · 12 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 10</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <strong>题目总览</strong>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="nav-bar" id="navBar">
+    <span class="nav-hint">← → 切换题目 · 选择后点击「确认答案」提交</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+      <button class="btn btn-secondary" id="finishBtn" onclick="finishQuiz()" style="display:none">完成</button>
+    </div>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "DRAG",
+    id: 1,
+    question: "MCP Trust 4 件套:① 启动前 {0} 比对 → ② 启动后 {1} fingerprint → ③ {2} confirm (用户决策) → ④ {3} 持久化。",
+    blanks: [
+      { idx: 0, expected: "manifest" },
+      { idx: 1, expected: "periodic" },
+      { idx: 2, expected: "变更" },
+      { idx: 3, expected: "manifest" },
+    ],
+    pool: ["manifest", "periodic", "变更", "immediate", "background", "compressed"],
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §根因 1 + W30 MCP 源码分析",
+    explanation: "正确填空:{0}=manifest(启动前比对历史 trusted manifest)→{1}=periodic(每分钟 1 次 fingerprint 校验)→{2}=变更(每次 tool hash 变化弹 confirm)→{3}=manifest(每次 Trust 事件写盘供下次启动比对)。",
+    followup: [
+      "追问:为什么 Trust 4 件套必要?",
+      "答:**安全基线**——MCP server 暴露 LLM 调用的工具,如果工具 hash 变化(被恶意篡改),LLM 会调错工具。Trust 4 件套让用户决策权落地,防止 LLM 自动调危险工具。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 2,
+    question: "day-job Harness 按 MCP 1.1 spec 启动时,Trust 验证 4 件套的典型启动延迟是?",
+    options: [
+      "A. 100-500ms (无 Trust)",
+      "B. 5-10s (含弹窗阻塞)",
+      "C. 30-60s (所有 4 件套)",
+      "D. 0ms (后台异步)",
+    ],
+    answer: 1,
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §现象描述 + 根因 2",
+    explanation: "B 正确。**5-10s 启动延迟** = manifest 加载 (50-200ms) + fingerprint 计算 (100-500ms) + **弹窗阻塞 (5-30s 用户决策)** + 写盘 (50-200ms) 总和。C 错(30-60s 太久),D 错(弹窗必须阻塞,等用户决策)。",
+    followup: [
+      "追问:怎么把 5-10s 启动延迟降到 100-500ms?",
+      "答:**智能 Trust Cache**(24h TTL):首次启动 Trust 后,24h 内重启**直接通过**,不再弹窗。`~/.harness/trust_cache.json` 存 server_id + trust_time。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 3,
+    question: "Trust 4 件套的安全设计跟 LLM 自动化效率存在张力,需要按 \"读类自动 / 写类 session 内 / 危险每次\" 3 级别分级别 Trust 平衡。",
+    answer: true,
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §根因 + 经验沉淀",
+    explanation: "正确。**安全第一** (用户决策权、变更确认、manifest 持久化) ↔ **自动化效率** (LLM 调工具、agent loop、长跑 Harness) 是张力点。**3 级别 Trust**:读类工具(get_world_outliner)自动 trust,写类工具(spawn_actor)session 内 0 阻塞,危险工具(delete_actor / build_lighting)每次 confirm。",
+    followup: [
+      "追问:分级别 Trust 怎么实现?",
+      "答:**TOOL_TRUST_LEVELS** 字典 + `should_confirm(tool_name)` 函数:level=LOW 直接通过,level=MEDIUM 检查 session cache,level=HIGH 每次 confirm。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 4,
+    question: "day-job Harness 5 套 Trust 4 件套性能优化包括?(多选)",
+    options: [
+      "A. 智能 Trust Cache (24h TTL, 减少 90% 启动延迟)",
+      "B. 异步 Periodic Check (避免主线程 100ms 抢占/分钟)",
+      "C. 预 Trust 模式 (LLM 调工具 confirm 阻塞 5-30s → 0)",
+      "D. Manifest 异步持久化 (消除 50-200ms IO 等待)",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §方案 A-D",
+    explanation: "A、B、C、D 全部正确——5 套优化(方案 A 智能 Cache + 方案 B 异步 Periodic + 方案 C 预 Trust + 方案 D 异步 IO + 方案 E 分级别 Trust),综合实施后 **day-job Harness 启动 +10s → 100-500ms, periodic 100ms 抢占/分钟 → 0, confirm 阻塞 5-30s → 0(读/写类工具)**。",
+    followup: [
+      "追问:5 套优化哪个收益最大?",
+      "答:**方案 C 预 Trust 模式**——LLM 调工具 confirm 阻塞 5-30s → 0(预 trust 列表内),**这是 day-job Harness 自动化效率的核心**。其他 4 套优化都是锦上添花。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 5,
+    question: "MCP Agent Loop 6 阶段:① {0} (LLM 输出 plan) → ② {1} (用户决策) → ③ {2} (调 MCP 工具) → ④ {3} (记录输出) → ⑤ {4} (调整 plan) → ⑥ {5} (返回结果)。",
+    blanks: [
+      { idx: 0, expected: "Planning Mode" },
+      { idx: 1, expected: "Tool Call Confirm" },
+      { idx: 2, expected: "工具调用" },
+      { idx: 3, expected: "Observe" },
+      { idx: 4, expected: "Adapt" },
+      { idx: 5, expected: "Finish Plan" },
+    ],
+    pool: ["Planning Mode", "Tool Call Confirm", "工具调用", "Observe", "Adapt", "Finish Plan", "Sampling"],
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §根因 4 + W30 MCP 源码分析 §Agent Loop",
+    explanation: "正确填空:{0}=Planning Mode(LLM 输出 Markdown + JSON plan)→{1}=Tool Call Confirm(用户决策是否执行,**5-30s 阻塞**)→{2}=工具调用(调 MCP server 暴露的 tools/resources)→{3}=Observe(记录工具输出)→{4}=Adapt(根据 observe 调整 plan)→{5}=Finish Plan(返回最终结果)。",
+    followup: [
+      "追问:Agent Loop 跟 Trust 4 件套的冲突?",
+      "答:**Phase 2 Tool Call Confirm 是冲突点**——每次 confirm 阻塞 5-30s,LLM 必须等用户决策,Agent Loop 卡住。**分级别 Trust** 让写类工具 session 内 0 阻塞,只危险工具 confirm。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 6,
+    question: "MCP 1.1 spec 3 类端点是?",
+    options: [
+      "A. read / write / execute",
+      "B. tools / resources / prompts",
+      "C. request / response / event",
+      "D. function / data / code",
+    ],
+    answer: 1,
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md + W30 MCP 源码分析 §MCP 协议 3 类端点",
+    explanation: "B 正确。**MCP 1.1 spec** 3 类端点:**tools**(动作/函数调用,如 spawn_actor / compile_blueprint)、**resources**(数据/资源读取,如 get_world_outliner / get_recent_logs)、**prompts**(prompt 模板,如 ue_dev_workflow)。",
+    followup: [
+      "追问:3 类端点用 JSON-RPC 2.0 over 什么传输?",
+      "答:**stdio** 或 **HTTP**——MCP 1.1 spec 两种传输都支持。stdio 用于本地 MCP server (UE 编辑器内嵌),HTTP 用于远程 MCP server (云端 harness)。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 7,
+    question: "MCP 启动前 manifest 比对是设计选择,VS 2026 在 2026-06 月度更新中加入双重 Trust 验证,比 Anthropic 官方 spec 提前 6 个月。",
+    answer: true,
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §根因 1 + W30 MCP 源码分析",
+    explanation: "正确。**VS 2026 公开文档 (Microsoft 2026-06 月度更新)** 双重 Trust 验证 2026-06 加入——比 Anthropic 官方 spec 提前 6 个月。W30 MCP 源码分析明确这个时间点。",
+    followup: [
+      "追问:为什么 VS 2026 提前 6 个月?",
+      "答:**安全先行**——Microsoft 2026-06 月度更新把 Trust 验证集成到 VS 2026 IDE 的 MCP server 流程,Anthropic 官方 spec 后续才补上同款设计。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 8,
+    question: "Trust 4 件套性能开销分解哪些正确?(多选)",
+    options: [
+      "A. Harness 启动: +5-10s (含弹窗阻塞)",
+      "B. 稳态运行: +100ms 主线程抢占/分钟 (Periodic check)",
+      "C. 工具变更: +5-30s 阻塞 (用户决策)",
+      "D. Manifest 持久化: +50-200ms IO 等待",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §现象描述",
+    explanation: "A、B、C、D 全部正确——Trust 4 件套 4 类性能开销分解。所有开销叠加,day-job Harness 跑 LLM Agent Loop 会被频繁打断。**5 套优化** 让所有开销降到 0(预 Trust 列表内)。",
+    followup: [
+      "追问:Periodic check 100ms 抢占/分钟对 LLM RTT 影响?",
+      "答:**RTT 偶尔 +100ms**——LLM 调工具 RTT 通常 < 1s,Periodic check 抢占会让某些调用 RTT 略增。如果 Agent Loop 频繁调工具,**累计影响显著**。异步化后 0 影响。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 9,
+    question: "day-job Harness 5 套 Trust 优化:① 启动 {0} ② Periodic {1} ③ 工具调用 {2} ④ Manifest {3} ⑤ {4} (分级别 Trust)。",
+    blanks: [
+      { idx: 0, expected: "智能 Trust Cache" },
+      { idx: 1, expected: "异步 Periodic Check" },
+      { idx: 2, expected: "预 Trust 模式" },
+      { idx: 3, expected: "异步持久化" },
+      { idx: 4, expected: "分级别 Trust" },
+    ],
+    pool: ["智能 Trust Cache", "异步 Periodic Check", "预 Trust 模式", "异步持久化", "分级别 Trust", "manifest 压缩", "Hsm 加密"],
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §方案 A-E",
+    explanation: "正确填空:{0}=智能 Trust Cache(24h TTL,减少 90% 启动延迟)→{1}=异步 Periodic Check(避免主线程抢占)→{2}=预 Trust 模式(LLM 调工具 0 阻塞)→{3}=异步持久化(消除 IO 等待)→{4}=分级别 Trust(读/写/危险 3 级)。",
+    followup: [
+      "追问:5 套优化优先级?",
+      "答:**预 Trust 模式(方案 C) > 智能 Trust Cache(方案 A) > 异步 Periodic(方案 B) > 分级别 Trust(方案 E) > 异步持久化(方案 D)**。LLM 调工具 5-30s 阻塞是最痛点,先解。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 10,
+    question: "day-job Harness 实施 5 套优化后,启动延迟从 5-10s 降到多少?",
+    options: [
+      "A. 0ms (完全消除)",
+      "B. 100-500ms (仅 manifest 比对)",
+      "C. 1-2s (残余延迟)",
+      "D. 5-10s (无变化)",
+    ],
+    answer: 1,
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §方案 A",
+    explanation: "B 正确。**智能 Trust Cache (24h TTL)** 让 24h 内重启直接通过(弹窗阻塞 5-30s → 0),仅剩 manifest 比对(100-500ms)。A 错(manifest 比对本身要时间),C 错(1-2s 太久),D 错(5 套优化有显著效果)。",
+    followup: [
+      "追问:5 套优化后 LLM 调工具 RTT 多少?",
+      "答:**RTT < 1s (跟普通 MCP 调用一致)**——预 Trust 模式让写类工具 confirm 阻塞 5-30s → 0,LLM 调工具 RTT 正常。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 11,
+    question: "Manifest 异步持久化 (放后台线程写盘) 消除 50-200ms 主线程 IO 等待,但会增加 5-10s 启动延迟。",
+    answer: false,
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §方案 D + 根因 5",
+    explanation: "错误。**Manifest 异步持久化消除 50-200ms 主线程 IO 等待**,**不会增加启动延迟**——反而**配合智能 Trust Cache 让启动延迟从 5-10s 降到 100-500ms**。异步写盘是后台操作,主线程无感。",
+    followup: [
+      "追问:Manifest 异步持久化的实现?",
+      "答:**AsyncManifestWriter**: `asyncio.to_thread(self._write_sync, manifest)` 后台线程写盘,主线程 `queue.put_nowait(manifest)` 非阻塞调度。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 12,
+    question: "day-job Harness 验证清单 (5 套优化后) 哪些需要检查?(多选)",
+    options: [
+      "A. 启动 Manifest 加载 < 200ms",
+      "B. 首次启动 Trust Confirm 弹窗 < 10s",
+      "C. 第二次启动 (24h 内) 智能 Trust Cache 命中, 无弹窗",
+      "D. Periodic check 60s 间隔, 异步执行, 主线程 RTT 正常",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "MCP-Trust-4件套-性能开销-harness瓶颈.md §Mac Game Harness 验证清单 + LLM Agent Loop 验证",
+    explanation: "A、B、C、D 全部正确——5 套优化后 4 项验证清单:① Manifest 加载 < 200ms ② 首次弹窗 < 10s ③ 24h 内智能 Cache 命中 0 弹窗 ④ Periodic 60s 异步 RTT 正常。LLM Agent Loop 6 阶段跑通,Tool Call Confirm 仅危险工具触发。",
+    followup: [
+      "追问:Agent Loop 6 阶段在 harness 上跑通怎么验证?",
+      "答:跑 1-2 个 LLM Agent Loop 测试: ① Planning ② Tool Call (读/写类 0 阻塞, 危险类 confirm) ③ 工具调用 ④ Observe ⑤ Adapt ⑥ Finish。每个阶段都 < 1s 完成, 没有 5-30s 阻塞。",
+    ],
+  },
+];
+];
+
+/* ====== 状态 ====== */
+let current = 0;
+let answers = new Array(quizData.length).fill(null);
+let pendingAnswers = new Array(quizData.length).fill(null);
+let dragState = new Array(quizData.length).fill(null);
+let score = 0;
+let currentFilter = 'all';
+
+/* ====== 渲染 ====== */
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  let html = `<div class="question-card ${answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} <span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'TF') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${selected === true ? 'selected' : ''} ${tfClass(idx, true)}" onclick="selectTF(true)" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${selected === false ? 'selected' : ''} ${tfClass(idx, false)}" onclick="selectTF(false)" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitTF()">确认答案</button>`;
+    }
+  } else if (q.type === 'SC') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const cls = answered ? scClass(idx, i) : (selected === i ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="selectSC(${i})">`;
+      html += `<span class="option-key">${String.fromCharCode(65 + i)}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitSC()">确认答案</button>`;
+    }
+  } else if (q.type === 'MC') {
+    const currentAns = answers[idx] || pendingAnswers[idx] || [];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const sel = currentAns.includes(i);
+      const cls = answered ? mcClass(idx, i) : (sel ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="toggleMC(${i})">`;
+      html += `<span class="option-key">${sel ? '☑' : '☐'}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    const currentDrag = dragState[idx] || new Array(q.blanks.length).fill(null);
+    html += `<div class="drag-zone" id="dragZone">`;
+    q.blanks.forEach((b, i) => {
+      const filled = currentDrag[i];
+      const slotCls = answered ? dragSlotClass(idx, i) : (filled ? 'filled' : '');
+      html += `<div class="drag-slot ${slotCls}" data-slot="${i}" onclick="${answered ? '' : `clearSlot(${i})`}">${filled || '（拖入）'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool">`;
+    q.pool.forEach((term, i) => {
+      const used = currentDrag.includes(term);
+      const chipCls = used ? 'used' : '';
+      html += `<div class="drag-chip ${chipCls}" draggable="${!used && !answered}" ondragstart="dragStart(event, ${i})" onclick="${answered ? '' : `fillSlot(${i})`}">${term}</div>`;
+    });
+    html += `</div>`;
+    if (!answered) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitDRAG()">提交</button>`;
+    }
+  }
+
+  html += `<div class="explanation ${exClass(idx)} ${answered?'show':''}">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}`;
+  if (q.followup && q.followup.length) {
+    html += `<div class="followup"><h4>面试官可能的追问：</h4><ol>`;
+    q.followup.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ol></div>`;
+  }
+  html += `<div class="src">来源：${q.src}</div>`;
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  if (q.type === 'DRAG' && !answered) {
+    const slots = container.querySelectorAll('.drag-slot');
+    slots.forEach(s => {
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('drag-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('drag-over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('drag-over');
+        const termIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        dropOnSlot(termIdx, parseInt(s.dataset.slot));
+      });
+    });
+  }
+
+  updateNav();
+  updateProgress();
+}
+
+function tfClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function scClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function mcClass(idx, val) {
+  const ans = answers[idx] || pendingAnswers[idx] || [];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer.includes(val);
+  const chosen = ans.includes(val);
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function dragSlotClass(idx, slot) {
+  if (answers[idx] === null) return '';
+  const expected = quizData[idx].blanks[slot].expected;
+  const actual = (dragState[idx] || [])[slot];
+  return actual === expected ? 'correct' : 'wrong';
+}
+function exClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const q = quizData[idx];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return false;
+  const ans = answers[idx] !== null ? answers[idx] : pendingAnswers[idx];
+  if (q.type === 'TF') return ans === q.answer;
+  if (q.type === 'SC') return ans === q.answer;
+  if (q.type === 'MC') {
+    const a = [...ans].sort().join(',');
+    const c = [...q.answer].sort().join(',');
+    return a === c;
+  }
+  if (q.type === 'DRAG') {
+    const ds = dragState[idx] || [];
+    return q.blanks.every((b, i) => ds[i] === b.expected);
+  }
+  return false;
+}
+
+function selectTF(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitTF() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function selectSC(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitSC() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function toggleMC(val) {
+  if (answers[current] !== null) return;
+  let a = pendingAnswers[current] || [];
+  if (a.includes(val)) a = a.filter(x => x !== val);
+  else a = [...a, val];
+  pendingAnswers[current] = a;
+  renderQuestion(current);
+}
+function submitMC() {
+  if (answers[current] !== null) return;
+  if ((pendingAnswers[current] || []).length === 0) {
+    alert('请至少选择一个选项');
+    return;
+  }
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function dragStart(e, termIdx) {
+  e.dataTransfer.setData('text/plain', termIdx);
+}
+function fillSlot(termIdx) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  for (let i = 0; i < ds.length; i++) {
+    if (ds[i] === null) { ds[i] = term; break; }
+  }
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function clearSlot(slot) {
+  const ds = dragState[current] || [];
+  ds[slot] = null;
+  dragState[current] = ds.filter(x => x !== null);
+  while (dragState[current].length < quizData[current].blanks.length) dragState[current].push(null);
+  renderQuestion(current);
+}
+function dropOnSlot(termIdx, slot) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  ds[slot] = term;
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function submitDRAG() {
+  if (answers[current] !== null) return;
+  const ds = dragState[current] || [];
+  if (ds.filter(x => x !== null).length < quizData[current].blanks.length) {
+    alert('请填满所有空位');
+    return;
+  }
+  answers[current] = ds.slice();
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+
+function goPrev() { if (current > 0) { current--; renderQuestion(current); } }
+function goNext() { if (current < quizData.length - 1) { current++; renderQuestion(current); } }
+function finishQuiz() { showResults(); }
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').style.display = current === quizData.length - 1 ? 'none' : '';
+  document.getElementById('finishBtn').style.display = current === quizData.length - 1 ? '' : 'none';
+  document.getElementById('progressText').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('scoreText').textContent = score;
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) updateOverview();
+}
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  updateOverview();
+}
+function updateOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const ans = answers[i];
+    let cls = '';
+    if (ans !== null) {
+      cls = isCorrect(i) ? 'correct' : 'wrong';
+    }
+    if (currentFilter === 'unanswered' && ans !== null) return;
+    if (currentFilter === 'correct' && (ans === null || !isCorrect(i))) return;
+    if (currentFilter === 'wrong' && (ans === null || isCorrect(i))) return;
+    html += `<div class="overview-tile ${cls}" onclick="jumpTo(${i})">`;
+    html += `<div class="tile-num">${i + 1}</div>`;
+    html += `<div class="tile-type">${TYPE_LABEL[q.type]}</div>`;
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) {
+  current = i;
+  document.getElementById('overviewPanel').classList.remove('show');
+  renderQuestion(current);
+}
+
+function resetAll() {
+  if (!confirm('确定要清空所有答题记录并重置分数？')) return;
+  answers = new Array(quizData.length).fill(null);
+  pendingAnswers = new Array(quizData.length).fill(null);
+  dragState = new Array(quizData.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  const pct = score / (quizData.length * 10) * 100;
+  const msg = pct >= 90 ? 'VSM 大师！阴影细节讲得明明白白 🎉' :
+              pct >= 70 ? '基础扎实，Page Table / Clipmap / Contact Shadow 都能讲 💪' :
+              pct >= 50 ? '概念地图建立中，建议先看一遍 [[Karis-2020-Virtual-Shadow-Maps]] 笔记 📖' :
+                          '回到 [[Karis-2020-Virtual-Shadow-Maps]] 重新读一遍，再来！🔁';
+  document.getElementById('resultsMsg').textContent = msg;
+  let review = '';
+  quizData.forEach((q, i) => {
+    if (answers[i] !== null && !isCorrect(i)) {
+      const ansStr = formatAnswer(q, answers[i]);
+      const corrStr = formatAnswer(q, q.answer);
+      review += `<div class="review-item"><h4>第 ${i + 1} 题 · ${TYPE_LABEL[q.type]}：${q.question}</h4>`;
+      review += `<p>你的答案：<span class="your-ans">${ansStr}</span></p>`;
+      review += `<p>正确答案：<span class="correct-ans">${corrStr}</span></p></div>`;
+    }
+  });
+  document.getElementById('reviewSection').innerHTML = review || '<p style="color:var(--muted);text-align:center">全部正确，零错题 🎯</p>';
+}
+function formatAnswer(q, ans) {
+  if (q.type === 'TF') return ans ? 'True' : 'False';
+  if (q.type === 'SC') return String.fromCharCode(65 + ans);
+  if (q.type === 'MC') return ans.map(i => String.fromCharCode(65 + i)).join(', ');
+  if (q.type === 'DRAG') return (ans || []).join(' / ');
+  return String(ans);
+}
+function restartQuiz() { resetAll(); }
+function retryWrong() {
+  const wrongIdx = quizData.map((q, i) => (!isCorrect(i) && answers[i] !== null) ? i : -1).filter(i => i >= 0);
+  if (wrongIdx.length === 0) { alert('没有错题可以重做！'); return; }
+  wrongIdx.forEach(i => { answers[i] = null; pendingAnswers[i] = null; dragState[i] = null; });
+  score = 0;
+  current = wrongIdx[0];
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+renderQuestion(0);
+updateOverview();
+</script>
+</body>
+</html>

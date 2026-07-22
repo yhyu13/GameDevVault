@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VSM Page Allocation 调优 — 瓶颈案例卡 — 性能卡牌 (W30)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation {
+    margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg);
+    font-size: 0.92rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup {
+    margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px;
+    border: 1px dashed var(--accent);
+  }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel {
+    display: none; margin-bottom: 16px; padding: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .overview-filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white;
+    cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>VSM Page Allocation 调优 — 瓶颈案例卡</h1>
+    <p>BuildPageAllocations / 30+ CVar / W30 源码级</p>
+    <div class="header-meta">配套笔记: <a href="VSM-Page-Allocation-BuildPageAllocations调优.md">[[VSM-Page-Allocation-BuildPageAllocations调优]]</a> · 瓶颈案例 · W30 配套 · 12 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 10</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <strong>题目总览</strong>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="nav-bar" id="navBar">
+    <span class="nav-hint">← → 切换题目 · 选择后点击「确认答案」提交</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+      <button class="btn btn-secondary" id="finishBtn" onclick="finishQuiz()" style="display:none">完成</button>
+    </div>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "DRAG",
+    id: 1,
+    question: "VSM 5 个关键函数行号:① UpdateNextData :{0} ② Initialize :{1} ③ BuildPageAllocations :{2} ④ RenderVirtualShadowMapsNanite :{3} ⑤ UpdateHZB :{4}。",
+    blanks: [
+      { idx: 0, expected: "905" },
+      { idx: 1, expected: "928" },
+      { idx: 2, expected: "3227" },
+      { idx: 3, expected: "4218" },
+      { idx: 4, expected: "4829" },
+    ],
+    pool: ["905", "928", "3227", "4218", "4829", "2516", "4389", "3645"],
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §根因 1 + W30 VSM 源码分析",
+    explanation: "正确填空:{0}=905(UpdateNextData,跨帧反馈)→{1}=928(Initialize,Page pool 初始化)→{2}=3227(BuildPageAllocations,★ Page 分配核心)→{3}=4218(RenderVirtualShadowMapsNanite,5.4+ 默认路径)→{4}=4829(UpdateHZB,VSM HZB 构建)。",
+    followup: [
+      "追问:BuildPageAllocations 性能瓶颈根因?",
+      "答:**Page 预算不够时频繁 evict**——`FVirtualShadowMapArray::BuildPageAllocations` 是 VSM 性能瓶颈核心,W30 升级版发现 5.4+ 默认 4096 pages(5.3 之前 2048),跨版本调参要查实际源码。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 2,
+    question: "UE 5.4+ 升级后 VSM `r.Shadow.Virtual.MaxPhysicalPages` 默认值是?",
+    options: [
+      "A. 512",
+      "B. 1024",
+      "C. 2048",
+      "D. 4096",
+    ],
+    answer: 3,
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §根因 2 + W30 源码分析 §内存布局",
+    explanation: "D 正确。W30 源码分析 §内存布局原文:`constexpr int32 MaxPhysicalPages = 4096;` (5.4+ 升级后,5.3 之前是 2048)。**W29 知识参考写的 2048 是 5.3 之前的值,5.4+ 翻倍**——跨版本调参要查实际源码。",
+    followup: [
+      "追问:5.4+ 翻倍是好事还是坏事?",
+      "答:**好事**——大世界场景需要更多 page 预算,5.4+ 翻倍让 4 方向光 + Spot/Point/Rect 都能跑。**坏事**——Mac 8GB 集成显卡跑不动,必须减半到 2048 才稳(单方向光 256 MB → 128 MB)。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 3,
+    question: "VSM 4 类光源 (Directional/Spot/Point/Rect) 全部启用,典型项目 2-4 GB atlas 显存是 W30 源码分析 §内存布局原文实测数字。",
+    answer: true,
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §根因 3 + W30 源码分析 §内存布局",
+    explanation: "正确。W30 源码分析 §内存布局原文:`4 light types × 4096 pages × 128×128 × 2 bytes (深度) ≈ 1 GB` + `实测典型项目: 2-4 GB atlas`。",
+    followup: [
+      "追问:Directional Light 走 Clipmap 跟其他光源共享 page pool 吗?",
+      "答:**不共享**——Directional Light 走 Clipmap(8-16 层 cascade),Spot/Point/Rect 共享 single page pool。**不能混用**——光源类型不同,page 预算独立。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 4,
+    question: "VSM 5.4+ 默认走 Nanite 路径 (`RenderVirtualShadowMapsNanite:4218`),需要哪些 CVar 配置?(多选)",
+    options: [
+      "A. r.Shadow.Virtual.Nanite.AllowTessellation.Directional=0 (默认 0)",
+      "B. r.Shadow.Virtual.Nanite.AllowTessellation.Local=0 (默认 0)",
+      "C. r.Shadow.Virtual.NonNaniteVsmUseHzb=0 (默认 0)",
+      "D. r.Shadow.Virtual.NonNaniteCulledInstanceAllocationFactor=0.2 (默认 0.2)",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §方案 C + W30 源码分析 §CVar 全表",
+    explanation: "A、B、C、D 全部正确——VSM 5.4+ Nanite 集成 4 个关键 CVar。5.4+ 默认走 `RenderVirtualShadowMapsNanite:4218`(VisBuffer 路径),配合 W30 Nanite CullRaster 5.4 Bin 合并,整套 5.4 升级收益叠加。",
+    followup: [
+      "追问:NonNanite 路径什么时候用?",
+      "答:**传统 mesh 没 Nanite 资产时**走 `RenderVirtualShadowMapsNonNanite:4389`。5.0 时期默认走这条,5.4+ 默认走 Nanite 路径。如果项目**老资产多**,可以显式关掉 Nanite 集成,但 5.4 升级收益会打折。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 5,
+    question: "VSM Page Allocation 调优 8 套方案:① {0} 调节 ② {1} 调度 ③ {2} 集成 ④ {4} 优化 ⑤ {5} 修漏光 ⑥ {6} 构建 ⑦ {7} Projection ⑧ {8} 调试。",
+    blanks: [
+      { idx: 0, expected: "Page 预算" },
+      { idx: 1, expected: "Clipmap" },
+      { idx: 2, expected: "Nanite 集成" },
+      { idx: 4, expected: "第一人称 / DOF" },
+      { idx: 5, expected: "Page 边膨胀" },
+      { idx: 6, expected: "HZB" },
+      { idx: 7, expected: "One Pass" },
+      { idx: 8, expected: "调试 CVar" },
+    ],
+    pool: ["Page 预算", "Clipmap", "Nanite 集成", "第一人称 / DOF", "Page 边膨胀", "HZB", "One Pass", "调试 CVar"],
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §方案 A-H",
+    explanation: "正确填空:{0}=Page 预算(`MaxPhysicalPages=4096`)→{1}=Clipmap(`DeferredInvalidationBudget=1`)→{2}=Nanite 集成(`AllowTessellation.*=0`)→{4}=第一人称/DOF(`FirstPersonPixelRequestBias=0.0`)→{5}=Page 边膨胀(`PageDilationBorderSize.Directional=0.0`)→{6}=HZB(`BuildDynamicHZB=1`)→{7}=One Pass(`OnePassProjectionMaxLights=8`)→{8}=调试 CVar(`ShowStats=0`)。",
+    followup: [
+      "追问:大世界场景先调哪个?",
+      "答:**优先 `MaxPhysicalPages` 翻倍**(`4096 → 8192`),加显存但减少 evict。如果显存不够,**减半**(`4096 → 2048`)+ `DeferredInvalidationBudget=10` 加快 invalidation。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 6,
+    question: "VSM 跨帧 page residency 缓存 `VirtualShadowMapCacheManager.cpp` 大小是?",
+    options: [
+      "A. 32 KB",
+      "B. 104 KB",
+      "C. 284 KB",
+      "D. 1 MB",
+    ],
+    answer: 1,
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §根因 5 + W30 VSM 源码分析 §核心文件清单",
+    explanation: "B 正确。W30 源码分析 §核心文件清单:`VirtualShadowMapCacheManager.cpp` **104 KB** 跨帧 page residency(feedback 1 帧延迟是 Page Evict 决策的基础)。A 是 Clipmap 32 KB,C 是主文件 VirtualShadowMapArray.cpp 284 KB。",
+    followup: [
+      "追问:104 KB 跨帧缓存存什么?",
+      "答:**FPhysicalPageMetaData** 数组——每个 page 存: `last used frame` + `lock state` + `light type`。4096 pages × ~25 bytes ≈ 100 KB。BuildPageAllocations 读这个数组决定 evict 顺序。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 7,
+    question: "VSM page eviction 反馈 1 帧延迟是设计上的 trade-off,不是 bug,会导致玩家进入新区域时短期 OOM 风险。",
+    answer: true,
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §根因 5 + 经验沉淀",
+    explanation: "正确。**1 帧延迟是 GPU readback 限制**——上一帧 readback `FPhysicalPageMetaData` → 这一帧 BuildPageAllocations 决策。**短期 OOM 风险**:玩家进入新区域 → 数百 page 申请 → 反馈 1 帧后才开始 evict。**这是设计 trade-off**,不是 bug。",
+    followup: [
+      "追问:怎么缓解 1 帧延迟?",
+      "答:① 加大物理 page 预算(`MaxPhysicalPages=8192`) ② 加快 invalidation(`DeferredInvalidationBudget=10`) ③ 减少 lock 数量(Page Locking 太多挤压) ④ **预先 mark 关键 page**(`MarkPixelPages=1`)。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 8,
+    question: "VSM 4 类光源路径分流哪些正确?(多选)",
+    options: [
+      "A. Directional 走 Clipmap (8-16 层 cascade)",
+      "B. Spot / Point 走 single page pool",
+      "C. Rect 走 single page pool",
+      "D. 4 类光源共享 1 个 page pool",
+    ],
+    answer: [0, 1, 2],
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §根因 3 + W30 源码分析 §4 类光源路径",
+    explanation: "A、B、C 正确——Directional 走 Clipmap(8-16 层,FVirtualShadowMapClipmap),Spot/Point/Rect 共享 single page pool(`RenderVirtualShadowMapsNanite:4218` + `RenderVirtualShadowMapsNonNanite:4389`)。D 错(光源类型不同,page 预算独立)。",
+    followup: [
+      "追问:Directional 走 Clipmap 跟 Spot 走 single pool 性能特征区别?",
+      "答:**Directional Clipmap 8-16 层** = 8-16 个 page 池,每层独立,**page 跨层共享**(远层 1 page, 近层 4 pages)。**Spot single pool** = 1 个 page 池,所有 Spot 共享,光源多时易 page 预算不够。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 9,
+    question: "VSM 5.4+ 升级路径推荐:① 大世界场景 {0} ② Mac 8GB 集成 {1} ③ 老资产多保留 {2} ④ 显存极致紧张 {3}。",
+    blanks: [
+      { idx: 0, expected: "5.0→5.4 升级 (Nanite 默认开)" },
+      { idx: 1, expected: "MaxPhysicalPages=2048 (减半)" },
+      { idx: 2, expected: "NonNanite 路径 (关掉 Nanite 集成)" },
+      { idx: 3, expected: "BuildDynamicHZB=0 (省 page 预算)" },
+    ],
+    pool: ["5.0→5.4 升级 (Nanite 默认开)", "MaxPhysicalPages=2048 (减半)", "NonNanite 路径 (关掉 Nanite 集成)", "BuildDynamicHZB=0 (省 page 预算)", "PageAtlasSize=8192 (翻倍)"],
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §升级路径推荐 + 经验沉淀",
+    explanation: "正确填空:{0}=5.0→5.4 升级(Nanite 默认开 + page 预算翻倍,大世界首选)→{1}=MaxPhysicalPages=2048(减半,Mac 8GB 必备)→{2}=NonNanite 路径(关掉 Nanite 集成,5.0 旧项目保留)→{3}=BuildDynamicHZB=0(省 page 预算,远景阴影质量下降)。",
+    followup: [
+      "追问:5.4 升级后 VSM 性能会下降吗?",
+      "答:**不会**——5.4 升 VSM 性能 ≥ 5.0 VSM 性能。**5.4+ 自动收益**:`MaxPhysicalPages` 翻倍(2048→4096) + Nanite 路径默认开(VisBuffer) + 5.4 Bin 合并叠加。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 10,
+    question: "VSM 性能诊断首选 CVar 是?",
+    options: [
+      "A. r.Nanite.ShowStats 1",
+      "B. r.Shadow.Virtual.ShowStats 1 + r.Shadow.Virtual.ShowClipmapStats 1",
+      "C. r.Lumen.Visualize.CardPlacement 1",
+      "D. r.RHISetGPUCaptureOptions 1",
+    ],
+    answer: 1,
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §验证流程 步骤 1 + W30 源码分析",
+    explanation: "B 正确。VSM 性能诊断**双 stats**:`r.Shadow.Virtual.ShowStats 1`(主 stats,Pages vs Max Pages)+ `r.Shadow.Virtual.ShowClipmapStats 1`(clipmap 8-16 层)。A 是 Nanite,C 是 Lumen,D 是 RenderDoc。",
+    followup: [
+      "追问:ShowStats 输出哪些关键数字?",
+      "答:**当前页数 vs MaxPhysicalPages** + **Evict 频率** + **4 类光源分别 page 数** + **Directional Clipmap 8-16 层分别 page 数**。看是否接近上限 = 触发 BuildPageAllocations 频繁 evict。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 11,
+    question: "把 VSM 物理 page size 从 128 改到 64 不会破坏 VSM 一致性,只是显存特征变化。",
+    answer: false,
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §经验沉淀 + 知识参考 [[虚拟页表范式]]",
+    explanation: "错误。**改 page size 破坏 VSM + Lumen 一致性**——3 个后果:① VSM + Lumen 共享 page pool 路径不同步 ② 显存特征变化(page size 减半 = 显存 /4,但 page 数 ×2)③ page allocation 频率变化。**不要改 page size 128**——Epic 内部统一。",
+    followup: [
+      "追问:那 page 池大小能改吗?",
+      "答:**page size 不能改,但 page 池大小能改**——`r.Shadow.Virtual.MaxPhysicalPages` 改 2048 / 8192,这是改**总数**不是改**单个 page 大小**。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 12,
+    question: "VSM 在 Mac Metal RHI 上跑有什么特殊点?(多选)",
+    options: [
+      "A. Metal RHI 5.0 之前 page residency 有 bug,5.4+ 修复",
+      "B. Mac 内存压力比 D3D12 提前 evict → page 预算要保守",
+      "C. Mac 8GB 集成显卡跑 2-4 GB atlas 直接 OOM",
+      "D. Mac 上 VSM 跟 D3D12 性能完全一致",
+    ],
+    answer: [0, 1, 2],
+    src: "VSM-Page-Allocation-BuildPageAllocations调优.md §Mac Game Harness 验证清单 + W29 VSM 性能调优",
+    explanation: "A、B、C 正确——Mac 上 VSM 3 个特殊点。D 错(Mac Metal 跟 D3D12 性能特征不同,**不是完全一致**)。**day-job Mac Game Harness 必备 5.4+ 升级** + page 预算保守(`MaxPhysicalPages=2048`)+ 8GB 集成显卡必须减半。",
+    followup: [
+      "追问:Mac 8GB 集成显卡具体怎么调?",
+      "答:① `MaxPhysicalPages=2048`(256 MB → 128 MB 单方向光) ② `BuildDynamicHZB=0`(省 page 预算) ③ `DeferredInvalidationBudget=10`(加快 invalidation) ④ 验证:ProfileGPU 看 VSM 通道独立耗时。",
+    ],
+  },
+];
+];
+
+/* ====== 状态 ====== */
+let current = 0;
+let answers = new Array(quizData.length).fill(null);
+let pendingAnswers = new Array(quizData.length).fill(null);
+let dragState = new Array(quizData.length).fill(null);
+let score = 0;
+let currentFilter = 'all';
+
+/* ====== 渲染 ====== */
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  let html = `<div class="question-card ${answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} <span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'TF') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${selected === true ? 'selected' : ''} ${tfClass(idx, true)}" onclick="selectTF(true)" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${selected === false ? 'selected' : ''} ${tfClass(idx, false)}" onclick="selectTF(false)" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitTF()">确认答案</button>`;
+    }
+  } else if (q.type === 'SC') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const cls = answered ? scClass(idx, i) : (selected === i ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="selectSC(${i})">`;
+      html += `<span class="option-key">${String.fromCharCode(65 + i)}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitSC()">确认答案</button>`;
+    }
+  } else if (q.type === 'MC') {
+    const currentAns = answers[idx] || pendingAnswers[idx] || [];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const sel = currentAns.includes(i);
+      const cls = answered ? mcClass(idx, i) : (sel ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="toggleMC(${i})">`;
+      html += `<span class="option-key">${sel ? '☑' : '☐'}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    const currentDrag = dragState[idx] || new Array(q.blanks.length).fill(null);
+    html += `<div class="drag-zone" id="dragZone">`;
+    q.blanks.forEach((b, i) => {
+      const filled = currentDrag[i];
+      const slotCls = answered ? dragSlotClass(idx, i) : (filled ? 'filled' : '');
+      html += `<div class="drag-slot ${slotCls}" data-slot="${i}" onclick="${answered ? '' : `clearSlot(${i})`}">${filled || '（拖入）'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool">`;
+    q.pool.forEach((term, i) => {
+      const used = currentDrag.includes(term);
+      const chipCls = used ? 'used' : '';
+      html += `<div class="drag-chip ${chipCls}" draggable="${!used && !answered}" ondragstart="dragStart(event, ${i})" onclick="${answered ? '' : `fillSlot(${i})`}">${term}</div>`;
+    });
+    html += `</div>`;
+    if (!answered) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitDRAG()">提交</button>`;
+    }
+  }
+
+  html += `<div class="explanation ${exClass(idx)} ${answered?'show':''}">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}`;
+  if (q.followup && q.followup.length) {
+    html += `<div class="followup"><h4>面试官可能的追问：</h4><ol>`;
+    q.followup.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ol></div>`;
+  }
+  html += `<div class="src">来源：${q.src}</div>`;
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  if (q.type === 'DRAG' && !answered) {
+    const slots = container.querySelectorAll('.drag-slot');
+    slots.forEach(s => {
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('drag-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('drag-over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('drag-over');
+        const termIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        dropOnSlot(termIdx, parseInt(s.dataset.slot));
+      });
+    });
+  }
+
+  updateNav();
+  updateProgress();
+}
+
+function tfClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function scClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function mcClass(idx, val) {
+  const ans = answers[idx] || pendingAnswers[idx] || [];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer.includes(val);
+  const chosen = ans.includes(val);
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function dragSlotClass(idx, slot) {
+  if (answers[idx] === null) return '';
+  const expected = quizData[idx].blanks[slot].expected;
+  const actual = (dragState[idx] || [])[slot];
+  return actual === expected ? 'correct' : 'wrong';
+}
+function exClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const q = quizData[idx];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return false;
+  const ans = answers[idx] !== null ? answers[idx] : pendingAnswers[idx];
+  if (q.type === 'TF') return ans === q.answer;
+  if (q.type === 'SC') return ans === q.answer;
+  if (q.type === 'MC') {
+    const a = [...ans].sort().join(',');
+    const c = [...q.answer].sort().join(',');
+    return a === c;
+  }
+  if (q.type === 'DRAG') {
+    const ds = dragState[idx] || [];
+    return q.blanks.every((b, i) => ds[i] === b.expected);
+  }
+  return false;
+}
+
+function selectTF(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitTF() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function selectSC(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitSC() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function toggleMC(val) {
+  if (answers[current] !== null) return;
+  let a = pendingAnswers[current] || [];
+  if (a.includes(val)) a = a.filter(x => x !== val);
+  else a = [...a, val];
+  pendingAnswers[current] = a;
+  renderQuestion(current);
+}
+function submitMC() {
+  if (answers[current] !== null) return;
+  if ((pendingAnswers[current] || []).length === 0) {
+    alert('请至少选择一个选项');
+    return;
+  }
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function dragStart(e, termIdx) {
+  e.dataTransfer.setData('text/plain', termIdx);
+}
+function fillSlot(termIdx) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  for (let i = 0; i < ds.length; i++) {
+    if (ds[i] === null) { ds[i] = term; break; }
+  }
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function clearSlot(slot) {
+  const ds = dragState[current] || [];
+  ds[slot] = null;
+  dragState[current] = ds.filter(x => x !== null);
+  while (dragState[current].length < quizData[current].blanks.length) dragState[current].push(null);
+  renderQuestion(current);
+}
+function dropOnSlot(termIdx, slot) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  ds[slot] = term;
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function submitDRAG() {
+  if (answers[current] !== null) return;
+  const ds = dragState[current] || [];
+  if (ds.filter(x => x !== null).length < quizData[current].blanks.length) {
+    alert('请填满所有空位');
+    return;
+  }
+  answers[current] = ds.slice();
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+
+function goPrev() { if (current > 0) { current--; renderQuestion(current); } }
+function goNext() { if (current < quizData.length - 1) { current++; renderQuestion(current); } }
+function finishQuiz() { showResults(); }
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').style.display = current === quizData.length - 1 ? 'none' : '';
+  document.getElementById('finishBtn').style.display = current === quizData.length - 1 ? '' : 'none';
+  document.getElementById('progressText').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('scoreText').textContent = score;
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) updateOverview();
+}
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  updateOverview();
+}
+function updateOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const ans = answers[i];
+    let cls = '';
+    if (ans !== null) {
+      cls = isCorrect(i) ? 'correct' : 'wrong';
+    }
+    if (currentFilter === 'unanswered' && ans !== null) return;
+    if (currentFilter === 'correct' && (ans === null || !isCorrect(i))) return;
+    if (currentFilter === 'wrong' && (ans === null || isCorrect(i))) return;
+    html += `<div class="overview-tile ${cls}" onclick="jumpTo(${i})">`;
+    html += `<div class="tile-num">${i + 1}</div>`;
+    html += `<div class="tile-type">${TYPE_LABEL[q.type]}</div>`;
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) {
+  current = i;
+  document.getElementById('overviewPanel').classList.remove('show');
+  renderQuestion(current);
+}
+
+function resetAll() {
+  if (!confirm('确定要清空所有答题记录并重置分数？')) return;
+  answers = new Array(quizData.length).fill(null);
+  pendingAnswers = new Array(quizData.length).fill(null);
+  dragState = new Array(quizData.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  const pct = score / (quizData.length * 10) * 100;
+  const msg = pct >= 90 ? 'VSM 大师！阴影细节讲得明明白白 🎉' :
+              pct >= 70 ? '基础扎实，Page Table / Clipmap / Contact Shadow 都能讲 💪' :
+              pct >= 50 ? '概念地图建立中，建议先看一遍 [[Karis-2020-Virtual-Shadow-Maps]] 笔记 📖' :
+                          '回到 [[Karis-2020-Virtual-Shadow-Maps]] 重新读一遍，再来！🔁';
+  document.getElementById('resultsMsg').textContent = msg;
+  let review = '';
+  quizData.forEach((q, i) => {
+    if (answers[i] !== null && !isCorrect(i)) {
+      const ansStr = formatAnswer(q, answers[i]);
+      const corrStr = formatAnswer(q, q.answer);
+      review += `<div class="review-item"><h4>第 ${i + 1} 题 · ${TYPE_LABEL[q.type]}：${q.question}</h4>`;
+      review += `<p>你的答案：<span class="your-ans">${ansStr}</span></p>`;
+      review += `<p>正确答案：<span class="correct-ans">${corrStr}</span></p></div>`;
+    }
+  });
+  document.getElementById('reviewSection').innerHTML = review || '<p style="color:var(--muted);text-align:center">全部正确，零错题 🎯</p>';
+}
+function formatAnswer(q, ans) {
+  if (q.type === 'TF') return ans ? 'True' : 'False';
+  if (q.type === 'SC') return String.fromCharCode(65 + ans);
+  if (q.type === 'MC') return ans.map(i => String.fromCharCode(65 + i)).join(', ');
+  if (q.type === 'DRAG') return (ans || []).join(' / ');
+  return String(ans);
+}
+function restartQuiz() { resetAll(); }
+function retryWrong() {
+  const wrongIdx = quizData.map((q, i) => (!isCorrect(i) && answers[i] !== null) ? i : -1).filter(i => i >= 0);
+  if (wrongIdx.length === 0) { alert('没有错题可以重做！'); return; }
+  wrongIdx.forEach(i => { answers[i] = null; pendingAnswers[i] = null; dragState[i] = null; });
+  score = 0;
+  current = wrongIdx[0];
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+renderQuestion(0);
+updateOverview();
+</script>
+</body>
+</html>
