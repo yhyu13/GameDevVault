@@ -34,6 +34,9 @@
 | **C14** | **实时 AI 纹理生成** (Stable Diffusion → PBR 材质) | **P1 神经** | ☐ 待做 | — | `C14/AI纹理生成-SD-PBR.md` (待建) | day-job RAG 工具链 — Material GPT / MatAtlas 思路 |
 | **C15** | **神经体积云** (Neural Volumetric — NeRF 路径) | **P2 神经** | ☐ 待做 | — | `C15/神经体积云.md` (待建) | 替换 99-归档 体积云 (历史 W1) |
 | **C16** | **神经 SSR** (NeRF-based reflection lookup) | **P2 神经** | ☐ 待做 | — | `C16/神经SSR.md` (待建) | 替换 99-归档 SSR (历史 W2) |
+| **C17** | **AI 肌肉形变** (Ziva 风格 / 神经肌肉激活 / 体积保持) | **P0 神经** | ☑ 完成 | 2026-07-24 | `C17/AI肌肉形变-NeuralMuscleDeformation.md` | W30 AIGC 第 1 篇, 角色肌肉 + MetaHuman (23.8 KB / ~830 行) |
+| **C18** | **神经 Locomotion** (PFNN / MANN 神经角色运动) | **P0 神经** | ☑ 完成 | 2026-07-25 | `C18/神经Locomotion-PFNN-MANN.md` | W30 AIGC 第 2 篇, 角色运动 + ALS/Lyra 替代 (23.3 KB / ~810 行) |
+| **C19** | **神经 SDF mesh 生成** (Text/Image → 3D, 3DGS → Poisson) | **P0 神经** | ☑ 完成 | 2026-07-26 | `C19/神经SDF-mesh生成-Text-to-3D.md` | W30 AIGC 第 3 篇, Text-to-3D + Nanite 集成 (25.7 KB / ~890 行) |
 | P1 | **Mass / NNE / PCG** (UE5 AI 系统) | P1 系统 | ☐ 待做 | — | 不入 C 编号 (集群专题) | UE5 AI 框架, 非 shader |
 | P1 | **UE5.6 / UE5.7 新 feature** (SM5/6 差异) | P1 持续 | ☐ 持续 | — | 不入 C 编号 (工具链) | 长期跟踪 |
 | P2 | **程序化地形** (噪声 + 顶点动画) | P2 历史 | ⊗ 取消 | — | 合并到 C15 神经体积云路线 | 已被 C15 覆盖 |
