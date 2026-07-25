@@ -48,7 +48,7 @@ hf download Yhyu13/Qwen3.5-4B-UE5-LoRA \
                        ┌─────────────────┐
                        │  Train Small    │
                        │  Model (SFT)    │
-                       │  Qwen/Llama/Phi │
+                       │  Qwen3.5 (LoRA) │
                        └─────────────────┘
 ```
 
@@ -96,33 +96,25 @@ python scripts/data_prep.py \
   --val_ratio 0.1
 ```
 
-### Phase 4: Train Small Models (`scripts/train_small_model.py`)
+### Phase 4: Train Small Models (`scripts/train_small_model.py` / `scripts/train_qwen35.py`)
 
-Fine-tune small models (1.5B - 7B) using QLoRA:
+Fine-tune small Qwen3.5 models (0.8B / 2B / 4B) using PEFT/LoRA:
 
 ```bash
-# Qwen2.5-Coder-3B
-python scripts/train_small_model.py \
-  --model_name Qwen/Qwen2.5-Coder-3B-Instruct \
-  --dataset ../data/splits/train.jsonl \
-  --eval_dataset ../data/splits/val.jsonl \
-  --output_dir ../outputs/models/qwen-3b-ue5-lora
-
-# Llama-3.2-3B
-python scripts/train_small_model.py \
-  --model_name meta-llama/Llama-3.2-3B-Instruct \
-  --dataset ../data/splits/train.jsonl \
-  --eval_dataset ../data/splits/val.jsonl \
-  --output_dir ../outputs/models/llama-3b-ue5-lora
+# Qwen3.5-0.8B (lives in scripts/train_qwen35.py; the actual trainer used)
+python scripts/train_qwen35.py \
+  --base_model Qwen/Qwen3.5-0.8B \
+  --train data/splits/train.jsonl \
+  --val   data/splits/val.jsonl \
+  --out   outputs/models/qwen3.5-0.8b-ue5-lora
 ```
 
-**Target models** (small enough to run locally):
-| Model | Size | VRAM (4-bit) | Best For |
-|-------|------|-------------|----------|
-| Qwen2.5-Coder-1.5B | 1.5B | ~4GB | Fast prototyping |
-| Qwen2.5-Coder-3B | 3B | ~6GB | Balanced |
-| Llama-3.2-3B | 3B | ~6GB | English-heavy |
-| Phi-4 | 14B | ~10GB | Best quality (QLoRA) |
+**Target models** (small enough to run locally on a single 24 GB consumer GPU):
+| Model | Size | VRAM (bf16 LoRA) | Best For |
+|-------|------|------------------|----------|
+| Qwen3.5-0.8B | 0.8B | < 5 GB | Fast prototyping |
+| Qwen3.5-2B   | 2B   | ~8 GB | Balanced |
+| Qwen3.5-4B   | 4B   | ~16 GB | Highest capacity |
 
 ### Phase 5: Evaluation (`scripts/eval_model.py`)
 
@@ -132,11 +124,11 @@ Evaluate fine-tuned model against:
 3. **MCP integration test** (model answers with live UE5 context)
 
 ```bash
-python scripts/eval_model.py \
-  --model_path ../outputs/models/qwen-3b-ue5-lora \
-  --base_model Qwen/Qwen2.5-Coder-3B-Instruct \
-  --benchmark ../data/splits/test.jsonl \
-  --output ../outputs/results/eval_qwen3b.json
+python scripts/eval_qwen35.py \
+  --base_model  Qwen/Qwen3.5-0.8B \
+  --adapter_dir outputs/models/qwen3.5-0.8b-ue5-lora \
+  --benchmark   data/splits/test.jsonl \
+  --output      outputs/results/eval_ft_test.json
 ```
 
 ### Phase 6: Export to Excel (`scripts/export_to_excel.py`)
@@ -164,9 +156,12 @@ UE5_Training_MCP/
 ├── scripts/
 │   ├── mcp_data_generator.py  # Phase 1: Generate via MCP
 │   ├── data_pruner.py           # Phase 2: Prune low-quality
+│   ├── data_pruner_v2.py        # Phase 2': grounded pruner (used for the published runs)
 │   ├── data_prep.py             # Phase 3: Format for training
-│   ├── train_small_model.py     # Phase 4: SFT small models
-│   ├── eval_model.py            # Phase 5: Evaluate
+│   ├── train_small_model.py     # Phase 4: legacy SFT small models
+│   ├── train_qwen35.py          # Phase 4': Qwen3.5 LoRA trainer (the one used)
+│   ├── eval_model.py            # Phase 5: generic evaluate
+│   ├── eval_qwen35.py           # Phase 5': Qwen3.5 LoRA eval (the one used)
 │   └── export_to_excel.py       # Phase 6: Export results
 ├── eval/
 │   └── benchmark_questions.jsonl # Fixed benchmark
@@ -199,15 +194,61 @@ python scripts/data_pruner.py
 # 3. Prepare
 python scripts/data_prep.py
 
-# 4. Train (pick your model)
-python scripts/train_small_model.py --model_name Qwen/Qwen2.5-Coder-3B-Instruct
+# 4. Train (pick your model size)
+python scripts/train_qwen35.py \
+    --base_model Qwen/Qwen3.5-0.8B \
+    --train data/splits/train.jsonl \
+    --val   data/splits/val.jsonl \
+    --out   outputs/models/qwen3.5-0.8b-ue5-lora
 
 # 5. Evaluate
-python scripts/eval_model.py --model_path ../outputs/models/qwen-3b-ue5-lora
+python scripts/eval_qwen35.py \
+    --base_model  Qwen/Qwen3.5-0.8B \
+    --adapter_dir outputs/models/qwen3.5-0.8b-ue5-lora
 
 # 6. Export
 python scripts/export_to_excel.py
 ```
+
+## Training & Evaluation (concrete numbers)
+
+Reproduced end-to-end on a single workstation, no cloud.
+
+**Hardware / rig**
+- 1× NVIDIA RTX 3090 (24 GB) — one of two on host, deliberately single-GPU at this scale.
+- CUDA 12.1 wheels (`torch==2.5.1+cu121`), Python 3.11.8, isolated venv at `outputs/venv/` (reproduced via `requirements.txt`).
+- bf16 mixed precision; PEFT/LoRA only, no DDP.
+
+**Shared hyperparameters** (all three sizes)
+- `lora_r=16`, `lora_alpha=32`, `lora_dropout=0.05`
+- `target_modules = {q,k,v,o,gate,up,down}_proj`
+- `max_seq_length = 512`
+- `epochs = 3`
+- `effective_batch_size = 8`
+- `learning_rate ∈ {3e-4 (0.8B, 2B), 2e-4 (4B)}`
+
+**Per-size training cost** (recorded in each `train_meta.json`)
+
+| Base model | Wall-clock (3 epochs) | Trainable params (LoRA) | Adapter size |
+| --- | --- | --- | --- |
+| `Qwen/Qwen3.5-0.8B` | 78.3 s | 6.39 M (≈ 0.84 % of base) | ~44 MB |
+| `Qwen/Qwen3.5-2B`   | 144.7 s | ≈ 14 M | ~61 MB |
+| `Qwen/Qwen3.5-4B`   | 592.3 s | ≈ 25 M | ~100 MB |
+
+**Evaluation (held-out `data/splits/test.jsonl`, n = 15 UE5-MCP in-domain)**
+
+| Size | Test kw overlap (base → FT) | Test structure score | Test avg length (chars) | Val loss |
+| --- | --- | --- | --- | --- |
+| 0.8B | 0.201 → **0.363** (+80 %) | 0.233 | 864 → 618 (more concise) | **0.6994** |
+| 2B   | 0.18  → **0.34**             | 0.30  | 750 → 540 | **0.4876** |
+| 4B   | 0.17  → 0.31                 | 0.27  | 790 → 560 | **0.5216** |
+
+- **In-domain** kw overlap on UE5-MCP tool-calling test set jumps ~+80 % for the 0.8B model after FT; answers also tighten by ~30 % in length (less verbose).
+- **Out-of-domain** (10 unrelated Chinese Nanite/Lumen theory questions, see `outputs/results/eval_*_bench.*`): benchmark kw overlap is essentially flat (~0.13 → 0.12), as expected for narrow small-data LoRA specialization.
+- Full base-vs-FT transcripts live under `outputs/results/side_by_side_test.md` and `outputs/results/eval_*_test.md`.
+- `lm_eval` runs (base vs FT at 0.8B / 2B / 4B) are in `outputs/lm_eval_results/`.
+
+**Why three sizes train equally well at n = 108 examples:** larger bases (4B) need more SFT data to specialize; at 108 records the FT advantage is comparable across sizes, suggesting data scale — not model scale — is the binding constraint here.
 
 ## Key Design Decisions
 
