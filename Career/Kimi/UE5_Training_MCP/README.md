@@ -2,6 +2,34 @@
 
 > **Goal**: Use Unreal MCP + latest LLM to generate high-quality training data, then fine-tune smaller models and evaluate them against the generated data.
 
+## Models on Hugging Face
+
+Trained LoRA adapters are published as three public model repos. Each downloads into this directory layout by default — and matches the local output path produced by `scripts/train_qwen35.py`.
+
+| LoRA size | Repo on Hugging Face | Default download dir | Local output path |
+| --- | --- | --- | --- |
+| 0.8B | https://huggingface.co/Yhyu13/Qwen3.5-0.8B-UE5-LoRA | `~/.cache/huggingface/hub/models--Yhyu13--Qwen3.5-0.8B-UE5-LoRA/snapshots/<sha>/` | `outputs/models/qwen3.5-0.8b-ue5-lora/` |
+| 2B   | https://huggingface.co/Yhyu13/Qwen3.5-2B-UE5-LoRA   | `~/.cache/huggingface/hub/models--Yhyu13--Qwen3.5-2B-UE5-LoRA/snapshots/<sha>/`   | `outputs/models/qwen3.5-2b-ue5-lora/`   |
+| 4B   | https://huggingface.co/Yhyu13/Qwen3.5-4B-UE5-LoRA   | `~/.cache/huggingface/hub/models--Yhyu13--Qwen3.5-4B-UE5-LoRA/snapshots/<sha>/`   | `outputs/models/qwen3.5-4b-ue5-lora/`   |
+
+Download a specific adapter into the project (overlays onto `outputs/models/`):
+
+```bash
+# 0.8B
+hf download Yhyu13/Qwen3.5-0.8B-UE5-LoRA \
+    --local-dir outputs/models/qwen3.5-0.8b-ue5-lora
+
+# 2B
+hf download Yhyu13/Qwen3.5-2B-UE5-LoRA \
+    --local-dir outputs/models/qwen3.5-2b-ue5-lora
+
+# 4B
+hf download Yhyu13/Qwen3.5-4B-UE5-LoRA \
+    --local-dir outputs/models/qwen3.5-4b-ue5-lora
+```
+
+> The training repo on Hugging Face (`Yhyu13/UE5_Training_MCP`) mirrors this directory's source minus the heavy `outputs/venv/` and `outputs/models/` trees; reproduce the env with `pip install -r requirements.txt`.
+
 ## Pipeline Overview
 
 ```
