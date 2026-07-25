@@ -1,0 +1,10 @@
+outputs/models/**
+outputs/venv/**
+**/__pycache__/**
+**/.cache/**
+**/*.pyc
+**/*.pkl
+**/*.pickle
+**/node_modules/**
+**.git/**
+.DS_Store
