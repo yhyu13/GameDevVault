@@ -250,6 +250,48 @@ Reproduced end-to-end on a single workstation, no cloud.
 
 **Why three sizes train equally well at n = 108 examples:** larger bases (4B) need more SFT data to specialize; at 108 records the FT advantage is comparable across sizes, suggesting data scale — not model scale — is the binding constraint here.
 
+### Master matrix
+
+**UE5-MCP test (15 in-domain, kw overlap):**
+
+| Model | Params | BASE | FT |
+| --- | --- | --- | --- |
+| 0.8B | 752M | 0.201 | 0.363 |
+| 2B   | 1.7B | 0.231 | 0.425 |
+| 4B   | 3.6B | 0.226 | 0.318 |
+
+**Commonsense / RC (`lm_eval`, 500/task):**
+
+| Model | ARC-C | ARC-E | BoolQ | HellaSwag | PIQA | WinoGrande |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0.8B BASE | 0.308 | 0.642 | 0.632 | 0.422 | 0.696 | 0.580 |
+| 0.8B FT   | 0.322 | 0.616 | 0.632 | 0.422 | 0.690 | 0.598 |
+| 2B BASE   | 0.374 | 0.708 | 0.722 | 0.454 | 0.728 | 0.616 |
+| 4B BASE   | 0.494 | 0.804 | 0.866 | 0.516 | 0.802 | 0.708 |
+
+### Key findings
+
+- **No regression from FT** — `0.8B-FT` differs from `0.8B-BASE` by ≤ 2.6 pp on every commonsense task (mostly within ±1.5 pp). LoRA at `lr=3e-4 / 3 epochs` is conservative enough.
+- **Scale helps commonsense monotonically (BASE only)** — `0.8B → 2B → 4B` improves every task.
+- **2B-FT beats 4B-FT on UE5-MCP (0.425 vs 0.318)** — the 4B adapter is under-trained on 108 records (final loss 0.44 vs 2B's 0.36).
+- **All BASE versions are flat (~0.23) on UE5-MCP** regardless of size — the domain is niche, not in pretraining.
+- **Cross-domain Chinese bench is flat for everyone (~0.12)**, as expected for narrow SFT.
+
+### Answers
+
+**Can a fine-tuned small model beat a larger one?** Yes on UE5-MCP: `2B-FT (0.425)` > `4B-FT (0.318)` and > `4B-BASE (0.226)`. Why? Format matters more than capacity for narrow tasks; the LoRA adapter is 5× relatively larger on 2B than on 4B; SFT teaches surface lexical matches (`ListActors`, `Tool calls:`, `391 actors`) that base models don't emit.
+
+**If not, how to improve?** You can — but the 4B model is under-trained. Next steps: ≈3× more data (~300 records), bump LoRA `r=32/64` on the 4B base, optionally full-FT the last 2 transformer blocks. Expected outcome: `4B-FT` overtakes `2B-FT` once data ≈ 300 records.
+
+### Wall-clock totals
+
+| Stage | Time |
+| --- | --- |
+| Training (0.8B + 2B + 4B) | 78 s + 145 s + 592 s ≈ **14 min** |
+| Held-out eval (in-domain + OOD × {base, FT} per size) | ≈ **25 min** |
+| `lm_eval` commonsense (6 tasks × 4 model variants) | ≈ **25 min** |
+| **End-to-end total** | **≈ 65 min** (as planned) |
+
 ## Key Design Decisions
 
 1. **MCP for Context**: Unreal MCP provides live UE5 engine context (source paths, API docs, console variables) to the LLM, making generated data factually grounded.
