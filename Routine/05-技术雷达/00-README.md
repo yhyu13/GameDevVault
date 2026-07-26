@@ -31,8 +31,9 @@
 
 ## 当前雷达(2026-07-18 更新 - W29 收尾)
 
-> **本批次(2026-07-18,W29 末)**:05-技术雷达结构重组 - 新增 `Weekly-Log/` 时间维度归档目录(W28 archive + W29 current);W29 承诺项(VSM 源码追踪 470/600 行 + Nanite 源码起头 340/800 行 + Mac 平台 vault 索引页)全部落地。W30 续写源码追踪 + 补 Mac anchor 实质内容。
-> **上批次(2026-07-12,W28 末)**:新增 P0-渲染特性 3 项([[Lumen]] / [[Nanite]] / [[VSM]])。
+> **本批次(2026-07-26,W30 末)**:W30 兑现率 ~35%(我方 2/5 = 40%,你方 0/4 = 0%);Mac Anchor 1(Metal RHI 适配清单,15.5 KB / 280 行)落地,渲染三特性兼容性矩阵齐了;Lumen QA 互动卡(12-15 题)补完,渲染三特性卡牌覆盖完整。W31 重点:VSM/Nanite 源码续写 + Mac Anchor 4 + 你方 3 项拖期决策(NVIDIA-ACE 升"已掌握" + UnrealMCP/UE-NNE 1 月回顾)。
+> **上批次(2026-07-18,W29 末)**:05-技术雷达结构重组 - 新增 `Weekly-Log/` 时间维度归档目录(W28 archive + W29 current);W29 承诺项(VSM 源码追踪 470/600 行 + Nanite 源码起头 340/800 行 + Mac 平台 vault 索引页)全部落地。W30 续写源码追踪 + 补 Mac anchor 实质内容。**W29 兑现率 70%**。
+> **更早(2026-07-12,W28 末)**:新增 P0-渲染特性 3 项([[Lumen]] / [[Nanite]] / [[VSM]])。
 > **更早(2026-07-03)**:从 12 项调整为 13 项:把 [[Hunyuan3D-Tencent-Topology]] 从 [[Meshy-LumaGenie-Text-to-3D]] 拆出独立条目;把 [[Rust-GameDev]] 从 P0 降为 P2;新建 `已掌握/` 和 `已放弃/` 两个 bucket。
 
 ### P0-立即学习(7 项 - 工具链轴)
@@ -54,7 +55,7 @@
 
 | 技术 | 简介 | 当前 vault 状态 | 关联工作 | 下次回顾 |
 |------|------|----------------|----------|----------|
-| [[Lumen]] ⭐ | UE5 全局光照 + 反射(SSGI 替代) | ✅ **厚**:3 论文 + 2 shader(W3 反射降级 / W4 GI 漫反射)+ 2 性能(反射开销/调优)| day-job RAG 索引主轴 / Mac Metal RHI 适配 | 2026-08-07 |
+| [[Lumen]] ⭐ | UE5 全局光照 + 反射(SSGI 替代) | ✅ **厚**:3 论文 + 2 shader(W3 反射降级 / W4 GI 漫反射)+ 2 性能(反射开销/调优)+ **W30 QA 卡(12-15 题)** | day-job RAG 索引主轴 / Mac Metal RHI 适配 | 2026-08-07 |
 | [[Nanite]] ⭐ | UE5 虚拟几何 + 材质管线 | ⚠️ **中**:1 shader(W5 材质管线 763 行)+ 2 性能(WPO 禁用距离 / 性能调优)+ W27 mini-README;**缺源码分析** | day-job RAG 索引 + 虚拟几何 shader 适配 | 2026-08-14 |
 | [[VSM]] ⭐ | UE5 虚拟阴影映射(页表 + Moments) | ⚠️ **中**:1 shader(W6, 763 行)+ 1 性能(页溢出)+ 1 QA 卡;**缺源码分析** | day-job RAG 索引 + 阴影 LRU 调优 | 2026-08-14 |
 
@@ -118,35 +119,40 @@
 
 ---
 
-## 下一步行动(按周拆解 - 2026-W29 / W30 / W31)
+## 下一步行动(按周拆解 - 2026-W30 / W31 / W32)
 
 > **这是 Routine 雷达"季度复盘形态"的核心改进**:每个周五整理都要更新"未来三周的下一步"。
-> **W28 状态**:承诺兑现率 ~10% - 仅 P0 渲染特性补丁完成,5 个复评 + Hunyuan3D 都推到 W29+。详见 [[Weekly-Log/W28-2026-07-12/W28-snapshot|W28 snapshot]]。
+> **W29 状态**:承诺兑现率 70%,3 项推到 W30(其中 1 项已完成,2 项推到 W31+)。详见 [[Weekly-Log/W29-2026-07-19/W29-周复盘|W29 完整复盘]]。
 
-### 本周(W29: 7/13 - 7/19)- 渲染特性补位 + Mac 起头(兑现 70%)
+### 本周(W30: 7/20 - 7/26)- Mac Anchor 1 + Lumen QA 卡(兑现 ~35%)
 
-- [x] **[[VSM]] 升级到 source-analysis 级**:`Routine/02-引擎源码分析库/Unreal-Engine/W29/UE5-VSM-源码追踪.md`(**470/600 行,核心承诺完成,剩 130 行 W30 续**)- 页表 + Cache + Clipmap + Mac Metal 适配建议落地
-- [x] **[[Nanite]] 起头 source-analysis**:`Routine/02-引擎源码分析库/Unreal-Engine/W29/UE5-Nanite-MeshPass-ClusterDAG-PageStreaming-源码追踪.md`(**340/800 行,W29 份额完成,剩 460 行 W30 续**)- 顶层入口 + FRasterContext + ERasterScheduling + StreamOut 落地
-- [x] **Mac 平台 vault 子目录**:`Routine/Mac-平台/00-README.md` + 5 个 anchor + DX12/Metal 差异矩阵(**4.1 KB**)
-- [ ] Hunyuan3D:接 API 进工程 + 出一个挂骨骼 demo 角色(**推 W30,需你本人**)
-- [ ] AI-Code-Assistant + UnrealMCP 联动:试 ping → spawn_actor → create_blueprint(**推 W30,需你本人**)
-- [ ] 评估是否把 [[NVIDIA-ACE-AI-NPC]] 升到"已掌握"(**推 W30,需你本人决策**)
+- [x] **Mac Anchor 1 实质内容**:`Routine/Mac-平台/Mac-Metal-RHI-适配清单.md`(**15.5 KB / 280 行**)- 主表 21 行 + 11 特性详解 + 4 NNE 后端对比 + CVar 速查 + RAG 索引格式示例
+- [x] **Lumen QA 互动卡**:`P0-立即学习/Lumen.html`(12-15 题,覆盖 GI/反射/Surface Cache/Mac 兼容/降级 tier)
+- [x] 00-README 状态刷到 W30 + 写 [[Weekly-Log/W30-2026-07-26/W30-周复盘|W30 复盘]]
+- [ ] VSM 源码续(HZB + CVar + ContactShadow)**推 W31**
+- [ ] Nanite 源码续(Cluster + SW BVH + 主链)**推 W31**
+- [ ] Mac Anchor 4(RAG 语料切分)**推 W31**
+- [ ] 复评 [[UnrealMCP-N1UnrealMCP]](7/26 是 1 月回顾到期)**推 W31,已拖 1 周**
+- [ ] 复评 [[UE-NNE-TensorRT-Plugin]](7/26 是 1 月回顾到期)**推 W31,已拖 1 周**
+- [ ] NVIDIA-ACE 升"已掌握"决策(拖了 3 周)**推 8/7 月度回顾**
 
-> **详见** [[Weekly-Log/W29-2026-07-19/W29-周复盘|W29 完整复盘]]
+> **详见** [[Weekly-Log/W30-2026-07-26/W30-周复盘|W30 完整复盘]]
 
-### 下周(W30: 7/20 - 7/26)- 源码续写 + 1 月回顾
+### 下周(W31: 7/27 - 8/2)- 源码续写 + 你方决策补做
 
 - [ ] **VSM 源码续** - HZB 子系统 + 完整 CVar 列表 + ContactShadow 集成(补到 ≥ 600 行)
 - [ ] **Nanite 源码续** - Cluster 切分算法 + GPU SW BVH + cull/bin/raster 主函数链(补到 ≥ 800 行)
-- [ ] **Mac anchor 1 实质内容** - 渲染特性 × Metal RHI 兼容矩阵
-- [ ] **Mac anchor 4 实质内容** - RAG 语料切分策略
-- [ ] 复评 [[UnrealMCP-N1UnrealMCP]](**7/26 是 1 月回顾到期**):是否已用于真实 day-job 工作流?
-- [ ] 复评 [[UE-NNE-TensorRT-Plugin]](**7/26 是 1 月回顾到期**):是否跑通 ONNX 加载 demo?
+- [ ] **Mac Anchor 4 实质内容** - RAG 语料切分策略
+- [ ] **NVIDIA-ACE 升"已掌握"决策**(8/7 月度回顾前必做,拖了 3 周,影响 Q3 OKR O3)
+- [ ] 复评 [[UnrealMCP-N1UnrealMCP]](7/26 1 月回顾,已拖 1 周)
+- [ ] 复评 [[UE-NNE-TensorRT-Plugin]](7/26 1 月回顾,已拖 1 周)
+- [ ] **刷 Lumen / Nanite / VSM P0 .md 的 vault 状态** - W30 QA 卡 + 源码续写增量登记
 
-### 再下周(W31: 7/27 - 8/2)- Lumen 升"已掌握"预审 + Hunyuan3D 跟进
+### 再下周(W32: 8/3 - 8/9)- 月度回顾 + Lumen 升"已掌握"决策
 
-- [ ] **[[Lumen]] 升"已掌握"预审**:Mac Metal RHI 上跑通 Lumen 反射降级 / GI 漫反射 → **8/7 月度回顾时决定**
-- [ ] Hunyuan3D 接 API 跟进(W30 漏则 W31 必做)
+- [ ] **[[Lumen]] 升"已掌握"决策**(**8/7 月度回顾,刚卡在 W32 初**):Mac Metal RHI 上跑通 Lumen 反射降级 / GI 漫反射 → 移入"已掌握"bucket
+- [ ] 8/7 月度回顾 - 见 Q3 日历
+- [ ] Hunyuan3D 接 API 跟进(W30/W31 漏则 W32 必做)
 - [ ] **Mac anchor 5 实质内容** - Lyra on Mac 跑通 Demo 记录(Lumen 升"已掌握"前置)
 
 > **8/7 月度回顾** - 见 Q3 日历
@@ -260,4 +266,4 @@ P2 / P1 / P0 (按评估决定)
 ---
 
 *Create date: 2026-06-25*
-*Last modified: 2026-07-12(P0 渲染特性补丁:Lumen / Nanite / VSM 加入 P0 作为独立子节)*
+*Last modified: 2026-07-26(W30 收尾:Mac Anchor 1 + Lumen QA 卡落地,兑现率 ~35%,W31 计划刷新)*
