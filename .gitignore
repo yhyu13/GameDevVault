@@ -36,4 +36,8 @@ Career/Kimi/UE5_Training_MCP/outputs/
 {config,data/
 {raw,processed,splits,eval},scripts,eval,outputs/
 
+# Mavis runtime metadata (empty JSON stubs at repo root)
+registered_agents.json
+task_agent_mapping.json
+
 
