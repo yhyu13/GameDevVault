@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen — UE5 全局光照 + 反射 — 互动式面试卡牌</title>
+<style>
+  :root {
+    --bg:#f5f5f0; --card-bg:#fff; --primary:#3a5a7c; --accent:#6b9e75; --accent-wrong:#c45c5c;
+    --text:#2c3e50; --text-light:#5d6d7e; --border:#d0d5dd; --shadow:rgba(0,0,0,0.08);
+    --drop-zone:#eef2f7; --draggable:#f0f4f8;
+    --status-correct:#e8f5e9; --status-wrong:#fce8e8; --status-unanswered:#f8f9fa;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;min-height:100vh}
+  header{background:var(--primary);color:#fff;padding:1.2rem 1.5rem;box-shadow:0 2px 8px var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.8rem}
+  header h1{margin:0;font-size:1.3rem;font-weight:500}
+  header p{margin:0.2rem 0 0;opacity:0.85;font-size:0.85rem}
+  .header-left{flex:1;min-width:260px}
+  .header-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
+  .header-btn{padding:0.5rem 1rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.2s;font-size:0.88rem;text-decoration:none;display:inline-block}
+  .header-btn:hover{background:rgba(255,255,255,0.25)}
+  .container{max-width:820px;margin:0 auto;padding:1.5rem}
+
+  .nav-tabs{display:flex;gap:0.4rem;margin-bottom:1.0rem;flex-wrap:wrap}
+  .nav-tab{flex:1;min-width:90px;padding:0.6rem 0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;text-align:center;font-size:0.85rem;transition:all 0.2s;color:var(--text-light)}
+  .nav-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(58,90,124,0.25)}
+  .nav-tab:hover:not(.active){background:var(--drop-zone)}
+
+  .score-bar{display:flex;align-items:center;gap:1rem;margin-bottom:0.6rem;flex-wrap:wrap}
+  .score-mini{font-size:0.85rem;color:var(--text-light);white-space:nowrap}
+  .score-mini .score-num{color:var(--primary);font-weight:700;font-size:1.05rem}
+  .progress-text{text-align:right;font-size:0.8rem;color:var(--text-light);margin-bottom:0.3rem}
+  .progress-bar{height:6px;background:#e8e8e0;border-radius:3px;overflow:hidden;margin-bottom:1.2rem}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease}
+
+  .card{background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .card-number{display:inline-block;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;text-align:center;line-height:26px;font-size:0.8rem;font-weight:600;margin-right:0.5rem}
+  .card h3{margin:0 0 1.0rem;font-size:1.05rem;font-weight:500;line-height:1.5}
+  .q-type{font-size:0.75rem;color:var(--text-light);background:#eef2f7;padding:2px 8px;border-radius:4px;margin-left:0.4rem}
+
+  .drag-sentence{font-size:1.0rem;line-height:2.4;margin-bottom:1.2rem}
+  .drop-zone{display:inline-block;min-width:90px;height:32px;line-height:30px;border:2px dashed var(--border);border-radius:6px;background:var(--drop-zone);text-align:center;vertical-align:middle;margin:0 3px;transition:all 0.2s;padding:0 6px;font-size:0.95rem}
+  .drop-zone.drag-over{background:#dbe4ee;border-color:var(--primary)}
+  .drop-zone.filled{border-style:solid;border-color:var(--primary);background:#e8f0f8;cursor:pointer}
+  .drop-zone.correct{border-color:var(--accent);background:#e8f5e9}
+  .drop-zone.wrong{border-color:var(--accent-wrong);background:#fce8e8}
+  .drop-zone .dropped-text{font-weight:500;color:var(--primary)}
+  .drop-zone.correct .dropped-text{color:var(--accent)}
+  .drop-zone.wrong .dropped-text{color:var(--accent-wrong)}
+  .drag-pool{margin:1.2rem 0;display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.8rem;background:var(--drop-zone);border-radius:8px}
+  .draggable{padding:0.4rem 0.9rem;background:var(--draggable);border:1px solid var(--border);border-radius:6px;cursor:grab;user-select:none;transition:all 0.15s;font-size:0.92rem}
+  .draggable:hover{background:#dbe4ee;border-color:var(--primary);transform:translateY(-1px)}
+  .draggable.used{opacity:0.35;cursor:default;pointer-events:none}
+
+  .options-list{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.0rem}
+  .option{padding:0.7rem 1.0rem;background:var(--card-bg);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.6rem;font-size:0.95rem;line-height:1.45}
+  .option:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .option.selected{border-color:var(--primary);background:#e8f0f8}
+  .option.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .option.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+  .option .opt-marker{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:600;flex-shrink:0;background:#fff}
+  .option.selected .opt-marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .option.correct-mark .opt-marker{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .option.wrong-mark .opt-marker{background:var(--accent-wrong);color:#fff;border-color:var(--accent-wrong)}
+
+  .tf-options{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.0rem}
+  .tf-btn{padding:0.9rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);cursor:pointer;transition:all 0.15s;font-size:0.95rem;text-align:center}
+  .tf-btn:hover{border-color:var(--primary);background:var(--drop-zone)}
+  .tf-btn.selected{border-color:var(--primary);background:#e8f0f8}
+  .tf-btn.correct-mark{border-color:var(--accent);background:#e8f5e9}
+  .tf-btn.wrong-mark{border-color:var(--accent-wrong);background:#fce8e8}
+
+  .feedback{margin-top:1.0rem;padding:0.9rem 1.1rem;border-radius:8px;background:#f0f4f8;border-left:3px solid var(--primary);font-size:0.92rem;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback.feedback-correct{border-left-color:var(--accent);background:#e8f5e9}
+  .feedback.feedback-wrong{border-left-color:var(--accent-wrong);background:#fce8e8}
+  .feedback-title{font-weight:600;margin-bottom:0.3rem;display:block}
+  .feedback ul{margin:0.4rem 0 0 0;padding-left:1.2rem}
+  .feedback li{margin-bottom:0.3rem}
+
+  .action-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1.0rem}
+  .btn{padding:0.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:0.9rem;transition:all 0.15s}
+  .btn:hover{background:var(--drop-zone);border-color:var(--primary)}
+  .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn-primary:hover{background:#2c4661;border-color:#2c4661;color:#fff}
+  .btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn-accent:hover{filter:brightness(0.95)}
+
+  .nav-row{display:flex;justify-content:space-between;margin-top:0.8rem;gap:0.6rem}
+
+  /* Overview */
+  .overview-panel{display:none;background:var(--card-bg);border-radius:12px;padding:1.6rem 1.8rem;box-shadow:0 4px 16px var(--shadow);margin-bottom:1.2rem}
+  .overview-panel.show{display:block}
+  .overview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.0rem;flex-wrap:wrap;gap:0.5rem}
+  .overview-header h2{margin:0;font-size:1.15rem;font-weight:500}
+  .overview-stats{display:flex;gap:0.5rem;flex-wrap:wrap}
+  .filter-btn{padding:0.4rem 0.8rem;background:var(--drop-zone);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.82rem;transition:all 0.15s}
+  .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .filter-btn:hover:not(.active){background:#dbe4ee}
+  .overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem}
+  .overview-item{aspect-ratio:1;border-radius:8px;background:var(--status-unanswered);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;font-size:0.78rem;text-align:center;padding:0.2rem}
+  .overview-item.correct{background:var(--status-correct);border-color:var(--accent)}
+  .overview-item.wrong{background:var(--status-wrong);border-color:var(--accent-wrong)}
+  .overview-item:hover{transform:scale(1.04);box-shadow:0 2px 8px var(--shadow)}
+  .overview-item .ov-num{font-weight:700;font-size:1.0rem;margin-bottom:0.1rem}
+  .overview-item .ov-type{font-size:0.65rem;opacity:0.75;text-transform:uppercase;letter-spacing:0.5px}
+
+  .hidden{display:none}
+
+  @media (max-width:600px){
+    .container{padding:1rem}
+    .card{padding:1.2rem 1.0rem}
+    header{padding:1rem}
+    header h1{font-size:1.1rem}
+    .nav-tab{font-size:0.78rem;padding:0.5rem 0.3rem}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Lumen — UE5 全局光照 + 反射 — 互动式面试卡牌</h1>
+    <p>Epic Games · UE5.4+ · 共 12 题(拖拽 2 + 单选 3 + 多选 2 + 判断 5)· 配套笔记:<a class="header-btn" href="Lumen.md" target="_blank">打开 P0 条目</a></p>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" id="btn-overview">📊 题目总览</button>
+    <button class="header-btn" id="btn-reset-all">🔄 重置全部</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-type="all">全部</div>
+    <div class="nav-tab" data-type="drag">拖拽填空</div>
+    <div class="nav-tab" data-type="single">单选题</div>
+    <div class="nav-tab" data-type="multi">多选题</div>
+    <div class="nav-tab" data-type="tf">判断题</div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-mini">已答 <span class="score-num" id="answered-num">0</span> / <span id="total-num">12</span></div>
+    <div class="score-mini">正确 <span class="score-num" id="correct-num" style="color:var(--accent)">0</span></div>
+    <div class="score-mini">错误 <span class="score-num" id="wrong-num" style="color:var(--accent-wrong)">0</span></div>
+    <div class="score-mini">得分率 <span class="score-num" id="score-pct">0%</span></div>
+  </div>
+
+  <div class="progress-text" id="progress-text">第 1 题 / 共 12 题</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:8.3%"></div></div>
+
+  <div id="overview-panel" class="overview-panel">
+    <div class="overview-header">
+      <h2>题目总览</h2>
+      <div class="overview-stats">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="unanswered">未答</button>
+        <button class="filter-btn" data-filter="correct">正确</button>
+        <button class="filter-btn" data-filter="wrong">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <div id="q-container"></div>
+
+  <div class="nav-row">
+    <button class="btn" id="btn-prev">← 上一题</button>
+    <button class="btn" id="btn-next">下一题 →</button>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// Lumen — UE5 全局光照 + 反射
+// 12 题:拖拽填空 × 2 + 单选 × 3 + 多选 × 2 + 判断 × 5
+// ============================================================
+
+const dragQuestions = [
+  {
+    sentence: "Lumen 的三层结构:底层用 {0} 做软件光追;中层用 {1} 缓存近场高分辨率直接光;最高层用 {2} 做远距离低频 GI 近似。",
+    answers: ["SDF", "Surface Cache", "Radiance Cache"],
+    pool: ["SDF", "Surface Cache", "Radiance Cache", "Lightmap", "Probe", "AO", "Volume"],
+    perSlotAnalysis: [
+      "底层 = SDF 驱动的 Software Ray Tracing,Sphere Tracing 用 SDF 做'距离 = 安全步长',不依赖硬件 RT Core 也能跑。",
+      "中层 = Surface Cache,缓存近场(几米内)高分辨率 surface radiance,避免每帧重复 trace 直接光;Card 化的 mesh 表面。",
+      "最高层 = Radiance Cache,存远距离低频 GI 近似(hemi-octahedron / spherical harmonics),用屏幕空间 probe 采样。"
+    ]
+  },
+  {
+    sentence: "Lumen 反射降级链(默认 tier 顺序):L1 = {0} → L2 = {1} → L3 = {2}。",
+    answers: ["Screen Space", "Reflection Capture", "Planar"],
+    pool: ["Screen Space", "Reflection Capture", "Planar", "Sky Light", "Lightmap", "Cubemap", "Probe"],
+    perSlotAnalysis: [
+      "L1 = Screen Space 反射,屏幕空间 ray march,精确但屏幕外没数据,边界会 hard cut。",
+      "L2 = Reflection Capture(场景预烘焙的 cubemap),覆盖屏幕外区域,代价低但静态不准确。",
+      "L3 = Planar Reflection(平面镜强制追踪),最准但开销最大,通常只用于镜子/水面。"
+    ]
+  }
+];
+
+const singleQuestions = [
+  {
+    question: "Lumen 的 Surface Cache 主要解决什么问题?",
+    options: [
+      "A. 替代 lightmap,实现完全动态的全局光照",
+      "B. 缓存近场高分辨率的 surface radiance,避免每帧重复 trace 直接光",
+      "C. 压缩 Mesh SDF 数据,降低显存占用",
+      "D. 加速 Final Gather 的屏幕空间 probe 采样"
+    ],
+    correct: 1,
+    analysis: [
+      "❌ A:Surface Cache 不替代 lightmap——lightmap 是完全静态烘焙,Surface Cache 是动态缓存,作用域和目的都不同。",
+      "✅ B:Surface Cache 把每个 mesh 的表面采样 radiance 缓存到 Card 上(类似 Virtual Texture 思想),Final Gather 可以直接采样,避免每帧重新 trace 大量直接光。",
+      "❌ C:Surface Cache 跟 SDF 压缩无关,它是 radiance 缓存。",
+      "❌ D:Final Gather 采样的是 Surface Cache,不是反过来。"
+    ]
+  },
+  {
+    question: "在不支持硬件 RT 的平台上,Lumen 的回退方案是?",
+    options: [
+      "A. 关闭 Lumen,回退到 Lightmap",
+      "B. 用 Software Ray Tracing 走 SDF + Surface Cache 路径",
+      "C. 用 Voxel Cone Tracing 替代",
+      "D. 强制开启 Lumen 但禁用反射"
+    ],
+    correct: 1,
+    analysis: [
+      "❌ A:Lumen 不依赖硬件 RT,关闭它是把婴儿和洗澡水一起倒掉。",
+      "✅ B:Lumen 默认走 SDF + Surface Cache + Final Gather,纯软件路径——这是 Lumen 在 Mac Metal(无 RT Core)、Switch、PS4 老硬件上能跑的根本。",
+      "❌ C:Voxel Cone Tracing 是 UE4 时代 GI 方案,UE5 Lumen 没用它。",
+      "❌ D:反射有独立降级链,不是 Lumen 全有或全无。"
+    ]
+  },
+  {
+    question: "Lumen 反射降级 L1(Screen Space)失败的常见原因,不包括?",
+    options: [
+      "A. 反射射线超出屏幕外",
+      "B. 反射点处被深度图遮挡(法线 + 深度不连续)",
+      "C. 反射射线命中的物体是 Translucent 材质",
+      "D. 反射射线命中的是 Nanite 微多边形小簇"
+    ],
+    correct: 2,
+    analysis: [
+      "A 是:L1 SS 反射,屏幕外没深度数据,直接 fallback 到 L2。",
+      "B 是:Screen Space 反射的经典 hard cut,法线/深度不连续导致漏光。",
+      "✅ C:Translucent 材质通常被排除在 Lumen 反射之外,但不会让 L1 '失败'——Lumen 根本不会写 Translucent 的反射。",
+      "D 是:Nanite 微多边形小簇在深度图上不连续,会让 SS 反射出现噪点/缺漏,触发降级。"
+    ]
+  }
+];
+
+const multiQuestions = [
+  {
+    question: "Lumen GI 包含以下哪些核心组件?(多选)",
+    options: [
+      "A. Mesh Distance Field(全局 SDF,离线烘焙)",
+      "B. Surface Cache(近场 radiance 缓存)",
+      "C. Final Gather(屏幕空间 probe 重建)",
+      "D. Radiance Cache(远场低频 GI)",
+      "E. Lightmap(静态烘焙光照)",
+      "F. Global DF Volume(用于子表面 SDF)"
+    ],
+    correct: [0, 1, 2, 3, 5],
+    analysis: [
+      "✅ A:Mesh SDF 是 Lumen 底层 trace 的基础,UE 项目里每个 mesh 离线生成 SDF。",
+      "✅ B:Surface Cache 是中层直接光缓存。",
+      "✅ C:Final Gather 是屏幕空间 probe 重建,负责把缓存的 radiance 投到最终像素。",
+      "✅ D:Radiance Cache 是远场低频 GI 缓存(用 SH 或 hemi-octahedron 编码)。",
+      "❌ E:Lightmap 是 UE4 静态烘焙方案,Lumen 是它的动态替代品,不是 Lumen 的一部分。",
+      "✅ F:Global DF Volume 是 Mesh SDF 的子集,用于非 mesh 资产(粒子/植被)的 SDF 补充。"
+    ]
+  },
+  {
+    question: "Lumen 在 Mac Metal RHI 上(UE 5.4+)的兼容性状态,以下哪些正确?(多选)",
+    options: [
+      "A. Lumen GI 软件路径(SDF + Surface Cache)在 Mac Apple Silicon 上完整支持",
+      "B. Lumen 反射 L1(Screen Space)需要 RHI 支持 conservative depth,在 Metal 上需要启 CVar",
+      "C. Hardware RT 路径(UE 5.4+ Metal 3.0+)可选开启,但 Lumen 默认走软件路径",
+      "D. Translucent 材质完全被 Lumen 反射跳过,需要改用 SSR fallback",
+      "E. Lumen 在 Mac 上完全无 fallback,跟 DX12 等价",
+      "F. Mac 上的 Lumen 反射 tier 自动降级逻辑与 DX12 行为可能不一致(已知问题)"
+    ],
+    correct: [0, 1, 2, 3, 5],
+    analysis: [
+      "✅ A:Lumen GI 软件路径不依赖硬件 RT,Mac 上完整支持——这是 Lumen 在 Mac 跑得动的根本。",
+      "✅ B:SS 反射需要 conservative depth(RHISupportsConservativeDepth),Metal 5.4+ 默认开,但 L1 反射仍需 `r.Lumen.Reflections.Allow=1`。",
+      "✅ C:UE 5.4+ Mac Metal 3.0+ 支持硬件 RT 路径,但 Lumen 默认 `r.Lumen.HardwareRayTracing=0`(软件优先,稳)。",
+      "✅ D:Lumen 反射不写 translucent,需要 SSR fallback(`r.SSR.Quality` + 材质设置)。",
+      "❌ E:Mac 上有已知 tier 降级差异(尤其在 L1 SS 反射边界),不是完全等价。",
+      "✅ F:见 `Routine/Mac-平台/Mac-Metal-RHI-适配清单.md` 11 个特性详解里的 Lumen 反射部分,确认 L1 边界处理差异。"
+    ]
+  }
+];
+
+const trueFalseQuestions = [
+  {
+    question: "Lumen 完全替代了 Lightmap,UE5 项目不再需要任何 lightmap。",
+    correct: false,
+    analysis: "❌ 错误。Lumen 是动态 GI + 反射方案,但 Lightmap 仍在以下场景有用:(1) 超远距离静态背景(节省 GI probe 重建开销);(2) 移动端 Lumen 不可用时仍依赖 lightmap;(3) 美术审美层面,lightmap 的烘焙感有时更可控。**Lumen 跟 Lightmap 是叠加关系,不是替代关系**。\n\n常见误解:看到 UE5 默认开 Lumen 就以为 lightmap 退役,实际大型项目两者并存。"
+  },
+  {
+    question: "Lumen 在 Mac Metal RHI(Apple Silicon)上完整支持所有反射 tier,行为与 DX12 完全一致。",
+    correct: false,
+    analysis: "❌ 错误。Lumen 在 Mac 上有已知差异:\n(1) L1 Screen Space 反射的边界处理与 DX12 行为可能不一致(尤其在高曲率区域);\n(2) Hardware RT 路径在 Metal 3.0+ 才支持,5.4 之前默认走软件;\n(3) Final Gather 在 Apple Silicon unified memory 下,probe 缓存命中率比 DX12 + 独立显存高(实际上这是优势,但调优 CVAR 不同)。\n\n参考:`Routine/Mac-平台/Mac-Metal-RHI-适配清单.md` §1 Lumen 反射部分。\n\n正确理解:Mac 跑 Lumen 完全可用,但调试时不能盲目复用 DX12 的 CVAR 参数。"
+  },
+  {
+    question: "Lumen 的 Final Gather 是一次性 baking,跟 Lightmap 一样是静态的。",
+    correct: false,
+    analysis: "❌ 错误。Final Gather 是**每帧屏幕空间 probe 重建**,完全是动态的——它的输入是 Surface Cache(动态缓存的 radiance),输出是屏幕空间探针插值。\n\nFinal Gather 不是 baking 步骤。\n\n常见误解:看到 Surface Cache 里有'预计算 radiance'就以为是 baking,实际 Surface Cache 也是每帧更新,只是更新粒度比 Final Gather 粗(只在 mesh 表面变化时重算)。"
+  },
+  {
+    question: "Lumen 的反射与 Nanite 共享 Mesh SDF 数据。",
+    correct: false,
+    analysis: "❌ 错误。Lumen 用的是 **Mesh Distance Field(全局 SDF,离线烘焙)**,跟 Nanite 的 **Cluster DAG + Page Streaming** 是两套独立的数据结构。\n\n两者关系:\n- Lumen trace 时**消费** Mesh SDF(每个 mesh 离线生成的 SDF);\n- Nanite **不消费** Mesh SDF,只读自己的 Cluster 数据;\n- 但两者都消费同一个 mesh 的源几何数据(顶点/索引),所以在源数据层面对齐,不代表运行时共享数据结构。\n\n正确理解:渲染三大特性(Lumen / Nanite / VSM)的数据流是平行的,不是金字塔。"
+  },
+  {
+    question: "Lumen 在所有材质上(不透明 / 半透明 / 头发 / 眼睛)都完整支持。",
+    correct: false,
+    analysis: "❌ 错误。Lumen 明确不支持以下材质类型:\n(1) **Translucent / Transparent**:反射和 GI 都不写,要靠 SSR fallback;\n(2) **Hair**:头发丝太细,Surface Cache 失效,需要改用 Strata 头发专属路径;\n(3) **Eye / Sub-surface**:SubSurface 材质跟 SDF 冲突,通常关闭 Lumen 用专用 shader;\n(4) **Foliage**:树木叶子在 Nanite 5.4+ 可走 Nanite foliage,但 Lumen GI 命中叶子时按 mesh 算,不专门优化。\n\n正确理解:Lumen 适用于**主场景静态 + 不透明**几何,边缘材质需要专门配 fallback。"
+  }
+];
+
+// ============================================================
+// Engine (largely copy from Lumen-SIGGRAPH-2021.html template)
+// ============================================================
+
+const allQuestions = [];
+dragQuestions.forEach((q, i) => allQuestions.push({type:'drag', idx:i, typeLabel:'拖拽'}));
+singleQuestions.forEach((q, i) => allQuestions.push({type:'single', idx:i, typeLabel:'单选'}));
+multiQuestions.forEach((q, i) => allQuestions.push({type:'multi', idx:i, typeLabel:'多选'}));
+trueFalseQuestions.forEach((q, i) => allQuestions.push({type:'tf', idx:i, typeLabel:'判断'}));
+
+let currentQ = 0;
+let currentFilter = 'all';
+let currentTab = 'all';
+const answers = {}; // qIdx -> {status: 'correct'|'wrong'|'unanswered', detail: ...}
+
+function getTypeOrder() {
+  // Tab order: drag → single → multi → tf
+  const order = {all: ['drag', 'single', 'multi', 'tf']};
+  order['drag'] = ['drag']; order['single'] = ['single'];
+  order['multi'] = ['multi']; order['tf'] = ['tf'];
+  return order[currentTab];
+}
+
+function getVisibleQuestions() {
+  const types = getTypeOrder();
+  return allQuestions.map((q, i) => ({...q, globalIdx: i})).filter(q => types.includes(q.type));
+}
+
+function renderQuestion() {
+  const visible = getVisibleQuestions();
+  if (visible.length === 0) {
+    document.getElementById('q-container').innerHTML = '<div class="card"><p>该分类下无题目。</p></div>';
+    return;
+  }
+  if (currentQ >= visible.length) currentQ = visible.length - 1;
+  if (currentQ < 0) currentQ = 0;
+
+  const q = visible[currentQ];
+  const container = document.getElementById('q-container');
+  const globalIdx = q.globalIdx;
+  const status = answers[globalIdx]?.status || 'unanswered';
+
+  let html = `<div class="card" id="q-card">`;
+  html += `<span class="card-number">${currentQ + 1}</span>`;
+  html += `<h3 style="display:inline">`;
+
+  if (q.type === 'drag') {
+    const dq = dragQuestions[q.idx];
+    html += `${dq.sentence.replace(/\{(\d+)\}/g, (m, n) => `<span class="drop-zone" data-slot="${n}" data-qidx="${globalIdx}"><span class="dropped-text"></span></span>`)}`;
+  } else if (q.type === 'single') {
+    const sq = singleQuestions[q.idx];
+    html += `${sq.question}`;
+  } else if (q.type === 'multi') {
+    const mq = multiQuestions[q.idx];
+    html += `${mq.question}`;
+  } else if (q.type === 'tf') {
+    const tf = trueFalseQuestions[q.idx];
+    html += `${tf.question}`;
+  }
+  html += `<span class="q-type">${q.typeLabel}</span></h3>`;
+
+  // Type-specific body
+  if (q.type === 'drag') {
+    const dq = dragQuestions[q.idx];
+    const filled = answers[globalIdx]?.filled || {};
+    const checked = status !== 'unanswered';
+    html += `<div class="drag-pool" id="drag-pool-${globalIdx}">`;
+    dq.pool.forEach((term, i) => {
+      const isUsed = Object.values(filled).includes(term);
+      html += `<div class="draggable${isUsed ? ' used' : ''}" draggable="${!isUsed}" data-term="${term}" data-qidx="${globalIdx}">${term}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="action-row">
+      <button class="btn btn-primary" onclick="checkDrag(${globalIdx})">检查答案</button>
+      <button class="btn" onclick="resetDrag(${globalIdx})">重置</button>
+    </div>`;
+    html += `<div class="feedback" id="feedback-${globalIdx}"></div>`;
+  } else if (q.type === 'single') {
+    const sq = singleQuestions[q.idx];
+    const sel = answers[globalIdx]?.selected;
+    html += `<div class="options-list">`;
+    sq.options.forEach((opt, i) => {
+      let cls = 'option';
+      if (sel === i) cls += ' selected';
+      if (status !== 'unanswered' && i === sq.correct) cls += ' correct-mark';
+      if (status === 'wrong' && sel === i) cls += ' wrong-mark';
+      html += `<div class="${cls}" data-opt="${i}" onclick="selectSingle(${globalIdx}, ${i})">
+        <span class="opt-marker">${String.fromCharCode(65 + i)}</span>
+        <span>${opt}</span>
+      </div>`;
+    });
+    html += `</div>`;
+    html += `<div class="action-row">
+      <button class="btn btn-primary" onclick="checkSingle(${globalIdx})">检查答案</button>
+      <button class="btn" onclick="resetSingle(${globalIdx})">重置</button>
+    </div>`;
+    html += `<div class="feedback" id="feedback-${globalIdx}"></div>`;
+  } else if (q.type === 'multi') {
+    const mq = multiQuestions[q.idx];
+    const sel = answers[globalIdx]?.selected || [];
+    html += `<div class="options-list">`;
+    mq.options.forEach((opt, i) => {
+      let cls = 'option';
+      const isSel = sel.includes(i);
+      if (isSel) cls += ' selected';
+      if (status !== 'unanswered' && mq.correct.includes(i)) cls += ' correct-mark';
+      if (status === 'wrong' && isSel && !mq.correct.includes(i)) cls += ' wrong-mark';
+      html += `<div class="${cls}" data-opt="${i}" onclick="toggleMulti(${globalIdx}, ${i})">
+        <span class="opt-marker">${isSel ? '✓' : String.fromCharCode(65 + i)}</span>
+        <span>${opt}</span>
+      </div>`;
+    });
+    html += `</div>`;
+    html += `<div class="action-row">
+      <button class="btn btn-primary" onclick="checkMulti(${globalIdx})">检查答案</button>
+      <button class="btn" onclick="resetMulti(${globalIdx})">重置</button>
+    </div>`;
+    html += `<div class="feedback" id="feedback-${globalIdx}"></div>`;
+  } else if (q.type === 'tf') {
+    const tf = trueFalseQuestions[q.idx];
+    const sel = answers[globalIdx]?.selected;
+    html += `<div class="tf-options">`;
+    ['true', 'false'].forEach(val => {
+      const label = val === 'true' ? '✓ 正确' : '✗ 错误';
+      let cls = 'tf-btn';
+      if (sel === val) cls += ' selected';
+      if (status !== 'unanswered' && val === String(tf.correct)) cls += ' correct-mark';
+      if (status === 'wrong' && sel === val) cls += ' wrong-mark';
+      html += `<div class="${cls}" data-val="${val}" onclick="selectTF(${globalIdx}, '${val}')">${label}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="action-row">
+      <button class="btn btn-primary" onclick="checkTF(${globalIdx})">检查答案</button>
+      <button class="btn" onclick="resetTF(${globalIdx})">重置</button>
+    </div>`;
+    html += `<div class="feedback" id="feedback-${globalIdx}"></div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // Post-render: fill drag answers
+  if (q.type === 'drag') {
+    const filled = answers[globalIdx]?.filled || {};
+    Object.keys(filled).forEach(slot => {
+      const zone = document.querySelector(`.drop-zone[data-slot="${slot}"][data-qidx="${globalIdx}"]`);
+      if (zone) {
+        zone.classList.add('filled');
+        zone.querySelector('.dropped-text').textContent = filled[slot];
+        if (status === 'correct') zone.classList.add('correct');
+        if (status === 'wrong') zone.classList.add('wrong');
+      }
+    });
+    setupDragHandlers(globalIdx);
+  }
+
+  // Post-render: show feedback if checked
+  if (status !== 'unanswered') {
+    const fb = document.getElementById(`feedback-${globalIdx}`);
+    if (fb) {
+      fb.classList.add('show');
+      fb.classList.add(status === 'correct' ? 'feedback-correct' : 'feedback-wrong');
+      fb.innerHTML = (answers[globalIdx].feedback || '');
+    }
+  }
+
+  updateProgress();
+}
+
+function setupDragHandlers(qIdx) {
+  const draggables = document.querySelectorAll(`.draggable[data-qidx="${qIdx}"]`);
+  const dropZones = document.querySelectorAll(`.drop-zone[data-qidx="${qIdx}"]`);
+
+  draggables.forEach(d => {
+    d.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', d.dataset.term);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+
+  dropZones.forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const term = e.dataTransfer.getData('text/plain');
+      const slot = zone.dataset.slot;
+      if (!answers[qIdx]) answers[qIdx] = {filled: {}};
+      if (!answers[qIdx].filled) answers[qIdx].filled = {};
+      // If slot already had something, free it
+      const prev = answers[qIdx].filled[slot];
+      answers[qIdx].filled[slot] = term;
+      // Reset status (any change invalidates previous check)
+      if (answers[qIdx].status) {
+        delete answers[qIdx].status;
+        delete answers[qIdx].feedback;
+      }
+      renderQuestion();
+    });
+    // Click filled zone to clear
+    if (zone.classList.contains('filled')) {
+      zone.addEventListener('click', () => {
+        if (!answers[qIdx] || !answers[qIdx].filled) return;
+        const slot = zone.dataset.slot;
+        delete answers[qIdx].filled[slot];
+        if (answers[qIdx].status) {
+          delete answers[qIdx].status;
+          delete answers[qIdx].feedback;
+        }
+        renderQuestion();
+      });
+    }
+  });
+}
+
+function checkDrag(qIdx) {
+  const q = dragQuestions[allQuestions[qIdx].idx];
+  const filled = answers[qIdx]?.filled || {};
+  let allFilled = true;
+  let allCorrect = true;
+  let detail = '<span class="feedback-title">';
+  for (let i = 0; i < q.answers.length; i++) {
+    if (!filled[i]) { allFilled = false; break; }
+    if (filled[i] !== q.answers[i]) allCorrect = false;
+  }
+  if (!allFilled) {
+    detail += '⚠ 答案不完整</span><ul>';
+    for (let i = 0; i < q.answers.length; i++) {
+      if (!filled[i]) detail += `<li>第 ${parseInt(i) + 1} 空:未填</li>`;
+    }
+    detail += '</ul>';
+    if (!answers[qIdx]) answers[qIdx] = {};
+    answers[qIdx].status = 'wrong';
+    answers[qIdx].feedback = detail;
+  } else {
+    detail += allCorrect ? '✅ 全部正确!' : '❌ 部分错误</span><ul>';
+    for (let i = 0; i < q.answers.length; i++) {
+      if (filled[i] === q.answers[i]) {
+        detail += `<li>第 ${parseInt(i) + 1} 空 ✅ ${q.perSlotAnalysis[i]}</li>`;
+      } else {
+        detail += `<li>第 ${parseInt(i) + 1} 空 ❌ 你答: ${filled[i]} | 正确: ${q.answers[i]}<br>${q.perSlotAnalysis[i]}</li>`;
+      }
+    }
+    if (!allCorrect) detail += '</ul><span class="feedback-title"></span>';
+    if (!answers[qIdx]) answers[qIdx] = {};
+    answers[qIdx].status = allCorrect ? 'correct' : 'wrong';
+    answers[qIdx].feedback = detail;
+  }
+  renderQuestion();
+  updateScores();
+  renderOverview();
+}
+
+function resetDrag(qIdx) {
+  if (answers[qIdx]) {
+    delete answers[qIdx].filled;
+    delete answers[qIdx].status;
+    delete answers[qIdx].feedback;
+  }
+  renderQuestion();
+  updateScores();
+  renderOverview();
+}
+
+function selectSingle(qIdx, opt) {
+  if (!answers[qIdx]) answers[qIdx] = {};
+  if (answers[qIdx].status) return; // locked after check
+  answers[qIdx].selected = opt;
+  renderQuestion();
+}
+
+function checkSingle(qIdx) {
+  const q = singleQuestions[allQuestions[qIdx].idx];
+  const sel = answers[qIdx]?.selected;
+  if (sel === undefined) {
+    alert('请先选择一个选项');
+    return;
+  }
+  if (!answers[qIdx]) answers[qIdx] = {};
+  const correct = sel === q.correct;
+  answers[qIdx].status = correct ? 'correct' : 'wrong';
+  let detail = `<span class="feedback-title">${correct ? '✅ 正确!' : '❌ 错误'}</span><ul>`;
+  q.options.forEach((opt, i) => {
+    const mark = i === q.correct ? '✅' : (i === sel && !correct ? '❌' : '○');
+    detail += `<li>${mark} ${opt}<br>${q.analysis[i]}</li>`;
+  });
+  detail += '</ul>';
+  answers[qIdx].feedback = detail;
+  renderQuestion();
+  updateScores();
+  renderOverview();
+}
+
+function resetSingle(qIdx) {
+  if (answers[qIdx]) {
+    delete answers[qIdx].selected;
+    delete answers[qIdx].status;
+    delete answers[qIdx].feedback;
+  }
+  renderQuestion();
+  updateScores();
+  renderOverview();
+}
+
+function toggleMulti(qIdx, opt) {
+  if (!answers[qIdx]) answers[qIdx] = {};
+  if (answers[qIdx].status) return;
+  if (!answers[qIdx].selected) answers[qIdx].selected = [];
+  const idx = answers[qIdx].selected.indexOf(opt);
+  if (idx >= 0) answers[qIdx].selected.splice(idx, 1);
+  else answers[qIdx].selected.push(opt);
+  renderQuestion();
+}
+
+function checkMulti(qIdx) {
+  const q = multiQuestions[allQuestions[qIdx].idx];
+  const sel = (answers[qIdx]?.selected || []).slice().sort();
+  const correct = q.correct.slice().sort();
+  if (sel.length === 0) { alert('请先选择至少一个选项'); return; }
+  if (!answers[qIdx]) answers[qIdx] = {};
+  const isCorrect = sel.length === correct.length && sel.every((v, i) => v === correct[i]);
+  answers[qIdx].status = isCorrect ? 'correct' : 'wrong';
+  let detail = `<span class="feedback-title">${isCorrect ? '✅ 全部正确!' : '❌ 答案不完全正确'}</span><ul>`;
+  q.options.forEach((opt, i) => {
+    const inCorrect = correct.includes(i);
+    const inSel = sel.includes(i);
+    let mark = '○';
+    if (inCorrect && inSel) mark = '✅';
+    else if (inCorrect && !inSel) mark = '⚠ 漏选';
+    else if (!inCorrect && inSel) mark = '❌ 多选';
+    detail += `<li>${mark} ${opt}<br>${q.analysis[i]}</li>`;
+  });
+  detail += '</ul>';
+  answers[qIdx].feedback = detail;
+  renderQuestion();
+  updateScores();
+  renderOverview();
+}
+
+function resetMulti(qIdx) {
+  if (answers[qIdx]) {
+    delete answers[qIdx].selected;
+    delete answers[qIdx].status;
+    delete answers[qIdx].feedback;
+  }
+  renderQuestion();
+  updateScores();
+  renderOverview();
+}
+
+function selectTF(qIdx, val) {
+  if (!answers[qIdx]) answers[qIdx] = {};
+  if (answers[qIdx].status) return;
+  answers[qIdx].selected = val;
+  renderQuestion();
+}
+
+function checkTF(qIdx) {
+  const q = trueFalseQuestions[allQuestions[qIdx].idx];
+  const sel = answers[qIdx]?.selected;
+  if (sel === undefined) { alert('请先选择 判断'); return; }
+  if (!answers[qIdx]) answers[qIdx] = {};
+  const correct = sel === String(q.correct);
+  answers[qIdx].status = correct ? 'correct' : 'wrong';
+  const ansLabel = q.correct ? '正确' : '错误';
+  const yourLabel = sel === 'true' ? '正确' : '错误';
+  let detail = `<span class="feedback-title">${correct ? '✅ 判断正确!' : '❌ 判断错误(你选:' + yourLabel + ' | 正确:' + ansLabel + ')'}</span><br>`;
+  detail += q.analysis.replace(/\n/g, '<br>');
+  answers[qIdx].feedback = detail;
+  renderQuestion();
+  updateScores();
+  renderOverview();
+}
+
+function resetTF(qIdx) {
+  if (answers[qIdx]) {
+    delete answers[qIdx].selected;
+    delete answers[qIdx].status;
+    delete answers[qIdx].feedback;
+  }
+  renderQuestion();
+  updateScores();
+  renderOverview();
+}
+
+function updateProgress() {
+  const visible = getVisibleQuestions();
+  document.getElementById('progress-text').textContent = `第 ${currentQ + 1} 题 / 共 ${visible.length} 题`;
+  document.getElementById('progress-fill').style.width = `${((currentQ + 1) / visible.length) * 100}%`;
+}
+
+function updateScores() {
+  const visible = getVisibleQuestions();
+  let answered = 0, correct = 0, wrong = 0;
+  visible.forEach(q => {
+    const s = answers[q.globalIdx]?.status;
+    if (s === 'correct') { answered++; correct++; }
+    else if (s === 'wrong') { answered++; wrong++; }
+  });
+  document.getElementById('answered-num').textContent = answered;
+  document.getElementById('correct-num').textContent = correct;
+  document.getElementById('wrong-num').textContent = wrong;
+  const pct = visible.length > 0 ? Math.round((correct / visible.length) * 100) : 0;
+  document.getElementById('score-pct').textContent = `${pct}%`;
+}
+
+function renderOverview() {
+  const grid = document.getElementById('overview-grid');
+  const visible = getVisibleQuestions();
+  let filtered = visible;
+  if (currentFilter === 'unanswered') filtered = visible.filter(q => !answers[q.globalIdx]?.status);
+  else if (currentFilter === 'correct') filtered = visible.filter(q => answers[q.globalIdx]?.status === 'correct');
+  else if (currentFilter === 'wrong') filtered = visible.filter(q => answers[q.globalIdx]?.status === 'wrong');
+
+  grid.innerHTML = filtered.map((q, i) => {
+    const s = answers[q.globalIdx]?.status;
+    let cls = 'overview-item';
+    if (s === 'correct') cls += ' correct';
+    else if (s === 'wrong') cls += ' wrong';
+    const visibleIdx = visible.indexOf(q);
+    return `<div class="${cls}" onclick="jumpTo(${visibleIdx})">
+      <div class="ov-num">${visibleIdx + 1}</div>
+      <div class="ov-type">${q.typeLabel}</div>
+    </div>`;
+  }).join('');
+}
+
+function jumpTo(idx) {
+  currentQ = idx;
+  document.getElementById('overview-panel').classList.remove('show');
+  renderQuestion();
+  updateScores();
+}
+
+document.getElementById('btn-prev').onclick = () => {
+  if (currentQ > 0) { currentQ--; renderQuestion(); updateScores(); }
+};
+document.getElementById('btn-next').onclick = () => {
+  const visible = getVisibleQuestions();
+  if (currentQ < visible.length - 1) { currentQ++; renderQuestion(); updateScores(); }
+};
+document.getElementById('btn-overview').onclick = () => {
+  const panel = document.getElementById('overview-panel');
+  panel.classList.toggle('show');
+  if (panel.classList.contains('show')) renderOverview();
+};
+document.getElementById('btn-reset-all').onclick = () => {
+  if (!confirm('确认重置全部答题记录?')) return;
+  Object.keys(answers).forEach(k => delete answers[k]);
+  currentQ = 0;
+  renderQuestion();
+  updateScores();
+  renderOverview();
+};
+document.querySelectorAll('.nav-tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentTab = t.dataset.type;
+    currentQ = 0;
+    renderQuestion();
+    updateScores();
+    renderOverview();
+  };
+});
+document.querySelectorAll('.filter-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    currentFilter = b.dataset.filter;
+    renderOverview();
+  };
+});
+
+renderQuestion();
+updateScores();
+renderOverview();
+</script>
+
+</body>
+</html>
