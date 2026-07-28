@@ -261,7 +261,7 @@ const quizData = [
     explanation: "B 正确。**CUA = GPT-4o + 额外 RL training**——**专门 fine-tune 来做 browser 操控**。**关键技术点**：多模态 chain-of-thought（screenshot + reason + action）、self-correction loop（失败 → 截图 → 重试）。**关键判断**：**OpenAI 押「专用模型 + RL」路线**——**与 Anthropic 「通用模型 + prompt engineering」路线对立**。**vendor-neutral GUIAgent interface 不能假设 model 内部架构**（**只假设 input/output contract**）。",
     followup: [
       "追问：为什么 OpenAI 选专用模型而不是通用？",
-      "答：OpenAI 押"专用模型上限更高"——browser 操控是相对窄的领域，fine-tune 后比通用模型 + prompt engineering 更准。**Anthropic 押"通用模型更灵活"**——任何 GUI 场景都能用。**谁对？**——目前 CUA 在 WebArena SOTA 看起来 OpenAI 占优，但 OSWorld 数字有限，**没定论**。"
+      "答：OpenAI 押「专用模型上限更高」——browser 操控是相对窄的领域，fine-tune 后比通用模型 + prompt engineering 更准。**Anthropic 押「通用模型更灵活」**——任何 GUI 场景都能用。**谁对？**——目前 CUA 在 WebArena SOTA 看起来 OpenAI 占优，但 OSWorld 数字有限，**没定论**。"
     ]
   },
   {
