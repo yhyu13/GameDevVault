@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Substrate 材质闭环 — 源码卡牌 (W31)</title>
+<style>
+  :root {
+    --bg: #fdf2f8;
+    --card: #ffffff;
+    --text: #1e1b3a;
+    --muted: #6b5b8c;
+    --accent: #ec4899;
+    --accent-light: #fce7f3;
+    --accent-2: #db2777;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #fbcfe8;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; align-items: center; justify-content: space-between; }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px; }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn { flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s; }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px; background: var(--bg); border: 2px dashed var(--border); border-radius: 8px; }
+  .drag-slot { min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px; background: white; display: inline-flex; align-items: center; justify-content: center; padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px; background: var(--accent-light); border-radius: 8px; }
+  .drag-chip { padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px; cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem; }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation { margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg); font-size: 0.92rem; display: none; }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup { margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px; border: 1px dashed var(--accent); }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.9rem; }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel { display: none; margin-bottom: 16px; padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .filter-btn { padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white; cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; }
+  .overview-tile { aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle { width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Substrate 材质闭环 — 源码卡牌</h1>
+    <p>UE 5.8 · Substrate.cpp + Substrate.h</p>
+    <div class="header-meta">配套笔记: <a href="UE5-Substrate-材质闭环-源码分析.md">[[UE5-Substrate-材质闭环-源码分析]]</a> · W31 · 10 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 10</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header"><strong>题目总览 (10)</strong></div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="questionContainer"></div>
+
+  <div class="nav-bar">
+    <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+    <span class="nav-hint" id="navHint">第 1 / 10 题</span>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 10</div>
+    </div>
+    <div class="results-title" id="resultsTitle">完成!</div>
+    <div class="results-msg" id="resultsMsg"></div>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <button class="btn btn-primary" onclick="showReview()">📋 错题回顾</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重新开始</button>
+    </div>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { type: 'TF', q: 'Substrate 用了 4-7 张固定 GBuffer 纹理,跟传统 GBuffer 路径一样。', a: false,
+    ex: '错。Substrate 用 Texture2DArray (MaterialTextureArray, slice = closure count) + ClosureOffsetTexture + TopLayerTexture 三件套,跟 GBuffer 完全不同。',
+    followup: ['MaterialTextureArray 是 Texture2DArray 而不是 2D', 'slice 数由 Substrate::GetSubstrateMaxClosureCount(View) 决定', '上限 8 (SUBSTRATE_MAX_CLOSURE_COUNT <= 8u)'],
+    src: 'Substrate.h:93-151' },
+  { type: 'MC', q: 'Substrate 的 `r.Substrate.AllocationMode = 1` 是什么意思?',
+    o: ['按 view 分配','只能增长不回收 (生产档最优)','按平台固定分配','TEST 用途'],
+    a: 1,
+    ex: 'AllocationMode 1 = 只能增长不回收,避免了 view 切换时的资源重分配 hitch,生产环境推荐。',
+    followup: ['模式 0 按 view 分配会反复 realloc', '模式 2 按平台固定分配,失去灵活性', '长时间游戏会有"内存只增不减"问题'],
+    src: 'Substrate.cpp:61-65' },
+  { type: 'MC', q: 'Substrate 的 `static_assert(SUBSTRATE_MAX_CLOSURE_COUNT <= 8u)` 影响谁?',
+    o: ['只影响 Substrate 自身','Lumen ScreenProbeGather 的 DiffuseIndirect slice 数上限','VSM 的 page count','Nanite 的 cluster 数'],
+    a: 1,
+    ex: 'LumenScreenProbeGather.cpp:2674 创建 DiffuseIndirect 时 ClosureCount 由 Substrate 决定,≤8u 直接限制 Lumen 的 array slice。',
+    followup: ['1080p + 8 closure + PF_FloatRGBA ≈ 67MB Lumen 显存', '材质层数硬上限 8,超过 8 会被截断', 'WPO (World Position Offset) 路径需要控制材质复杂度'],
+    src: 'Substrate.cpp:106 + LumenScreenProbeGather.cpp:2674' },
+  { type: 'MC', q: 'Substrate 的 4 个 stencil bit (Fast/Single/Complex/ComplexSpecial) 哪个对应单 PS fast path?',
+    o: ['StencilBit_Fast (0x10)','StencilBit_Single (0x20)','StencilBit_Complex (0x40)','StencilBit_ComplexSpecial (0x80)'],
+    a: 0,
+    ex: 'StencilBit_Fast (0x10) 触发条件 = 单 slab 节点,走单 PS fast path。绝大多数材质走这条。',
+    followup: ['StencilBit_Complex (0x40) 是 loop PS', 'ComplexSpecial (0x80) 给 anisotropy 等特殊材质', '4 bit 设计避免跟其他 stencil bit 冲突'],
+    src: 'Substrate.h:233-236' },
+  { type: 'DRAG', q: '把 Substrate 的 4 个 RDG texture 拖到对应职责:',
+    slots: [
+      { id: 'a', label: '?', correct: 'MaterialTextureArray', why: '主存储,Texture2DArray,slice = closure count' },
+      { id: 'b', label: '?', correct: 'TopLayerTexture', why: 'top-layer interface mask' },
+      { id: 'c', label: '?', correct: 'OpaqueRoughRefractionTexture', why: '粗糙折射专用,避免 top layer 错误' },
+      { id: 'd', label: '?', correct: 'ClosureOffsetTexture', why: '每像素 closure 偏移 (单通道)' }
+    ],
+    pool: ['MaterialTextureArray','TopLayerTexture','OpaqueRoughRefractionTexture','ClosureOffsetTexture'],
+    ex: '四件套:MaterialTextureArray (主存储) + TopLayerTexture (top layer 标识) + OpaqueRoughRefractionTexture (粗糙折射独立) + ClosureOffsetTexture (单通道偏移)。',
+    src: 'Substrate.h:124-137' },
+  { type: 'MC', q: 'Substrate 8x8 tile classification 的主要性能优势是什么?',
+    o: ['每像素分析','只对 8x8 tile 做复杂度分析 + GPU dispatch 间接参数','每 1x1 像素精确控制','避免任何 GPU 调度'],
+    a: 1,
+    ex: 'Tile-based classification 只对 8x8 tile 做复杂度分析,GPU 端 ClassificationTileListBuffer 直接 dispatch,大幅减少 GPU 调度开销。',
+    followup: ['ClassificationTileListBuffer 装 dispatch 间接参数', 'TileType (4-bit) + 1-bit=fast/single/complex', 'Sub-strate async classification 跟 shadow pass 异步'],
+    src: 'Substrate.h:166-176' },
+  { type: 'TF', q: 'r.Substrate.AsyncClassification 默认开启,对 60fps 至关重要。', a: true,
+    ex: '对。AsyncClassification = 1 (默认) 让 tile classification 跟 shadow pass 异步,避免 60fps 帧时间超标。',
+    src: 'Substrate.cpp:49-53' },
+  { type: 'MC', q: 'Substrate `OpaqueRoughRefractionTexture` 为什么独立出来?',
+    o: ['性能优化','用空间换正确性,避免 top layer 折射错误','兼容移动 GPU','VRAM 不够时分页用'],
+    a: 1,
+    ex: '把粗糙折射独立存储避免 top layer interface 的错误,但代价是多用 ~5-10% 显存,这是设计 trade-off。',
+    src: 'Substrate.h:130-133' },
+  { type: 'MC', q: 'Substrate 跟 Lumen 探针的桥梁函数是?',
+    o: ['Substrate::Init','Substrate::GetSubstrateMaxClosureCount(View)','Substrate::ApplyGI','Substrate::Build'],
+    a: 1,
+    ex: 'Substrate::GetSubstrateMaxClosureCount(View) 在 LumenScreenProbeGather.cpp:2672 调用,决定 DiffuseIndirect 的 slice 数。',
+    src: 'LumenScreenProbeGather.cpp:2670-2672' },
+  { type: 'MC', q: 'Substrate 5.4+ 哪条 CVar 控制 closure count 从材质来而非固定值?',
+    o: ['r.Substrate.AllocationMode','r.Substrate.UseClosureCountFromMaterial','r.Substrate.AsyncClassification','r.Substrate.TileCoord8bits'],
+    a: 1,
+    ex: 'r.Substrate.UseClosureCountFromMaterial = 1 (默认) 让 Lumen 分层数随材质复杂度,否则用固定 r.Substrate.ClosuresPerPixel。',
+    src: 'Substrate.cpp:31-35' }
+];
+
+const state = { current: 0, answers: {}, scores: {} };
+
+function renderQuestion() {
+  const q = QUESTIONS[state.current];
+  const container = document.getElementById('questionContainer');
+  const answered = state.answers[state.current] !== undefined;
+  const correct = state.scores[state.current] === 1;
+
+  let html = `<div class="question-card${answered ? ' answered' : ''}">`;
+  html += `<div class="q-number">Q${state.current + 1} / ${QUESTIONS.length} <span class="q-type-badge">${q.type}</span></div>`;
+  html += `<div class="q-text">${q.q}</div>`;
+
+  if (q.type === 'MC') {
+    html += '<div class="options">';
+    q.o.forEach((opt, i) => {
+      const key = String.fromCharCode(65 + i);
+      let cls = 'option';
+      if (answered) { cls += ' disabled'; if (i === q.a) cls += ' correct'; else if (state.answers[state.current] === i) cls += ' wrong'; }
+      else if (state.answers[state.current] === i) cls += ' selected';
+      html += `<div class="${cls}" onclick="selectOption(${i})"><span class="option-key">${key}</span>${opt}</div>`;
+    });
+    html += '</div>';
+  } else if (q.type === 'TF') {
+    const userAns = state.answers[state.current];
+    html += '<div class="tf-buttons">';
+    [true, false].forEach(v => {
+      const label = v ? '✓ 正确' : '✗ 错误';
+      let cls = 'tf-btn';
+      if (answered) { cls += ' disabled'; if (v === q.a) cls += ' correct'; else if (userAns === v) cls += ' wrong'; }
+      else if (userAns === v) cls += ' selected';
+      html += `<div class="${cls}" onclick="selectTF(${v})">${label}</div>`;
+    });
+    html += '</div>';
+  } else if (q.type === 'DRAG') {
+    const userAns = state.answers[state.current] || {};
+    html += '<div class="drag-zone">';
+    q.slots.forEach(slot => {
+      const filled = userAns[slot.id];
+      let cls = 'drag-slot';
+      if (filled) { cls += ' filled'; if (answered) { if (filled === slot.correct) cls += ' correct'; else cls += ' wrong'; } }
+      html += `<div class="${cls}" ${answered ? '' : `ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="dropOnSlot(event,'${slot.id}')"`}>${filled || slot.label}</div>`;
+    });
+    html += '</div>';
+    html += '<div class="drag-pool">';
+    q.pool.forEach(chip => {
+      const used = Object.values(userAns).includes(chip);
+      html += `<div class="drag-chip${used ? ' used' : ''}" draggable="${!used && !answered}" ondragstart="dragFromPool(event,'${chip}')">${chip}</div>`;
+    });
+    html += '</div>';
+  }
+
+  if (answered) {
+    const exClass = correct ? 'correct-ex' : 'wrong-ex';
+    html += `<div class="explanation show ${exClass}"><strong>${correct ? '✓ 答对了!' : '✗ 答错了'}</strong> ${q.ex}`;
+    if (q.followup && q.followup.length) { html += '<div class="followup"><h4>延伸 / Follow-up</h4><ol>'; q.followup.forEach(f => html += `<li>${f}</li>`); html += '</ol></div>'; }
+    html += `<div class="src">来源: ${q.src}</div></div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+  updateProgress();
+  updateNav();
+}
+
+function selectOption(i) { if (state.answers[state.current] !== undefined) return; state.answers[state.current] = i; state.scores[state.current] = i === QUESTIONS[state.current].a ? 1 : 0; renderQuestion(); }
+function selectTF(v) { if (state.answers[state.current] !== undefined) return; state.answers[state.current] = v; state.scores[state.current] = v === QUESTIONS[state.current].a ? 1 : 0; renderQuestion(); }
+function dragFromPool(e, chip) { e.dataTransfer.setData('text/plain', chip); }
+function dropOnSlot(e, slotId) {
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  if (state.answers[state.current] !== undefined) return;
+  const chip = e.dataTransfer.getData('text/plain'); if (!chip) return;
+  const q = QUESTIONS[state.current];
+  if (!state.answers[state.current]) state.answers[state.current] = {};
+  state.answers[state.current][slotId] = chip;
+  const filledCount = Object.keys(state.answers[state.current]).length;
+  if (filledCount === q.slots.length) {
+    let allCorrect = true;
+    q.slots.forEach(s => { if (state.answers[state.current][s.id] !== s.correct) allCorrect = false; });
+    state.scores[state.current] = allCorrect ? 1 : 0;
+  }
+  renderQuestion();
+}
+
+function updateProgress() {
+  const answered = Object.keys(state.answers).length;
+  const total = QUESTIONS.length;
+  document.getElementById('progressText').textContent = `${state.current + 1} / ${total}`;
+  document.getElementById('scoreText').textContent = Object.values(state.scores).reduce((a, b) => a + b, 0);
+  document.getElementById('progressFill').style.width = `${(answered / total) * 100}%`;
+  document.getElementById('navHint').textContent = `第 ${state.current + 1} / ${total} 题`;
+}
+function updateNav() { document.getElementById('prevBtn').disabled = state.current === 0; document.getElementById('nextBtn').textContent = state.current === QUESTIONS.length - 1 ? '完成 ✓' : '下一题 →'; }
+function prevQuestion() { if (state.current > 0) { state.current--; renderQuestion(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+function nextQuestion() { if (state.current < QUESTIONS.length - 1) { state.current++; renderQuestion(); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { showResults(); } }
+function showResults() {
+  const total = Object.values(state.scores).reduce((a, b) => a + b, 0);
+  const totalAns = Object.keys(state.answers).length;
+  document.getElementById('questionContainer').style.display = 'none';
+  document.querySelector('.nav-bar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = total;
+  const pct = (total / QUESTIONS.length * 100).toFixed(0);
+  document.getElementById('resultsTitle').textContent = pct >= 90 ? '🎉 大神!' : pct >= 70 ? '👍 不错!' : '💪 加油!';
+  document.getElementById('resultsMsg').textContent = `完成 ${totalAns}/${QUESTIONS.length} 题,得分 ${total}/${QUESTIONS.length} (${pct}%)`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function showReview() {
+  const reviewSection = document.getElementById('reviewSection');
+  const wrong = QUESTIONS.map((q, i) => ({ q, i })).filter(({ i }) => state.scores[i] === 0);
+  if (wrong.length === 0) { reviewSection.innerHTML = '<p style="text-align: center; color: var(--correct);">🎉 全对!没有错题!</p>'; return; }
+  let html = '<h3>错题回顾 (' + wrong.length + ')</h3>';
+  wrong.forEach(({ q, i }) => {
+    const user = state.answers[i];
+    let userStr = '未答', correctStr = '';
+    if (q.type === 'MC') { userStr = q.o[user] || '未答'; correctStr = q.o[q.a]; }
+    else if (q.type === 'TF') { userStr = user === true ? '正确' : user === false ? '错误' : '未答'; correctStr = q.a ? '正确' : '错误'; }
+    else if (q.type === 'DRAG') { userStr = Object.entries(user || {}).map(([k, v]) => `${k}=${v}`).join(', ') || '未完成'; correctStr = q.slots.map(s => `${s.id}=${s.correct}`).join(', '); }
+    html += `<div class="review-item"><h4>Q${i + 1} (${q.type}): ${q.q}</h4><div class="your-ans">你的答案: ${userStr}</div><div class="correct-ans">正确答案: ${correctStr}</div><div style="margin-top:6px;font-size:0.85rem;color:var(--muted)">${q.ex}</div></div>`;
+  });
+  reviewSection.innerHTML = html;
+}
+function resetAll() { if (!confirm('确定重置所有分数?')) return; state.current = 0; state.answers = {}; state.scores = {}; document.getElementById('questionContainer').style.display = 'block'; document.querySelector('.nav-bar').style.display = 'flex'; document.getElementById('resultsScreen').classList.remove('show'); renderOverview(); renderQuestion(); }
+function renderOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  QUESTIONS.forEach((q, i) => {
+    let cls = 'overview-tile';
+    if (state.scores[i] === 1) cls += ' correct';
+    else if (state.scores[i] === 0) cls += ' wrong';
+    html += `<div class="${cls}" onclick="jumpTo(${i})"><div class="tile-num">${i + 1}</div><div class="tile-type">${q.type}</div></div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) { state.current = i; document.getElementById('overviewPanel').classList.remove('show'); renderQuestion(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function toggleOverview() { const p = document.getElementById('overviewPanel'); p.classList.toggle('show'); if (p.classList.contains('show')) renderOverview(); }
+document.addEventListener('keydown', e => { if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowLeft') prevQuestion(); else if (e.key === 'ArrowRight') nextQuestion(); else if (e.key === 'o' || e.key === 'O') toggleOverview(); });
+renderQuestion();
+</script>
+</body>
+</html>

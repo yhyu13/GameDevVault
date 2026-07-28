@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI Operator (CUA) — 论文卡牌 (W31)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 6px 12px; background: white; border: 1px solid var(--accent);
+    border-radius: 16px; font-size: 0.9rem; cursor: grab; user-select: none;
+    color: var(--accent-2); font-weight: 500; transition: all 0.2s;
+  }
+  .drag-chip:hover { background: var(--accent); color: white; }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: not-allowed; }
+
+  .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.92rem;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-2); }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-secondary:hover:not(:disabled) { background: var(--muted); color: white; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .feedback {
+    margin-top: 16px; padding: 16px; border-radius: 8px;
+    background: var(--accent-light); border-left: 4px solid var(--accent);
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--correct-bg); border-left-color: var(--correct); }
+  .feedback.wrong { background: var(--wrong-bg); border-left-color: var(--wrong); }
+  .feedback-title { font-weight: 700; margin-bottom: 8px; }
+  .feedback-source {
+    font-size: 0.78rem; color: var(--muted); margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+  .feedback-followup {
+    margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);
+  }
+  .feedback-followup ul { margin: 4px 0; padding-left: 20px; }
+  .feedback-followup li { margin: 4px 0; font-size: 0.92rem; }
+
+  .nav { display: flex; gap: 8px; justify-content: space-between; margin-top: 20px; }
+  .nav-btn {
+    padding: 8px 16px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+  }
+  .nav-btn:hover:not(:disabled) { background: var(--accent-light); border-color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .overview { display: none; }
+  .overview.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .overview-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 6px 12px; background: white; border: 1px solid var(--border);
+    border-radius: 16px; font-size: 0.82rem; cursor: pointer;
+  }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .overview-item {
+    background: var(--card); border: 2px solid var(--border); border-radius: 8px;
+    padding: 12px; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .overview-item:hover { border-color: var(--accent); }
+  .overview-item.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .overview-item.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .overview-item.partial { border-color: #f59e0b; background: #fffbeb; }
+  .overview-item.answered { opacity: 0.85; }
+  .overview-num { font-size: 1.1rem; font-weight: 700; color: var(--accent-2); }
+  .overview-status { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  .back-link {
+    display: inline-block; margin-bottom: 12px; color: var(--accent-2);
+    text-decoration: none; font-size: 0.88rem;
+  }
+  .back-link:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .question-card { padding: 16px; }
+    .drag-slot { min-width: 90px; }
+    header h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="2025-OpenAI-Operator-CUA.md">← 回到 paper note</a>
+
+  <header>
+    <h1>OpenAI Operator (CUA Model)</h1>
+    <p>第二个商用 GUI-agent 范式 — day-job Mac Game Harness 双 vendor 抽象的关键</p>
+    <div class="header-meta">
+      12 题 · TF 4 + SC 5 + MC 2 + DRAG 2 · 对位 day-job "vendor-neutral GUIAgent interface" + 与 paper 6 (Computer Use) 直接对照
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <span class="stat">已答: <strong id="answeredCount">0</strong> / <strong>12</strong></span>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">得分: <strong id="scoreCount">0</strong> / <strong>12</strong></span>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div id="quizContainer"></div>
+
+  <div class="overview" id="overviewPanel">
+    <div class="overview-header">
+      <h3 style="margin:0;color:var(--accent-2)">题目总览</h3>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="filterOverview('all')">全部 (12)</button>
+        <button class="filter-btn" data-filter="correct" onclick="filterOverview('correct')">✅ 正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="filterOverview('wrong')">❌ 错误</button>
+        <button class="filter-btn" data-filter="partial" onclick="filterOverview('partial')">⚠️ 部分</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="filterOverview('unanswered')">⬜ 未答</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+    <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "TF",
+    id: 1,
+    question: "OpenAI Operator 跟 paper 6 (Anthropic Computer Use) 是完全相同的产品，只是 vendor 不同。",
+    answer: false,
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 0 (元论断) + §关联 day-job P0 启发 1",
+    explanation: "错误。**两家不是相同产品**——**4 维度 vendor-specific 差异**：① **模型** 通用 Sonnet vs 专用 CUA；② **范围** 全 OS vs 浏览器 only；③ **部署** 本地 VM vs 远程浏览器；④ **商业模式** 按 token vs 月费订阅。**两家是互补关系**——desktop 选 Anthropic，web 选 OpenAI。**对 day-job 启发**：**没有 vendor-neutral 抽象 = 锁死一家 = 错过另一家场景**。",
+    followup: [
+      "追问：4 维差异里哪个最关键？",
+      "答：**部署模式最关键**——Anthropic 本地 VM（harness 端控制，零成本起步）vs OpenAI 远程浏览器（用户本机 0 风险，但功能受限）。**day-job Mac Game Harness 选 vendor 时先看部署约束**——比如 Mac 平台想跑 GUI agent，Anthropic 走 OrbStack VM 自托管，OpenAI 走 SaaS 远程浏览器。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 2,
+    question: "OpenAI Operator 的 CUA (Computer-Using Agent) 模型基于什么架构？",
+    options: [
+      "A. 通用 GPT-4o 不加任何 fine-tune",
+      "B. GPT-4o + vision 强化 + browser 操控 fine-tune 的专用模型",
+      "C. 通用 Claude 3.5 Sonnet 重新训练",
+      "D. 全新独立模型 (跟 GPT-4o 无关)"
+    ],
+    answer: 1,
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 1",
+    explanation: "B 正确。**CUA = GPT-4o + 额外 RL training**——**专门 fine-tune 来做 browser 操控**。**关键技术点**：多模态 chain-of-thought（screenshot + reason + action）、self-correction loop（失败 → 截图 → 重试）。**关键判断**：**OpenAI 押「专用模型 + RL」路线**——**与 Anthropic 「通用模型 + prompt engineering」路线对立**。**vendor-neutral GUIAgent interface 不能假设 model 内部架构**（**只假设 input/output contract**）。",
+    followup: [
+      "追问：为什么 OpenAI 选专用模型而不是通用？",
+      "答：OpenAI 押"专用模型上限更高"——browser 操控是相对窄的领域，fine-tune 后比通用模型 + prompt engineering 更准。**Anthropic 押"通用模型更灵活"**——任何 GUI 场景都能用。**谁对？**——目前 CUA 在 WebArena SOTA 看起来 OpenAI 占优，但 OSWorld 数字有限，**没定论**。"
+    ]
+  },
+  {
+    type: "DRAG",
+    id: 3,
+    question: "Anthropic Computer Use (paper 6) vs OpenAI Operator (本文) 4 维度 vendor-specific 差异填空：① 模型：Anthropic 通用 Sonnet / OpenAI {0}；② 范围：Anthropic 全 OS / OpenAI 浏览器 {1}；③ 部署：Anthropic 本地 VM / OpenAI 远程 {2}；④ 商业模式：Anthropic 按 token / OpenAI 月费 {3}。",
+    blanks: [
+      { idx: 0, expected: "专用 CUA" },
+      { idx: 1, expected: "only" },
+      { idx: 2, expected: "浏览器" },
+      { idx: 3, expected: "订阅" }
+    ],
+    pool: ["专用 CUA", "only", "浏览器", "订阅", "通用", "OS", "本地", "token"],
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 0 (4 维差异表) + §关联 day-job P0 启发 1",
+    explanation: "正确填空：{0}=专用 CUA（OpenAI 走 fine-tune 路线）→{1}=only（浏览器 only，不能动本地 app）→{2}=浏览器（远程浏览器跑在 OpenAI 端）→{3}=订阅（$200/月 ChatGPT Pro，throttled）。**4 维差异决定 vendor-neutral GUIAgent interface 必须支持 7 个 method**：screenshot / click / type_text / takeover / resume / confirm / cost_estimate。",
+    followup: [
+      "追问：4 维差异里 day-job 选 vendor 时哪个最关键？",
+      "答：**范围最关键**——**Anthropic 全 OS 能动 UE Editor / Xcode**（day-job 核心场景）；**OpenAI 浏览器 only 只能动 GitHub web UI / 文档查阅**。**先按范围筛**——desktop 任务直接 Anthropic，web 任务看 budget（OpenAI 订阅可控）vs QPS（OpenAI 会被 throttle，选 Anthropic 按 token）。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 4,
+    question: "OpenAI Operator 的 Takeover mode 在功能上等价于 paper 6 的 4 步 mitigation 中的 human-in-loop，但 UX 更丝滑（用户直接在 webview 上接管 + agent 自动 resume）。",
+    answer: true,
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 3 + §关联 day-job P0 启发 3",
+    explanation: "正确。**Takeover mode = paper 6 4 步 mitigation 中 'human-in-loop' 的工业级 UX 升级**——**比弹 confirm dialog 丝滑 10x**。**关键技术点**：用户任意 input 触发 takeover → agent 立即暂停（不强制 stop，保留 state）→ 用户操作 → 点 Resume → agent 从 state 继续。**对 day-job 启发**：**关键操作不要弹 dialog，直接进入 takeover mode**——**agent state 必须保留**。",
+    followup: [
+      "追问：day-job harness 怎么实现 Takeover mode？",
+      "答：① 用 VNC 协议 + heartbeat 检测 user input；② 检测到 user input → 标记 'user takeover' → agent loop 暂停（不 break，state 进 Redis）；③ user 操作完成 → user 按 'Resume' 键 → harness 从 Redis 拉 state 恢复 agent loop；④ VNC 视频流实时显示给 user。**开源参考**：noVNC + 自写 takeover detector。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 5,
+    question: "OpenAI Operator 的 domain safety list 中，'支付 / 转账' 类操作的默认行为是？",
+    options: [
+      "A. 任意金额都自动拦截",
+      "B. $100+ 支付必须 user confirm，$100 以下自动执行",
+      "C. 完全不拦截，agent 自由支付",
+      "D. 银行操作自动通过，其他都拦截"
+    ],
+    answer: 1,
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 4",
+    explanation: "B 正确。**OpenAI domain safety 规则**：① **$100+ 支付 / 转账** → 必须 user confirm；② **银行 / 信用卡操作** → agent 拒绝，弹 '请用户自己操作'；③ **CAPTCHA** → 自动检测，弹 '请用户接管'；④ **Adult / Government / Legal** → agent 拒绝。**对 day-job 启发**：**这份 list 可以直接照搬**：commit / push / merge / delete / deploy 必须 confirm；production DB 修改 / 跨账号操作 / legal docs 提交 agent 拒绝。",
+    followup: [
+      "追问：day-job harness 的 domain safety list 怎么配置？",
+      "答：① 写 `domain_safety.yaml` 配置文件（action pattern + threshold + behavior）；② harness 启动时加载；③ 任何 tool call 触发 pattern → 走对应 behavior；④ threshold 可调（$100 → $500 看 day-job 风险偏好）。**关键点**：**list 写进代码，user 不能跳过的 confirm 必须 hardcoded 不可关**。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 6,
+    question: "day-job Mac Game Harness 的 vendor-neutral GUIAgent interface 需要支持哪几个 method？（多选）",
+    options: [
+      "A. screenshot() — 拿到当前屏幕图像",
+      "B. click(x, y) — 在指定坐标点击",
+      "C. type_text(text) — 输入文本",
+      "D. takeover() — 用户接管浏览器（OpenAI 专属）",
+      "E. resume() — 恢复 agent 循环（OpenAI 专属）",
+      "F. confirm(action) — 弹 confirm 弹用户确认",
+      "G. cost_estimate() — 估算单次调用成本（跨 vendor：token vs subscription）",
+      "H. self_destruct() — agent 自杀（不存在）"
+    ],
+    answer: [0, 1, 2, 3, 4, 5, 6],
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 1 + §关联 day-job P0 启发 1 (GUIAgent Protocol interface)",
+    explanation: "A、B、C、D、E、F、G 全部正确——7 个 method 覆盖：① 基础感知动作 (screenshot / click / type_text)；② OpenAI 专属 (takeover / resume)；③ 跨 vendor 安全 (confirm)；④ 跨 vendor 商业模式 (cost_estimate)。**H 不存在**（没有 self_destruct method）。**AnthropicComputerUseAgent / OpenAIOperatorAgent 都实现这 7 个 method**——**业务层无感切换 vendor**。",
+    followup: [
+      "追问：cost_estimate 怎么跨 vendor 统一？",
+      "答：return `CostModel(task_complexity, vendor, model) -> {usd: float, is_throttled: bool}`——Anthropic 是 token 实时计费（`input_tokens * $3/1M + output_tokens * $15/1M` for Sonnet 4.5），OpenAI 是 subscription + throttled（fixed $200/月 but `is_throttled=True` for high QPS）。**业务层根据 cost_estimate 决定走哪个 vendor**——预算敏感走 OpenAI 订阅，高 QPS 走 Anthropic token。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 7,
+    question: "OpenAI Operator 跑在用户本机的 Chrome 浏览器（直接操控本机）—— 用户电脑完全暴露给 agent。",
+    answer: false,
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 2",
+    explanation: "错误。**OpenAI Operator 跑在远程浏览器**——**OpenAI 端托管的 Chrome 实例**，**用户通过 webview 看**——**用户本机 0 风险**。**与 paper 6 的本地 VM 隔离思路一致**，但 OpenAI 做得更彻底（**直接是远程的，本机 0 暴露**）。**代价**：**agent 只能操控 browser，不能操控本地 app**——**对 day-job 是个大限制**——**UE Editor / Xcode / 任何本地 app 都摸不到**。",
+    followup: [
+      "追问：本地 app 任务怎么办？",
+      "答：**本地 app 任务走 Anthropic Computer Use (paper 6)**——**harness 在 Mac 上跑 OrbStack VM，VM 里装 UE Editor / Xcode，agent 操控 VM 内的本地 app**。**OpenAI Operator 适合 web 任务**（查文档 / GitHub web UI / SaaS dashboard）——**两家互补**。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 8,
+    question: "day-job Mac Game Harness 的 GUI-agent 选型策略应该是？",
+    options: [
+      "A. 只用 Anthropic（覆盖全 OS）",
+      "B. 只用 OpenAI（UX 更丝滑）",
+      "C. Vendor Router 根据 task 类型分发：web 选 OpenAI，desktop 选 Anthropic",
+      "D. 随机选"
+    ],
+    answer: 2,
+    src: "2025-OpenAI-Operator-CUA.md §关联 day-job P0 启发 2",
+    explanation: "C 正确。**Vendor Router = 双 vendor 抽象层的核心组件**——**根据 task 类型分发**：① **Web 任务**（查文档 / GitHub web UI / SaaS dashboard / 看 PDF）→ **OpenAI Operator**（UX 丝滑 + 远程浏览器 0 风险）；② **Desktop 任务**（UE Editor / Xcode / 任何 macOS app）→ **Anthropic Computer Use**（paper 6，唯一能跑本地 app 的 GUI-agent）。**A（只 Anthropic）** 错（web 任务成本高 + UX 差）；**B（只 OpenAI）** 错（碰不到本地 app）；**D（随机）** 错。",
+    followup: [
+      "追问：Vendor Router 怎么实现 task 类型分类？",
+      "答：① **cheap classifier**（用 Haiku 3.5 $1/1M token，跟 paper 7 推荐的 routing pattern 一致）——输入 task description，输出 {web: 0.85, desktop: 0.10}；② **高 confidence (>0.8) 直接路由**；③ **低 confidence 转 human**（用户决定走哪个 vendor）；④ **fallback**：如果 web vendor 失败 3 次 → 自动切 desktop vendor（Anthropic）兜底。**这是 paper 7 Pattern 2 (Routing) + Pattern 4 (Orchestrator-Workers) 的具象化**。"
+    ]
+  },
+  {
+    type: "MC",
+    id: 9,
+    question: "哪些是 OpenAI Operator 值得 day-job Mac Game Harness 照搬的工业级 UX 设计？（多选）",
+    options: [
+      "A. Takeover mode（用户随时 webview 接管，agent 自动 resume）",
+      "B. 思考链暴露（agent 决策过程当 product feature 推给 user）",
+      "C. Domain safety list（$100+ 支付 / 银行 / CAPTCHA 拦截配置）",
+      "D. 远程浏览器（用户本机 0 风险）",
+      "E. $200/月订阅（unlimited 营销话术）"
+    ],
+    answer: [0, 1, 2],
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 3+4+5 + §个人评价最有价值的 3 个 takeaway",
+    explanation: "A、B、C 正确——**3 个最值得照搬的工业级 UX**：① **Takeover mode**（比 paper 6 弹 dialog 丝滑 10x）；② **思考链暴露**（增强 trust + 可 audit + 可回放 + redact 敏感信息）；③ **Domain safety list**（OpenAI 公开的 list 可以直接抄）。**D（远程浏览器）部分值得**——**0 风险思路对**，但 day-job harness 还需要操作本地 app，**纯远程不够**——**混合方案**：web 任务走 OpenAI 远程，desktop 任务走 Anthropic 本地 VM。**E（订阅）不值得照搬**——**「unlimited」营销话术 + throttled 是反模式**，**大用户生产环境还是按 token 实在**。",
+    followup: [
+      "追问：思考链暴露要不要 redact 敏感信息？",
+      "答：**必须 redact**。**典型场景**：① user 在 webview 上输入 password → CUA 看到 → 思考链出现 'user entered password: xxxxx' → 暴露给 user 看就是密码泄露；② agent 操作银行账户 → 思考链出现 'SSN: 123-45-6789' → 暴露。**redact 策略**：① 检测 thinking trace 中的 password / ssn / credit card / api_key 等敏感 pattern → 替换为 '***REDACTED***'；② 思考链落 log 时加密存储；③ user 视图只显示 redact 后的版本。**redact 失败就是产品事故**。"
+    ]
+  },
+  {
+    type: "DRAG",
+    id: 10,
+    question: "Mac Game Harness 双 vendor 任务分发填空：① Web 任务（查文档 / GitHub web UI）→ 选 {0}（远程浏览器 + Takeover）；② Desktop 任务（UE Editor / Xcode）→ 选 {1}（本地 VM + 全 OS）；③ 高 QPS / 生产环境 → 选 {2}（按 token 计费不限速）；④ Demo / PoC / 预算敏感 → 选 {3}（$200/月固定可控）。",
+    blanks: [
+      { idx: 0, expected: "OpenAI Operator" },
+      { idx: 1, expected: "Anthropic Computer Use" },
+      { idx: 2, expected: "Anthropic Computer Use" },
+      { idx: 3, expected: "OpenAI Operator" }
+    ],
+    pool: ["OpenAI Operator", "Anthropic Computer Use", "Voyager", "MemGPT", "AutoGen", "LangGraph"],
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 0 + §关联 day-job P0 启发 2 + 7",
+    explanation: "正确填空：{0}=OpenAI Operator（web 任务，远程浏览器 + Takeover）→{1}=Anthropic Computer Use（desktop 任务，本地 VM + 全 OS）→{2}=Anthropic Computer Use（按 token 不限速）→{3}=OpenAI Operator（$200/月固定可控）。**核心判断**：**部署模式 + 商业模式 是双 vendor 选型的 2 个独立维度**——**2x2 矩阵**：① 部署：本机 vs 远程；② 商业：按 token vs 订阅。**day-job 选 vendor 时先按部署约束筛**（要操作本机 app → Anthropic 唯一），**再按商业模型选**（生产环境按 token / 预算敏感按订阅）。",
+    followup: [
+      "追问：Voyager / MemGPT / AutoGen / LangGraph 怎么没在选项里？",
+      "答：**这些都是开源 agent framework**——**不是 GUI-agent vendor**。**Voyager** = Minecraft skill library agent（2023 老 paper，奠基性但不是工业产品）；**MemGPT** = agent memory 持久化（跟 GUI-agent 正交）；**AutoGen** = Microsoft 多 agent 框架（开源但不是 GUI-agent）；**LangGraph** = LangChain 的多 agent orchestration 框架。**day-job 选 GUI-agent 走 Anthropic / OpenAI 双 vendor**，**选 agent framework 走 LangGraph / AutoGen**——**两层独立**。"
+    ]
+  },
+  {
+    type: "TF",
+    id: 11,
+    question: "OpenAI Operator 宣传的 '$200/月 unlimited' 可以全信——Pro 用户就是无限使用，没有限速。",
+    answer: false,
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 7 + §个人评价最被高估的 takeaway",
+    explanation: "错误。**'$200/月 unlimited' 是营销话术**——**实际 throttled 限速**（OpenAI 自己黑盒，不公开具体限速规则）。**大用户生产环境被限速的概率很高**。**对 day-job 启发**：① **预算可控场景**（demo / PoC / 个人 dev）→ **OpenAI Operator**（成本可控 + 限速可接受）；② **生产环境 / 高 QPS** → **Anthropic Computer Use 按 token**（成本随用量但不限速）；③ **大企业** → **Anthropic Enterprise**（有 SLA）+ **OpenAI Enterprise**（Q2 2025 推）。**别被市场宣传骗了**。",
+    followup: [
+      "追问：怎么检测 OpenAI 限速？",
+      "答：① **监控 API 响应延迟**——如果某段时间 Operator 响应从 2s 变 10s，多半被 throttle；② **监控错误码**——OpenAI throttle 通常返回 429 Too Many Requests；③ **harness 端加 throttle 探测逻辑**——3 次连续慢响应就 fallback 到 Anthropic；④ **月度用量 dashboard**——OpenAI Pro 后台会显示 throttle 次数。**fallback 策略**：throttle 触发后自动切 Anthropic 兜底，**不阻塞 user 工作流**。"
+    ]
+  },
+  {
+    type: "SC",
+    id: 12,
+    question: "OpenAI Operator 把 CUA 思考链当 product feature 暴露给 user，最大的价值是？",
+    options: [
+      "A. 让 LLM 看起来更聪明（marketing 噱头）",
+      "B. Trust（用户看到 agent 怎么想的）+ 可 audit + 可回放 + redact 敏感信息",
+      "C. 节省 token（让 user 知道 agent 在想什么可以少问）",
+      "D. 让 UI 更漂亮（loading 动画 + 推理文本流）"
+    ],
+    answer: 1,
+    src: "2025-OpenAI-Operator-CUA.md §核心创新点 5 + §关联 day-job P0 启发 4",
+    explanation: "B 正确。**思考链暴露的 4 大价值**：① **Trust**（用户看到 'I need to first click on Login button' —— 知道 agent 在做什么）；② **可 audit**（出事故能回放思考链，定位 'agent 当时为什么这样决策'）；③ **可回放**（点 trace step → 看当时截图 + 决策 + screenshot）；④ **可 redact**（敏感信息自动 redact，防泄露）。**A（marketing 噱头）** 错（不是噱头，是 product feature）；**C（节省 token）** 错（思考链暴露反而增 token 消耗）；**D（UI 漂亮）** 错（不是 primary 价值）。**对 day-job 启发**：**Mac Game Harness 任何 GUI-agent 模式必须暴露 thinking trace + redact**。",
+    followup: [
+      "追问：day-job harness 怎么实现思考链 redact？",
+      "答：① **regex pattern 库**——password / ssn / credit_card / api_key / email / phone 等 pattern；② **thinking trace 输出时过 filter**——命中 pattern → 替换为 '***REDACTED***'；③ **常见场景**：user 在 webview 输入密码 → agent 看到 → thinking 出现 'user typed password' → 这时 redact 'password' 后面的具体值；④ **fail-safe**：redact 失败宁可整个 trace block 也不暴露（防漏过）。**redact 库参考**：Microsoft Presidio（开源 PII 检测 + redact）。"
+    ]
+  }
+];
+
+let currentIdx = 0;
+const state = quizData.map(() => ({ answered: false, correct: null, userAnswer: null }));
+
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const s = state[idx];
+
+  let html = `<div class="question-card ${s.answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">第 ${q.id} 题<span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question.replace(/\{(\d+)\}/g, '<span style="color:var(--accent-2);font-weight:700;">___</span>')}</div>`;
+
+  if (q.type === 'TF') {
+    html += `<div class="tf-buttons">
+      <button class="tf-btn ${s.userAnswer === true ? 'selected' : ''}" data-val="true" onclick="selectTF(${idx}, true)" ${s.answered ? 'disabled' : ''}>✅ 正确 (True)</button>
+      <button class="tf-btn ${s.userAnswer === false ? 'selected' : ''}" data-val="false" onclick="selectTF(${idx}, false)" ${s.answered ? 'disabled' : ''}>❌ 错误 (False)</button>
+    </div>`;
+  } else if (q.type === 'SC') {
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      let cls = 'option';
+      if (s.answered) {
+        cls += ' disabled';
+        if (i === q.answer) cls += ' correct';
+        else if (i === s.userAnswer) cls += ' wrong';
+      } else if (s.userAnswer === i) {
+        cls += ' selected';
+      }
+      const key = String.fromCharCode(65 + i);
+      html += `<div class="${cls}" onclick="selectSC(${idx}, ${i})"><span class="option-key">${key}.</span><span>${opt}</span></div>`;
+    });
+    html += `</div>`;
+  } else if (q.type === 'MC') {
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      let cls = 'option';
+      const isSelected = s.userAnswer && s.userAnswer.includes(i);
+      if (s.answered) {
+        cls += ' disabled';
+        if (q.answer.includes(i)) cls += ' correct';
+        else if (isSelected) cls += ' wrong';
+      } else if (isSelected) {
+        cls += ' selected';
+      }
+      const key = String.fromCharCode(65 + i);
+      html += `<div class="${cls}" onclick="selectMC(${idx}, ${i})"><span class="option-key">${key}.</span><span>${opt}</span></div>`;
+    });
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    html += `<div class="drag-zone" id="dragZone-${idx}">`;
+    q.blanks.forEach(b => {
+      const filled = s.userAnswer && s.userAnswer[b.idx];
+      html += `<div class="drag-slot ${filled ? 'filled' : ''}" data-idx="${b.idx}" ondrop="dropOnSlot(event, ${idx}, ${b.idx})" ondragover="allowDrop(event)" ondragleave="leaveSlot(event)">${filled || '拖拽到这里'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool-${idx}">`;
+    q.pool.forEach((chip, i) => {
+      const used = s.userAnswer && Object.values(s.userAnswer).includes(chip);
+      html += `<div class="drag-chip ${used ? 'used' : ''}" draggable="${!used}" data-chip="${chip}" ondragstart="dragStart(event, ${idx}, '${chip}')" onclick="clickChip(${idx}, '${chip}')">${chip}</div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="actions">
+    <button class="btn btn-primary" onclick="checkAnswer(${idx})" ${s.answered ? 'disabled' : ''}>检查答案</button>
+    <button class="btn btn-secondary" onclick="resetQuestion(${idx})" ${!s.answered ? 'disabled' : ''}>重置本题</button>
+  </div>`;
+
+  if (s.answered) {
+    const isCorrect = s.correct === true || (s.correct === 'partial');
+    const isWrong = s.correct === false;
+    html += `<div class="feedback show ${isCorrect ? 'correct' : (isWrong ? 'wrong' : '')}">`;
+    html += `<div class="feedback-title">${s.correct === true ? '✅ 回答正确！' : (s.correct === 'partial' ? '⚠️ 部分正确' : '❌ 回答错误')}</div>`;
+    html += `<div>${q.explanation}</div>`;
+    if (q.followup && q.followup.length > 0) {
+      html += `<div class="feedback-followup"><strong>面试官可能的追问：</strong><ul>`;
+      q.followup.forEach(f => { html += `<li>${f}</li>`; });
+      html += `</ul></div>`;
+    }
+    html += `<div class="feedback-source">📎 来源: ${q.src}</div>`;
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  document.getElementById('prevBtn').disabled = (idx === 0);
+  document.getElementById('nextBtn').disabled = (idx === quizData.length - 1);
+  updateProgress();
+}
+
+function selectTF(idx, val) {
+  if (state[idx].answered) return;
+  state[idx].userAnswer = val;
+  renderQuestion(idx);
+}
+
+function selectSC(idx, val) {
+  if (state[idx].answered) return;
+  state[idx].userAnswer = val;
+  renderQuestion(idx);
+}
+
+function selectMC(idx, val) {
+  if (state[idx].answered) return;
+  const s = state[idx];
+  if (!s.userAnswer) s.userAnswer = [];
+  const i = s.userAnswer.indexOf(val);
+  if (i >= 0) s.userAnswer.splice(i, 1);
+  else s.userAnswer.push(val);
+  renderQuestion(idx);
+}
+
+let dragData = null;
+function dragStart(e, idx, chip) {
+  dragData = { idx, chip };
+  e.dataTransfer.setData('text/plain', chip);
+  e.dataTransfer.effectAllowed = 'move';
+}
+function allowDrop(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); }
+function leaveSlot(e) { e.currentTarget.classList.remove('drag-over'); }
+function dropOnSlot(e, idx, slotIdx) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (state[idx].answered) return;
+  const chip = e.dataTransfer.getData('text/plain');
+  if (!chip) return;
+  if (!state[idx].userAnswer) state[idx].userAnswer = {};
+  Object.keys(state[idx].userAnswer).forEach(k => {
+    if (state[idx].userAnswer[k] === chip) delete state[idx].userAnswer[k];
+  });
+  state[idx].userAnswer[slotIdx] = chip;
+  renderQuestion(idx);
+}
+function clickChip(idx, chip) {
+  if (state[idx].answered) return;
+  const q = quizData[idx];
+  if (!state[idx].userAnswer) state[idx].userAnswer = {};
+  let alreadyIn = -1;
+  Object.keys(state[idx].userAnswer).forEach(k => {
+    if (state[idx].userAnswer[k] === chip) alreadyIn = parseInt(k);
+  });
+  if (alreadyIn >= 0) {
+    delete state[idx].userAnswer[alreadyIn];
+    renderQuestion(idx);
+    return;
+  }
+  for (let i = 0; i < q.blanks.length; i++) {
+    if (!state[idx].userAnswer[i]) {
+      state[idx].userAnswer[i] = chip;
+      renderQuestion(idx);
+      return;
+    }
+  }
+}
+
+function checkAnswer(idx) {
+  const q = quizData[idx];
+  const s = state[idx];
+  if (s.answered) return;
+
+  if (q.type === 'TF') {
+    s.correct = (s.userAnswer === q.answer);
+  } else if (q.type === 'SC') {
+    s.correct = (s.userAnswer === q.answer);
+  } else if (q.type === 'MC') {
+    if (!s.userAnswer || s.userAnswer.length === 0) { s.correct = false; }
+    else {
+      const correctSet = new Set(q.answer);
+      const userSet = new Set(s.userAnswer);
+      const allCorrect = q.answer.every(i => userSet.has(i)) && s.userAnswer.every(i => correctSet.has(i));
+      const partial = !allCorrect && q.answer.some(i => userSet.has(i));
+      s.correct = allCorrect ? true : (partial ? 'partial' : false);
+    }
+  } else if (q.type === 'DRAG') {
+    if (!s.userAnswer) { s.correct = false; }
+    else {
+      let allCorrect = true;
+      q.blanks.forEach(b => {
+        if (s.userAnswer[b.idx] !== b.expected) allCorrect = false;
+      });
+      s.correct = allCorrect;
+    }
+  }
+
+  s.answered = true;
+  renderQuestion(idx);
+  updateProgress();
+}
+
+function resetQuestion(idx) {
+  state[idx] = { answered: false, correct: null, userAnswer: null };
+  renderQuestion(idx);
+  updateProgress();
+}
+
+function resetAll() {
+  if (!confirm('确定要重置所有题目的答题记录吗？')) return;
+  for (let i = 0; i < state.length; i++) {
+    state[i] = { answered: false, correct: null, userAnswer: null };
+  }
+  currentIdx = 0;
+  renderQuestion(currentIdx);
+  updateProgress();
+}
+
+function prevQuestion() { if (currentIdx > 0) { currentIdx--; renderQuestion(currentIdx); window.scrollTo({top: 0, behavior: 'smooth'}); } }
+function nextQuestion() { if (currentIdx < quizData.length - 1) { currentIdx++; renderQuestion(currentIdx); window.scrollTo({top: 0, behavior: 'smooth'}); } }
+
+function updateProgress() {
+  const answered = state.filter(s => s.answered).length;
+  const correct = state.filter(s => s.correct === true).length;
+  document.getElementById('answeredCount').textContent = answered;
+  document.getElementById('scoreCount').textContent = correct;
+  document.getElementById('progressFill').style.width = (answered / quizData.length * 100) + '%';
+}
+
+function toggleOverview() {
+  const panel = document.getElementById('overviewPanel');
+  panel.classList.toggle('show');
+  if (panel.classList.contains('show')) renderOverview();
+}
+
+function renderOverview(filter = 'all') {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const s = state[i];
+    let cls = 'overview-item';
+    let status = '⬜ 未答';
+    if (s.answered) {
+      cls += ' answered';
+      if (s.correct === true) { cls += ' correct'; status = '✅ 正确'; }
+      else if (s.correct === 'partial') { cls += ' partial'; status = '⚠️ 部分'; }
+      else { cls += ' wrong'; status = '❌ 错误'; }
+    }
+    if (filter !== 'all') {
+      if (filter === 'correct' && s.correct !== true) return;
+      if (filter === 'wrong' && s.correct !== false) return;
+      if (filter === 'partial' && s.correct !== 'partial') return;
+      if (filter === 'unanswered' && s.answered) return;
+    }
+    html += `<div class="${cls}" onclick="jumpTo(${i})">
+      <div class="overview-num">#${q.id}</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">${TYPE_LABEL[q.type]}</div>
+      <div class="overview-status">${status}</div>
+    </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function filterOverview(filter) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+  renderOverview(filter);
+}
+
+function jumpTo(idx) {
+  currentIdx = idx;
+  renderQuestion(idx);
+  document.getElementById('overviewPanel').classList.remove('show');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+renderQuestion(0);
+updateProgress();
+</script>
+</body>
+</html>

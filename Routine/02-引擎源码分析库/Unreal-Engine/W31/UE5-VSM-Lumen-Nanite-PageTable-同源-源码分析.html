@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VSM × Lumen × Nanite Page Table 同源 — 源码卡牌 (W31)</title>
+<style>
+  :root {
+    --bg: #f0fdf4;
+    --card: #ffffff;
+    --text: #1e1b3a;
+    --muted: #5b8c6b;
+    --accent: #10b981;
+    --accent-light: #d1fae5;
+    --accent-2: #059669;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #bbf7d0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; align-items: center; justify-content: space-between; }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px; }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn { flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s; }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .explanation { margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg); font-size: 0.92rem; display: none; }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup { margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px; border: 1px dashed var(--accent); }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.9rem; }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel { display: none; margin-bottom: 16px; padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+  .overview-panel.show { display: block; }
+  .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; }
+  .overview-tile { aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle { width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>VSM × Lumen × Nanite Page Table 同源 — 源码卡牌</h1>
+    <p>UE 5.8 · VirtualShadowMapArray.cpp + LumenSceneData.h + Nanite</p>
+    <div class="header-meta">配套笔记: <a href="UE5-VSM-Lumen-Nanite-PageTable-同源-源码分析.md">[[UE5-VSM-Lumen-Nanite-PageTable-同源-源码分析]]</a> · W31 · 11 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 11</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header"><strong>题目总览 (11)</strong></div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="questionContainer"></div>
+
+  <div class="nav-bar">
+    <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+    <span class="nav-hint" id="navHint">第 1 / 11 题</span>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 11</div>
+    </div>
+    <div class="results-title" id="resultsTitle">完成!</div>
+    <div class="results-msg" id="resultsMsg"></div>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <button class="btn btn-primary" onclick="showReview()">📋 错题回顾</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重新开始</button>
+    </div>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { type: 'MC', q: 'VSM / Lumen SurfaceCache / Nanite 三个特性物理页尺寸都是多少?',
+    o: ['64x64','128x128','256x256','各自不同'],
+    a: 1,
+    ex: '三特性都是 128x128 物理页 — 这是 UE5 跨特性分页架构的"标配"。',
+    src: 'LumenSceneData.h:699 (static_assert)' },
+  { type: 'MC', q: 'Lumen 的 `FPageBinAllocation` static_assert 强制哪个值?',
+    o: ['MinResLevel = 0','MinResLevel = 3 + PhysicalPageSize = 128','MaxResLevel = 8','ClosureCount = 8'],
+    a: 1,
+    ex: 'LumenSceneData.h:698-699 有两条 static_assert: MinResLevel == 3 + PhysicalPageSize == 128,硬约束不能改。',
+    src: 'LumenSceneData.h:698-699' },
+  { type: 'MC', q: '三特性的 sub-alloc 追踪用什么数据结构?',
+    o: ['完全不用追踪','bitfield 标记 (8x8 ~ 128x128)','链表','红黑树'],
+    a: 1,
+    ex: 'FPageBinAllocation (Lumen) / FPageTableUpdate (VSM) / FClusterPage (Nanite) 内部都用 bitfield 追踪 sub-allocation。',
+    src: 'LumenSceneData.h:704 (SubPageList = TBitArray<>)' },
+  { type: 'MC', q: '三特性为什么都选 8x8 作最细 sub-alloc 粒度?',
+    o: ['纯属巧合','CUDA warp 友好 (64 elem = 1 warp) + bitfield 紧凑 (uint64) + mip 自然展开','VRAM 最省','GPU 厂商要求'],
+    a: 1,
+    ex: '8x8 = 64 elem,正好对 CUDA warp;64 bit 用 uint64 装 L1 友好;mip 0/1/2/3 自然 128/64/32/16/8 金字塔。',
+    src: 'LumenSceneData.h:684-692 (注释)' },
+  { type: 'MC', q: 'VSM 的 `BuildPageAllocations` 函数在哪个文件:哪个行?',
+    o: ['VirtualShadowMapArray.cpp:3227','LumenSceneData.h:700','NaniteCullRaster.cpp:51','LumenRadiosity.cpp:20'],
+    a: 0,
+    ex: 'VirtualShadowMapArray.cpp:3227 void FVirtualShadowMapArray::BuildPageAllocations 是 VSM 核心入口。',
+    src: 'VirtualShadowMapArray.cpp:3227' },
+  { type: 'TF', q: 'FPageBinAllocation / FPageTableUpdate / FClusterPage 是三个不同的 class。', a: true,
+    ex: '对。三特性结构同源但 class 不共享 — Epic 内部选了"显式重复"避免跨特性依赖,而不是抽象 base class。',
+    src: 'LumenSceneData.h + VirtualShadowMapArray.cpp + NaniteCullRaster.cpp' },
+  { type: 'MC', q: 'VSM Nanite 路径和 Non-Nanite 路径在 BuildPageAllocations 内的行号是?',
+    o: [':3227 / :4218',':4218 / :4389',':4218 / :4829',':3227 / :3645'],
+    a: 1,
+    ex: 'VSM BuildPageAllocations 内 Nanite 路径在 :4218,Non-Nanite 路径在 :4389,HZB 在 :4829,LogStats 在 :3645 (W30 已分析过)。',
+    src: 'VirtualShadowMapArray.cpp:4218 / :4389' },
+  { type: 'MC', q: '三特性跨帧 LRU feedback 的共同点是?',
+    o: ['完全不用 LRU','GPU 端 readback 上一帧 page usage → 标"likely used"→ evict 跳过','CPU 端判断','随机 evict'],
+    a: 1,
+    ex: '三特性都用 GPU readback 上一帧 page usage,used → 标"likely used" 避免被 evict。LRU 延迟 1-2 帧(快速转视角时会闪)。',
+    src: 'W30 NaniteFeedback.cpp:7487 (FNaniteFeedbackStatusCS)' },
+  { type: 'MC', q: 'Unity HDRP / Godot 4 / Frostbite 跟 UE5 128x128 + 8x8 范式对比,哪个用得更细?',
+    o: ['UE5 用得最细','Frostbite (DICE) 用了 64x64 page + 8x8 sub-alloc,粒度比 UE 细','完全相同','无人用此范式'],
+    a: 1,
+    ex: 'Frostbite (DICE) Tiled Resources 用 64x64 page + 8x8 sub-alloc,粒度比 UE 细但性能 profile 略差。',
+    src: '设计评价章节' },
+  { type: 'MC', q: 'Mac Metal RHI 上 8x8 sub-alloc 性能如何?',
+    o: ['比 DX12 慢 50%','5.4+ 才完整优化 wave intrinsics,老版本有兼容问题','Mac 不支持','比 Vulkan 慢 10x'],
+    a: 1,
+    ex: '8x8 sub-alloc bitfield 在 Metal 上 wave intrinsics 性能 5.4+ 才优化,老版本有兼容问题,LRU readback 在 Metal 上 latency 比 DX12 高 ~0.5ms (但 Mac unified memory 有优势)。',
+    src: 'Mac Metal RHI 章节' },
+  { type: 'MC', q: 'day-job RAG 怎么用"Page Table 同源"知识?',
+    o: ['分别建 3 个 RAG chunk','做一个统一的"UE5 page table" index entry,LLM 看到 3 个特性自动共享上下文','不需要','只能靠 LLM 推理'],
+    a: 1,
+    ex: 'W31 主题 3 的 day-job 价值:用统一的"UE5 128x128 + 8x8 sub-alloc"做 index,LLM 看到 VSM/Lumen/Nanite 时共享上下文,不分别查 3 chunk。',
+    src: 'W31 主题 3 关联知识库章节' }
+];
+
+const state = { current: 0, answers: {}, scores: {} };
+
+function renderQuestion() {
+  const q = QUESTIONS[state.current];
+  const container = document.getElementById('questionContainer');
+  const answered = state.answers[state.current] !== undefined;
+  const correct = state.scores[state.current] === 1;
+
+  let html = `<div class="question-card${answered ? ' answered' : ''}">`;
+  html += `<div class="q-number">Q${state.current + 1} / ${QUESTIONS.length} <span class="q-type-badge">${q.type}</span></div>`;
+  html += `<div class="q-text">${q.q}</div>`;
+
+  if (q.type === 'MC') {
+    html += '<div class="options">';
+    q.o.forEach((opt, i) => {
+      const key = String.fromCharCode(65 + i);
+      let cls = 'option';
+      if (answered) { cls += ' disabled'; if (i === q.a) cls += ' correct'; else if (state.answers[state.current] === i) cls += ' wrong'; }
+      else if (state.answers[state.current] === i) cls += ' selected';
+      html += `<div class="${cls}" onclick="selectOption(${i})"><span class="option-key">${key}</span>${opt}</div>`;
+    });
+    html += '</div>';
+  } else if (q.type === 'TF') {
+    const userAns = state.answers[state.current];
+    html += '<div class="tf-buttons">';
+    [true, false].forEach(v => {
+      const label = v ? '✓ 正确' : '✗ 错误';
+      let cls = 'tf-btn';
+      if (answered) { cls += ' disabled'; if (v === q.a) cls += ' correct'; else if (userAns === v) cls += ' wrong'; }
+      else if (userAns === v) cls += ' selected';
+      html += `<div class="${cls}" onclick="selectTF(${v})">${label}</div>`;
+    });
+    html += '</div>';
+  }
+
+  if (answered) {
+    const exClass = correct ? 'correct-ex' : 'wrong-ex';
+    html += `<div class="explanation show ${exClass}"><strong>${correct ? '✓ 答对了!' : '✗ 答错了'}</strong> ${q.ex}`;
+    if (q.followup && q.followup.length) { html += '<div class="followup"><h4>延伸 / Follow-up</h4><ol>'; q.followup.forEach(f => html += `<li>${f}</li>`); html += '</ol></div>'; }
+    html += `<div class="src">来源: ${q.src}</div></div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+  updateProgress();
+  updateNav();
+}
+
+function selectOption(i) { if (state.answers[state.current] !== undefined) return; state.answers[state.current] = i; state.scores[state.current] = i === QUESTIONS[state.current].a ? 1 : 0; renderQuestion(); }
+function selectTF(v) { if (state.answers[state.current] !== undefined) return; state.answers[state.current] = v; state.scores[state.current] = v === QUESTIONS[state.current].a ? 1 : 0; renderQuestion(); }
+
+function updateProgress() {
+  const answered = Object.keys(state.answers).length;
+  const total = QUESTIONS.length;
+  document.getElementById('progressText').textContent = `${state.current + 1} / ${total}`;
+  document.getElementById('scoreText').textContent = Object.values(state.scores).reduce((a, b) => a + b, 0);
+  document.getElementById('progressFill').style.width = `${(answered / total) * 100}%`;
+  document.getElementById('navHint').textContent = `第 ${state.current + 1} / ${total} 题`;
+}
+function updateNav() { document.getElementById('prevBtn').disabled = state.current === 0; document.getElementById('nextBtn').textContent = state.current === QUESTIONS.length - 1 ? '完成 ✓' : '下一题 →'; }
+function prevQuestion() { if (state.current > 0) { state.current--; renderQuestion(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+function nextQuestion() { if (state.current < QUESTIONS.length - 1) { state.current++; renderQuestion(); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { showResults(); } }
+function showResults() {
+  const total = Object.values(state.scores).reduce((a, b) => a + b, 0);
+  const totalAns = Object.keys(state.answers).length;
+  document.getElementById('questionContainer').style.display = 'none';
+  document.querySelector('.nav-bar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = total;
+  const pct = (total / QUESTIONS.length * 100).toFixed(0);
+  document.getElementById('resultsTitle').textContent = pct >= 90 ? '🎉 大神!' : pct >= 70 ? '👍 不错!' : '💪 加油!';
+  document.getElementById('resultsMsg').textContent = `完成 ${totalAns}/${QUESTIONS.length} 题,得分 ${total}/${QUESTIONS.length} (${pct}%)`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function showReview() {
+  const reviewSection = document.getElementById('reviewSection');
+  const wrong = QUESTIONS.map((q, i) => ({ q, i })).filter(({ i }) => state.scores[i] === 0);
+  if (wrong.length === 0) { reviewSection.innerHTML = '<p style="text-align: center; color: var(--correct);">🎉 全对!没有错题!</p>'; return; }
+  let html = '<h3>错题回顾 (' + wrong.length + ')</h3>';
+  wrong.forEach(({ q, i }) => {
+    const user = state.answers[i];
+    let userStr = '未答', correctStr = '';
+    if (q.type === 'MC') { userStr = q.o[user] || '未答'; correctStr = q.o[q.a]; }
+    else if (q.type === 'TF') { userStr = user === true ? '正确' : user === false ? '错误' : '未答'; correctStr = q.a ? '正确' : '错误'; }
+    html += `<div class="review-item"><h4>Q${i + 1} (${q.type}): ${q.q}</h4><div class="your-ans">你的答案: ${userStr}</div><div class="correct-ans">正确答案: ${correctStr}</div><div style="margin-top:6px;font-size:0.85rem;color:var(--muted)">${q.ex}</div></div>`;
+  });
+  reviewSection.innerHTML = html;
+}
+function resetAll() { if (!confirm('确定重置所有分数?')) return; state.current = 0; state.answers = {}; state.scores = {}; document.getElementById('questionContainer').style.display = 'block'; document.querySelector('.nav-bar').style.display = 'flex'; document.getElementById('resultsScreen').classList.remove('show'); renderOverview(); renderQuestion(); }
+function renderOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  QUESTIONS.forEach((q, i) => {
+    let cls = 'overview-tile';
+    if (state.scores[i] === 1) cls += ' correct';
+    else if (state.scores[i] === 0) cls += ' wrong';
+    html += `<div class="${cls}" onclick="jumpTo(${i})"><div class="tile-num">${i + 1}</div><div class="tile-type">${q.type}</div></div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) { state.current = i; document.getElementById('overviewPanel').classList.remove('show'); renderQuestion(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function toggleOverview() { const p = document.getElementById('overviewPanel'); p.classList.toggle('show'); if (p.classList.contains('show')) renderOverview(); }
+document.addEventListener('keydown', e => { if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowLeft') prevQuestion(); else if (e.key === 'ArrowRight') nextQuestion(); else if (e.key === 'o' || e.key === 'O') toggleOverview(); });
+renderQuestion();
+</script>
+</body>
+</html>
