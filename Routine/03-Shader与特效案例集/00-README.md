@@ -46,6 +46,9 @@
 | **C17** | **AI 肌肉形变** (Neural Muscle Deformation) | ✅ W30 | AI 神经肌肉 | day-job 角色渲染 (UE5 Mannequin / MetaHuman) |
 | **C18** | **神经 Locomotion** (PFNN / MANN) | ✅ W30 | AI 神经运动 | day-job 角色运动 (UE5 ALS / Lyra 替代) |
 | **C19** | **神经 SDF mesh 生成** (Text/Image → 3D) | ✅ W30 | AI 神经资产生成 | day-job Text-to-3D (Meshy / Tripo + Nanite 集成) |
+| **C20** | **神经布料仿真** (Neural Cloth / GNS) | ✅ W31 | AI 神经 VFX | day-job UE5 Chaos Cloth 替代 |
+| **C21** | **神经法线生成** (Neural Normal from Height) | ✅ W31 | AI 神经材质 | day-job PBR material pipeline |
+| **C26** | **神经 AI 帧插帧** (DLSS 3 Frame Gen) | ✅ W31 | AI 神经性能 | day-job 4K 60→120 FPS |
 | **P1** | Mass / NNE / PCG (UE5 AI 系统) | ☐ 待做 | UE5 AI 系统 | 非 shader，集群专题 |
 | **P1** | UE5.6 / UE5.7 新 feature (SM5/6 差异) | 持续 | UE 跟踪 | 工具链 |
 | **P2** | W3 程序化地形 (噪声 + 顶点动画) | 归档/取消 | 历史经典 | 已合并到 C15 神经体积云路线 |
@@ -194,6 +197,9 @@ Shader 是需要手感的技能。本库记录：
 | **C17** | **AI 肌肉形变** (Neural Muscle) | AI 神经肌肉 | ✅ 2026-07-24 | 优 |
 | **C18** | **神经 Locomotion** (PFNN / MANN) | AI 神经运动 | ✅ 2026-07-25 | 优 |
 | **C19** | **神经 SDF mesh 生成** (Text-to-3D) | AI 神经资产生成 | ✅ 2026-07-26 | 优 |
+| **C20** | **神经布料** (Neural Cloth / GNS) | AI 神经 VFX | ✅ 2026-07-30 | 优 |
+| **C21** | **神经法线生成** (StableNormal) | AI 神经材质 | ✅ 2026-07-31 | 优 |
+| **C26** | **神经 AI 帧插帧** (DLSS 3) | AI 神经性能 | ✅ 2026-08-01 | 优 |
 | 历史 W1 | 体积云 Volumetric Cloud | 历史经典 | ✅ 2025-01-07 → 99-归档 | — |
 | 历史 W2 | 屏幕空间反射 SSR | 历史经典 | ✅ 2026-07-01 → 99-归档 | — |
 
@@ -203,4 +209,4 @@ Shader 是需要手感的技能。本库记录：
 
 ---
 
-*Last updated: 2026-07-26 (W30: C17-C19 AIGC 角色/动画/资产生成 3 篇落盘, 累计 12 篇 done + 7 篇 queued)*
+*Last updated: 2026-08-01 (W31: C20/C21/C26 AIGC VFX/材质/性能 3 篇落盘, 累计 15 篇 done + 4 篇 queued)*

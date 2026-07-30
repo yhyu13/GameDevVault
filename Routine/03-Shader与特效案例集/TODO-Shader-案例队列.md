@@ -37,6 +37,13 @@
 | **C17** | **AI 肌肉形变** (Ziva 风格 / 神经肌肉激活 / 体积保持) | **P0 神经** | ☑ 完成 | 2026-07-24 | `C17/AI肌肉形变-NeuralMuscleDeformation.md` | W30 AIGC 第 1 篇, 角色肌肉 + MetaHuman (23.8 KB / ~830 行) |
 | **C18** | **神经 Locomotion** (PFNN / MANN 神经角色运动) | **P0 神经** | ☑ 完成 | 2026-07-25 | `C18/神经Locomotion-PFNN-MANN.md` | W30 AIGC 第 2 篇, 角色运动 + ALS/Lyra 替代 (23.3 KB / ~810 行) |
 | **C19** | **神经 SDF mesh 生成** (Text/Image → 3D, 3DGS → Poisson) | **P0 神经** | ☑ 完成 | 2026-07-26 | `C19/神经SDF-mesh生成-Text-to-3D.md` | W30 AIGC 第 3 篇, Text-to-3D + Nanite 集成 (25.7 KB / ~890 行) |
+| **C20** | **神经布料仿真** (GNS / Neural Garments) | **P0 神经** | ☑ 完成 | 2026-07-30 | `C20/神经布料-NeuralClothSim.md` | W31 AIGC 第 1 篇, UE5 Chaos Cloth 替代 (23.5 KB / ~820 行) |
+| **C21** | **神经法线生成** (StableNormal / Pix2Pix) | **P0 神经** | ☑ 完成 | 2026-07-31 | `C21/神经法线生成-NeuralNormalMap.md` | W31 AIGC 第 2 篇, PBR 4 通道材质 (26.7 KB / ~925 行) |
+| **C22** | 神经 AI 角色蒙皮 (Neural Character Skinning) | P1 神经 | ☐ 待做 | — | `C22/...` (待建) | 跟 C17 同一类但更基础 (bone → skin) |
+| **C23** | 神经程序化纹理合成 (Procedural Texture) | P1 神经 | ☐ 待做 | — | `C23/...` (待建) | 单图 → tiling texture |
+| **C24** | 神经 mesh 简化 (Mesh Decimation) | P1 神经 | ☐ 待做 | — | `C24/...` (待建) | 跟 C19 互补, 高模→低模 |
+| **C25** | 神经 SDF 软体 (Neural Soft Body) | P1 神经 | ☐ 待做 | — | `C25/...` (待建) | VFX 神经化 |
+| **C26** | **神经 AI 帧插帧** (DLSS 3 / FILM) | **P0 神经** | ☑ 完成 | 2026-08-01 | `C26/神经AI帧插帧-NeuralFrameInterp.md` | W31 AIGC 第 3 篇, 4K 60→120 FPS (23.7 KB / ~870 行) |
 | P1 | **Mass / NNE / PCG** (UE5 AI 系统) | P1 系统 | ☐ 待做 | — | 不入 C 编号 (集群专题) | UE5 AI 框架, 非 shader |
 | P1 | **UE5.6 / UE5.7 新 feature** (SM5/6 差异) | P1 持续 | ☐ 持续 | — | 不入 C 编号 (工具链) | 长期跟踪 |
 | P2 | **程序化地形** (噪声 + 顶点动画) | P2 历史 | ⊗ 取消 | — | 合并到 C15 神经体积云路线 | 已被 C15 覆盖 |
