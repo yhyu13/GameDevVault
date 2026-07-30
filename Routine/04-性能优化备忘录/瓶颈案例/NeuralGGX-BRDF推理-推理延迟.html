@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuralGGX BRDF 推理 — 瓶颈案例卡 — 性能卡牌 (W31)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation {
+    margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg);
+    font-size: 0.92rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup {
+    margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px;
+    border: 1px dashed var(--accent);
+  }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel {
+    display: none; margin-bottom: 16px; padding: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .overview-filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white;
+    cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>NeuralGGX BRDF 推理 — 瓶颈案例卡</h1>
+    <p>实时推理 0.3ms / 6x 慢 / 视觉 +4%</p>
+    <div class="header-meta">配套笔记: <a href="NeuralGGX-BRDF推理-推理延迟.md">[[NeuralGGX-BRDF推理-推理延迟]]</a> · 瓶颈案例 · W31 配套 · 12 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 10</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <strong>题目总览</strong>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="nav-bar" id="navBar">
+    <span class="nav-hint">← → 切换题目 · 选择后点击「确认答案」提交</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+      <button class="btn btn-secondary" id="finishBtn" onclick="finishQuiz()" style="display:none">完成</button>
+    </div>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "DRAG",
+    id: 1,
+    question: "NeuralGGX 关键性能数据:① MLP {0} 层 × {1} dim ② 推理 {2} ms / pixel ③ 传统 GGX {3} ms / pixel ④ NeuralGGX 慢 {4} x。",
+    blanks: [
+      { idx: 0, expected: "4" },
+      { idx: 1, expected: "64" },
+      { idx: 2, expected: "0.3" },
+      { idx: 3, expected: "0.05" },
+      { idx: 4, expected: "6" },
+    ],
+    pool: ["4", "8", "16", "64", "0.3", "0.05", "6", "10", "3"],
+    src: "NeuralGGX-BRDF推理-推理延迟.md §根因 1 + §对比总账",
+    explanation: "正确填空:{0}=4 层 (5→64→64→64→3, Linear + ReLU + Sigmoid)→{1}=64 dim 隐藏层→{2}=0.3 ms / pixel 推理→{3}=0.05 ms / pixel 传统 GGX (Cook-Torrance ~ 10 ALU)→{4}=6x 慢 (vs 传统 GGX)。**FP16 加速后 0.15ms, 仍 3x 慢于传统**。",
+    followup: [
+      "追问:为什么 MLP 比传统公式慢 6x?",
+      "答:**MLP forward 8800 mul + 195 add + 3 sigmoid vs 传统 GGX ~ 10 ALU ops**。**MLP 是 universal function approximator**, 但 5 维输入 + 64 dim 隐藏层已经需要这么多 ops。**视觉 +4% 换 6x 慢是固定 trade-off**。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 2,
+    question: "NeuralGGX FP16 推理比 FP32 快多少?",
+    options: [
+      "A. 1.5x",
+      "B. 2x (Tensor Core 加速 + 内存带宽 2x)",
+      "C. 4x",
+      "D. 无加速 (BRDF 复杂度限制)",
+    ],
+    answer: 1,
+    src: "NeuralGGX-BRDF推理-推理延迟.md §根因 2",
+    explanation: "B 正确。**FP16 比 FP32 快 2x** —— Tensor Core 加速 + 内存带宽 2x。**BRDF 对绝对精度不敏感** (输出 [0,1] 范围, FP16 误差 < 1%)。**实时推理必选 FP16**。",
+    followup: [
+      "追问:FP16 后还能再优化吗?",
+      "答:**INT8 量化再 2x 加速 + 内存 1/2**。视觉误差 1-3% (BRDF 可接受)。**需要量化感知训练 (QAT)** 才稳定, 否则视觉退化。**Mobile 推荐 INT8**。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 3,
+    question: "NeuralGGX 视觉 99% vs 传统 GGX 95% 是固定 +4% 收益, 但 6x GPU 慢也是固定 cost, 不能两全。",
+    answer: true,
+    src: "NeuralGGX-BRDF推理-推理延迟.md §根因 1 + §对比总账",
+    explanation: "正确。**NeuralGGX 视觉 99% (学 GT) vs 传统 GGX 95% (近似公式)** = **+4% 收益**。**但 0.3ms / pixel 推理 vs 0.05ms 传统 = 6x 慢 = 固定 cost**。**决策**: 简单 PBR 走传统 (够用), 复杂 BRDF (金属漆/皮肤/丝绸) 走 NeuralGGX (视觉 +4% 值得 6x 慢)。",
+    followup: [
+      "追问:为什么不能两全?",
+      "答:**两全的代价 = 训练时间**。要 MLP 在视觉 99% 同时 0.05ms 推理, 需要更小的网络 (3 层 × 32 dim), 但容量不够学复杂 BRDF。**视觉 + 性能 trade-off** 是固定设计选择。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 4,
+    question: "NeuralGGX 决策树哪些正确?(多选)",
+    options: [
+      "A. 基础 PBR (roughness + metallic 单层) → 传统 GGX (0.05ms 足够)",
+      "B. 金属漆 / 皮肤 / 丝绸 (多层 BRDF) → NeuralGGX + Latent (视觉 +4% 值得 6x 慢)",
+      "C. 各向异性头发 (BRDF 难以公式表达) → NeuralGGX (0.3ms 慢, 必须)",
+      "D. 移动端 / SM5 → NeuralGGX 实时推理 (FP16 加速)",
+    ],
+    answer: [0, 1, 2],
+    src: "NeuralGGX-BRDF推理-推理延迟.md §方案 E 视场景权衡",
+    explanation: "A、B、C 正确 — NeuralGGX 3 大场景决策树。D 错 — **移动端 / SM5 不支持 NeuralGGX 实时推理**(需要 SM6+), **fallback 传统 GGX**。Mac 上也是 SM6+, 理论上支持, 但 6x 慢需要权衡。",
+    followup: [
+      "追问:Latent 8 维具体几维?",
+      "答:**视场景**: 100 材质 8 维够, 1000 材质 16-32 维, 10000 材质 64 维。**没有通用最优** — Profile 后调。Latent 8 维运行时 lerp 就能换材质, 0 额外开销。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 5,
+    question: "NeuralGGX 网络架构 5 步:① 输入 {0} 维 [NdotH, NdotV, NdotL, roughness, metallic] ② Linear {0} → {1} 隐藏层 + ReLU ③ Linear {1} → {1} 隐藏层 (3 层) ④ Linear {1} → {2} 输出 ⑤ {3} 激活强制 [0, 1]。",
+    blanks: [
+      { idx: 0, expected: "5" },
+      { idx: 1, expected: "64" },
+      { idx: 2, expected: "3" },
+      { idx: 3, expected: "Sigmoid" },
+    ],
+    pool: ["5", "10", "64", "3", "Sigmoid", "Tanh", "ReLU"],
+    src: "NeuralGGX-BRDF推理-推理延迟.md §网络架构 + C02 §网络架构选型",
+    explanation: "正确填空:{0}=5 维输入 (5 维 black-box 拟合)→{1}=64 维隐藏层 (3 层 Linear + ReLU)→{2}=3 维输出 (BRDF RGB)→{3}=Sigmoid 激活 (强制 [0, 1] 范围)。**为什么 Sigmoid**: BRDF 输出能量守恒, 网络可能输出 > 1.0, Sigmoid clip 物理约束。",
+    followup: [
+      "追问:为什么不用 Latent code 默认?",
+      "答:**Latent 是扩展** — 默认 MLP 固定 1 个 BRDF。**加 8 维 latent code**: 1 MLP 表示 N 个材质, 运行时 lerp latent 换材质 (0 开销)。**复杂场景必加 Latent**, 简单场景默认够。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 6,
+    question: "NeuralGGX 能量守恒后处理用什么?",
+    options: [
+      "A. ReLU (网络无界输出)",
+      "B. Sigmoid 强制 [0, 1] + normalize",
+      "C. Tanh 强制 [-1, 1]",
+      "D. 无需后处理 (BRDF 公式自动能量守恒)",
+    ],
+    answer: 1,
+    src: "NeuralGGX-BRDF推理-推理延迟.md §根因 4 + C02 §落地路径",
+    explanation: "B 正确。**能量守恒后处理: `saturate` + normalize**。**Sigmoid 强制 [0, 1]** 防止网络输出超过物理约束。**Normalize 能量归一化**保证 BRDF 积分 = 1 (能量守恒)。**性能开销 ~ 0.01ms / pixel (额外 ALU)。",
+    followup: [
+      "追问:为什么网络会输出 > 1.0?",
+      "答:**ReLU 激活无界** — 网络可能输出任意大值。**BRDF 必须 ≤ 1.0** (物理约束, 反射率不能 > 入射光)。**Sigmoid 强制 [0, 1]** + normalize 保证物理一致性。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 7,
+    question: "NeuralGGX 训练数据 1M 随机 (NdotH, NdotV, NdotL, roughness, metallic) → GGX 公式输出, RTX 4090 单卡 1h 完成 50 epoch。",
+    answer: true,
+    src: "NeuralGGX-BRDF推理-推理延迟.md §根因 4 + C02 §落地路径",
+    explanation: "正确。**NeuralGGX 训练数据 = 1M 随机 5 维输入 → GGX 公式输出**(GT 公式已知, 1M 样本 1h 跑完)。**训练硬件 RTX 4090 单卡 1h 完成 50 epoch**。**训练一次性, 推理持续受益**。",
+    followup: [
+      "追问:为什么用 GGX 公式当 GT?",
+      "答:**GGX 公式 = 99% 视觉保真度 (近 GT)**。**没有 MERL 100 材质实测 BRDF** 的话, GGX 是最好 GT 来源。**有 MERL 数据时**: 直接用 MERL 实测 (更准, 但 BRDF 形态跟 GGX 不同, 网络学习成本更高)。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 8,
+    question: "NeuralGGX 升级路径推荐哪些正确?(多选)",
+    options: [
+      "A. FP16 推理 (必选, 节省 50% 时间)",
+      "B. Latent 压缩 (100 材质变体 → 1 MLP, 复杂材质推荐)",
+      "C. INT8 量化 (mobile 推荐, 视觉 1-3% 退化)",
+      "D. Fallback 传统 GGX (移动端 / SM5 必备)",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "NeuralGGX-BRDF推理-推理延迟.md §升级路径推荐",
+    explanation: "A、B、C、D 全部正确 — NeuralGGX 4 大升级路径。**A FP16 必选** (实时推理标准) + **B Latent 压缩** (复杂场景 100 材质 → 1 MLP) + **C INT8 量化** (mobile) + **D Fallback** (移动端 SM5 必备)。",
+    followup: [
+      "追问:Mac Game Harness NeuralGGX 落地?",
+      "答:**Mac 理论支持 SM6+**, 但 **6x 慢 (FP16 仍 3x 慢) 需要权衡**。**Mac 建议**: ① 简单 PBR → 传统 GGX (0.05ms 够用) ② 复杂 BRDF → 评估 3x 慢可接受再上 NeuralGGX ③ Latent 压缩必备 (材质变体管理)。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 9,
+    question: "NeuralGGX 关键性能数据:① 推理 {0} ms / pixel (FP32) ② FP16 加速后 {1} ms ③ 传统 GGX {2} ms ④ 慢 {3} x (FP16 后仍慢 3x) ⑤ 网络权重 < {4} KB。",
+    blanks: [
+      { idx: 0, expected: "0.3" },
+      { idx: 1, expected: "0.15" },
+      { idx: 2, expected: "0.05" },
+      { idx: 3, expected: "6" },
+      { idx: 4, expected: "100" },
+    ],
+    pool: ["0.3", "0.15", "0.05", "6", "100", "10", "1", "3"],
+    src: "NeuralGGX-BRDF推理-推理延迟.md §对比总账",
+    explanation: "正确填空:{0}=0.3 ms (FP32 推理)→{1}=0.15 ms (FP16 加速 2x)→{2}=0.05 ms (传统 GGX)→{3}=6x 慢 (FP32); FP16 后 3x 慢→{4}=100 KB (MLP 权重, 4 层 × 64 dim ≈ 13K 参数 × 4 字节 ≈ 52 KB, 加激活 < 100 KB)。",
+    followup: [
+      "追问:0.15ms / pixel 实际帧率影响?",
+      "答:**4K 输出 8.3M pixels × 0.15ms = 1245ms / frame**。**完全不可实时**。**必须降分辨率渲染 + 神经超分 (DLSS/FSR3)** 才能跑 60fps。**NeuralGGX 实际场景组合**: 1080p 渲染 + DLSS 超分 4K, NeuralGGX 0.15ms × 2.1M = 315ms, **仍需 DLSS 减半**。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 10,
+    question: "NeuralGGX 视觉 99% 来自?",
+    options: [
+      "A. FP16 精度提升",
+      "B. 网络学习 GT (1M 样本 GGX 公式输出) vs 传统 PBR 95% 来自近似公式",
+      "C. Latent space 插值",
+      "D. INT8 量化",
+    ],
+    answer: 1,
+    src: "NeuralGGX-BRDF推理-推理延迟.md §根因 1 + C02 §对比总账",
+    explanation: "B 正确。**NeuralGGX 视觉 99% 来自网络学习 GT** (1M 随机样本 → GGX 公式输出作为训练 GT, 网络学 GT 分布)。**传统 PBR 视觉 95% 来自近似公式** (GGX + Fresnel + Geometry 是 analytical 近似, 实际 BRDF 测量有 5% 偏差)。**神经学 GT vs 公式近似** = +4% 视觉差距。",
+    followup: [
+      "追问:能用 MERL 实测 BRDF 吗?",
+      "答:**可以**。MERL 100 材质实测 BRDF (Matusik 2003) 是真值。**但 BRDF 形态跟 GGX 不同, 网络学习成本更高**。GGX 公式 = 99% 视觉保真度, 跟 MERL 接近。**实际工程用 GGX 训练即可, 没必要 MERL**。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 11,
+    question: "NeuralGGX 跟 C01 NeuralPBR 关键区别是: C02 BRDF 实时变化 (roughness/metallic/NdotH), 不能离线烘焙, 必须实时推理。",
+    answer: true,
+    src: "NeuralGGX-BRDF推理-推理延迟.md §根因 + 知识参考 §一 神经渲染是什么",
+    explanation: "正确。**C02 NeuralGGX 关键特征**: ① BRDF 输入 (roughness, metallic, NdotH, NdotV, NdotL) **每像素实时变化** ② 不能离线烘焙 (跟 C01 静态 PBR 材质不同) ③ 必须实时 shader 推理 ④ 0.3ms / pixel FP32 (FP16 后 0.15ms)。**C01 离线 + C02 实时** 是两个范式的根本区别。",
+    followup: [
+      "追问:有没有方法把 C02 离线化?",
+      "答:**理论上可以**: 把 (roughness, metallic) 离散化成 16×16 表格, 每格预烘焙 BRDF 查询表。但:**显存爆炸** (16×16×256³ = 数十 MB) + **质量损失** (离散化插值)。**实时推理 (FP16) 是工程最优解**。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 12,
+    question: "NeuralGGX Mac Game Harness 验证清单哪些正确?(多选)",
+    options: [
+      "A. UE 5.4+ 编译通过 (Mac Metal RHI)",
+      "B. NeuralGGX FP16 在 Mac 上推理 < 0.2ms / pixel",
+      "C. 复杂材质场景视觉对比 (NeuralGGX 99% vs 传统 GGX 95%)",
+      "D. Mobile fallback 传统 GGX 性能验证",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "NeuralGGX-BRDF推理-推理延迟.md §Mac Game Harness 验证清单",
+    explanation: "A、B、C、D 全部正确 — NeuralGGX Mac 4 项验证清单。**Mac 理论支持 NeuralGGX (SM6+)** + **FP16 推理 < 0.2ms / pixel** + **复杂材质视觉对比** (NeuralGGX 99% vs 传统 95%) + **Mobile fallback 传统 GGX**。**Mac 跳过 6x 慢 (FP16 仍 3x 慢) 看场景权衡**。",
+    followup: [
+      "追问:Mac 上 FP16 MLP 推理实际多少 ms?",
+      "答:**视 GPU**: M1/M2/M3 Mac GPU 跑 4 层 × 64 dim MLP 推理, FP16 估 0.1-0.2ms / pixel (Metal FP16 加速). 跟 RTX 4090 FP16 (0.15ms) 接近。**Mac 不是 NeuralGGX 实时推理的瓶颈, 瓶颈是 6x 慢的固定 cost**。",
+    ],
+  },
+];
+];
+
+/* ====== 状态 ====== */
+let current = 0;
+let answers = new Array(quizData.length).fill(null);
+let pendingAnswers = new Array(quizData.length).fill(null);
+let dragState = new Array(quizData.length).fill(null);
+let score = 0;
+let currentFilter = 'all';
+
+/* ====== 渲染 ====== */
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  let html = `<div class="question-card ${answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} <span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'TF') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${selected === true ? 'selected' : ''} ${tfClass(idx, true)}" onclick="selectTF(true)" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${selected === false ? 'selected' : ''} ${tfClass(idx, false)}" onclick="selectTF(false)" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitTF()">确认答案</button>`;
+    }
+  } else if (q.type === 'SC') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const cls = answered ? scClass(idx, i) : (selected === i ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="selectSC(${i})">`;
+      html += `<span class="option-key">${String.fromCharCode(65 + i)}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitSC()">确认答案</button>`;
+    }
+  } else if (q.type === 'MC') {
+    const currentAns = answers[idx] || pendingAnswers[idx] || [];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const sel = currentAns.includes(i);
+      const cls = answered ? mcClass(idx, i) : (sel ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="toggleMC(${i})">`;
+      html += `<span class="option-key">${sel ? '☑' : '☐'}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    const currentDrag = dragState[idx] || new Array(q.blanks.length).fill(null);
+    html += `<div class="drag-zone" id="dragZone">`;
+    q.blanks.forEach((b, i) => {
+      const filled = currentDrag[i];
+      const slotCls = answered ? dragSlotClass(idx, i) : (filled ? 'filled' : '');
+      html += `<div class="drag-slot ${slotCls}" data-slot="${i}" onclick="${answered ? '' : `clearSlot(${i})`}">${filled || '（拖入）'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool">`;
+    q.pool.forEach((term, i) => {
+      const used = currentDrag.includes(term);
+      const chipCls = used ? 'used' : '';
+      html += `<div class="drag-chip ${chipCls}" draggable="${!used && !answered}" ondragstart="dragStart(event, ${i})" onclick="${answered ? '' : `fillSlot(${i})`}">${term}</div>`;
+    });
+    html += `</div>`;
+    if (!answered) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitDRAG()">提交</button>`;
+    }
+  }
+
+  html += `<div class="explanation ${exClass(idx)} ${answered?'show':''}">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}`;
+  if (q.followup && q.followup.length) {
+    html += `<div class="followup"><h4>面试官可能的追问：</h4><ol>`;
+    q.followup.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ol></div>`;
+  }
+  html += `<div class="src">来源：${q.src}</div>`;
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  if (q.type === 'DRAG' && !answered) {
+    const slots = container.querySelectorAll('.drag-slot');
+    slots.forEach(s => {
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('drag-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('drag-over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('drag-over');
+        const termIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        dropOnSlot(termIdx, parseInt(s.dataset.slot));
+      });
+    });
+  }
+
+  updateNav();
+  updateProgress();
+}
+
+function tfClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function scClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function mcClass(idx, val) {
+  const ans = answers[idx] || pendingAnswers[idx] || [];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer.includes(val);
+  const chosen = ans.includes(val);
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function dragSlotClass(idx, slot) {
+  if (answers[idx] === null) return '';
+  const expected = quizData[idx].blanks[slot].expected;
+  const actual = (dragState[idx] || [])[slot];
+  return actual === expected ? 'correct' : 'wrong';
+}
+function exClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const q = quizData[idx];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return false;
+  const ans = answers[idx] !== null ? answers[idx] : pendingAnswers[idx];
+  if (q.type === 'TF') return ans === q.answer;
+  if (q.type === 'SC') return ans === q.answer;
+  if (q.type === 'MC') {
+    const a = [...ans].sort().join(',');
+    const c = [...q.answer].sort().join(',');
+    return a === c;
+  }
+  if (q.type === 'DRAG') {
+    const ds = dragState[idx] || [];
+    return q.blanks.every((b, i) => ds[i] === b.expected);
+  }
+  return false;
+}
+
+function selectTF(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitTF() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function selectSC(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitSC() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function toggleMC(val) {
+  if (answers[current] !== null) return;
+  let a = pendingAnswers[current] || [];
+  if (a.includes(val)) a = a.filter(x => x !== val);
+  else a = [...a, val];
+  pendingAnswers[current] = a;
+  renderQuestion(current);
+}
+function submitMC() {
+  if (answers[current] !== null) return;
+  if ((pendingAnswers[current] || []).length === 0) {
+    alert('请至少选择一个选项');
+    return;
+  }
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function dragStart(e, termIdx) {
+  e.dataTransfer.setData('text/plain', termIdx);
+}
+function fillSlot(termIdx) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  for (let i = 0; i < ds.length; i++) {
+    if (ds[i] === null) { ds[i] = term; break; }
+  }
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function clearSlot(slot) {
+  const ds = dragState[current] || [];
+  ds[slot] = null;
+  dragState[current] = ds.filter(x => x !== null);
+  while (dragState[current].length < quizData[current].blanks.length) dragState[current].push(null);
+  renderQuestion(current);
+}
+function dropOnSlot(termIdx, slot) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  ds[slot] = term;
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function submitDRAG() {
+  if (answers[current] !== null) return;
+  const ds = dragState[current] || [];
+  if (ds.filter(x => x !== null).length < quizData[current].blanks.length) {
+    alert('请填满所有空位');
+    return;
+  }
+  answers[current] = ds.slice();
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+
+function goPrev() { if (current > 0) { current--; renderQuestion(current); } }
+function goNext() { if (current < quizData.length - 1) { current++; renderQuestion(current); } }
+function finishQuiz() { showResults(); }
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').style.display = current === quizData.length - 1 ? 'none' : '';
+  document.getElementById('finishBtn').style.display = current === quizData.length - 1 ? '' : 'none';
+  document.getElementById('progressText').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('scoreText').textContent = score;
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) updateOverview();
+}
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  updateOverview();
+}
+function updateOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const ans = answers[i];
+    let cls = '';
+    if (ans !== null) {
+      cls = isCorrect(i) ? 'correct' : 'wrong';
+    }
+    if (currentFilter === 'unanswered' && ans !== null) return;
+    if (currentFilter === 'correct' && (ans === null || !isCorrect(i))) return;
+    if (currentFilter === 'wrong' && (ans === null || isCorrect(i))) return;
+    html += `<div class="overview-tile ${cls}" onclick="jumpTo(${i})">`;
+    html += `<div class="tile-num">${i + 1}</div>`;
+    html += `<div class="tile-type">${TYPE_LABEL[q.type]}</div>`;
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) {
+  current = i;
+  document.getElementById('overviewPanel').classList.remove('show');
+  renderQuestion(current);
+}
+
+function resetAll() {
+  if (!confirm('确定要清空所有答题记录并重置分数？')) return;
+  answers = new Array(quizData.length).fill(null);
+  pendingAnswers = new Array(quizData.length).fill(null);
+  dragState = new Array(quizData.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  const pct = score / (quizData.length * 10) * 100;
+  const msg = pct >= 90 ? 'VSM 大师！阴影细节讲得明明白白 🎉' :
+              pct >= 70 ? '基础扎实，Page Table / Clipmap / Contact Shadow 都能讲 💪' :
+              pct >= 50 ? '概念地图建立中，建议先看一遍 [[Karis-2020-Virtual-Shadow-Maps]] 笔记 📖' :
+                          '回到 [[Karis-2020-Virtual-Shadow-Maps]] 重新读一遍，再来！🔁';
+  document.getElementById('resultsMsg').textContent = msg;
+  let review = '';
+  quizData.forEach((q, i) => {
+    if (answers[i] !== null && !isCorrect(i)) {
+      const ansStr = formatAnswer(q, answers[i]);
+      const corrStr = formatAnswer(q, q.answer);
+      review += `<div class="review-item"><h4>第 ${i + 1} 题 · ${TYPE_LABEL[q.type]}：${q.question}</h4>`;
+      review += `<p>你的答案：<span class="your-ans">${ansStr}</span></p>`;
+      review += `<p>正确答案：<span class="correct-ans">${corrStr}</span></p></div>`;
+    }
+  });
+  document.getElementById('reviewSection').innerHTML = review || '<p style="color:var(--muted);text-align:center">全部正确，零错题 🎯</p>';
+}
+function formatAnswer(q, ans) {
+  if (q.type === 'TF') return ans ? 'True' : 'False';
+  if (q.type === 'SC') return String.fromCharCode(65 + ans);
+  if (q.type === 'MC') return ans.map(i => String.fromCharCode(65 + i)).join(', ');
+  if (q.type === 'DRAG') return (ans || []).join(' / ');
+  return String(ans);
+}
+function restartQuiz() { resetAll(); }
+function retryWrong() {
+  const wrongIdx = quizData.map((q, i) => (!isCorrect(i) && answers[i] !== null) ? i : -1).filter(i => i >= 0);
+  if (wrongIdx.length === 0) { alert('没有错题可以重做！'); return; }
+  wrongIdx.forEach(i => { answers[i] = null; pendingAnswers[i] = null; dragState[i] = null; });
+  score = 0;
+  current = wrongIdx[0];
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+renderQuestion(0);
+updateOverview();
+</script>
+</body>
+</html>

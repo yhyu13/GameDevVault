@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DLSS 神经超分时域重建 — 瓶颈案例卡 — 性能卡牌 (W31)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation {
+    margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg);
+    font-size: 0.92rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup {
+    margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px;
+    border: 1px dashed var(--accent);
+  }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel {
+    display: none; margin-bottom: 16px; padding: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .overview-filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white;
+    cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>DLSS 神经超分时域重建 — 瓶颈案例卡</h1>
+    <p>节省 67% GPU / 1 帧延迟 / 4K + RT 95% 叠加</p>
+    <div class="header-meta">配套笔记: <a href="DLSS-神经超分-时域重建-显存带宽.md">[[DLSS-神经超分-时域重建-显存带宽]]</a> · 瓶颈案例 · W31 配套 · 12 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 10</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <strong>题目总览</strong>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="nav-bar" id="navBar">
+    <span class="nav-hint">← → 切换题目 · 选择后点击「确认答案」提交</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+      <button class="btn btn-secondary" id="finishBtn" onclick="finishQuiz()" style="display:none">完成</button>
+    </div>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "DRAG",
+    id: 1,
+    question: "DLSS 关键性能数据:① 4K 输出 {0} 像素开销 ② DLSS 推理 {1} ms ③ TAA 8 帧累加 {2} ms ④ 节省 {3} % ⑤ DLSS {4} 帧延迟 vs TAA 8 帧。",
+    blanks: [
+      { idx: 0, expected: "4×" },
+      { idx: 1, expected: "0.5" },
+      { idx: 2, expected: "1.5" },
+      { idx: 3, expected: "67" },
+      { idx: 4, expected: "1" },
+    ],
+    pool: ["4×", "0.5", "1.5", "67", "1", "8", "2", "0.3"],
+    src: "DLSS-神经超分-时域重建-显存带宽.md §现象描述 + §根因 1",
+    explanation: "正确填空:{0}=4× 像素开销 (2560×1440 → 640×360)→{1}=0.5 ms (DLSS 推理)→{2}=1.5 ms (TAA 8 帧累加)→{3}=67% 节省 (0.5 vs 1.5)→{4}=1 帧延迟 (vs TAA 8 帧延迟,无拖影)。",
+    followup: [
+      "追问:为什么 4K 60fps 必选 DLSS?",
+      "答:**4K 原生渲染 16ms 单卡 60fps 跑不动**(8.3M pixels × 100 ALU = 830M ALU / frame)。**1080p 渲染 + DLSS 0.5ms = 总 4.5ms (省 72%)**, 60 fps 可行。**DLSS 4 档模式** (Performance 4×, Balanced 3×, Quality 2×, UltraQuality 1.5×) 按 GPU 预算选。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 2,
+    question: "Mac 上跑 DLSS 的 fallback 方案?",
+    options: [
+      "A. DLSS 闭源 + NVIDIA 闭源 → Mac 不可用, fallback FSR3 (AMD 全平台)",
+      "B. DLSS Mac 也能用 (跨平台)",
+      "C. Mac 上 FSR3 视觉跟 DLSS 一样",
+      "D. Mac 只能 native 4K 渲染",
+    ],
+    answer: 0,
+    src: "DLSS-神经超分-时域重建-显存带宽.md §根因 4 + §方案 C",
+    explanation: "A 正确。**DLSS 闭源 + NVIDIA Tensor Core 加速**, **Mac 上不可用** (NVIDIA 不可用, Tensor Core 缺)。**Mac fallback: FSR3 (AMD 全平台, 纯算法无 AI)**, 视觉 95% (vs DLSS 99%)。**Mac 选 FSR3, 不能用 DLSS**。",
+    followup: [
+      "追问:FSR3 跟 DLSS 视觉差多少?",
+      "答:**FSR3 视觉 95% (无 AI 纯算法) vs DLSS 视觉 99% (Tensor Core 加速)**。**节省 GPU 差不多**(FSR3 40-50%, DLSS 67%)。**Mac 选 FSR3 是唯一选项**, 视觉 95% 4K 60fps 可接受。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 3,
+    question: "DLSS 1 帧延迟 (无拖影) vs TAA 8 帧延迟 (有拖影), 是 DLSS 的核心优势之一。",
+    answer: true,
+    src: "DLSS-神经超分-时域重建-显存带宽.md §根因 3 + §对比总账",
+    explanation: "正确。**DLSS 1 帧延迟 vs TAA 8 帧延迟** —— TAA 8 帧 jitter 累加导致玩家看到拖影 (镜头急转时尤其明显)。**DLSS CNN 学 \"该相信历史多少\" + 1 帧时序重建** = 无拖影。**核心优势之一**: 1 帧延迟 = 玩家视觉无延迟。",
+    followup: [
+      "追问:1 帧延迟具体多少 ms?",
+      "答:**1 帧 @ 60fps = 16.6ms**。**8 帧延迟 = 133ms**(玩家可感知的拖影)。**DLSS 1 帧 = 16.6ms 延迟, 几乎无感**。**竞技 FPS 游戏特别敏感**: TAA 8 帧延迟 = 133ms 反应时间, DLSS 1 帧 = 16.6ms。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 4,
+    question: "DLSS 网络架构哪些正确?(多选)",
+    options: [
+      "A. Conv 1×1 (100 → 32) + Conv 1×1 (32 → 16) + Conv 1×1 (16 → 3) + Sigmoid",
+      "B. 输入 5×5 邻域 × 4 channel = 100 features",
+      "C. 时序重建网络 (当前帧 + 历史帧 reprojected)",
+      "D. Transformer 架构",
+    ],
+    answer: [0, 1, 2],
+    src: "DLSS-神经超分-时域重建-显存带宽.md §根因 2 + C07 §网络架构",
+    explanation: "A、B、C 正确 — DLSS 3 大网络架构特征。D 错 — **DLSS 用 CNN 不是 Transformer** (推理速度 + 权重共享 + Tensor Core 加速)。**1×1 Conv 极致轻量 < 1 MB 权重**, NVIDIA Tensor Core 加速 < 1 ms 推理。",
+    followup: [
+      "追问:为什么 1×1 Conv 不用 3×3 或 5×5?",
+      "答:**1×1 Conv 极致轻量** —— 权重 1×1×in×out = 几 KB。**3×3 Conv = 9x 权重**, 5×5 = 25x。**1×1 够用因为**: 输入已含 5×5 邻域 (100 features) 拼接到网络输入。**推理速度 + 权重共享 + Tensor Core 加速 = 1×1 是 DLSS 关键选择**。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 5,
+    question: "DLSS 4 档模式:① Performance: 4× 像素开销 ({0} → 4K) ② Balanced: 3× ({1} → 4K) ③ Quality: 2× ({2} → 4K) ④ UltraQuality: 1.5× ({3} → 4K)。",
+    blanks: [
+      { idx: 0, expected: "540p" },
+      { idx: 1, expected: "720p" },
+      { idx: 2, expected: "1080p" },
+      { idx: 3, expected: "1440p" },
+    ],
+    pool: ["540p", "720p", "1080p", "1440p", "2160p", "1920p"],
+    src: "DLSS-神经超分-时域重建-显存带宽.md §方案 D 视场景模式选择",
+    explanation: "正确填空:{0}=540p (4× 像素开销, 帧率最高)→{1}=720p (3×)→{2}=1080p (2×, 默认)→{3}=1440p (1.5×, 接近 native)。**4 档按 GPU 预算选**: 4090 单卡选 Performance 4K 60fps, 4070 选 Balanced, 笔记本选 Quality, 8GB 显存选 UltraQuality (高分辨率保真)。",
+    followup: [
+      "追问:Mac 上 FSR3 也有 4 档吗?",
+      "答:**有**, FSR3 Quality 模式: ① Ultra Performance (4×) ② Performance (3×) ③ Balanced (2×) ④ Quality (1.5×)。**Mac FSR3 选 Quality (1.5×)** 比较稳, 避免视觉退化。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 6,
+    question: "DLSS + NRD 叠加节省多少 GPU?",
+    options: [
+      "A. 67% (DLSS 单独)",
+      "B. 16x (NRD 单独)",
+      "C. 95% (DLSS + NRD 叠加, 4K + RT 60fps)",
+      "D. 50% (叠加有损耗)",
+    ],
+    answer: 2,
+    src: "DLSS-神经超分-时域重建-显存带宽.md §方案 E + §跟 C08 NRD 的正交叠加",
+    explanation: "C 正确。**DLSS 67% (4K) + NRD 16x (RT 反射 1 spp) 叠加 = 95% 节省**。公式: 1-0.67×1-0.94 ≈ 0.95 (1 帧从 16ms 降到 0.8ms)。**RTX 用户 4K + RT 60fps 必选 DLSS + NRD 叠加**。",
+    followup: [
+      "追问:Mac 上能叠加吗?",
+      "答:**不能完全叠加** — DLSS NVIDIA 不可用 (Mac fallback FSR3), NRD NVIDIA 不可用 (Mac fallback SVGF)。**Mac 上 FSR3 + SVGF 叠加** — 视觉 90% (无 AI 退化), 节省 90% GPU 跟 RTX 平台相近。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 7,
+    question: "DLSS 视觉无拖影 (1 帧延迟) vs TAA 8 帧延迟 (有拖影), 8 帧延迟 = 133ms @ 60fps, 玩家视觉可感知。",
+    answer: true,
+    src: "DLSS-神经超分-时域重建-显存带宽.md §根因 3 + §对比总账",
+    explanation: "正确。**DLSS 1 帧延迟 (16.6ms @ 60fps) 几乎无感** vs **TAA 8 帧延迟 (133ms) 玩家视觉可感知**。**竞技 FPS 特别敏感**: TAA 8 帧 = 133ms 反应时间, DLSS 1 帧 = 16.6ms。**DLSS 核心优势 = 视觉无延迟 + 4K 60fps 节省 67% GPU**。",
+    followup: [
+      "追问:DLSS 1 帧延迟怎么实现?",
+      "答:**CNN 学习 \"该相信历史多少\"** —— 网络输出 temporal weight, 决定当前帧 vs 历史帧的混合比例。**TAA 8 帧累加** = jitter 累加 8 帧才收敛 (固定权重)。**DLSS 1 帧** = 当前帧 + 1 帧历史 (网络权重决定混合)。**核心创新** = CNN 学 temporal weight。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 8,
+    question: "DLSS 升级路径推荐哪些正确?(多选)",
+    options: [
+      "A. DLSS (RTX 用户, 必选, 节省 67% GPU)",
+      "B. XeSS (Intel Arc / 部分 iGPU)",
+      "C. FSR3 (全平台 fallback, 节省 40-50%)",
+      "D. DLSS + NRD 叠加 (4K + RT 60fps, 95% 节省)",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "DLSS-神经超分-时域重建-显存带宽.md §升级路径推荐",
+    explanation: "A、B、C、D 全部正确 — DLSS 4 大升级路径。**A DLSS (RTX)** + **B XeSS (Intel)** + **C FSR3 (全平台 fallback, Mac 必备)** + **D DLSS + NRD 叠加 (4K + RT 60fps, 95% 节省)**。**Mac 用户选 C, RTX 用户选 A + D**。",
+    followup: [
+      "追问:Mac 上 FSR3 + SVGF 叠加具体多少?",
+      "答:**FSR3 节省 40-50% GPU** (1080p → 4K) + **SVGF 节省 16x RT 成本** (1 spp + 降噪, 视觉 95% vs NRD 99%)。**Mac 叠加 90% GPU 节省**, 跟 RTX DLSS + NRD 95% 接近, 视觉差 5-10% (无 AI 退化)。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 9,
+    question: "DLSS 4 vendor 平台选型:① PC RTX → {0} (Tensor Core) ② Intel Arc → {1} (XMX / DP4a) ③ Mac / AMD → {2} (纯算法, 全平台) ④ Mobile → {2} ⑤ 离线电影 → {3} (CPU, 慢但视觉最好)。",
+    blanks: [
+      { idx: 0, expected: "DLSS" },
+      { idx: 1, expected: "XeSS" },
+      { idx: 2, expected: "FSR3" },
+      { idx: 3, expected: "OIDN" },
+    ],
+    pool: ["DLSS", "XeSS", "FSR3", "OIDN", "NRD", "SVGF", "FSR1"],
+    src: "DLSS-神经超分-时域重建-显存带宽.md §根因 4 + §方案 A-C",
+    explanation: "正确填空:{0}=DLSS (NVIDIA Tensor Core, 视觉 99%)→{1}=XeSS (Intel XMX, 视觉 95-99%)→{2}=FSR3 (AMD 全平台, 视觉 95%, 纯算法)→{3}=OIDN (Intel CPU, 50ms+ 不可实时, 离线电影质量)。**Mac 选 FSR3, 跳过 DLSS/XeSS/OIDN**。",
+    followup: [
+      "追问:为什么 OIDN CPU 慢但视觉最好?",
+      "答:**OIDN 视觉 100%** (完全实时光线追踪降噪, 无启发式近似)。**但 CPU 推理 50ms+** 不可实时。**适用**: 离线电影质量 RT 渲染, 单帧 1 秒预算够。**DLSS/NRD/SVGF 都用启发式近似 (1×1 Conv 神经网络)**, OIDN 用更复杂的算法。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 10,
+    question: "DLSS 3 跟 DLSS 2 关键区别?",
+    options: [
+      "A. DLSS 3 加了 Frame Generation (插帧, 60fps → 120fps)",
+      "B. DLSS 3 跟 DLSS 2 一样",
+      "C. DLSS 3 用 Transformer",
+      "D. DLSS 3 改用 1×1 Conv",
+    ],
+    answer: 0,
+    src: "DLSS-神经超分-时域重建-显存带宽.md §根因 4 + GDC 2023 DLSS 3",
+    explanation: "A 正确。**DLSS 3 加了 Frame Generation (插帧)** —— 60fps → 120fps 插 1 帧。**核心是 Ray Reconstruction** —— 跟 DLSS 2 区别是 DLSS 3 专门处理 ray tracing 噪声 (RT 反射/折射噪点)。**Mac 跳过 DLSS 3 (NVIDIA 闭源) → fallback FSR3 Frame Generation (AMD)**。",
+    followup: [
+      "追问:DLSS 3 插帧影响输入延迟?",
+      "答:**DLSS 3 Frame Generation 插帧增加 1-2 帧输入延迟**(插帧需要 1-2 帧历史)。**竞技 FPS 谨慎使用**, 视觉流畅但反应时间增加。**DLSS 2 超分无插帧, 1 帧延迟不变**。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 11,
+    question: "DLSS 闭源 + NVIDIA 加速, Mac 完全不可用, 必须 fallback FSR3。",
+    answer: true,
+    src: "DLSS-神经超分-时域重建-显存带宽.md §Mac Game Harness 验证清单",
+    explanation: "正确。**DLSS 闭源 + NVIDIA Tensor Core 加速** → **Mac 完全不可用**。**Mac fallback FSR3** (AMD 全平台, 纯算法, 无 AI 加速)。**Mac 选 FSR3 是唯一选项**, 视觉 95% (vs DLSS 99%), 节省 40-50% GPU (vs DLSS 67%)。**Mac Game Harness 必选 FSR3**。",
+    followup: [
+      "追问:Mac 上 FSR3 视觉 95% 可接受吗?",
+      "答:**可接受**: ① 4K 60fps 单卡必备 ② 玩家视觉感受 FSR3 跟 DLSS 差距 5%, 不仔细对比难发现 ③ 节省 GPU 40-50% (FSR3) vs 67% (DLSS), 差距明显但 Mac 不可选 DLSS。**Mac 选 FSR3, 视觉 95% 4K 60fps**。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 12,
+    question: "DLSS Mac Game Harness 验证清单哪些正确?(多选)",
+    options: [
+      "A. UE 5.4+ 编译通过 (Mac Metal RHI)",
+      "B. DLSS 在 Mac 上不可用 (NVIDIA 闭源)",
+      "C. FSR3 在 Mac 上跑通 (全平台 fallback, 必选)",
+      "D. 4 档 mode (Performance/Balanced/Quality/UltraQuality) 切换",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "DLSS-神经超分-时域重建-显存带宽.md §Mac Game Harness 验证清单",
+    explanation: "A、B、C、D 全部正确 — DLSS Mac 4 项验证清单。**A UE 5.4+ Mac 编译** + **B DLSS 不可用** (NVIDIA 闭源) + **C FSR3 跑通** (Mac fallback 必选) + **D 4 档 mode 切换**。**Mac Game Harness 必选 FSR3, 跳过 DLSS/XeSS**。",
+    followup: [
+      "追问:Mac 上 FSR3 4 档 mode 性能差?",
+      "答:**FSR3 4 档** = Ultra Performance (4×) / Performance (3×) / Balanced (2×) / Quality (1.5×)。**Mac M1/M2/M3 GPU 性能不同**: M3 Max 4K 60fps 4 档都行, M1 4K Ultra Performance 可行, M1 Quality 跑 30fps 极限。**Mac 选 Performance (3×) 平衡**。",
+    ],
+  },
+];
+];
+
+/* ====== 状态 ====== */
+let current = 0;
+let answers = new Array(quizData.length).fill(null);
+let pendingAnswers = new Array(quizData.length).fill(null);
+let dragState = new Array(quizData.length).fill(null);
+let score = 0;
+let currentFilter = 'all';
+
+/* ====== 渲染 ====== */
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  let html = `<div class="question-card ${answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} <span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'TF') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${selected === true ? 'selected' : ''} ${tfClass(idx, true)}" onclick="selectTF(true)" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${selected === false ? 'selected' : ''} ${tfClass(idx, false)}" onclick="selectTF(false)" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitTF()">确认答案</button>`;
+    }
+  } else if (q.type === 'SC') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const cls = answered ? scClass(idx, i) : (selected === i ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="selectSC(${i})">`;
+      html += `<span class="option-key">${String.fromCharCode(65 + i)}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitSC()">确认答案</button>`;
+    }
+  } else if (q.type === 'MC') {
+    const currentAns = answers[idx] || pendingAnswers[idx] || [];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const sel = currentAns.includes(i);
+      const cls = answered ? mcClass(idx, i) : (sel ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="toggleMC(${i})">`;
+      html += `<span class="option-key">${sel ? '☑' : '☐'}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    const currentDrag = dragState[idx] || new Array(q.blanks.length).fill(null);
+    html += `<div class="drag-zone" id="dragZone">`;
+    q.blanks.forEach((b, i) => {
+      const filled = currentDrag[i];
+      const slotCls = answered ? dragSlotClass(idx, i) : (filled ? 'filled' : '');
+      html += `<div class="drag-slot ${slotCls}" data-slot="${i}" onclick="${answered ? '' : `clearSlot(${i})`}">${filled || '（拖入）'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool">`;
+    q.pool.forEach((term, i) => {
+      const used = currentDrag.includes(term);
+      const chipCls = used ? 'used' : '';
+      html += `<div class="drag-chip ${chipCls}" draggable="${!used && !answered}" ondragstart="dragStart(event, ${i})" onclick="${answered ? '' : `fillSlot(${i})`}">${term}</div>`;
+    });
+    html += `</div>`;
+    if (!answered) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitDRAG()">提交</button>`;
+    }
+  }
+
+  html += `<div class="explanation ${exClass(idx)} ${answered?'show':''}">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}`;
+  if (q.followup && q.followup.length) {
+    html += `<div class="followup"><h4>面试官可能的追问：</h4><ol>`;
+    q.followup.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ol></div>`;
+  }
+  html += `<div class="src">来源：${q.src}</div>`;
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  if (q.type === 'DRAG' && !answered) {
+    const slots = container.querySelectorAll('.drag-slot');
+    slots.forEach(s => {
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('drag-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('drag-over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('drag-over');
+        const termIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        dropOnSlot(termIdx, parseInt(s.dataset.slot));
+      });
+    });
+  }
+
+  updateNav();
+  updateProgress();
+}
+
+function tfClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function scClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function mcClass(idx, val) {
+  const ans = answers[idx] || pendingAnswers[idx] || [];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer.includes(val);
+  const chosen = ans.includes(val);
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function dragSlotClass(idx, slot) {
+  if (answers[idx] === null) return '';
+  const expected = quizData[idx].blanks[slot].expected;
+  const actual = (dragState[idx] || [])[slot];
+  return actual === expected ? 'correct' : 'wrong';
+}
+function exClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const q = quizData[idx];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return false;
+  const ans = answers[idx] !== null ? answers[idx] : pendingAnswers[idx];
+  if (q.type === 'TF') return ans === q.answer;
+  if (q.type === 'SC') return ans === q.answer;
+  if (q.type === 'MC') {
+    const a = [...ans].sort().join(',');
+    const c = [...q.answer].sort().join(',');
+    return a === c;
+  }
+  if (q.type === 'DRAG') {
+    const ds = dragState[idx] || [];
+    return q.blanks.every((b, i) => ds[i] === b.expected);
+  }
+  return false;
+}
+
+function selectTF(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitTF() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function selectSC(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitSC() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function toggleMC(val) {
+  if (answers[current] !== null) return;
+  let a = pendingAnswers[current] || [];
+  if (a.includes(val)) a = a.filter(x => x !== val);
+  else a = [...a, val];
+  pendingAnswers[current] = a;
+  renderQuestion(current);
+}
+function submitMC() {
+  if (answers[current] !== null) return;
+  if ((pendingAnswers[current] || []).length === 0) {
+    alert('请至少选择一个选项');
+    return;
+  }
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function dragStart(e, termIdx) {
+  e.dataTransfer.setData('text/plain', termIdx);
+}
+function fillSlot(termIdx) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  for (let i = 0; i < ds.length; i++) {
+    if (ds[i] === null) { ds[i] = term; break; }
+  }
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function clearSlot(slot) {
+  const ds = dragState[current] || [];
+  ds[slot] = null;
+  dragState[current] = ds.filter(x => x !== null);
+  while (dragState[current].length < quizData[current].blanks.length) dragState[current].push(null);
+  renderQuestion(current);
+}
+function dropOnSlot(termIdx, slot) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  ds[slot] = term;
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function submitDRAG() {
+  if (answers[current] !== null) return;
+  const ds = dragState[current] || [];
+  if (ds.filter(x => x !== null).length < quizData[current].blanks.length) {
+    alert('请填满所有空位');
+    return;
+  }
+  answers[current] = ds.slice();
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+
+function goPrev() { if (current > 0) { current--; renderQuestion(current); } }
+function goNext() { if (current < quizData.length - 1) { current++; renderQuestion(current); } }
+function finishQuiz() { showResults(); }
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').style.display = current === quizData.length - 1 ? 'none' : '';
+  document.getElementById('finishBtn').style.display = current === quizData.length - 1 ? '' : 'none';
+  document.getElementById('progressText').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('scoreText').textContent = score;
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) updateOverview();
+}
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  updateOverview();
+}
+function updateOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const ans = answers[i];
+    let cls = '';
+    if (ans !== null) {
+      cls = isCorrect(i) ? 'correct' : 'wrong';
+    }
+    if (currentFilter === 'unanswered' && ans !== null) return;
+    if (currentFilter === 'correct' && (ans === null || !isCorrect(i))) return;
+    if (currentFilter === 'wrong' && (ans === null || isCorrect(i))) return;
+    html += `<div class="overview-tile ${cls}" onclick="jumpTo(${i})">`;
+    html += `<div class="tile-num">${i + 1}</div>`;
+    html += `<div class="tile-type">${TYPE_LABEL[q.type]}</div>`;
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) {
+  current = i;
+  document.getElementById('overviewPanel').classList.remove('show');
+  renderQuestion(current);
+}
+
+function resetAll() {
+  if (!confirm('确定要清空所有答题记录并重置分数？')) return;
+  answers = new Array(quizData.length).fill(null);
+  pendingAnswers = new Array(quizData.length).fill(null);
+  dragState = new Array(quizData.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  const pct = score / (quizData.length * 10) * 100;
+  const msg = pct >= 90 ? 'VSM 大师！阴影细节讲得明明白白 🎉' :
+              pct >= 70 ? '基础扎实，Page Table / Clipmap / Contact Shadow 都能讲 💪' :
+              pct >= 50 ? '概念地图建立中，建议先看一遍 [[Karis-2020-Virtual-Shadow-Maps]] 笔记 📖' :
+                          '回到 [[Karis-2020-Virtual-Shadow-Maps]] 重新读一遍，再来！🔁';
+  document.getElementById('resultsMsg').textContent = msg;
+  let review = '';
+  quizData.forEach((q, i) => {
+    if (answers[i] !== null && !isCorrect(i)) {
+      const ansStr = formatAnswer(q, answers[i]);
+      const corrStr = formatAnswer(q, q.answer);
+      review += `<div class="review-item"><h4>第 ${i + 1} 题 · ${TYPE_LABEL[q.type]}：${q.question}</h4>`;
+      review += `<p>你的答案：<span class="your-ans">${ansStr}</span></p>`;
+      review += `<p>正确答案：<span class="correct-ans">${corrStr}</span></p></div>`;
+    }
+  });
+  document.getElementById('reviewSection').innerHTML = review || '<p style="color:var(--muted);text-align:center">全部正确，零错题 🎯</p>';
+}
+function formatAnswer(q, ans) {
+  if (q.type === 'TF') return ans ? 'True' : 'False';
+  if (q.type === 'SC') return String.fromCharCode(65 + ans);
+  if (q.type === 'MC') return ans.map(i => String.fromCharCode(65 + i)).join(', ');
+  if (q.type === 'DRAG') return (ans || []).join(' / ');
+  return String(ans);
+}
+function restartQuiz() { resetAll(); }
+function retryWrong() {
+  const wrongIdx = quizData.map((q, i) => (!isCorrect(i) && answers[i] !== null) ? i : -1).filter(i => i >= 0);
+  if (wrongIdx.length === 0) { alert('没有错题可以重做！'); return; }
+  wrongIdx.forEach(i => { answers[i] = null; pendingAnswers[i] = null; dragState[i] = null; });
+  score = 0;
+  current = wrongIdx[0];
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+renderQuestion(0);
+updateOverview();
+</script>
+</body>
+</html>

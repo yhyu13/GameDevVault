@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RT Denoiser (NRD) 4 阶段神经 blend — 瓶颈案例卡 — 性能卡牌 (W31)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent-light: #e0f2fe;
+    --accent-2: #6366f1;
+    --correct: #10b981;
+    --correct-bg: #ecfdf5;
+    --wrong: #ef4444;
+    --wrong-bg: #fef2f2;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0; padding: 20px; line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 6px; color: var(--accent-2); }
+  header p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .header-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; align-items: center; justify-content-content: space-between;
+  }
+  .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .stat { font-size: 0.85rem; color: var(--muted); }
+  .toolbar .stat strong { color: var(--text); font-weight: 700; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: width 0.4s ease; }
+
+  .question-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .question-card.answered { opacity: 0.85; }
+  .q-number { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .q-type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: var(--accent-light); color: var(--accent-2); font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+  }
+  .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 16px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.disabled { cursor: default; opacity: 0.95; }
+  .option-key { font-weight: 700; color: var(--accent-2); min-width: 24px; }
+
+  .tf-buttons { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s;
+  }
+  .tf-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tf-btn.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .tf-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .tf-btn.disabled { cursor: default; }
+
+  .drag-zone {
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; padding: 16px;
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+  }
+  .drag-slot {
+    min-width: 110px; min-height: 40px; border: 2px solid var(--border); border-radius: 6px;
+    background: white; display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 10px; font-size: 0.95rem; color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .drag-slot.drag-over { border-color: var(--accent); background: var(--accent-light); }
+  .drag-slot.filled { border-style: solid; color: var(--text); font-weight: 600; border-color: var(--accent); }
+  .drag-slot.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .drag-slot.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .drag-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .drag-chip {
+    padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    cursor: grab; user-select: none; transition: all 0.2s; font-size: 0.9rem;
+  }
+  .drag-chip:active { cursor: grabbing; }
+  .drag-chip.used { opacity: 0.4; cursor: default; }
+  .drag-chip:hover:not(.used) { background: var(--accent-light); }
+
+  .explanation {
+    margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: var(--bg);
+    font-size: 0.92rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation.correct-ex { border-left: 4px solid var(--correct); background: var(--correct-bg); }
+  .explanation.wrong-ex { border-left: 4px solid var(--wrong); background: var(--wrong-bg); }
+  .followup {
+    margin-top: 12px; padding: 10px 12px; background: white; border-radius: 6px;
+    border: 1px dashed var(--accent);
+  }
+  .followup h4 { font-size: 0.85rem; color: var(--accent-2); margin: 0 0 6px; }
+  .followup ol { margin: 0; padding-left: 20px; font-size: 0.88rem; }
+  .src { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px; padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .nav-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .overview-panel {
+    display: none; margin-bottom: 16px; padding: 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .overview-panel.show { display: block; }
+  .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .overview-filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; background: white;
+    cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  .overview-tile {
+    aspect-ratio: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .overview-tile:hover { transform: scale(1.05); }
+  .overview-tile.correct { background: var(--correct-bg); border-color: var(--correct); }
+  .overview-tile.wrong { background: var(--wrong-bg); border-color: var(--wrong); }
+  .tile-num { font-weight: 700; }
+  .tile-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .results-screen { display: none; text-align: center; padding: 40px 20px; }
+  .results-screen.show { display: block; }
+  .score-circle {
+    width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .score-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 1rem; opacity: 0.85; }
+  .results-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; }
+  .results-msg { color: var(--muted); margin-bottom: 24px; }
+  .review-section { margin-top: 32px; text-align: left; }
+  .review-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--wrong); }
+  .review-item h4 { font-size: 0.92rem; margin: 0 0 6px; }
+  .your-ans { color: var(--wrong); font-weight: 600; }
+  .correct-ans { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>RT Denoiser (NRD) 4 阶段神经 blend — 瓶颈案例卡</h1>
+    <p>1 spp → 64+ spp 视觉 / 节省 16x RT / 4 阶段 spatial+temporal</p>
+    <div class="header-meta">配套笔记: <a href="RT-Denoiser-4阶段-神经blend开销.md">[[RT-Denoiser-4阶段-神经blend开销]]</a> · 瓶颈案例 · W31 配套 · 12 题</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-secondary" onclick="toggleOverview()">📊 题目总览</button>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 重置所有分数</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="stat">当前 <strong id="progressText">1 / 10</strong></span>
+      <span class="stat">得分 <strong id="scoreText">0</strong></span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="overview-panel" id="overviewPanel">
+    <div class="overview-header">
+      <strong>题目总览</strong>
+      <div class="overview-filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+        <button class="filter-btn" data-filter="unanswered" onclick="setFilter('unanswered')">未答</button>
+        <button class="filter-btn" data-filter="correct" onclick="setFilter('correct')">正确</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">错误</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="nav-bar" id="navBar">
+    <span class="nav-hint">← → 切换题目 · 选择后点击「确认答案」提交</span>
+    <div>
+      <button class="btn btn-secondary" id="prevBtn" onclick="goPrev()" disabled>上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="goNext()">下一题</button>
+      <button class="btn btn-secondary" id="finishBtn" onclick="finishQuiz()" style="display:none">完成</button>
+    </div>
+  </div>
+
+  <div class="results-screen" id="resultsScreen">
+    <div class="score-circle">
+      <div class="score-value" id="finalScore">0</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="results-title" id="resultsTitle">测验完成!</div>
+    <div class="results-msg" id="resultsMsg">继续加油</div>
+    <button class="btn btn-primary" onclick="restartQuiz()">重新测验</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">只重做错题</button>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABEL = { TF: '判断题', SC: '单选题', MC: '多选题', DRAG: '拖拽填空' };
+
+const quizData = [
+  {
+    type: "DRAG",
+    id: 1,
+    question: "NRD 4 阶段管线:① {0} (切线空间 + visibility) ② {1} (5×5 双边 + variance) ③ {2} (reproject + clamp + 网络权重) ④ {3} (1×1 Conv 学 history 权重)。",
+    blanks: [
+      { idx: 0, expected: "Pre-pass" },
+      { idx: 1, expected: "Spatial Filter" },
+      { idx: 2, expected: "Temporal Blend" },
+      { idx: 3, expected: "Neural Refinement" },
+    ],
+    pool: ["Pre-pass", "Spatial Filter", "Temporal Blend", "Neural Refinement", "Color Clamp", "Variance Calc"],
+    src: "RT-Denoiser-4阶段-神经blend开销.md §根因 1 + C08 §NRD 4 阶段管线",
+    explanation: "正确填空:{0}=Pre-pass(切线空间 + visibility 计算,准备 temporal 数据)→{1}=Spatial Filter(5×5 双边滤波 + variance 引导,空间域去噪)→{2}=Temporal Blend(reproject 历史帧 + clamp + 网络输出权重,时域融合)→{3}=Neural Refinement(1×1 Conv 学 \"该信 history 多少\" + firefly 检测 + 残差修复)。",
+    followup: [
+      "追问:为什么分 4 阶段不是 1 个大网络?",
+      "答:**模块化**: ① Spatial Filter 5×5 双边 (传统,不用 AI) ② Temporal Blend reproject (传统,不用 AI) ③ Neural Refinement 1×1 Conv (AI,只做 firefly 检测和权重输出)。**AI 部分只占第 4 阶段, 总权重 10-30 MB, 推理 < 0.5ms**。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 2,
+    question: "NRD 1 spp + 降噪 等效多少 spp 视觉?",
+    options: [
+      "A. 16 spp",
+      "B. 32 spp",
+      "C. 64+ spp 视觉",
+      "D. 128 spp",
+    ],
+    answer: 2,
+    src: "RT-Denoiser-4阶段-神经blend开销.md §现象描述 + C08 §效果对比",
+    explanation: "C 正确。**NRD 1 spp 输入 + 4 阶段降噪 = 64+ spp 视觉等效**。节省 16x: 16 spp 8ms → 1 spp + NRD 0.8ms (含降噪 0.3ms)。**这是 RT 反射 / GI 60fps 落地的关键**。",
+    followup: [
+      "追问:为什么 1 spp + NRD 等效 64 spp?",
+      "答:**多通道联合 (color+depth+normal+motion) + 时域累积 + 神经权重** 三件套: ① 1 spp 输入比 16 spp 噪声大 4x, 但多通道信息 (depth/normal) 提供 4x 辅助 ② 时域累积 (8 帧 reproject) 提升 8x ③ 神经权重选择 history/current, 提升 2-4x。**综合 1 × 4 × 8 × 2 ≈ 64 spp 视觉**。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 3,
+    question: "NRD 多通道联合 (color+depth+normal+motion) 比单 color 通道信息丰富, 是修复高光 / 反射区 firefly 的关键。",
+    answer: true,
+    src: "RT-Denoiser-4阶段-神经blend开销.md §根因 2 + C08 §关键创新",
+    explanation: "正确。**NRD 多通道联合** (color 3 + depth 1 + normal 3 + motion 2 + history 3 = 12 features / pixel) vs 传统 TAA 单 color 通道 (6 features)。**2x 信息密度**。**Firefly 检测**: depth/normal 不连续 = firefly (高光 outlier), 网络显式检测并修复。**传统 TAA luminance clamp 启发式失败**。",
+    followup: [
+      "追问:为什么 depth/normal 辅助能修高光?",
+      "答:**高光 firefly 特征**: ① 颜色剧烈 (单帧) ② depth 不连续 (反射 vs 直射) ③ normal 突变 (镜面反射方向) ④ 跨帧不一致。**单 color 通道** 只能看颜色剧烈, 启发式 luminance clamp 失败 (luminance 阈值难定)。**多通道联合**: depth/normal/motion 同时进网络, 网络学 \"高光 firefly 显式检测\"。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 4,
+    question: "NRD 4 vendor 平台选型哪些正确?(多选)",
+    options: [
+      "A. NRD Reblur (NVIDIA GPU, RTX 优先, 视觉 99%)",
+      "B. NRD Sigma (NVIDIA, 阴影专用, 视觉 99%)",
+      "C. OIDN (Intel CPU, 50ms+ 慢, 视觉最好, 离线电影质量)",
+      "D. SVGF (开源, 全平台, 无 AI, 视觉 95%)",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "RT-Denoiser-4阶段-神经blend开销.md §根因 4 + §方案 A-D",
+    explanation: "A、B、C、D 全部正确 — NRD 4 vendor 平台选型。**A NRD Reblur (NVIDIA GPU, RT 优先, 视觉 99%)** + **B NRD Sigma (NVIDIA, 阴影专用)** + **C OIDN (Intel CPU, 50ms+, 离线电影质量)** + **D SVGF (开源, 全平台 fallback, 视觉 95%)**。**Mac 选 D, RTX 选 A, 离线选 C**。",
+    followup: [
+      "追问:NRD Reblur vs Sigma 区别?",
+      "答:**NRD Reblur 通用** (RT 反射/GI/AO) vs **NRD Sigma 阴影专用** (Directional Light Shadow)。**主光阴影 → Sigma (更快)**, **反射 / GI / AO → Reblur (更多通道)**。**典型组合**: Reblur (反射) + Sigma (阴影) + Final Gather (Lumen GI)。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 5,
+    question: "NRD 性能数据:① 16 spp RT 反射 {0} ms ② 1 spp + NRD 降噪 {1} ms ③ 节省 {2} x ④ 视觉 64+ spp 等效 ⑤ NRD 网络权重 {3} MB。",
+    blanks: [
+      { idx: 0, expected: "8" },
+      { idx: 1, expected: "0.8" },
+      { idx: 2, expected: "16" },
+      { idx: 3, expected: "10-30" },
+    ],
+    pool: ["8", "0.8", "16", "10-30", "1", "0.5", "64"],
+    src: "RT-Denoiser-4阶段-神经blend开销.md §现象描述 + §根因 1",
+    explanation: "正确填空:{0}=8 ms (16 spp 传统 RT 反射 4K 输出)→{1}=0.8 ms (1 spp + NRD 0.3ms 降噪 = 0.5+0.3)→{2}=16x 节省→{3}=10-30 MB (vendor 闭源, 4 阶段网络总和)。**实际总成本**: 1 spp RT 0.5ms + 4 阶段降噪 0.3ms = 0.8ms vs 16 spp RT 8ms, **节省 16x**。",
+    followup: [
+      "追问:为什么 NRD 权重比 NeuralGGX (100 KB) 大这么多?",
+      "答:**NRD 4 阶段网络总和** (Spatial + Temporal + Neural Refinement + Pre-pass)。每阶段 2-7 MB, 总 10-30 MB (vendor 闭源)。**NeuralGGX 单 MLP 100 KB** 是单网络, NRD 4 阶段网络大 100-300x。**空间换性能**: NRD 用更大网络换更好视觉。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 6,
+    question: "NRD + DLSS 叠加节省多少 GPU?",
+    options: [
+      "A. 67% (DLSS 单独)",
+      "B. 16x (NRD 单独)",
+      "C. 95% (4K + RT 60fps)",
+      "D. 50% (叠加有损耗)",
+    ],
+    answer: 2,
+    src: "RT-Denoiser-4阶段-神经blend开销.md §方案 E + §跟 C07 DLSS 的正交叠加",
+    explanation: "C 正确。**NRD 16x + DLSS 67% 叠加 = 95% 节省** (4K + RT 60fps)。公式: 1-0.67×1-0.94 ≈ 0.95 (1 帧从 16ms 降到 0.8ms)。**RTX 用户 4K + RT 60fps 必选 NRD + DLSS 叠加**。",
+    followup: [
+      "追问:Mac 上能叠加吗?",
+      "答:**不能完全叠加** — NRD NVIDIA 不可用 (Mac fallback SVGF), DLSS NVIDIA 不可用 (Mac fallback FSR3)。**Mac 上 SVGF + FSR3 叠加** — 视觉 90% (无 AI 退化), 节省 90% GPU 跟 RTX 平台相近。**Mac 用户**: 跳过 NRD/DLSS, 选 SVGF/FSR3。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 7,
+    question: "NRD 在 Mac 上跑得动 (NVIDIA GPU + Metal 兼容), 但视觉 95% (无 AI 加速), 4 阶段 1 spp 降噪到 64+ spp 视觉。",
+    answer: false,
+    src: "RT-Denoiser-4阶段-神经blend开销.md §方案 D + §Mac Game Harness 验证清单",
+    explanation: "错误。**NRD 在 Mac 上跑不动** (NVIDIA 闭源 + RTX 优先优化)。**Mac fallback: SVGF** (开源, 无 AI, 视觉 95%, 全平台)。**NRD 仅 NVIDIA GPU 优化**, AMD/Mac 走 SVGF 替代。**NRD 4 阶段依赖 NVIDIA Tensor Core 加速**, Mac Metal 不可用。",
+    followup: [
+      "追问:为什么 NRD 跟 DLSS 一样 NVIDIA 闭源?",
+      "答:**NRD 跟 DLSS 都是 NVIDIA 闭源 + 优化** —— 不开源, 不在 AMD GPU 上加速。**AMD 替代方案**: SVGF (开源) + FSR3 (AMD 开源)。**这是 NVIDIA 商业策略**: 闭源 + 优化, 锁住自家 GPU 生态。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 8,
+    question: "NRD 升级路径推荐哪些正确?(多选)",
+    options: [
+      "A. NRD Reblur (RTX 用户, 必选, 节省 16x RT)",
+      "B. NRD Sigma (主光阴影更快, 专用)",
+      "C. OIDN (离线电影质量, 视觉最好, CPU 50ms+)",
+      "D. SVGF Fallback (AMD/Mac 必备, 无 AI, 视觉 95%)",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "RT-Denoiser-4阶段-神经blend开销.md §升级路径推荐",
+    explanation: "A、B、C、D 全部正确 — NRD 4 大升级路径。**A NRD Reblur (RTX, 必选)** + **B NRD Sigma (主光阴影更快)** + **C OIDN (离线电影质量, 视觉最好)** + **D SVGF Fallback (AMD/Mac 必备)**。**RTX 选 A+B, Mac 选 D**。",
+    followup: [
+      "追问:NRD Reblur + Sigma 组合?",
+      "答:**典型组合**: ① 主光阴影 → NRD Sigma (专用更快) ② RT 反射 / GI / AO → NRD Reblur (更多通道) ③ 离线电影 → OIDN (CPU 50ms+, 视觉最好) ④ 移动端 / AMD / Mac → SVGF (无 AI fallback)。**RTX 桌面 60fps 必选 Reblur + Sigma**。",
+    ],
+  },
+
+  {
+    type: "DRAG",
+    id: 9,
+    question: "RT 采样率 vs 视觉 vs 性能:① 1 spp = {0} 噪点 + 0.5 ms ② 16 spp = 轻微噪点 + {1} ms ③ 64 spp = 几乎无噪 + 32 ms ④ 1024 spp = 收敛 + {2} ms ⑤ 1 spp + NRD = 64+ spp 视觉 + {3} ms。",
+    blanks: [
+      { idx: 0, expected: "严重" },
+      { idx: 1, expected: "8" },
+      { idx: 2, expected: "500" },
+      { idx: 3, expected: "0.8" },
+    ],
+    pool: ["严重", "8", "500", "0.8", "32", "16", "1"],
+    src: "RT-Denoiser-4阶段-神经blend开销.md §效果对比 + §方案 A",
+    explanation: "正确填空:{0}=严重 (1 spp 不可用)→{1}=8 ms (16 spp 勉强可接受)→{2}=500 ms (1024 spp 离线电影)→{3}=0.8 ms (1 spp + NRD 0.3ms 降噪 = 64+ spp 视觉)。**16 spp 8ms 60fps 跑不动 → NRD 1 spp + 0.3ms 降噪 = 0.8ms, 60fps 可行**。",
+    followup: [
+      "追问:NRD 0.3ms 降噪具体在哪?",
+      "答:**Stage 1 Pre-pass** (切线空间 + visibility) ≈ 0.05ms + **Stage 2 Spatial Filter** (5×5 双边) ≈ 0.10ms + **Stage 3 Temporal Blend** (reproject + clamp) ≈ 0.10ms + **Stage 4 Neural Refinement** (1×1 Conv) ≈ 0.05ms = **总 0.3ms**。4 阶段 4 次 dispatch, vendor 闭源。",
+    ],
+  },
+
+  {
+    type: "SC",
+    id: 10,
+    question: "NRD 修复高光 firefly 关键创新?",
+    options: [
+      "A. luminance clamp 启发式",
+      "B. 多通道联合 (depth/normal 辅助) + 1×1 Conv 学 firefly 检测",
+      "C. Temporal 8 帧累加",
+      "D. SVGF variance 引导",
+    ],
+    answer: 1,
+    src: "RT-Denoiser-4阶段-神经blend开销.md §根因 3 + C08 §关键创新",
+    explanation: "B 正确。**NRD 修复 firefly 关键创新**: ① **多通道联合** (color+depth+normal+motion) ② **1×1 Conv 学 firefly 检测** (depth/normal 不连续 = firefly)。**传统 TAA luminance clamp 启发式失败** (luminance 阈值难定)。**SVGF variance 引导** 也只能修复普通噪点, 不能修 firefly。",
+    followup: [
+      "追问:为什么 depth/normal 辅助能修 firefly?",
+      "答:**高光 firefly 特征**: ① 颜色剧烈 (单帧) ② depth 不连续 (反射 vs 直射) ③ normal 突变 (镜面反射方向) ④ 跨帧不一致。**多通道联合** 让网络看到这些特征, 显式检测 firefly。**单 color 通道启发式失败**: 看不到 depth/normal 异常。",
+    ],
+  },
+
+  {
+    type: "TF",
+    id: 11,
+    question: "NRD 跟 DLSS 都是 NVIDIA 闭源 + Tensor Core 加速, Mac 上都跑不动, 必须 fallback FSR3 (超分) + SVGF (降噪)。",
+    answer: true,
+    src: "RT-Denoiser-4阶段-神经blend开销.md §Mac Game Harness 验证清单 + 知识参考 §五.5",
+    explanation: "正确。**NRD + DLSS 闭源 NVIDIA 加速** → **Mac 跑不动**。**Mac fallback**: ① 超分 → FSR3 (AMD 全平台, 纯算法, 视觉 95%) ② 降噪 → SVGF (开源, 无 AI, 视觉 95%)。**Mac 选 FSR3 + SVGF 叠加**: 视觉 90% (无 AI 退化), 节省 90% GPU 跟 RTX 平台相近。",
+    followup: [
+      "追问:Mac FSR3 + SVGF 视觉跟 RTX DLSS + NRD 视觉差?",
+      "答:**差 5-10% 视觉**: ① FSR3 95% (无 AI 纯算法) vs DLSS 99% (Tensor Core 加速) ② SVGF 95% (无 AI variance 引导) vs NRD 99% (多通道神经权重)。**Mac 选 FSR3 + SVGF 是唯一选项**, 视觉 90% 4K 60fps 可接受。",
+    ],
+  },
+
+  {
+    type: "MC",
+    id: 12,
+    question: "NRD Mac Game Harness 验证清单哪些正确?(多选)",
+    options: [
+      "A. UE 5.4+ 编译通过 (Mac Metal RHI)",
+      "B. NRD 在 Mac 上不可用 (NVIDIA 闭源)",
+      "C. SVGF 在 Mac 上跑通 (全平台 fallback, 必选)",
+      "D. RT 反射 1 spp 跑通",
+    ],
+    answer: [0, 1, 2, 3],
+    src: "RT-Denoiser-4阶段-神经blend开销.md §Mac Game Harness 验证清单",
+    explanation: "A、B、C、D 全部正确 — NRD Mac 4 项验证清单。**A UE 5.4+ Mac 编译** + **B NRD 不可用** (NVIDIA 闭源) + **C SVGF 跑通** (Mac fallback 必选) + **D RT 反射 1 spp 跑通**。**Mac 选 SVGF 替代 NRD, 视觉 95% vs NRD 99%**。",
+    followup: [
+      "追问:Mac 上 SVGF 视觉 95% 跟 NRD 99% 视觉差?",
+      "答:**5% 视觉差**: ① 高光 firefly SVGF 修复失败 (无 AI) ② 时域权重 SVGF variance 引导 (无神经权重) ③ 反射区噪点 SVGF 5×5 邻域 (无 1×1 Conv 残差修复)。**Mac 用户接受 5% 视觉差换平台兼容**, 4K 60fps RT 反射仍可玩。",
+    ],
+  },
+];
+];
+
+/* ====== 状态 ====== */
+let current = 0;
+let answers = new Array(quizData.length).fill(null);
+let pendingAnswers = new Array(quizData.length).fill(null);
+let dragState = new Array(quizData.length).fill(null);
+let score = 0;
+let currentFilter = 'all';
+
+/* ====== 渲染 ====== */
+function renderQuestion(idx) {
+  const q = quizData[idx];
+  const container = document.getElementById('quizContainer');
+  const answered = answers[idx] !== null;
+  let html = `<div class="question-card ${answered ? 'answered' : ''}">`;
+  html += `<div class="q-number">题目 ${idx + 1} / ${quizData.length} <span class="q-type-badge">${TYPE_LABEL[q.type]}</span></div>`;
+  html += `<div class="q-text">${q.question}</div>`;
+
+  if (q.type === 'TF') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="tf-buttons">`;
+    html += `<button class="tf-btn ${selected === true ? 'selected' : ''} ${tfClass(idx, true)}" onclick="selectTF(true)" ${answered?'disabled':''}>✅ True</button>`;
+    html += `<button class="tf-btn ${selected === false ? 'selected' : ''} ${tfClass(idx, false)}" onclick="selectTF(false)" ${answered?'disabled':''}>❌ False</button>`;
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitTF()">确认答案</button>`;
+    }
+  } else if (q.type === 'SC') {
+    const selected = pendingAnswers[idx] !== null ? pendingAnswers[idx] : answers[idx];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const cls = answered ? scClass(idx, i) : (selected === i ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="selectSC(${i})">`;
+      html += `<span class="option-key">${String.fromCharCode(65 + i)}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `</div>`;
+    if (!answered && selected !== null) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitSC()">确认答案</button>`;
+    }
+  } else if (q.type === 'MC') {
+    const currentAns = answers[idx] || pendingAnswers[idx] || [];
+    html += `<div class="options">`;
+    q.options.forEach((opt, i) => {
+      const sel = currentAns.includes(i);
+      const cls = answered ? mcClass(idx, i) : (sel ? 'selected' : '');
+      html += `<div class="option ${cls}" onclick="toggleMC(${i})">`;
+      html += `<span class="option-key">${sel ? '☑' : '☐'}</span><span>${opt.replace(/^[A-Z]\.\s*/, '')}</span></div>`;
+    });
+    html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitMC()" ${answered?'disabled':''}>确认答案</button>`;
+    html += `</div>`;
+  } else if (q.type === 'DRAG') {
+    const currentDrag = dragState[idx] || new Array(q.blanks.length).fill(null);
+    html += `<div class="drag-zone" id="dragZone">`;
+    q.blanks.forEach((b, i) => {
+      const filled = currentDrag[i];
+      const slotCls = answered ? dragSlotClass(idx, i) : (filled ? 'filled' : '');
+      html += `<div class="drag-slot ${slotCls}" data-slot="${i}" onclick="${answered ? '' : `clearSlot(${i})`}">${filled || '（拖入）'}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="drag-pool" id="dragPool">`;
+    q.pool.forEach((term, i) => {
+      const used = currentDrag.includes(term);
+      const chipCls = used ? 'used' : '';
+      html += `<div class="drag-chip ${chipCls}" draggable="${!used && !answered}" ondragstart="dragStart(event, ${i})" onclick="${answered ? '' : `fillSlot(${i})`}">${term}</div>`;
+    });
+    html += `</div>`;
+    if (!answered) {
+      html += `<button class="btn btn-primary" style="margin-top:12px" onclick="submitDRAG()">提交</button>`;
+    }
+  }
+
+  html += `<div class="explanation ${exClass(idx)} ${answered?'show':''}">`;
+  html += `<strong>${isCorrect(idx) ? '✅ 正确!' : '❌ 错误'}</strong><br>${q.explanation}`;
+  if (q.followup && q.followup.length) {
+    html += `<div class="followup"><h4>面试官可能的追问：</h4><ol>`;
+    q.followup.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ol></div>`;
+  }
+  html += `<div class="src">来源：${q.src}</div>`;
+  html += `</div></div>`;
+  container.innerHTML = html;
+
+  if (q.type === 'DRAG' && !answered) {
+    const slots = container.querySelectorAll('.drag-slot');
+    slots.forEach(s => {
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('drag-over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('drag-over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('drag-over');
+        const termIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        dropOnSlot(termIdx, parseInt(s.dataset.slot));
+      });
+    });
+  }
+
+  updateNav();
+  updateProgress();
+}
+
+function tfClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function scClass(idx, val) {
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer === val;
+  const chosen = (answers[idx] !== null ? answers[idx] : pendingAnswers[idx]) === val;
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function mcClass(idx, val) {
+  const ans = answers[idx] || pendingAnswers[idx] || [];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return '';
+  const correct = quizData[idx].answer.includes(val);
+  const chosen = ans.includes(val);
+  if (correct) return 'correct';
+  if (chosen) return 'wrong';
+  return '';
+}
+function dragSlotClass(idx, slot) {
+  if (answers[idx] === null) return '';
+  const expected = quizData[idx].blanks[slot].expected;
+  const actual = (dragState[idx] || [])[slot];
+  return actual === expected ? 'correct' : 'wrong';
+}
+function exClass(idx) {
+  if (answers[idx] === null) return '';
+  return isCorrect(idx) ? 'correct-ex' : 'wrong-ex';
+}
+function isCorrect(idx) {
+  const q = quizData[idx];
+  if (answers[idx] === null && pendingAnswers[idx] === null) return false;
+  const ans = answers[idx] !== null ? answers[idx] : pendingAnswers[idx];
+  if (q.type === 'TF') return ans === q.answer;
+  if (q.type === 'SC') return ans === q.answer;
+  if (q.type === 'MC') {
+    const a = [...ans].sort().join(',');
+    const c = [...q.answer].sort().join(',');
+    return a === c;
+  }
+  if (q.type === 'DRAG') {
+    const ds = dragState[idx] || [];
+    return q.blanks.every((b, i) => ds[i] === b.expected);
+  }
+  return false;
+}
+
+function selectTF(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitTF() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function selectSC(val) {
+  if (answers[current] !== null) return;
+  pendingAnswers[current] = val;
+  renderQuestion(current);
+}
+function submitSC() {
+  if (answers[current] !== null) return;
+  if (pendingAnswers[current] === null) return;
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function toggleMC(val) {
+  if (answers[current] !== null) return;
+  let a = pendingAnswers[current] || [];
+  if (a.includes(val)) a = a.filter(x => x !== val);
+  else a = [...a, val];
+  pendingAnswers[current] = a;
+  renderQuestion(current);
+}
+function submitMC() {
+  if (answers[current] !== null) return;
+  if ((pendingAnswers[current] || []).length === 0) {
+    alert('请至少选择一个选项');
+    return;
+  }
+  answers[current] = pendingAnswers[current];
+  pendingAnswers[current] = null;
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+function dragStart(e, termIdx) {
+  e.dataTransfer.setData('text/plain', termIdx);
+}
+function fillSlot(termIdx) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  for (let i = 0; i < ds.length; i++) {
+    if (ds[i] === null) { ds[i] = term; break; }
+  }
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function clearSlot(slot) {
+  const ds = dragState[current] || [];
+  ds[slot] = null;
+  dragState[current] = ds.filter(x => x !== null);
+  while (dragState[current].length < quizData[current].blanks.length) dragState[current].push(null);
+  renderQuestion(current);
+}
+function dropOnSlot(termIdx, slot) {
+  const q = quizData[current];
+  const term = q.pool[termIdx];
+  const ds = dragState[current] || new Array(q.blanks.length).fill(null);
+  if (ds.includes(term)) return;
+  ds[slot] = term;
+  dragState[current] = ds;
+  renderQuestion(current);
+}
+function submitDRAG() {
+  if (answers[current] !== null) return;
+  const ds = dragState[current] || [];
+  if (ds.filter(x => x !== null).length < quizData[current].blanks.length) {
+    alert('请填满所有空位');
+    return;
+  }
+  answers[current] = ds.slice();
+  if (isCorrect(current)) score += 10;
+  renderQuestion(current);
+  updateOverview();
+}
+
+function goPrev() { if (current > 0) { current--; renderQuestion(current); } }
+function goNext() { if (current < quizData.length - 1) { current++; renderQuestion(current); } }
+function finishQuiz() { showResults(); }
+function updateNav() {
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').style.display = current === quizData.length - 1 ? 'none' : '';
+  document.getElementById('finishBtn').style.display = current === quizData.length - 1 ? '' : 'none';
+  document.getElementById('progressText').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('scoreText').textContent = score;
+}
+function updateProgress() {
+  const pct = ((current + 1) / quizData.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function toggleOverview() {
+  const p = document.getElementById('overviewPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) updateOverview();
+}
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  updateOverview();
+}
+function updateOverview() {
+  const grid = document.getElementById('overviewGrid');
+  let html = '';
+  quizData.forEach((q, i) => {
+    const ans = answers[i];
+    let cls = '';
+    if (ans !== null) {
+      cls = isCorrect(i) ? 'correct' : 'wrong';
+    }
+    if (currentFilter === 'unanswered' && ans !== null) return;
+    if (currentFilter === 'correct' && (ans === null || !isCorrect(i))) return;
+    if (currentFilter === 'wrong' && (ans === null || isCorrect(i))) return;
+    html += `<div class="overview-tile ${cls}" onclick="jumpTo(${i})">`;
+    html += `<div class="tile-num">${i + 1}</div>`;
+    html += `<div class="tile-type">${TYPE_LABEL[q.type]}</div>`;
+    html += `</div>`;
+  });
+  grid.innerHTML = html;
+}
+function jumpTo(i) {
+  current = i;
+  document.getElementById('overviewPanel').classList.remove('show');
+  renderQuestion(current);
+}
+
+function resetAll() {
+  if (!confirm('确定要清空所有答题记录并重置分数？')) return;
+  answers = new Array(quizData.length).fill(null);
+  pendingAnswers = new Array(quizData.length).fill(null);
+  dragState = new Array(quizData.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+function showResults() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('navBar').style.display = 'none';
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = score;
+  const pct = score / (quizData.length * 10) * 100;
+  const msg = pct >= 90 ? 'VSM 大师！阴影细节讲得明明白白 🎉' :
+              pct >= 70 ? '基础扎实，Page Table / Clipmap / Contact Shadow 都能讲 💪' :
+              pct >= 50 ? '概念地图建立中，建议先看一遍 [[Karis-2020-Virtual-Shadow-Maps]] 笔记 📖' :
+                          '回到 [[Karis-2020-Virtual-Shadow-Maps]] 重新读一遍，再来！🔁';
+  document.getElementById('resultsMsg').textContent = msg;
+  let review = '';
+  quizData.forEach((q, i) => {
+    if (answers[i] !== null && !isCorrect(i)) {
+      const ansStr = formatAnswer(q, answers[i]);
+      const corrStr = formatAnswer(q, q.answer);
+      review += `<div class="review-item"><h4>第 ${i + 1} 题 · ${TYPE_LABEL[q.type]}：${q.question}</h4>`;
+      review += `<p>你的答案：<span class="your-ans">${ansStr}</span></p>`;
+      review += `<p>正确答案：<span class="correct-ans">${corrStr}</span></p></div>`;
+    }
+  });
+  document.getElementById('reviewSection').innerHTML = review || '<p style="color:var(--muted);text-align:center">全部正确，零错题 🎯</p>';
+}
+function formatAnswer(q, ans) {
+  if (q.type === 'TF') return ans ? 'True' : 'False';
+  if (q.type === 'SC') return String.fromCharCode(65 + ans);
+  if (q.type === 'MC') return ans.map(i => String.fromCharCode(65 + i)).join(', ');
+  if (q.type === 'DRAG') return (ans || []).join(' / ');
+  return String(ans);
+}
+function restartQuiz() { resetAll(); }
+function retryWrong() {
+  const wrongIdx = quizData.map((q, i) => (!isCorrect(i) && answers[i] !== null) ? i : -1).filter(i => i >= 0);
+  if (wrongIdx.length === 0) { alert('没有错题可以重做！'); return; }
+  wrongIdx.forEach(i => { answers[i] = null; pendingAnswers[i] = null; dragState[i] = null; });
+  score = 0;
+  current = wrongIdx[0];
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('quizContainer').style.display = '';
+  document.getElementById('navBar').style.display = '';
+  renderQuestion(current);
+  updateOverview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+});
+renderQuestion(0);
+updateOverview();
+</script>
+</body>
+</html>

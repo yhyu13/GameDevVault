@@ -41,10 +41,15 @@
 | VSM 阴影棋盘瑕疵 | `r.Shadow.Virtual.ShowStats` | [[知识参考/VSM 性能调优]] (W29 新增) + [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] |
 | Nanite 破面 / 闪烁 | `NaniteStats` | [[知识参考/Nanite 性能调优]] + [[瓶颈案例/Nanite-WPO禁用距离-破面修复]] |
 | Nanite BasePass 5ms+ (5.0/5.1 材质管线) | `ProfileGPU` + 升级 5.4 | [[瓶颈案例/Nanite-5.4-材质管线-空调度削减]] (W29 新增) + [[知识参考/Nanite 性能调优]] |
-| Nanite 5.4 Bin 合并 80% 削减 (源码级) | `NaniteShading.cpp:2711` `AllocateFixedFunctionBins` | [[瓶颈案例/Nanite-5.4-材质Bin合并-80percent削减]] (W30 新增) + [[../02-引擎源码分析库/Unreal-Engine/W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析\|W30 Nanite CullRaster 源码]] |
+| Nanite 5.4 Bin 合并 80% 削减 (源码级) | `NaniteShading.cpp:2711` `AllocateFixedFunctionBins` | [[瓶颈案例/Nanite-5.4-材质Bin合并-80percent削减]] (W30 新增) + [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析\|W30 Nanite CullRaster 源码]] |
 | Lumen Surface Cache 大世界显存 (4 层 Atlas) | `r.Lumen.Visualize.CardPlacement` | [[瓶颈案例/Lumen-SurfaceCache-显存与带宽-大世界场景]] (W29 新增) + [[知识参考/Lumen 性能调优]] |
-| VSM Page Allocation 30+ CVar 调优 | `r.Shadow.Virtual.ShowStats` + `ShowClipmapStats` | [[瓶颈案例/VSM-Page-Allocation-BuildPageAllocations调优]] (W30 新增) + [[../02-引擎源码分析库/Unreal-Engine/W30/UE5-VSM-Page-Table-源码分析\|W30 VSM Page Table 源码]] + [[知识参考/VSM 性能调优]] (W29) |
-| MCP Trust 4 件套 / harness 启动慢 | day-job Harness 智能 Trust Cache | [[瓶颈案例/MCP-Trust-4件套-性能开销-harness瓶颈]] (W30 新增) + [[../02-引擎源码分析库/Unreal-Engine/W30/UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析\|W30 MCP Trust 源码]] |
+| VSM Page Allocation 30+ CVar 调优 | `r.Shadow.Virtual.ShowStats` + `ShowClipmapStats` | [[瓶颈案例/VSM-Page-Allocation-BuildPageAllocations调优]] (W30 新增) + [[UE5-VSM-Page-Table-源码分析\|W30 VSM Page Table 源码]] + [[知识参考/VSM 性能调优]] (W29) |
+| MCP Trust 4 件套 / harness 启动慢 | day-job Harness 智能 Trust Cache | [[瓶颈案例/MCP-Trust-4件套-性能开销-harness瓶颈]] (W30 新增) + [[UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析\|W30 MCP Trust 源码]] |
+| NeuralPBR 实时推理 3-8ms/材质 × 100 = 帧爆炸 | `profilegpu` + 离线烘焙范式 | [[知识参考/神经渲染性能调优总览]] (W31 新增) + [[瓶颈案例/NeuralPBR-AI材质推理-性能瓶颈]] |
+| NeuralGGX 推理 0.3ms/pixel (6x 慢于传统 GGX) | FP16 + 预训练黑盒 + 5-10 层 MLP | [[知识参考/神经渲染性能调优总览]] + [[瓶颈案例/NeuralGGX-BRDF推理-推理延迟]] |
+| DLSS 0.5ms vs TAA 1.5ms / 4K 输出 67% 节省 | `r.NGX.DLSS.Enable` + Quality 模式 | [[知识参考/神经渲染性能调优总览]] + [[瓶颈案例/DLSS-神经超分-时域重建-显存带宽]] |
+| NRD 1 spp + 降噪 = 16x 节省 / 4 阶段神经 blend | `r.NGX.DLSS.Enable` + NRD Reblur | [[知识参考/神经渲染性能调优总览]] + [[瓶颈案例/RT-Denoiser-4阶段-神经blend开销]] |
+| NRC 150KB MLP 替 50MB voxel / 大世界 GI 1/333 节省 | UE 5.4+ Lumen + NRC 实验分支 | [[知识参考/神经渲染性能调优总览]] + [[瓶颈案例/NRC-8层MLP-频率编码-显存与延迟]] |
 | 跨系统调参 (Nanite + Lumen + VSM 同源) | ShowStats + 翻倍预算 + 缩范围 + 加快 evict | [[知识参考/虚拟页表范式-VSM-Nanite-Lumen-同源]] (W30 新增, 跨系统整合层) |
 | GT/RT/RHI 同步 | Insights Timing | [[知识参考/渲染线程瓶颈诊断]] |
 | 大纹理上传卡顿 | Insights RenderThread | [[知识参考/渲染线程瓶颈诊断]] + [[瓶颈案例/大纹理RT申请-Render线程卡顿]] |
@@ -98,6 +103,7 @@
 | [[知识参考/Nanite 性能调优]] | GDC 2024 Wihlidal + SIGGRAPH 2021 | 三版本时间线 + 真实测量数据 |
 | [[知识参考/VSM 性能调优]] (W29 新增) | UE 官方 VSM 文档 + SIGGRAPH 2020 Karis + UE 5.8 源码 | Page 预算 / Clipmap / MegaLights 5.4+ 集成 / 与 Lumen/Nanite 同源 |
 | [[知识参考/虚拟页表范式-VSM-Nanite-Lumen-同源]] (W30 新增) | W29/W30 源码分析 (Lumen + VSM + Nanite + MCP) | 128×128 page + 5 阶段状态机 + 跨系统 CVar 映射 + 跨系统调参策略 |
+| [[知识参考/神经渲染性能调优总览]] (W31 新增) | C01-C19 跨案例整合 / 5 大范式 + 4 维度对比 | 离线烘焙 / 实时推理 / 神经超分 / Monte Carlo 降噪 / 神经缓存 + Mac/RTX/PS5 平台矩阵 |
 | [[知识参考/Lyra 性能架构]] | Lyra 公开源码（GitHub） | 类名 / 状态机 / 函数签名 / API |
 | [[知识参考/渲染线程瓶颈诊断]] | UE 官方文档 + UE 源码 | 三线程模型 + stat 命令 + CVar |
 
@@ -113,6 +119,11 @@
 | [[瓶颈案例/Nanite-5.4-材质Bin合并-80percent削减]] (W30 新增) | 4015→340 Bin 合并 80% (W30 源码 `AllocateFixedFunctionBins`) | W30 Nanite CullRaster 源码 + GDC 2024 + UE 5.8 源码 | `perf/待验证` |
 | [[瓶颈案例/VSM-Page-Allocation-BuildPageAllocations调优]] (W30 新增) | `BuildPageAllocations:3227` 性能瓶颈 + 30+ CVar 全表 | W30 VSM Page Table 源码 + UE 5.8 源码 | `perf/待验证` |
 | [[瓶颈案例/MCP-Trust-4件套-性能开销-harness瓶颈]] (W30 新增) | Trust 4 件套性能开销 + 5 套 day-job Harness 优化 | W30 MCP 源码 + VS 2026 文档 + Anthropic MCP 1.1 spec | `perf/待验证` |
+| [[瓶颈案例/NeuralPBR-AI材质推理-性能瓶颈]] (W31 新增) | 实时推理 3-8ms/材质 × 100 = 帧爆炸 / 必须走离线烘焙范式 | C01 神经材质 + UE5 sample .dds 烘焙流程 | `perf/待验证` |
+| [[瓶颈案例/NeuralGGX-BRDF推理-推理延迟]] (W31 新增) | FP32 0.3ms/pixel → FP16 0.15ms / 仍 3x 慢于传统 GGX 0.05ms | C02 神经 BRDF + FP16/Tensor Core 加速路径 | `perf/待验证` |
+| [[瓶颈案例/DLSS-神经超分-时域重建-显存带宽]] (W31 新增) | 1×1 Conv < 1MB / 4× 像素开销 / 1 帧延迟 vs TAA 8 帧 | C07 DLSS + 4 模式 (Quality/Balanced/Performance/Ultra-Perf) | `perf/待验证` |
+| [[瓶颈案例/RT-Denoiser-4阶段-神经blend开销]] (W31 新增) | 4 阶段 Pre-pass + Spatial + Temporal + Neural Refinement / 16x RT 节省 | C08 NRD Reblur + 多通道 color+depth+normal+motion 联合 | `perf/待验证` |
+| [[瓶颈案例/NRC-8层MLP-频率编码-显存与延迟]] (W31 新增) | 8 layer × 64 dim MLP 132KB / 16 频率编码 / 1/333 显存 vs Lumen | C09 NRC + UE 5.4+ 实验分支 + 每帧 0.5ms fine-tune | `perf/待验证` |
 | [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] | 阴影棋盘格 / 缓存污染 | UE VSM 官方文档 + GDC 2024 + 知乎 | `perf/待验证` |
 | [[瓶颈案例/植被-过度绘制-Cluster-Tree粒度问题]] | 植被密集 basepass VS 高 / RT occlusion spike | 知乎《UE5性能优化-GPU》 | `perf/待验证` |
 | [[瓶颈案例/Nanite-WPO禁用距离-破面修复]] | Nanite 随机破面 / 画面闪烁 / 阴影错乱 | GDC 2024 Wihlidal + 知乎 + UE 官方 | `perf/待验证` |
@@ -139,6 +150,7 @@
 - [ ] **新增（2026-07）**：从 5 篇新案例中挑 1–2 篇（推荐 [[瓶颈案例/Lumen-反射开销过高-平滑材质场景]] 或 [[瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]]）做 Profile 验证，把 tag 升级到 `perf/已验证`
 - [x] **W29 进度（2026-07-17）**：补齐 1 篇知识参考 ([[VSM 性能调优]]) + 2 篇瓶颈案例 ([[Nanite-5.4-材质管线-空调度削减]] + [[Lumen-SurfaceCache-显存与带宽-大世界场景]]) = 04-性能优化备忘录/ 7月 KPI 从 0% 跳到 **~50%** (3/6)
 - [x] **W30 进度（2026-07-23）**：补齐 1 篇跨系统知识参考 ([[虚拟页表范式-VSM-Nanite-Lumen-同源]]) + 3 篇瓶颈案例 ([[Nanite-5.4-材质Bin合并-80percent削减]] + [[VSM-Page-Allocation-BuildPageAllocations调优]] + [[MCP-Trust-4件套-性能开销-harness瓶颈]]) = 04-性能优化备忘录/ 7月 KPI 从 50% 跳到 **~117%** (7/6, W29 复盘承诺 7月 +3 条超额 100%)
+- [x] **W31 进度（2026-07-30）**：补齐 1 篇神经渲染知识参考 ([[神经渲染性能调优总览]]) + 5 篇瓶颈案例 (NeuralPBR/NeuralGGX/DLSS/RT-Denoiser/NRC 五大 C 编号) = 04-性能优化备忘录/ 7月 KPI 从 117% 跳到 **~150%** (12/6, W31 神经渲染主题专攻 +5 条超越 7月目标 2x)
 
 ---
 
