@@ -1,0 +1,372 @@
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
+index 111111111..222222222 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolEditor.cpp
+@@ -22,4 +22,5 @@
+ #include "ModelContextProtocolListBlueprintsTool.h"
+ #include "ModelContextProtocolSetActorStateTools.h"
++#include "ModelContextProtocolSetPropertyTool.h"
+ 
+ #include "Editor.h"
+@@ -220,4 +221,10 @@
+ 		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: set_collision");
+ 	}
++
++	SetPropertyTool = MakeShared<FModelContextProtocolSetPropertyTool>();
++	if (Module->AddTool(SetPropertyTool.ToSharedRef()))
++	{
++		UE_LOGF(LogModelContextProtocol, Log, "Registered built-in editor tool: set_property");
++	}
+ }
+ 
+@@ -243,4 +250,5 @@
+ 		if (SetMobilityTool.IsValid()) { Module->RemoveTool(SetMobilityTool.ToSharedRef()); SetMobilityTool.Reset(); }
+ 		if (SetCollisionTool.IsValid()) { Module->RemoveTool(SetCollisionTool.ToSharedRef()); SetCollisionTool.Reset(); }
++		if (SetPropertyTool.IsValid()) { Module->RemoveTool(SetPropertyTool.ToSharedRef()); SetPropertyTool.Reset(); }
+ 	}
+ }
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
+index 111111111..222222222 100644
+--- a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolEditor.h
+@@ -25,4 +25,5 @@
+ struct FModelContextProtocolSetMobilityTool;
+ struct FModelContextProtocolSetCollisionTool;
++struct FModelContextProtocolSetPropertyTool;
+ 
+ class FModelContextProtocolEditorModule : public IModuleInterface
+@@ -60,3 +61,4 @@
+ 	TSharedPtr<FModelContextProtocolSetMobilityTool> SetMobilityTool;
+ 	TSharedPtr<FModelContextProtocolSetCollisionTool> SetCollisionTool;
++	TSharedPtr<FModelContextProtocolSetPropertyTool> SetPropertyTool;
+ };
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolSetPropertyTool.h b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolSetPropertyTool.h
+new file mode 100644
+index 000000000..000000001
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Public/ModelContextProtocolSetPropertyTool.h
+@@ -0,0 +1,27 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#pragma once
++
++#include "IModelContextProtocolTool.h"
++
++struct FModelContextProtocolSetPropertyTool : public IModelContextProtocolTool
++{
++	virtual FString GetName() const override;
++	virtual FString GetDescription() const override;
++	virtual TSharedPtr<FJsonObject> GetInputJsonSchema() const override;
++	virtual TSharedPtr<FJsonObject> GetOutputJsonSchema() const override;
++	virtual FModelContextProtocolToolResult Run(const TSharedPtr<FJsonObject>& Params) override;
++
++private:
++	/** Property paths that are explicitly forbidden (security). */
++	bool IsPropertyPathAllowed(const FString& InPath) const;
++
++	/** Parse a dot-separated property path into target object and final property. */
++	FProperty* ResolvePropertyPath(UObject* RootObject, const FString& InPath, void*& OutContainer) const;
++
++	/** Convert JSON value to FProperty-compatible string and set it. */
++	bool SetPropertyFromJsonValue(FProperty* Property, void* Container, const TSharedPtr<FJsonValue>& Value, FString& OutError) const;
++
++	/** Convert FProperty value to JSON value. */
++	TSharedPtr<FJsonValue> PropertyToJsonValue(FProperty* Property, void* Container) const;
++};
+diff --git a/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolSetPropertyTool.cpp b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolSetPropertyTool.cpp
+new file mode 100644
+index 000000000..000000001
+--- /dev/null
++++ b/Engine/Plugins/Experimental/ModelContextProtocol/Source/ModelContextProtocolEditor/Private/ModelContextProtocolSetPropertyTool.cpp
+@@ -0,0 +1,291 @@
++// Copyright Epic Games, Inc. All Rights Reserved.
++
++#include "ModelContextProtocolSetPropertyTool.h"
++#include "ModelContextProtocolMutationGate.h"
++
++#include "Editor.h"
++#include "Engine/World.h"
++#include "EngineUtils.h"
++#include "UObject/UnrealType.h"
++
++FString FModelContextProtocolSetPropertyTool::GetName() const
++{
++	return TEXT("set_property");
++}
++
++FString FModelContextProtocolSetPropertyTool::GetDescription() const
++{
++	return TEXT("Set an arbitrary property on an actor by name (via FProperty reflection). Requires ENABLE_MCP_MUTATIONS=1.");
++}
++
++TSharedPtr<FJsonObject> FModelContextProtocolSetPropertyTool::GetInputJsonSchema() const
++{
++	TSharedPtr<FJsonObject> Schema = MakeShared<FJsonObject>();
++	Schema->SetStringField(TEXT("type"), TEXT("object"));
++	TSharedPtr<FJsonObject> Props = MakeShared<FJsonObject>();
++	Props->SetObjectField(TEXT("actor_name"), MakeShared<FJsonObject>()); Props->GetObjectField(TEXT("actor_name"))->SetStringField(TEXT("type"), TEXT("string"));
++	Props->SetObjectField(TEXT("property_path"), MakeShared<FJsonObject>()); Props->GetObjectField(TEXT("property_path"))->SetStringField(TEXT("type"), TEXT("string"));
++	Props->SetObjectField(TEXT("value"), MakeShared<FJsonObject>()); Props->GetObjectField(TEXT("value"))->SetStringField(TEXT("type"), TEXT("any"));
++	Schema->SetObjectField(TEXT("properties"), Props);
++	Schema->SetArrayField(TEXT("required"), TArray<TSharedPtr<FJsonValue>>{
++		MakeShared<FJsonValueString>(TEXT("actor_name")),
++		MakeShared<FJsonValueString>(TEXT("property_path")),
++		MakeShared<FJsonValueString>(TEXT("value"))
++	});
++	return Schema;
++}
++
++TSharedPtr<FJsonObject> FModelContextProtocolSetPropertyTool::GetOutputJsonSchema() const
++{
++	TSharedPtr<FJsonObject> Schema = MakeShared<FJsonObject>();
++	Schema->SetStringField(TEXT("type"), TEXT("object"));
++	TSharedPtr<FJsonObject> Props = MakeShared<FJsonObject>();
++	Props->SetObjectField(TEXT("ok"), MakeShared<FJsonObject>()); Props->GetObjectField(TEXT("ok"))->SetStringField(TEXT("type"), TEXT("boolean"));
++	Props->SetObjectField(TEXT("property"), MakeShared<FJsonObject>()); Props->GetObjectField(TEXT("property"))->SetStringField(TEXT("type"), TEXT("string"));
++	Props->SetObjectField(TEXT("old_value"), MakeShared<FJsonObject>()); Props->GetObjectField(TEXT("old_value"))->SetStringField(TEXT("type"), TEXT("any"));
++	Props->SetObjectField(TEXT("new_value"), MakeShared<FJsonObject>()); Props->GetObjectField(TEXT("new_value"))->SetStringField(TEXT("type"), TEXT("any"));
++	Schema->SetObjectField(TEXT("properties"), Props);
++	return Schema;
++}
++
++bool FModelContextProtocolSetPropertyTool::IsPropertyPathAllowed(const FString& InPath) const
++{
++	static const TArray<FString> ForbiddenPrefixes = {
++		TEXT("RootComponent."),
++		TEXT("Tags"),
++		TEXT("FolderPath"),
++	};
++	for (const FString& Prefix : ForbiddenPrefixes)
++	{
++		if (InPath.StartsWith(Prefix))
++		{
++			return false;
++		}
++	}
++	return true;
++}
++
++FProperty* FModelContextProtocolSetPropertyTool::ResolvePropertyPath(UObject* RootObject, const FString& InPath, void*& OutContainer) const
++{
++	if (!RootObject)
++	{
++		return nullptr;
++	}
++
++	TArray<FString> Segments;
++	InPath.ParseIntoArray(Segments, TEXT("."), true);
++	if (Segments.Num() == 0)
++	{
++		return nullptr;
++	}
++
++	UObject* CurrentObject = RootObject;
++	void* CurrentContainer = CurrentObject;
++	UStruct* CurrentStruct = CurrentObject->GetClass();
++
++	for (int32 Idx = 0; Idx < Segments.Num(); ++Idx)
++	{
++		const FString& Segment = Segments[Idx];
++
++		// Walk the class hierarchy to find inherited properties
++		FProperty* Property = nullptr;
++		for (UStruct* Struct = CurrentStruct; Struct != nullptr; Struct = Struct->GetSuperStruct())
++		{
++			Property = FindFProperty<FProperty>(Struct, *Segment);
++			if (Property) break;
++		}
++		if (!Property)
++		{
++			return nullptr;
++		}
++
++		if (Idx == Segments.Num() - 1)
++		{
++			OutContainer = CurrentContainer;
++			return Property;
++		}
++
++		FObjectProperty* ObjProp = CastField<FObjectProperty>(Property);
++		if (ObjProp)
++		{
++			CurrentObject = ObjProp->GetObjectPropertyValue_InContainer(CurrentContainer);
++			if (!CurrentObject)
++			{
++				return nullptr;
++			}
++			CurrentContainer = CurrentObject;
++			CurrentStruct = CurrentObject->GetClass();
++		}
++		else
++		{
++			return nullptr;
++		}
++	}
++
++	return nullptr;
++}
++
++bool FModelContextProtocolSetPropertyTool::SetPropertyFromJsonValue(FProperty* Property, void* Container, const TSharedPtr<FJsonValue>& Value, FString& OutError) const
++{
++	if (!Property || !Container || !Value.IsValid())
++	{
++		OutError = TEXT("Invalid property or container or value");
++		return false;
++	}
++
++	FString ValueStr;
++	if (Value->TryGetString(ValueStr))
++	{
++	}
++	else if (Value->Type == EJson::Number)
++	{
++		double Num;
++		if (Value->TryGetNumber(Num))
++		{
++			ValueStr = FString::Printf(TEXT("%f"), Num);
++		}
++		else
++		{
++			OutError = TEXT("Invalid number value");
++			return false;
++		}
++	}
++	else if (Value->Type == EJson::Boolean)
++	{
++		bool bBool;
++		if (Value->TryGetBool(bBool))
++		{
++			ValueStr = bBool ? TEXT("True") : TEXT("False");
++		}
++		else
++		{
++			OutError = TEXT("Invalid boolean value");
++			return false;
++		}
++	}
++	else if (Value->Type == EJson::Null)
++	{
++		ValueStr = TEXT("None");
++	}
++	else
++	{
++		OutError = FString::Printf(TEXT("Unsupported JSON type for property %s"), *Property->GetName());
++		return false;
++	}
++
++	const TCHAR* Ptr = *ValueStr;
++	Property->ImportText_Direct(Ptr, Container, nullptr, PPF_None);
++	return true;
++}
++
++TSharedPtr<FJsonValue> FModelContextProtocolSetPropertyTool::PropertyToJsonValue(FProperty* Property, void* Container) const
++{
++	if (!Property || !Container)
++	{
++		return nullptr;
++	}
++
++	FString ValueStr;
++	Property->ExportTextItem_Direct(ValueStr, Container, Container, nullptr, PPF_None);
++
++	if (Property->IsA<FFloatProperty>() || Property->IsA<FDoubleProperty>())
++	{
++		return MakeShared<FJsonValueNumber>(FCString::Atod(*ValueStr));
++	}
++	if (Property->IsA<FIntProperty>() || Property->IsA<FInt64Property>() || Property->IsA<FUInt32Property>() || Property->IsA<FUInt64Property>() || Property->IsA<FInt8Property>() || Property->IsA<FInt16Property>() || Property->IsA<FUInt16Property>())
++	{
++		return MakeShared<FJsonValueNumber>(static_cast<double>(FCString::Atoi64(*ValueStr)));
++	}
++	if (Property->IsA<FBoolProperty>())
++	{
++		bool bBool = ValueStr == TEXT("True") || ValueStr == TEXT("true") || ValueStr == TEXT("1");
++		return MakeShared<FJsonValueBoolean>(bBool);
++	}
++	if (Property->IsA<FStrProperty>() || Property->IsA<FNameProperty>() || Property->IsA<FTextProperty>())
++	{
++		return MakeShared<FJsonValueString>(ValueStr);
++	}
++	if (Property->IsA<FEnumProperty>())
++	{
++		return MakeShared<FJsonValueString>(ValueStr);
++	}
++
++	return MakeShared<FJsonValueString>(ValueStr);
++}
++
++FModelContextProtocolToolResult FModelContextProtocolSetPropertyTool::Run(const TSharedPtr<FJsonObject>& Params)
++{
++	if (!UE::ModelContextProtocol::AreMcpMutationsEnabled())
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(TEXT("Mutations are disabled. Set ENABLE_MCP_MUTATIONS=1."));
++	}
++
++	FString ActorName;
++	FString PropertyPath;
++	if (!Params.IsValid() || !Params->TryGetStringField(TEXT("actor_name"), ActorName) || !Params->TryGetStringField(TEXT("property_path"), PropertyPath))
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(TEXT("Missing actor_name or property_path"));
++	}
++
++	if (!IsPropertyPathAllowed(PropertyPath))
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(FString::Printf(TEXT("Property path '%s' is not allowed"), *PropertyPath));
++	}
++
++	UWorld* World = GEditor->GetEditorWorldContext().World();
++	if (!World)
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(TEXT("No editor world"));
++	}
++
++	AActor* TargetActor = nullptr;
++	for (TActorIterator<AActor> It(World); It; ++It)
++	{
++		if (It->GetName() == ActorName)
++		{
++			TargetActor = *It;
++			break;
++		}
++	}
++
++	if (!TargetActor)
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(FString::Printf(TEXT("Actor not found: %s"), *ActorName));
++	}
++
++	void* Container = nullptr;
++	FProperty* Property = ResolvePropertyPath(TargetActor, PropertyPath, Container);
++	if (!Property || !Container)
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(FString::Printf(TEXT("Property not found: %s on %s (or any parent class)"), *PropertyPath, *ActorName));
++	}
++
++	TSharedPtr<FJsonValue> OldValue = PropertyToJsonValue(Property, Container);
++
++	TSharedPtr<FJsonValue> Value = Params->TryGetField(TEXT("value"));
++	if (!Value.IsValid())
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(TEXT("Missing value"));
++	}
++
++	FString ErrorMsg;
++	if (!SetPropertyFromJsonValue(Property, Container, Value, ErrorMsg))
++	{
++		return UE::ModelContextProtocol::MakeErrorResult(FString::Printf(TEXT("Failed to set property: %s"), *ErrorMsg));
++	}
++
++	TargetActor->Modify();
++
++	TSharedPtr<FJsonValue> NewValue = PropertyToJsonValue(Property, Container);
++
++	TSharedPtr<FJsonObject> Result = MakeShared<FJsonObject>();
++	Result->SetBoolField(TEXT("ok"), true);
++	Result->SetStringField(TEXT("property"), Property->GetName());
++	if (OldValue.IsValid()) Result->SetField(TEXT("old_value"), OldValue);
++	if (NewValue.IsValid()) Result->SetField(TEXT("new_value"), NewValue);
++
++	FString ResultStr;
++	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ResultStr);
++	FJsonSerializer::Serialize(Result.ToSharedRef(), Writer);
++	return UE::ModelContextProtocol::MakeTextResult(ResultStr);
++}
