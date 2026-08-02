@@ -12,7 +12,7 @@ aliases: [UE5-Lumen-SurfaceCache-MeshCard-CallChain, UE5-Lumen-SurfaceCache-源�
 | **模块** | 渲染 / 全局光照 / Surface Cache / Mesh Card / Page Table |
 | **分析日期** | 2026-07-15 |
 | **问题定义** | Lumen 的 Surface Cache 怎么从 Mesh 生成 Card、怎么分配 Atlas 页面、什么时候 invalidate、为什么 Lumen Scene 视图会"实时累积"闪烁、`r.LumenScene.SurfaceCache.*` 这一批 cvar 在源码里到底 hook 到哪个函数？ |
-| **基础分析** | [[../W26/UE5-Lumen-源码调用链]] — W26 给的是 4 个 Pass 入口的高层 call chain；本笔记**专门深入 Surface Cache + Mesh Card 子系统** |
+| **基础分析** | [[UE5-Lumen-源码调用链]] — W26 给的是 4 个 Pass 入口的高层 call chain；本笔记**专门深入 Surface Cache + Mesh Card 子系统** |
 | **论文对照** | [[../../../../01-论文笔记库/Lumen/Lumen-HowItActuallyWorks-UE5]] — "Stop Guessing: How Lumen Actually Works in UE5"（2026-06-28 最新 Lumen 论文笔记）|
 | **配套手册** | [[../../../../01-论文笔记库/Lumen/Lumen-实战手册：调试-Profile-定制-跨场景适配指南]] — CVar 行为层；本笔记是**行为→源码函数**的对应层 |
 | **源码版本** | UnrealEngine @ UE 5.8 主线（`Engine/Source/Runtime/Renderer/Private/Lumen/`） |
@@ -757,9 +757,9 @@ C:\Epic\UE_Engine\UE5_8\UnrealEngine\Engine\Shaders\Private\Lumen\
   - **训练数据**：每个 cvar → 源码函数 的映射表,适合做成 JSONL chunked MD 喂 embedding
   - **工具描述**：MCP 工具（如果有 Lumen 调参工具）需要这套 cvar → 副作用知识作为 description
 - **横向关联**：
-  - [[../W26/UE5-Lumen-源码调用链]] — 高层 call chain,本笔记的"父笔记"
+  - [[UE5-Lumen-源码调用链]] — 高层 call chain,本笔记的"父笔记"
   - [[../W26/UE5-Nanite-虚拟几何shader]] — Nanite Page Table 跟 Lumen Page Table 同源(都是"虚拟化+按需分配")
-  - [[../W27/UE5.8-VolumetricCloud-体积云]] — 同样用 RDG + 多 permutation 的设计
+  - [[UE5.8-VolumetricCloud-体积云]] — 同样用 RDG + 多 permutation 的设计
   - [[../../../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]] — 理论层
   - [[../../../../01-论文笔记库/Lumen/Lumen-HowItActuallyWorks-UE5]] — 操作层 (本笔记论文对照源)
   - [[../../../../01-论文笔记库/Lumen/Lumen-实战手册：调试-Profile-定制-跨场景适配指南]] — CVar 行为层 (本笔记 CVar → 函数映射对照源)

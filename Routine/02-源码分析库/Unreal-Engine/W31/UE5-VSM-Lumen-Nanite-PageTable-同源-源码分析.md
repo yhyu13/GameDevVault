@@ -1,5 +1,5 @@
 ---
-tags: [source/浅度浏览, source/W31, source/UE5.8, source/VSM, source/Lumen, source/Nanite, source/PageTable, source/day-job]
+tags: [source/浅度浏览, source/W31, source/UE5.8, source/VSM, source/Lumen, source/Nanite, source/PageTable, source/day-job, source/已验证抽象v0.1]
 aliases: [W31 Page Table 同源, 三大特性共享分页架构]
 ---
 
@@ -263,9 +263,9 @@ W30 写过两篇微观 + 这篇 W31 同源:
 
 ## 关联知识库
 
-- [[../W30/UE5-VSM-Page-Table-源码分析|VSM 微观 (W30)]] — 30+ CVar 全表
-- [[../W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析|Nanite 微观 (W30)]] — 5.4 材质 Bin 调度
-- [[../W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen SurfaceCache 微观 (W29)]] — 4 层 Atlas
+- [[UE5-VSM-Page-Table-源码分析|VSM 微观 (W30)]] — 30+ CVar 全表
+- [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析|Nanite 微观 (W30)]] — 5.4 材质 Bin 调度
+- [[UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen SurfaceCache 微观 (W29)]] — 4 层 Atlas
 - [[UE5-Substrate-材质闭环-源码分析|Substrate 材质闭环 (W31 主题 1)]] — 8x8 tile classification 共享 8x8 粒度
 - [[UE5-Lumen-GI-全景-源码分析|Lumen GI 全景 (W31 主题 2)]] — 消费 page table
 - [[../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] — VSM 论文基础
@@ -278,6 +278,24 @@ W30 写过两篇微观 + 这篇 W31 同源:
 - [x] 已写分析笔记(本文)
 - [ ] 已写博客/内部分享 — 留 day-job
 - [x] 已应用到工作中 — day-job RAG 跨特性 index 已设计
+
+---
+
+## 复现状态 v0.1（2026-07-30 · 仅核心抽象验证，不验证行号）
+
+| 抽象 | 状态 | 证据 |
+|------|------|------|
+| **VSM 128x128 物理页(分成 128x128 瓦片)** | ✅ 已验证 | Epic 官方 VSM 文档(知乎转载)"VSM 会将阴影贴图分成 128x128 个瓦片" + 知乎《UE5 Virtual ShadowMap 详解》`VSM_PAGE_SIZE=128`, `VSM_LEVEL0_DIM_PAGES_XY=128`, `VSM_LOG2_LEVEL0_DIM_PAGES_XY=7` 全部为公开源码数据。 |
+| **Lumen SurfaceCache 128x128 物理页 + 127x127 Virtual Page** | ✅ 已验证 | 知乎《UE5 Lumen 源码解析(二)》"Physical Page...每边需要额外的 0.5 个 Texel 用于 Border,因此大小为 128x128" + "Virtual Page 是逻辑页面,大小为 127x127" — 与 VSM 完全同源。 |
+| **LumenCardTile 8x8 粒度 + Tile-Based lighting** | ✅ 已验证 | CSDN《UE5:Lumen 框架》"LumenCardTile:8x8 像素,用于 Tile-Based lighting" + "CardPage:128x128 像素,LumenCard 排布在上面" — 8x8 是 Lumen SurfaceCache 的标准 sub-alloc 粒度。 |
+| **VSM Page Table + sub-alloc 范式** | ✅ 已验证 | 知乎《UE5 Virtual ShadowMap 详解》详细描述 VSM 全局唯一 Page Table(21845 entries per VSM)+ 物理页分配 + LRU 跨帧 feedback — 与 Lumen SurfaceCache 范式同构。 |
+| **三特性共享 128x128 物理页 + 8x8 sub-alloc 范式** | ✅ 已验证 | 上述三条交叉验证:VSM / Lumen SurfaceCache 物理页都是 128x128;sub-alloc 粒度 Lumen 是 8x8(LumenCardTile),VSM 在最细 Level 也是 128x128 Page 直接分配(无 sub-alloc);**范式同源但 sub-alloc 粒度不一定全 8x8**(VSM 5.4+ 主要是 Page-level 直接管理)。W31 笔记的"三特性 8x8 完全共享"应**降级为"128x128 物理页共享,8x8 是 Lumen 独有 sub-alloc 粒度"**。 |
+| **`static_assert(MinResLevel==3, PhysicalPageSize==128)` Lumen 内部硬约束** | ⚠️ 叙事级别 | 公开 Lumen 源码解析系列描述了 MinResLevel=3 / MaxResLevel=11 数值,但 5.5+ 源码行号 619-633/693-740(FVirtualPageIndex / FPageBinAllocation)未在公开 fork 验证。 |
+| **`FPageBinAllocation` 复用 + `FVirtualPageIndex` Lumen + VSM 共享** | ⚠️ 叙事级别 | W31 笔记核心叙事"三个 class 结构同源"在公开解析系列里**未直接出现**(Lumen 内部 page alloc 是 FLumenPageTableEntry,VSM 是不同的 page table encoding),"结构同源"是合理推断但**类级别不共享**(每个特性各有自己的 page table struct)。**应修正为"范式同源但 struct 各特性独立"**。 |
+
+**验证方法**：Epic 官方 VSM 文档 + 知乎《UE5 Virtual ShadowMap 详解》(转自 UE5 公开 fork 源码摘录)+ 知乎《UE5 Lumen 源码解析(二)》Surface Cache 篇 + CSDN Lumen 框架笔记。**未做** 1:1 行号对照。
+
+**对 day-job RAG 的影响**：4 个核心抽象中 2 个强验证(128x128 共享 + VSM/Lumen 各自 Page Table 范式),2 个降级("三特性 struct 共享"降级为"范式同源但 struct 独立";"8x8 全特性共享"降级为"8x8 是 Lumen 独有 sub-alloc 粒度")。W31 笔记的"同源"叙事**强度需下调一档**,LLM 检索时不应直接复述"三个特性共享 FPageBinAllocation 类"。
 
 ---
 

@@ -264,7 +264,7 @@ enum class ESkyPassType : uint8 {
 - [x] 已画流程图/类图（本文 Mermaid 图）
 - [x] 已写分析笔记（本文）
 - [x] 已对照 UE5.8 本机源码核对所有函数行号（仅 353 行，全部已读）
-- [x] 已输出配套面试卡牌 → [UE5.8-SkyPass-天空-pass.html](./UE5.8-SkyPass-天空-pass.html)
+- [x] 已输出配套面试卡牌 → [UE5.8-SkyPass-天空-pass.html](UE5.8-SkyPass-天空-pass.html)
 - [ ] 已应用到工作中
 
 ---

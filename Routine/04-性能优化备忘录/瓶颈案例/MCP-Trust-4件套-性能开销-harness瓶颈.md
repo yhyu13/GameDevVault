@@ -12,7 +12,7 @@ aliases: [MCP Trust 验证, Trust 4 件套, MCP 双重验证, harness 性能瓶�
 | **项目/场景** | day-job Mac Game Harness (LLM 驱动的 UE5 项目) 启动 + 稳态运行 + 工具变更 |
 | **平台** | Mac (Apple Silicon) / Linux (Harness 部署) / Windows (开发) |
 | **严重程度** | 中 (Harness 启动 +10s; periodic check 100ms 抢占/分钟; 变更 confirm 阻塞主线程 5-30s) |
-| **来源类型** | W30 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] (22 KB) + VS 2026 公开文档 (Microsoft 2026-06) + Anthropic MCP 1.1 spec (2025-06-18) |
+| **来源类型** | W30 源码分析 [[UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] (22 KB) + VS 2026 公开文档 (Microsoft 2026-06) + Anthropic MCP 1.1 spec (2025-06-18) |
 
 > **声明**: 本瓶颈案例**只整理 W30 源码分析的 Trust 4 件套 + day-job Harness 移植 pattern**, **不主张"自己 Harness 启动具体多少秒"** — 必须在 day-job Harness 实际跑起来后 Profile 复测。
 >
@@ -24,7 +24,7 @@ aliases: [MCP Trust 验证, Trust 4 件套, MCP 双重验证, harness 性能瓶�
 
 | 来源 | 类型 | 关键事实 |
 |------|------|----------|
-| W30 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] | [D] 源码笔记 | **MCP 1.1 spec 3 类端点** (tools/resources/prompts) + **双重 Trust 验证** (启动前 + 启动后) + **Trust 4 件套** (manifest + periodic + confirm + persist) + **Agent Loop 6 阶段** (Plan / Tool Call Confirm / 工具调用 / Observe / Adapt / Finish) + day-job Harness 移植代码 |
+| W30 源码分析 [[UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] | [D] 源码笔记 | **MCP 1.1 spec 3 类端点** (tools/resources/prompts) + **双重 Trust 验证** (启动前 + 启动后) + **Trust 4 件套** (manifest + periodic + confirm + persist) + **Agent Loop 6 阶段** (Plan / Tool Call Confirm / 工具调用 / Observe / Adapt / Finish) + day-job Harness 移植代码 |
 | VS 2026 公开文档 (Microsoft 2026-06 月度更新) | [D] 官方 | **VS 2026 双重 Trust 验证 2026-06 加入** — 比 Anthropic 官方 spec 提前 6 个月 |
 | Anthropic MCP 1.1 spec (2025-06-18) | [D] 官方 | 3 类端点协议 + JSON-RPC 2.0 over stdio/HTTP + sampling 反向调 LLM |
 | W29 论文笔记 [[../../../01-论文笔记库/UnrealMCP/Epic-2025-Unreal-MCP-Copilot-Integration]] | [D] 笔记 | Epic 2025 UE 5.7+ 内置 MCP server + Copilot Agent 集成 |
@@ -391,15 +391,15 @@ def should_confirm(tool_name):
 
 | 层级 | 笔记 | 视角 |
 |------|------|------|
-| **协议 (W30)** | [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] | MCP 1.1 spec + 3 类端点 + Trust 4 件套 + Agent Loop 6 阶段 + day-job Harness 移植代码 |
+| **协议 (W30)** | [[UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] | MCP 1.1 spec + 3 类端点 + Trust 4 件套 + Agent Loop 6 阶段 + day-job Harness 移植代码 |
 | **性能 (W30, 本文)** | **[[MCP-Trust-4件套-性能开销-harness瓶颈]]** | Trust 4 件套性能开销 + 5 套 day-job Harness 优化 (智能 Cache / 异步 / 预 Trust / 异步 IO / 分级别) |
 
 ### 三角闭环 (W30 MCP 全栈)
 
 - **理论**: [[../../../01-论文笔记库/UnrealMCP/Epic-2025-Unreal-MCP-Copilot-Integration]] (W29)
 - **源码 (宏观)**: [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-ModelContextProtocol-调用链路]] (W26)
-- **源码 (微观, W30)**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] (W30)
-- **卡牌 (W30)**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] (HTML, 10 题) — 配套 W30 源码分析
+- **源码 (微观, W30)**: [[UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] (W30)
+- **卡牌 (W30)**: [[UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] (HTML, 10 题) — 配套 W30 源码分析
 - **性能 (瓶颈, W30, 本文)**: **[[MCP-Trust-4件套-性能开销-harness瓶颈]]** (W30)
 - **跨系统整合**: [[../知识参考/虚拟页表范式-VSM-Nanite-Lumen-同源]] (W30 跨系统, MCP 不在此列)
 
@@ -426,7 +426,7 @@ def should_confirm(tool_name):
 *Verified: 否 (W30 源码分析 + VS 2026 文档 + Anthropic MCP 1.1 spec, **未经 day-job Harness 实际跑通验证**)*
 *Source:*
 
-- **W30 源码分析**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] — MCP 1.1 spec + 3 类端点 + Trust 4 件套 + Agent Loop 6 阶段
+- **W30 源码分析**: [[UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] — MCP 1.1 spec + 3 类端点 + Trust 4 件套 + Agent Loop 6 阶段
 - **VS 2026 公开文档** (Microsoft 2026-06 月度更新) — 双重 Trust 验证 2026-06 加入 (比 Anthropic 官方 spec 提前 6 个月)
 - **Anthropic MCP 1.1 spec** (2025-06-18) — 3 类端点协议 + JSON-RPC 2.0 over stdio/HTTP + sampling
 - **UE 5.8 公开 API hooks**: `FAutomationCommand` (UE Automation 框架, MCP tool 调用的底层通道) + `UEditorEngine` (MCP server lifecycle) + `GEditor` (Editor 全局单例)

@@ -22,10 +22,10 @@ aliases: [W28 Mini-Index, UE5.8 重头戏]
 
 ## 文件
 
-- [[UE5.8-MegaLights-随机光照]] · [卡牌](./UE5.8-MegaLights-随机光照.html)
-- [[UE5.8-Substrate-材质系统]] · [卡牌](./UE5.8-Substrate-材质系统.html)
-- [[UE5.8-InstanceCulling-GPU裁剪]] · [卡牌](./UE5.8-InstanceCulling-GPU裁剪.html)
-- [[UE5.8-HeterogeneousVolumes-体素体积]] · [卡牌](./UE5.8-HeterogeneousVolumes-体素体积.html)
+- [[UE5.8-MegaLights-随机光照]] · [卡牌](UE5.8-MegaLights-随机光照.html)
+- [[UE5.8-Substrate-材质系统]] · [卡牌](UE5.8-Substrate-材质系统.html)
+- [[UE5.8-InstanceCulling-GPU裁剪]] · [卡牌](UE5.8-InstanceCulling-GPU裁剪.html)
+- [[UE5.8-HeterogeneousVolumes-体素体积]] · [卡牌](UE5.8-HeterogeneousVolumes-体素体积.html)
 
 ---
 
@@ -57,7 +57,7 @@ day-job = **RAG + Mac Game Harness,目标"提到 LLM 对 UE 特性的使用"**�
 
 ## 关联
 
-- [[../../00-README|02-引擎源码分析库 根 README]] — 全库索引
+- [[Routine/02-源码分析库/00-README|02-引擎源码分析库 根 README]] — 全库索引
 - [[周模板|周模板]] — day-job 周节奏对齐(07-日记 系统未来按 2026-W##/ 归档时复用)
 - [[../../../05-技术雷达/00-README|技术雷达]] — P0 待补 Lumen/Nanite/VSM(W28 没动这轴,但下个周期要把 P0 雷达补齐)
 

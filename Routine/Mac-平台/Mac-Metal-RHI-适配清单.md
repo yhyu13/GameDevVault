@@ -359,11 +359,11 @@ UE 5.4+ 在 macOS (Apple Silicon) 上完整支持 Lumen 全套,SW Ray Tracing �
 - [[../05-技术雷达/P0-立即学习/Nanite|Nanite 雷达]] — 升"已掌握"候选,本笔记 §3.3-3.4 是其前置
 - [[../05-技术雷达/P0-立即学习/VSM|VSM 雷达]] — 升"已掌握"候选,本笔记 §3.5-3.6 是其前置
 - [[../05-技术雷达/P0-立即学习/UE-NNE-TensorRT-Plugin|UE NNE TensorRT 雷达]] — §3.11 解释 Mac 唯一可用后端
-- [[../02-引擎源码分析库/Unreal-Engine/W29/UE5-VSM-源码追踪|VSM 源码追踪]] — §11 Mac Metal 适配详细来源
-- [[../02-引擎源码分析库/Unreal-Engine/W29/UE5-Nanite-MeshPass-ClusterDAG-PageStreaming-源码追踪|Nanite 源码追踪]] — §8 W30 待补 Mac 已被本笔记覆盖
-- [[../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache 源码]] — 5.4 行为详细
-- [[../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-MegaLights-随机光照|MegaLights 笔记]] — 5.4+ threadgroup 修复
-- [[../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-Substrate-材质系统|Substrate 笔记]] — 5.3+ 范式
+- [[UE5-VSM-源码追踪|VSM 源码追踪]] — §11 Mac Metal 适配详细来源
+- [[UE5-Nanite-MeshPass-ClusterDAG-PageStreaming-源码追踪|Nanite 源码追踪]] — §8 W30 待补 Mac 已被本笔记覆盖
+- [[UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache 源码]] — 5.4 行为详细
+- [[UE5.8-MegaLights-随机光照|MegaLights 笔记]] — 5.4+ threadgroup 修复
+- [[UE5.8-Substrate-材质系统|Substrate 笔记]] — 5.3+ 范式
 - [[../05-技术雷达/Weekly-Log/W29-2026-07-19/W29-周复盘|W29 周复盘]] — Anchor 1 是 W29 承诺的延续
 
 ---

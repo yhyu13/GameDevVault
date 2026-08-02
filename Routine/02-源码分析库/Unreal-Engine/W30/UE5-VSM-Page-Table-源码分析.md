@@ -22,7 +22,7 @@ aliases: [UE5-VSM-Page-Table-源码分析, VirtualShadowMap-源码, VSM-PageAllo
 
 ## 为什么看这段代码？
 
-W29 Lumen Surface Cache 笔记 [[../W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] 详细写了 Lumen 的 Page Table 机制（128x128 page + sub-alloc + 4 层 Atlas + 6 方向 OBB Card）。**VSM 是同源的另一套 Page Table 系统**——但 Lumen 处理间接光（GI），VSM 处理直接光阴影。Vault 里 VSM 的覆盖度：
+W29 Lumen Surface Cache 笔记 [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] 详细写了 Lumen 的 Page Table 机制（128x128 page + sub-alloc + 4 层 Atlas + 6 方向 OBB Card）。**VSM 是同源的另一套 Page Table 系统**——但 Lumen 处理间接光（GI），VSM 处理直接光阴影。Vault 里 VSM 的覆盖度：
 - 论文笔记 [[../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] ✅ (W29 paper note)
 - 性能瓶颈笔记 [[../../04-性能优化备忘录/瓶颈案例/VSM-页溢出-阴影质量瑕疵]] ✅
 - **源码分析** ❌（**首次填补**）

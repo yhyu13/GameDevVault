@@ -525,7 +525,7 @@ day-job = **RAG + Mac Game Harness(LLM-driven UE on Mac)**,VSM 源码追踪对�
 - [[../../../03-Shader与特效案例集/C06/VSM-Virtual-Shadow-Map|W6 shader 763 行]] — shader 视角
 - [[../../W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache 源码]] — 渲染三大特性之二
 - [[../../../04-性能优化备忘录/瓶颈案例/VSM-页溢出-阴影棋盘瑕疵|页溢出案例]] — 实际生产问题
-- [[../W28/UE5.8-MegaLights-随机光照|MegaLights 集成]] — 5.4+ 多光源走 VSM 阈值
+- [[UE5.8-MegaLights-随机光照|MegaLights 集成]] — 5.4+ 多光源走 VSM 阈值
 - [[../../../05-技术雷达/P0-立即学习/VSM|VSM 雷达条目]] — W28 升级到 P0
 - [[../../W29/00-README|W29 README]] — 本周全部产出索引
 

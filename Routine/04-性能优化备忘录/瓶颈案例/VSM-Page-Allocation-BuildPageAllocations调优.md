@@ -12,7 +12,7 @@ aliases: [VSM Page Allocation 调优, BuildPageAllocations 3227, VSM 30+ CVar, V
 | **项目/场景** | UE5 大世界 (多光源 / 高分辨率阴影 / 大量 WPO 对象) / 4 类光源 (Directional/Spot/Point/Rect) 全部启用 |
 | **平台** | PC (DXR) / PS5 / XSX / Mac (Metal 5.4+) |
 | **严重程度** | 严重 (默认 4096 pages × 128×128 × 2 bytes ≈ 256 MB; **典型项目 2-4 GB atlas 显存**) |
-| **来源类型** | W30 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-VSM-Page-Table-源码分析]] (20 KB, 30+ CVar 全表) + W29 VSM 性能调优 [[VSM 性能调优]] + W29 瓶颈 [[VSM-页溢出-阴影棋盘瑕疵]] + UE 5.8 源码 `VirtualShadowMapArray.cpp` |
+| **来源类型** | W30 源码分析 [[UE5-VSM-Page-Table-源码分析]] (20 KB, 30+ CVar 全表) + W29 VSM 性能调优 [[VSM 性能调优]] + W29 瓶颈 [[VSM-页溢出-阴影棋盘瑕疵]] + UE 5.8 源码 `VirtualShadowMapArray.cpp` |
 
 > **声明**: 本瓶颈案例**只整理 W30 源码分析的 30+ CVar 全表 + `BuildPageAllocations:3227` 函数机制 + `RenderVirtualShadowMapsNanite:4218` 双路径分流**, **不主张"自己项目占用 X MB"** — 必须在自己的目标场景下用 `ProfileGPU` + `r.Shadow.Virtual.ShowStats` 复测。
 >
@@ -24,7 +24,7 @@ aliases: [VSM Page Allocation 调优, BuildPageAllocations 3227, VSM 30+ CVar, V
 
 | 来源 | 类型 | 关键事实 |
 |------|------|----------|
-| W30 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-VSM-Page-Table-源码分析]] | [D] 源码笔记 | **`VirtualShadowMapArray.cpp:3227` `BuildPageAllocations`** + 30+ CVar 全表 + `BeginMarkPages:2516` + `RenderVirtualShadowMapsNanite:4218` + `RenderVirtualShadowMapsNonNanite:4389` + `UpdateHZB:4829` + 4 类光源路径分流 + `VirtualShadowMapCacheManager` 104 KB 跨帧缓存 |
+| W30 源码分析 [[UE5-VSM-Page-Table-源码分析]] | [D] 源码笔记 | **`VirtualShadowMapArray.cpp:3227` `BuildPageAllocations`** + 30+ CVar 全表 + `BeginMarkPages:2516` + `RenderVirtualShadowMapsNanite:4218` + `RenderVirtualShadowMapsNonNanite:4389` + `UpdateHZB:4829` + 4 类光源路径分流 + `VirtualShadowMapCacheManager` 104 KB 跨帧缓存 |
 | W29 VSM 性能调优 [[VSM 性能调优]] | [D] 笔记 | VSM 基础架构参数 + Page 预算 + Clipmap 调度 + MegaLights 5.4+ 集成 + Lumen/Nanite 同源 |
 | W29 VSM 瓶颈 [[VSM-页溢出-阴影棋盘瑕疵]] | [D] 笔记 | 症状 + 排查流程 + 7 套方案 |
 | UE 5.8 源码 `Engine/Source/Runtime/Renderer/Private/VirtualShadowMaps/VirtualShadowMapArray.cpp` | [D] 源码 | 284 KB 主文件 + 30+ CVar 全部 `*.cpp` 锚定 |
@@ -395,8 +395,8 @@ r.Shadow.Virtual.Enable=1                    ; VSM 启用 (默认 1, 改 0 完�
 
 - **理论**: [[../../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] (W29)
 - **源码 (宏观)**: (待补 W30+)
-- **源码 (微观, W30)**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-VSM-Page-Table-源码分析]] (W30)
-- **卡牌 (W30)**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-VSM-Page-Table-源码分析]] (HTML, 10 题) — 配套 W30 源码分析
+- **源码 (微观, W30)**: [[UE5-VSM-Page-Table-源码分析]] (W30)
+- **卡牌 (W30)**: [[UE5-VSM-Page-Table-源码分析]] (HTML, 10 题) — 配套 W30 源码分析
 - **性能 (知识参考)**: [[VSM 性能调优]] (W29) + [[../知识参考/虚拟页表范式-VSM-Nanite-Lumen-同源]] (W30 跨系统)
 - **性能 (瓶颈, W28 既有)**: [[VSM-页溢出-阴影棋盘瑕疵]] (W28 高层)
 - **性能 (瓶颈, W30, 本文)**: **[[VSM-Page-Allocation-BuildPageAllocations调优]]** (W30 微观)
@@ -424,7 +424,7 @@ r.Shadow.Virtual.Enable=1                    ; VSM 启用 (默认 1, 改 0 完�
 *Verified: 否 (W30 源码分析 + W29 性能调优 + UE 5.8 源码 + UE 官方文档, **未经本人 Profile 验证**)*
 *Source:*
 
-- **W30 源码分析**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-VSM-Page-Table-源码分析]] — 30+ CVar 全表 + `BuildPageAllocations:3227` + `BeginMarkPages:2516` + `RenderVirtualShadowMapsNanite:4218` + `RenderVirtualShadowMapsNonNanite:4389` + `UpdateHZB:4829`
+- **W30 源码分析**: [[UE5-VSM-Page-Table-源码分析]] — 30+ CVar 全表 + `BuildPageAllocations:3227` + `BeginMarkPages:2516` + `RenderVirtualShadowMapsNanite:4218` + `RenderVirtualShadowMapsNonNanite:4389` + `UpdateHZB:4829`
 - **UE 5.8 源码**:
   - `Engine/Source/Runtime/Renderer/Private/VirtualShadowMaps/VirtualShadowMapArray.cpp` (284 KB) — 30+ CVar 主文件
   - `VirtualShadowMapCacheManager.cpp` (104 KB) — 跨帧 page residency

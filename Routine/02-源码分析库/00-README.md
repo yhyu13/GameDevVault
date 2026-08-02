@@ -73,37 +73,37 @@
 
 | 目标 | 引擎 | 状态 | 笔记 | 卡牌 |
 |------|------|------|------|------|
-| 虚拟纹理系统 | UE5 | ✅ | [[Unreal-Engine/W26/UE5-VT-显存调度]] | [卡牌](./Unreal-Engine/W26/UE5-VT-显存调度.html) |
-| Lumen 调用链 | UE5 | ✅ | [[Unreal-Engine/W26/UE5-Lumen-源码调用链]] | [[../../../Career/Kimi/html/lumen/callchain]] |
-| Nanite 虚拟几何管线 | UE5 (5.3) | ✅ | [[Unreal-Engine/W26/UE5-Nanite-虚拟几何管线]] | [[../../../Career/Kimi/html/nanite/callchain]] · [精简版](./Unreal-Engine/W27/Nanite-Card-Pack.html) |
-| ModelContextProtocol 完整调用链路 | UE5 | ✅ | [[Unreal-Engine/W26/UE5-ModelContextProtocol-完整调用链路]] | [卡牌](./Unreal-Engine/W26/UE5-ModelContextProtocol-完整调用链路.html) |
-| NNE 神经网络引擎（UE 5.8 实测） | UE5.8 | ✅ | [[Unreal-Engine/W26/UE5-NNE-神经网络引擎]] | [卡牌](./Unreal-Engine/W26/UE5-NNE-神经网络引擎.html) |
-| Mass 数据导向 AI（UE 5.8 实测） | UE5.8 | ✅ | [[Unreal-Engine/W26/UE5-Mass-AI-数据导向框架]] | [卡牌](./Unreal-Engine/W26/UE5-Mass-AI-数据导向框架.html) |
+| 虚拟纹理系统 | UE5 | ✅ | [[UE5-VT-显存调度]] | [卡牌](UE5-VT-显存调度.html) |
+| Lumen 调用链 | UE5 | ✅ | [[UE5-Lumen-源码调用链]] | [[../../../Career/Kimi/html/lumen/callchain]] |
+| Nanite 虚拟几何管线 | UE5 (5.3) | ✅ | [[UE5-Nanite-虚拟几何管线]] | [[../../../Career/Kimi/html/nanite/callchain]] · [精简版](Nanite-Card-Pack.html) |
+| ModelContextProtocol 完整调用链路 | UE5 | ✅ | [[UE5-ModelContextProtocol-完整调用链路]] | [卡牌](UE5-ModelContextProtocol-完整调用链路.html) |
+| NNE 神经网络引擎（UE 5.8 实测） | UE5.8 | ✅ | [[UE5-NNE-神经网络引擎]] | [卡牌](UE5-NNE-神经网络引擎.html) |
+| Mass 数据导向 AI（UE 5.8 实测） | UE5.8 | ✅ | [[UE5-Mass-AI-数据导向框架]] | [卡牌](UE5-Mass-AI-数据导向框架.html) |
 
 ### W27 (2026-06-29 ~ 07-05) — Cook 流水线 + UE5.8 天空系
 
 | 目标 | 引擎 | 状态 | 笔记 | 卡牌 |
 |------|------|------|------|------|
-| Cook 流水线（Shader + 纹理 + 速度 + 配置 + 并行度） | UE5.3/5.4/5.5 | ✅ | [[Unreal-Engine/W27/UE5-Cook-流水线源码分析]] | [卡牌](./Unreal-Engine/W27/UE5-Cook-流水线源码分析.html) |
-| MCP 缺点改进与使用指南 | UE5 | ✅ | [[Unreal-Engine/W27/UE5-ModelContextProtocol-缺点改进与使用指南]] | — |
-| SkyAtmosphere 大气散射（5 LUT + Bruneton + State Versioning） | UE5.8 | ✅ | [[Unreal-Engine/W27/UE5.8-SkyAtmosphere-大气散射]] | [卡牌](./Unreal-Engine/W27/UE5.8-SkyAtmosphere-大气散射.html) |
-| VolumetricCloud 体积云（3 GPU 路径 + 8 permutation + Reproject + AP） | UE5.8 | ✅ | [[Unreal-Engine/W27/UE5.8-VolumetricCloud-体积云]] | [卡牌](./Unreal-Engine/W27/UE5.8-VolumetricCloud-体积云.html) |
-| SkyPass 天空 Pass（Mesh Pass 兜底 + IsSky flag + Mobile） | UE5.8 | ✅ | [[Unreal-Engine/W27/UE5.8-SkyPass-天空-pass]] | [卡牌](./Unreal-Engine/W27/UE5.8-SkyPass-天空-pass.html) |
+| Cook 流水线（Shader + 纹理 + 速度 + 配置 + 并行度） | UE5.3/5.4/5.5 | ✅ | [[UE5-Cook-流水线源码分析]] | [卡牌](UE5-Cook-流水线源码分析.html) |
+| MCP 缺点改进与使用指南 | UE5 | ✅ | [[UE5-ModelContextProtocol-缺点改进与使用指南]] | — |
+| SkyAtmosphere 大气散射（5 LUT + Bruneton + State Versioning） | UE5.8 | ✅ | [[UE5.8-SkyAtmosphere-大气散射]] | [卡牌](UE5.8-SkyAtmosphere-大气散射.html) |
+| VolumetricCloud 体积云（3 GPU 路径 + 8 permutation + Reproject + AP） | UE5.8 | ✅ | [[UE5.8-VolumetricCloud-体积云]] | [卡牌](UE5.8-VolumetricCloud-体积云.html) |
+| SkyPass 天空 Pass（Mesh Pass 兜底 + IsSky flag + Mobile） | UE5.8 | ✅ | [[UE5.8-SkyPass-天空-pass]] | [卡牌](UE5.8-SkyPass-天空-pass.html) |
 
 ### W28 (2026-07-06 ~ 07-12) — UE5.8 重头戏
 
 | 目标 | 引擎 | 状态 | 笔记 | 卡牌 |
 |------|------|------|------|------|
-| MegaLights 随机光照（7 步 pipeline + 13 TileType + HWRT/VSM 双模式 + History guide） | UE5.8 | ✅ | [[Unreal-Engine/W28/UE5.8-MegaLights-随机光照]] | [卡牌](./Unreal-Engine/W28/UE5.8-MegaLights-随机光照.html) |
-| Substrate 材质系统（4 TileType + Stencil 分类 + DBuffer/RoughRefraction + Tile-based Closure） | UE5.8 | ✅ | [[Unreal-Engine/W28/UE5.8-Substrate-材质系统]] | [卡牌](./Unreal-Engine/W28/UE5.8-Substrate-材质系统.html) |
-| InstanceCulling GPU 裁剪（LoadBalancer 位打包 + Bin 多 HZB + DeferredContext 批处理） | UE5.8 | ✅ | [[Unreal-Engine/W28/UE5.8-InstanceCulling-GPU裁剪]] | [卡牌](./Unreal-Engine/W28/UE5.8-InstanceCulling-GPU裁剪.html) |
-| HeterogeneousVolumes 体素体积（7 Pipeline + SparseVoxel + VoxelGrid + LiveShading + HWRT） | UE5.8 | ✅ | [[Unreal-Engine/W28/UE5.8-HeterogeneousVolumes-体素体积]] | [卡牌](./Unreal-Engine/W28/UE5.8-HeterogeneousVolumes-体素体积.html) |
+| MegaLights 随机光照（7 步 pipeline + 13 TileType + HWRT/VSM 双模式 + History guide） | UE5.8 | ✅ | [[UE5.8-MegaLights-随机光照]] | [卡牌](UE5.8-MegaLights-随机光照.html) |
+| Substrate 材质系统（4 TileType + Stencil 分类 + DBuffer/RoughRefraction + Tile-based Closure） | UE5.8 | ✅ | [[UE5.8-Substrate-材质系统]] | [卡牌](UE5.8-Substrate-材质系统.html) |
+| InstanceCulling GPU 裁剪（LoadBalancer 位打包 + Bin 多 HZB + DeferredContext 批处理） | UE5.8 | ✅ | [[UE5.8-InstanceCulling-GPU裁剪]] | [卡牌](UE5.8-InstanceCulling-GPU裁剪.html) |
+| HeterogeneousVolumes 体素体积（7 Pipeline + SparseVoxel + VoxelGrid + LiveShading + HWRT） | UE5.8 | ✅ | [[UE5.8-HeterogeneousVolumes-体素体积]] | [卡牌](UE5.8-HeterogeneousVolumes-体素体积.html) |
 
 ### Godot
 
 | 目标 | 引擎 | 状态 | 笔记 | 卡牌 |
 |------|------|------|------|------|
-| Jolt Physics 模块（AI 集成点） | Godot 4.8-dev | ✅ | [[Godot/Godot-Jolt-Physics-AI集成点源码分析]] | — |
+| Jolt Physics 模块（AI 集成点） | Godot 4.8-dev | ✅ | [[Godot-Jolt-Physics-AI集成点源码分析]] | — |
 
 ### 待开始
 

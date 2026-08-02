@@ -1,5 +1,5 @@
 ---
-tags: [source/浅度浏览, source/W31, source/UE5.8, source/Lumen, source/day-job]
+tags: [source/浅度浏览, source/W31, source/UE5.8, source/Lumen, source/day-job, source/已验证抽象v0.1]
 aliases: [W31 Lumen GI 全景, Lumen 三阶段]
 ---
 
@@ -210,11 +210,11 @@ day-job = RAG + Mac Game Harness,目标"提到 LLM 对 UE 特性的使用"。
 
 ## 关联知识库
 
-- [[../W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — W29 SurfaceCache 微观(底层)
+- [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — W29 SurfaceCache 微观(底层)
 - [[UE5-Substrate-材质闭环-源码分析|Substrate 材质闭环 (W31 主题 1)]] — 提供 closure count
 - [[UE5-VSM-Lumen-Nanite-PageTable-同源|Page Table 同源 (W31 主题 3)]] — 共享 FPageBinAllocation
 - [[../../01-论文笔记库/Lumen/SIGGRAPH2021_Lumen_20230220002724|Lumen 论文 (W29)]] — 理论基础
-- [[../W28/00-README|W28 README]] — UE5.8 重头戏
+- [[Routine/02-源码分析库/Unreal-Engine/W28/00-README|W28 README]] — UE5.8 重头戏
 
 ---
 
@@ -224,6 +224,25 @@ day-job = RAG + Mac Game Harness,目标"提到 LLM 对 UE 特性的使用"。
 - [x] 已写分析笔记(本文)
 - [ ] 已写博客/内部分享 — 留 day-job
 - [x] 已应用到工作中 — day-job RAG 索引设计已用
+
+---
+
+## 复现状态 v0.1（2026-07-30 · 仅核心抽象验证，不验证行号）
+
+| 抽象 | 状态 | 证据 |
+|------|------|------|
+| **SurfaceCache 系统 + 128x128 物理页（Virtual Page 127x127）** | ✅ 已验证 | 知乎《UE5 Lumen 源码解析(二) Surface Cache 篇》明确："Physical Page 是物理存储页面,为了采样时的纹理过滤,每边需要额外的 0.5 个 Texel 用于 Border,因此大小为 128x128" + "Virtual Page 是逻辑页面,大小为 127x127"。 |
+| **三子系统结构:ScreenProbe + Radiosity + SurfaceCache** | ✅ 已验证 | 知乎《UE5 Lumen 源码解析(一)原理篇》"Lumen 是一个基于 Probe 的 RTGI 系统" + "Lumen 使用 Radiosity 来生成 Indirect Lighting" + 多个 CSDN/知乎笔记一致。 |
+| **Card Capture Atlas + Card Atlas 持久化的双层结构** | ✅ 已验证 | 知乎《UE5 Lumen 源码解析(二)》"Capture Atlas 并不是 Surface Cache 的真正物理存储所在,而只是捕获流程的临时资源...Card Atlas 才是 Surface Cache 的物理存储"。 |
+| **5 张 Card Atlas(Albedo/Opacity/Depth/Normal/Emissive)4k x 4k** | ✅ 已验证 | 知乎《UE5 Lumen 源码解析(二)》"每个 Card Atlas 大小为 4k x 4k,总计 5 张...总计需要 320 MB 显存"。 |
+| **Radiosity 反向更新 SurfaceCache** | ⚠️ 叙事级别(降级) | 实际机制是 Radiosity 算 multi-bounce 后将 Indirect Lighting **写入 RadianceCache**（不是直接反向写 SurfaceCache）。W31 笔记原文"反向更新 SurfaceCache"应理解为"更新与 SurfaceCache 同级的 RadianceCache,下一帧 ScreenProbe 消费"。 |
+| **LumenScreenProbeGather.cpp:2660-2683 17 行核心构造** | ⚠️ 叙事级别 | 公开搜索无 UE 5.5+ 完整源码可对，行号 2660-2683 区间属推断(基于公开材料的函数调用链描述)，需 5.4 老 fork 才能验证。 |
+| **12 个 ScreenProbe CVar 数量(L26-127)** | ⚠️ 叙事级别 | CVar 数量与具体功能未在公开源码核对，Epic 5.0-5.4 release notes 列了部分但不全。 |
+| **4 个 Radiosity CVar 数量(L20-58)** | ⚠️ 叙事级别 | 同上,具体 CVar 名未在公开 fork 验证。 |
+
+**验证方法**：知乎《游戏引擎随笔 0x29/0x30》UE5 Lumen 源码解析系列(两篇最完整) + CSDN 工程师笔记 + 知乎多篇 Lumen 实战文章。**未做**源码 1:1 行号对照。
+
+**对 day-job RAG 的影响**：5 个核心抽象中 4 个强验证(SurfaceCache 128x128 + 三子系统 + 双层 Atlas + 5 张持久化),1 个降级(Radiosity 更新机制表述偏差),"Radiosity 反向更新 SurfaceCache"在训练数据中**应修正为"Radiosity 更新 RadianceCache,ScreenProbe 间接受益"**。
 
 ---
 

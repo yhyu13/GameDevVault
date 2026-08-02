@@ -108,9 +108,9 @@ day-job = RAG + Mac Game Harness,Mac vault 喂 LLM 的 3 种形式:
 - [[../05-技术雷达/P0-立即学习/Lumen|Lumen 雷达]] — Mac 上跑通 Lumen 是"已掌握"门槛
 - [[../05-技术雷达/P0-立即学习/Nanite|Nanite 雷达]] — Mac 上跑通 Nanite 是"已掌握"门槛
 - [[../05-技术雷达/P0-立即学习/VSM|VSM 雷达]] — Mac 上跑通 VSM 是"已掌握"门槛
-- [[../02-引擎源码分析库/Unreal-Engine/W29/UE5-VSM-源码追踪|VSM 源码]] — §11 Mac Metal 适配小节
-- [[../02-引擎源码分析库/Unreal-Engine/W29/UE5-Nanite-MeshPass-ClusterDAG-PageStreaming-源码追踪|Nanite 源码]] — Mac 缺位提示
-- [[../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache 源码]] — Mac 缺位提示
+- [[UE5-VSM-源码追踪|VSM 源码]] — §11 Mac Metal 适配小节
+- [[UE5-Nanite-MeshPass-ClusterDAG-PageStreaming-源码追踪|Nanite 源码]] — Mac 缺位提示
+- [[UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache 源码]] — Mac 缺位提示
 - [[../2026-07-05-三能力对账|三能力对账]] — Mac 缺位是"日结遗留"项之一
 
 ---

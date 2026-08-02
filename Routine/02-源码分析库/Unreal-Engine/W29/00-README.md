@@ -51,7 +51,7 @@ aliases: [W29 Mini-Index, W29 渲染三特性 + day-job 协议]
 |------|------|------|
 | 理论 | [[../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]] | SIGGRAPH 论文 |
 | 操作 | [[../../01-论文笔记库/Lumen/Lumen-实战手册：调试-Profile-定制-跨场景适配指南]] | 10 大段 + 速查 |
-| 源码（宏观） | [[../W26/UE5-Lumen-源码调用链]] | 4 Pass 入口 |
+| 源码（宏观） | [[UE5-Lumen-源码调用链]] | 4 Pass 入口 |
 | **源码（微观）** | [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (本文) | Surface Cache 21 CVar |
 
 ### Nanite 双件套（新增）
@@ -70,7 +70,7 @@ aliases: [W29 Mini-Index, W29 渲染三特性 + day-job 协议]
 | **理论（新增）** | [[../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] | SIGGRAPH 2020 course + UE 官方文档 |
 | 性能瓶颈 | [[../../04-性能优化备忘录/瓶颈案例/VSM-页溢出-阴影质量瑕疵]] | VSM 实战 profile |
 | 卡牌 | [[../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] (HTML) | 10 题面试自测 |
-| 集成 | [[../W28/UE5.8-MegaLights-随机光照]] | 5.4+ 跟 MegaLights 集成 |
+| 集成 | [[UE5.8-MegaLights-随机光照]] | 5.4+ 跟 MegaLights 集成 |
 
 ### MCP / Copilot 四件套（新增 + 既有）
 
@@ -124,9 +124,9 @@ day-job = **RAG + Mac Game Harness,目标"提到 LLM 对 UE 特性的使用"**�
 
 ## 关联
 
-- [[../../00-README|02-引擎源码分析库 根 README]] — 全库索引
-- [[../W28/00-README|W28 README]] — 上一周,4 个 UE5.8 重头戏
-- [[../W26/UE5-Lumen-源码调用链]] — Lumen 高层 call chain
+- [[Routine/02-源码分析库/00-README|02-引擎源码分析库 根 README]] — 全库索引
+- [[Routine/02-源码分析库/Unreal-Engine/W28/00-README|W28 README]] — 上一周,4 个 UE5.8 重头戏
+- [[UE5-Lumen-源码调用链]] — Lumen 高层 call chain
 - [[../W26/UE5-Nanite-虚拟几何shader]] — Nanite 既有源码分析
 - [[../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]] — Lumen 论文笔记
 - [[../../01-论文笔记库/Lumen/Lumen-HowItActuallyWorks-UE5]] — Lumen 实战向笔记

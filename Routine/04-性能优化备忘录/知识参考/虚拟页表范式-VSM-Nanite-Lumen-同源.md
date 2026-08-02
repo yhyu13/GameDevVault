@@ -8,9 +8,9 @@ aliases: [UE5 虚拟化范式, VSM Nanite Lumen 同源, Page Table 范式, Virtu
 > 本笔记**只收录**有 UE 5.8 源码 / SIGGRAPH 论文 / GDC 演讲支撑的事实。所有推论性数字一律不写。
 >
 > **主要来源**:
-> - W29 Lumen Surface Cache 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (57 KB, 21 CVar 全表)
-> - W30 VSM Page Table 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-VSM-Page-Table-源码分析]] (20 KB, 30+ CVar 全表)
-> - W30 Nanite CullRaster 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (21 KB, 5.4 Bin 合并)
+> - W29 Lumen Surface Cache 源码分析 [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (57 KB, 21 CVar 全表)
+> - W30 VSM Page Table 源码分析 [[UE5-VSM-Page-Table-源码分析]] (20 KB, 30+ CVar 全表)
+> - W30 Nanite CullRaster 源码分析 [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (21 KB, 5.4 Bin 合并)
 > - W29 论文笔记 [[../../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] + [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry]] + [[../../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]]
 > - UE 5.8 源码 `Engine/Source/Runtime/Renderer/Private/Lumen/Lumen.h:42-55` (统一常量)
 
@@ -265,10 +265,10 @@ GPU 反馈 → 下一帧调度 (LRU evict + page locking + cross-frame feedback)
 
 | 系统 | 理论 | 性能 (知识参考) | 性能 (瓶颈案例) | 源码 (宏观) | 源码 (微观) |
 |------|------|----------------|-----------------|-------------|-------------|
-| **Nanite** | [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry]] (W29) | [[Nanite 性能调优]] (W28) | [[../瓶颈案例/Nanite-5.4-材质管线-空调度削减]] (W29) + [[../瓶颈案例/Nanite-5.4-材质Bin合并-80percent削减]] (W30 新) | [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Nanite-虚拟几何shader]] (W26) | [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (W30) |
-| **VSM** | [[../../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] (W29) | [[VSM 性能调优]] (W29) + **本文** (W30 跨系统整合) | [[../瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] (既有) + [[../瓶颈案例/VSM-Page-Allocation-BuildPageAllocations调优]] (W30 新) | (待补 W30+) | [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-VSM-Page-Table-源码分析]] (W30) |
-| **Lumen** | [[../../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]] | [[Lumen 性能调优]] (W28) | [[../瓶颈案例/Lumen-反射开销过高-平滑材质场景]] (W28) + [[../瓶颈案例/Lumen-SurfaceCache-显存与带宽-大世界场景]] (W29) | [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Lumen-源码调用链]] (W26) | [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (W29) |
-| **MCP** | [[../../../01-论文笔记库/UnrealMCP/Epic-2025-Unreal-MCP-Copilot-Integration]] (W29) | (待补) | [[../瓶颈案例/MCP-Trust-4件套-性能开销-harness瓶颈]] (W30 新) | [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-ModelContextProtocol-调用链路]] (W26) | [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] (W30) |
+| **Nanite** | [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry]] (W29) | [[Nanite 性能调优]] (W28) | [[../瓶颈案例/Nanite-5.4-材质管线-空调度削减]] (W29) + [[../瓶颈案例/Nanite-5.4-材质Bin合并-80percent削减]] (W30 新) | [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Nanite-虚拟几何shader]] (W26) | [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (W30) |
+| **VSM** | [[../../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] (W29) | [[VSM 性能调优]] (W29) + **本文** (W30 跨系统整合) | [[../瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] (既有) + [[../瓶颈案例/VSM-Page-Allocation-BuildPageAllocations调优]] (W30 新) | (待补 W30+) | [[UE5-VSM-Page-Table-源码分析]] (W30) |
+| **Lumen** | [[../../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]] | [[Lumen 性能调优]] (W28) | [[../瓶颈案例/Lumen-反射开销过高-平滑材质场景]] (W28) + [[../瓶颈案例/Lumen-SurfaceCache-显存与带宽-大世界场景]] (W29) | [[UE5-Lumen-源码调用链]] (W26) | [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (W29) |
+| **MCP** | [[../../../01-论文笔记库/UnrealMCP/Epic-2025-Unreal-MCP-Copilot-Integration]] (W29) | (待补) | [[../瓶颈案例/MCP-Trust-4件套-性能开销-harness瓶颈]] (W30 新) | [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-ModelContextProtocol-调用链路]] (W26) | [[UE5-MCP-3Endpoints-Trust-AgentLoop-源码分析]] (W30) |
 
 ### day-job 锚点
 

@@ -24,7 +24,7 @@ Nanite 是 UE5 的虚拟化微多边形几何系统 — **用 Cluster DAG + Page
 **本文档不覆盖**:
 - Nanite 理论推导(见 Karis 2021 论文笔记)
 - Material 内部细节(见 C05 shader 笔记)
-- Ray Tracing 集成(见 [[../W28/UE5.8-MegaLights-随机光照|MegaLights 笔记]] 顺带的 Nanite RT 部分)
+- Ray Tracing 集成(见 [[UE5.8-MegaLights-随机光照|MegaLights 笔记]] 顺带的 Nanite RT 部分)
 
 ---
 
@@ -474,7 +474,7 @@ day-job = **RAG + Mac Game Harness(LLM-driven UE on Mac)**,Nanite 源码追踪�
 - [[../W26/UE5-Nanite-虚拟几何shader|W26 shader 源码]] — 已有源码积累
 - [[../W27/Nanite-Card-Pack|Nanite Card Pack]] — W27 面试卡牌集
 - [[UE5-VSM-源码追踪|姊妹篇:VSM 源码追踪]] — Nanite 的阴影目标
-- [[../W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache 源码]] — 渲染三大特性之三
+- [[UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache 源码]] — 渲染三大特性之三
 - [[../../../04-性能优化备忘录/瓶颈案例/Nanite-WPO禁用距离-破面修复|Nanite WPO 破面案例]] — 实际生产问题
 - [[../../../05-技术雷达/P0-立即学习/Nanite|Nanite 雷达条目]] — W28 升级到 P0
 - [[../../W29/00-README|W29 README]] — 本周全部产出索引

@@ -156,9 +156,9 @@ void Nanite::RenderVisibilityBuffer(GraphBuilder, View)
 
 - [[../../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Nanite-虚拟几何shader]] — W26 写的 Nanite 源码分析笔记（中文）
 - [[../../../02-引擎源码分析库/Unreal-Engine/W27/Nanite-Card-Pack]] — W27 写的 Nanite 面试卡牌
-- [[../../../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-InstanceCulling-GPU裁剪]] — W28 写的 UE5.8 GPU Culling 笔记（Nanite 范式的延伸）
-- [[../../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Lumen-源码调用链]] — Lumen 笔记（Nanite 是 Lumen 的几何源）
-- [[../../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — W29 写的 Lumen Surface Cache（Nanite 范式在 GI 上的应用）
+- [[UE5.8-InstanceCulling-GPU裁剪]] — W28 写的 UE5.8 GPU Culling 笔记（Nanite 范式的延伸）
+- [[UE5-Lumen-源码调用链]] — Lumen 笔记（Nanite 是 Lumen 的几何源）
+- [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — W29 写的 Lumen Surface Cache（Nanite 范式在 GI 上的应用）
 - [[../../../04-性能优化备忘录/知识参考/Nanite 性能调优]] — Nanite 性能 profile 笔记
 - [[../../../04-性能优化备忘录/瓶颈案例/Nanite-WPO材质降级-穿模修复]] — Nanite WPO bug
 - [[../../../04-性能优化备忘录/瓶颈案例/DrawCall-爆炸-植被渲染]] — 植被场景 draw call 爆炸（Nanite 不直接解决）

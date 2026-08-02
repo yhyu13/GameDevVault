@@ -48,7 +48,7 @@ aliases: [Karis-2020-VSM, VSM-SIGGRAPH-2020, Virtual-Shadow-Maps, Karis-VSM-Talk
    - **每个 skeletal mesh 1 个 contact shadow**——per-actor 而非 per-light
    - **可在 Project Settings 关闭**——性能 vs 质量权衡
    **对 day-job 启发**：角色密集场景要开 contact shadow，开放大场景可以关。
-5. **MegaLights 集成（5.4+，新）**。VSM 5.4+ 跟 [[../../../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-MegaLights-随机光照\|MegaLights]] 集成——MegaLights 判定式渲染自动选择 VSM 还是传统 Shadow Path，根据光源数 + 屏幕覆盖。**关键设计**：
+5. **MegaLights 集成（5.4+，新）**。VSM 5.4+ 跟 [[UE5.8-MegaLights-随机光照\|MegaLights]] 集成——MegaLights 判定式渲染自动选择 VSM 还是传统 Shadow Path，根据光源数 + 屏幕覆盖。**关键设计**：
    - **n lights < 8 走传统**——VSM 没必要
    - **n lights >= 8 走 VSM**——共享 page pool 划算
    - **远场 + 大光 → 走 VSM**
@@ -169,9 +169,9 @@ uint32 FShadowMapPagePool::Allocate(uint32 NumPagesRequested, int32 Mip)
 
 - [[../../../04-性能优化备忘录/瓶颈案例/VSM-页溢出-阴影质量瑕疵]] — VSM 性能瓶颈笔记
 - [[Karis-2021-Nanite-Virtualized-Geometry]] — Nanite（VSM 的 Page Table 思想来源）
-- [[../../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — Lumen Surface Cache（同源的"虚拟化 + GPU resident"）
-- [[../../../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-MegaLights-随机光照]] — MegaLights（VSM 5.4+ 集成）
-- [[../../../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-InstanceCulling-GPU裁剪]] — GPU Culling（虚拟化范式在另一个维度的应用）
+- [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — Lumen Surface Cache（同源的"虚拟化 + GPU resident"）
+- [[UE5.8-MegaLights-随机光照]] — MegaLights（VSM 5.4+ 集成）
+- [[UE5.8-InstanceCulling-GPU裁剪]] — GPU Culling（虚拟化范式在另一个维度的应用）
 - [[../../../04-性能优化备忘录/知识参考/Nanite 性能调优]] — 性能调优笔记
 
 ---

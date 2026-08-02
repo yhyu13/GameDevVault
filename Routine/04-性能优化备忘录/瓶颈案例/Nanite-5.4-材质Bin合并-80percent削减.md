@@ -12,7 +12,7 @@ aliases: [Nanite 5.4 Bin 合并, 4015 340 80% 削减, AllocateFixedFunctionBins,
 | **项目/场景** | UE5 复杂场景 (City Sample ~5000 unique 材质) 4K 70% 动态分辨率 |
 | **平台** | PC (D3D12) / PS5 / XSX / Mac (Metal 5.4+) |
 | **严重程度** | 严重 (BasePass 5ms 场景可优化到 ~1ms, **5.4 数字: 40% 提速** — Wihlidal 演讲 + 源码 `AllocateFixedFunctionBins` 双重背书) |
-| **来源类型** | W30 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (21 KB) + W29 论文 [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry]] + GDC 2024 Wihlidal + UE 5.8 源码 `NaniteShading.cpp:2711` |
+| **来源类型** | W30 源码分析 [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (21 KB) + W29 论文 [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry]] + GDC 2024 Wihlidal + UE 5.8 源码 `NaniteShading.cpp:2711` |
 
 > **声明**: 本瓶颈案例**只整理 W30 源码分析的 `NaniteShading.cpp:2711` + W29 论文 + GDC 2024 数字**, **不主张"自己项目能拿到 X% 提升"** — 必须在自己的目标场景下用 `ProfileGPU` + 切 5.0 vs 5.4 二进制对比复测。
 >
@@ -24,7 +24,7 @@ aliases: [Nanite 5.4 Bin 合并, 4015 340 80% 削减, AllocateFixedFunctionBins,
 
 | 来源 | 类型 | 关键事实 |
 |------|------|----------|
-| W30 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] | [D] 源码笔记 | **`NaniteShading.cpp:2711` `AllocateFixedFunctionBins`** — 5.4 关键: 把 bin 按 material 聚合; `NaniteShading.cpp:2779` `ReleaseBin`; `NaniteDrawList.cpp:217` `AddShadingBin` (5.0 时期) vs `NaniteDrawList.cpp:246` `AddRasterBin` (5.4 时期); **`NaniteShading.cpp:2711` 把 4015 bin 合并到 340 bin (City Sample), 空调度减少 80%** |
+| W30 源码分析 [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] | [D] 源码笔记 | **`NaniteShading.cpp:2711` `AllocateFixedFunctionBins`** — 5.4 关键: 把 bin 按 material 聚合; `NaniteShading.cpp:2779` `ReleaseBin`; `NaniteDrawList.cpp:217` `AddShadingBin` (5.0 时期) vs `NaniteDrawList.cpp:246` `AddRasterBin` (5.4 时期); **`NaniteShading.cpp:2711` 把 4015 bin 合并到 340 bin (City Sample), 空调度减少 80%** |
 | GDC 2024 *Nanite GPU-Driven Material Pipeline* — Graham Wihlidal | [D] GDC 演讲 | **4015 个总着色装箱, 3675 个装箱是空的 (91.5% 空调度)**; 4.92ms → 3.05ms; 5.4 compute shader 方案; 25-30% VRS 节省 |
 | W29 论文笔记 [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry]] | [D] 笔记 | 5.4 材质管线创新点 4 (Bin 调度 + 80% 削减) |
 | W29 瓶颈案例 [[Nanite-5.4-材质管线-空调度削减]] | [D] 笔记 | 高层 GDC 数字落地 (4.92→3.05ms + 40% 提速 + 25-30% VRS) |
@@ -356,8 +356,8 @@ class FNaniteRasterPipelines::AllocateFixedFunctionBins
 
 - **理论**: [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry]] (W29)
 - **源码 (宏观)**: [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Nanite-虚拟几何shader]] (W26)
-- **源码 (微观, W30)**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (W30)
-- **卡牌 (W30)**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (HTML, 10 题) — 配套 W30 源码分析
+- **源码 (微观, W30)**: [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (W30)
+- **卡牌 (W30)**: [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] (HTML, 10 题) — 配套 W30 源码分析
 - **性能 (知识参考)**: [[Nanite 性能调优]] (W28)
 - **性能 (瓶颈, W29)**: [[Nanite-5.4-材质管线-空调度削减]] (W29 高层)
 - **性能 (瓶颈, W30, 本文)**: **[[Nanite-5.4-材质Bin合并-80percent削减]]** (W30 微观)
@@ -385,7 +385,7 @@ class FNaniteRasterPipelines::AllocateFixedFunctionBins
 *Verified: 否 (W30 源码分析 + W29 论文 + GDC 2024 演讲 + UE 5.8 源码, **未经本人 Profile 验证**)*
 *Source:*
 
-- **W30 源码分析**: [[../../02-引擎源码分析库/Unreal-Engine/W30/UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] — **`NaniteShading.cpp:2711` `AllocateFixedFunctionBins`** + 5.4 Bin 调度关键类
+- **W30 源码分析**: [[UE5-Nanite-CullRaster-5.4-材质Bin-源码分析]] — **`NaniteShading.cpp:2711` `AllocateFixedFunctionBins`** + 5.4 Bin 调度关键类
 - **UE 5.8 源码**:
   - `Engine/Source/Runtime/Renderer/Private/Nanite/NaniteShading.cpp:2711` — `FNaniteRasterPipelines::AllocateFixedFunctionBins`
   - `Engine/Source/Runtime/Renderer/Private/Nanite/NaniteShading.cpp:2779` — `FNaniteRasterPipelines::ReleaseBin`

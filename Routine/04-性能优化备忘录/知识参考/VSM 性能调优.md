@@ -27,7 +27,7 @@ aliases: [VSM perf, VSM 调优, Virtual Shadow Maps 性能调优, VSM CVars]
 - VSM 是 UE5 的 **动态虚拟化阴影贴图**系统, 替代 UE4 的 Cascaded Shadow Map (CSM)
 - 核心思想: **整张逻辑 shadow map 切 page (128×128 texel), 按需分配 page 到物理 atlas**
 - **页大小 128×128** — 与 [[../../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021|Lumen Surface Cache]] 物理页一致, 复用 Lumen 工具链
-- 跟 [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry|Nanite]] / [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache]] 同源: 全部走"虚拟页表 + GPU resident state + feedback evict"
+- 跟 [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry|Nanite]] / [[UE5-Lumen-SurfaceCache-MeshCard-源码分析|Lumen Surface Cache]] 同源: 全部走"虚拟页表 + GPU resident state + feedback evict"
 - **关键设计**:
   - **Logical → Physical 映射** — 通过 page table buffer 在 shader 里做间接寻址
   - **Hierarchical Page Mask** — 16×16 bit mask 记录每 16×16 page block 的 occupancy
@@ -130,7 +130,7 @@ aliases: [VSM perf, VSM 调优, Virtual Shadow Maps 性能调优, VSM CVars]
 
 ## 四、MegaLights 5.4+ 集成 [D]
 
-> **来源**: W28 笔记 [[../../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-MegaLights-随机光照]] + W29 论文 [[../../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] 第 5 节
+> **来源**: W28 笔记 [[UE5.8-MegaLights-随机光照]] + W29 论文 [[../../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] 第 5 节
 
 UE 5.4+ 引入 MegaLights (判定式渲染), 自动选 VSM 还是传统 Shadow Path:
 
@@ -151,7 +151,7 @@ UE 5.4+ 引入 MegaLights (判定式渲染), 自动选 VSM 还是传统 Shadow P
 
 ## 五、与 Lumen / Nanite 的同源关系 [D]
 
-> **来源**: UE 5.8 源码 + W29 [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]]
+> **来源**: UE 5.8 源码 + W29 [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]]
 
 VSM / Lumen Surface Cache / Nanite 全部走同一套虚拟化范式:
 
@@ -207,13 +207,13 @@ VSM / Lumen Surface Cache / Nanite 全部走同一套虚拟化范式:
 | 理论 | [[../../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] (W29 新增) | SIGGRAPH 2020 course |
 | **性能 (本文)** | [[VSM 性能调优]] | CVar 行为 + 调优旋钮 |
 | 性能瓶颈 | [[../瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] | 症状 + 排查流程 |
-| 集成 | [[../../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-MegaLights-随机光照]] | 5.4+ MegaLights 集成 |
+| 集成 | [[UE5.8-MegaLights-随机光照]] | 5.4+ MegaLights 集成 |
 
 ### 7.2 UE5 三大系统三角 (虚拟化范式)
 
 | 系统 | 理论 | 性能 | 源码 |
 |------|------|------|------|
-| Lumen | [[../../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]] | [[Lumen 性能调优]] | [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Lumen-源码调用链]] / [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (W29 新增) |
+| Lumen | [[../../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]] | [[Lumen 性能调优]] | [[UE5-Lumen-源码调用链]] / [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (W29 新增) |
 | Nanite | [[../../../01-论文笔记库/Nanite/Karis-2021-Nanite-Virtualized-Geometry]] (W29 新增) | [[Nanite 性能调优]] | [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Nanite-虚拟几何shader]] |
 | VSM | [[../../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] (W29 新增) | **[[VSM 性能调优]] (本文)** | (待补: W30 计划) |
 
@@ -274,8 +274,8 @@ VSM / Lumen Surface Cache / Nanite 全部走同一套虚拟化范式:
 - [[../瓶颈案例/VSM-页溢出-阴影棋盘瑕疵]] — VSM 瓶颈案例 (症状 + 排查)
 - [[Lumen 性能调优]] — 兄弟笔记 (Lumen 三角)
 - [[Nanite 性能调优]] — 兄弟笔记 (Nanite 三角)
-- [[../../02-引擎源码分析库/Unreal-Engine/W28/UE5.8-MegaLights-随机光照]] — 5.4+ 集成
-- [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — 同源范式
+- [[UE5.8-MegaLights-随机光照]] — 5.4+ 集成
+- [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — 同源范式
 - [[性能优化方法论]] — Profile 黄金三问
 
 ---

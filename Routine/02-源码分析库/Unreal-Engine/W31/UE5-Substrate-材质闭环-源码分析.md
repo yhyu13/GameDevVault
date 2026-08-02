@@ -1,5 +1,5 @@
 ---
-tags: [source/浅度浏览, source/W31, source/UE5.8, source/Substrate, source/day-job]
+tags: [source/浅度浏览, source/W31, source/UE5.8, source/Substrate, source/day-job, source/已验证抽象v0.1]
 aliases: [W31 Substrate 材质闭环, Substrate 全景]
 ---
 
@@ -213,7 +213,7 @@ day-job = RAG + Mac Game Harness,目标"提到 LLM 对 UE 特性的使用"。
 
 ## 关联知识库
 
-- [[../W28/00-README|W28 README]] — UE5.8 重头戏,Substrate 5.4 升级
+- [[Routine/02-源码分析库/Unreal-Engine/W28/00-README|W28 README]] — UE5.8 重头戏,Substrate 5.4 升级
 - [[../../01-论文笔记库/Lumen/Karis-2020-Virtual-Shadow-Maps]] — VSM 论文(同 Page Table 范式)
 - [[UE5-Lumen-GI-全景-源码分析|Lumen GI 全景 (W31 主题 2)]]
 - [[UE5-VSM-Lumen-Nanite-PageTable-同源|Page Table 同源 (W31 主题 3)]]
@@ -229,5 +229,22 @@ day-job = RAG + Mac Game Harness,目标"提到 LLM 对 UE 特性的使用"。
 
 ---
 
+## 复现状态 v0.1（2026-07-30 · 仅核心抽象验证，不验证行号）
+
+| 抽象 | 状态 | 证据 |
+|------|------|------|
+| **Substrate 系统真实存在（UE5.2+ 引入的"材质分层系统"）** | ✅ 已验证 | CSDN《UE5 材质 Substrate》(qq_64145178) 确认 Epic 5.2 发布时诞生，"材质分层系统,在预先组合这些不同层的材质后最终表现效果"。 |
+| **Tile 分类 8x8 + Lumen 共享此粒度** | ✅ 已验证 | CSDN《UE5:Lumen 框架》"LumenCardTile:8x8 像素,用于 Tile-Based lighting" + "CardPage:128x128 像素,LumenCard 排布在上面" — 8x8 在 UE5 渲染栈跨特性通用。 |
+| **Slab 节点拓扑（任意层数材质混合）** | ✅ 已验证 | 同上，"材质分层系统" + 知乎多篇 Substrate 介绍描述"任意层数的 Slab node" 概念。 |
+| **Substrate→Lumen 桥接（closure count 决定 DiffuseIndirect slice）** | ⚠️ 叙事级别 | Lumen 公开材料确认 Lumen ScreenProbe 读 Substrate MaxClosureCount，但具体行号(LumenScreenProbeGather.cpp:2670-2672)未在公开 fork 验证（UE 5.5+ 私有）。 |
+| **`static_assert(SUBSTRATE_MAX_CLOSURE_COUNT ≤ 8u)` 硬上限** | ⚠️ 叙事级别 | 公开搜索未找到 8u 上限的直接证据（Epic 5.2→5.7 release notes 未明确 8u 数字）。W31 笔记的"8 closure 上限"是合理推断(Substrate Tile 分类最多 8 种 + Lumen 探针 8 slice 配合)但**未在公开源码验证**。 |
+| **12 个 r.Substrate.* CVar 数量** | ⚠️ 叙事级别 | 实际 Substrate.cpp CVar 数量 > 12(W31 笔记筛选了"对性能/结构有显著影响"的子集)，全表未在公开 fork 验证。 |
+
+**验证方法**：dev.epicgames.com 官方文档 + 知乎/CSDN 中文 UE 源码解析系列(《UE5 Lumen 源码解析》(一)(二)) + Karis VSM 课程 + VSM 官方文档。**未做**源码 1:1 行号对照(UE 5.5+ GitHub 私有,公开 fork 找不到完整 5.8 仓)。
+
+**对 day-job RAG 的影响**：5 个核心抽象中 3 个强验证(系统存在 + 8x8 共享 + 任意层数),2 个降级为"叙事级别"。"8 closure 上限"在训练数据中**应标记为推断而非事实**,LLM 检索时需配合源码引用。
+
+---
+
 *Create date: 2026-07-29*
-*Last modified: 2026-07-29*
+*Last modified: 2026-07-30*

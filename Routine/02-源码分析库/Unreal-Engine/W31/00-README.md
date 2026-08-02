@@ -47,7 +47,7 @@ aliases: [W31 Mini-Index, W31 跨特性联动]
 |------|------|------|
 | 论文 | [[../../01-论文笔记库/Lumen/SIGGRAPH2021_Lumen_20230220002724]] | SIGGRAPH 2021 论文 |
 | 高层 | [[../W26/UE5-Lumen-全景入口]] | Lumen 主入口 4 阶段 |
-| 微观 (W29) | [[../W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] | 4 层 Atlas + 21 CVar |
+| 微观 (W29) | [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] | 4 层 Atlas + 21 CVar |
 | **跨特性 (W31)** | [[UE5-Lumen-GI-全景-源码分析]] | 三子系统入口 + 数据流 |
 
 ### VSM 4 件套("理论 + 性能 + 微观 + 跨特性")
@@ -55,7 +55,7 @@ aliases: [W31 Mini-Index, W31 跨特性联动]
 |------|------|------|
 | 论文 | [[../../01-论文笔记库/VSM/Karis-2020-Virtual-Shadow-Maps]] | SIGGRAPH 2020 course |
 | 性能 | [[../../04-性能优化备忘录/瓶颈案例/VSM-页溢出-阴影质量瑕疵]] | VSM 实战 profile |
-| 微观 (W30) | [[../W30/UE5-VSM-Page-Table-源码分析]] | 30+ CVar + BuildPageAllocations |
+| 微观 (W30) | [[UE5-VSM-Page-Table-源码分析]] | 30+ CVar + BuildPageAllocations |
 | **跨特性 (W31)** | [[UE5-VSM-Lumen-Nanite-PageTable-同源-源码分析]] | 128x128 + 8x8 sub-alloc 同源范式 |
 
 ### 总览卡牌(W31)
@@ -104,15 +104,20 @@ day-job = **RAG + Mac Game Harness,目标"提到 LLM 对 UE 特性的使用"**�
 - [ ] **W31 总览卡牌 32 题 → 多选题化**——目前 MC 多,TF/DRAG 偏少,如果需要可以加 5-10 题提升题库质量
 - [ ] **W30 MCP 笔记里 "MCP server 端点 实际跑通" 待办**——上周末完成的待办,本周末没动
 - [ ] **P0 雷达补 Lumen/Nanite/VSM**——Mavis 7.5 提的待办,W30/W31 两周都聚焦了源码,雷达还停在 7.5 之前的"工具链轴"版本
+- [ ] **W31 笔记复现状态 v0.1 修正**——已识别 3 处叙事偏差需在 day-job RAG 索引化前修正:
+  1. 主题 2:"Radiosity 反向更新 SurfaceCache" → 应为"Radiosity 更新 RadianceCache,ScreenProbe 间接受益"
+  2. 主题 3:"三特性 8x8 完全共享" → 应为"128x128 物理页共享,8x8 是 Lumen 独有 sub-alloc 粒度"
+  3. 主题 3:"FPageBinAllocation 复用" → 应为"范式同源但 struct 各特性独立"
+- [ ] **W32 之前补 1:1 行号验证**——核心 3 处偏差涉及的具体行号(LumenScreenProbeGather.cpp:2660-2683 / VirtualShadowMapArray.cpp:3227 / LumenSceneData.h:693-740)在公开 UE 5.4 fork (NVIDIA-RTX 等) 可对,行号会漂移但类/函数名应可对得上
 
 ---
 
 ## 关联
 
-- [[../../00-README|02-引擎源码分析库 根 README]] — 全库索引
-- [[../W30/00-README|W30 README]] — 上周,微观档(11/11/11 CVar)
-- [[../W29/00-README|W29 README]] — 上上周,4 主题(Lumen 微观 + 3 论文笔记)
-- [[../W28/00-README|W28 README]] — 上上上周,4 个 UE5.8 重头戏
+- [[Routine/02-源码分析库/00-README|02-引擎源码分析库 根 README]] — 全库索引
+- [[Routine/02-源码分析库/Unreal-Engine/W30/00-README|W30 README]] — 上周,微观档(11/11/11 CVar)
+- [[Routine/02-源码分析库/Unreal-Engine/W29/00-README|W29 README]] — 上上周,4 主题(Lumen 微观 + 3 论文笔记)
+- [[Routine/02-源码分析库/Unreal-Engine/W28/00-README|W28 README]] — 上上上周,4 个 UE5.8 重头戏
 - [[../W27/00-README|W27 README]] — UE5.7 vs 5.8 + 缺漏使用指南 + GDC 笔记
 - [[../W26/00-README|W26 README]] — UE 5.4+ 渲染架构(Nanite / Lumen / MCP 高层)
 - [[../../../05-技术雷达/00-README|技术雷达]] — P0 雷达(待补 Lumen/Nanite/VSM 渲染三特性)

@@ -67,7 +67,7 @@ aliases: [W30 Mini-Index, W30 微观深挖]
 
 | 层级 | 笔记 | 视角 |
 |------|------|------|
-| 微观源码 | [[../W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] | 4 层 Atlas + 21 CVar |
+| 微观源码 | [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] | 4 层 Atlas + 21 CVar |
 
 ---
 
@@ -105,9 +105,9 @@ day-job = **RAG + Mac Game Harness,目标"提到 LLM 对 UE 特性的使用"**�
 
 ## 关联
 
-- [[../../00-README|02-引擎源码分析库 根 README]] — 全库索引
-- [[../W29/00-README|W29 README]] — 上周,4 主题（Lumen 微观 + 3 论文笔记）
-- [[../W28/00-README|W28 README]] — 上上周,4 个 UE5.8 重头戏
+- [[Routine/02-源码分析库/00-README|02-引擎源码分析库 根 README]] — 全库索引
+- [[Routine/02-源码分析库/Unreal-Engine/W29/00-README|W29 README]] — 上周,4 主题（Lumen 微观 + 3 论文笔记）
+- [[Routine/02-源码分析库/Unreal-Engine/W28/00-README|W28 README]] — 上上周,4 个 UE5.8 重头戏
 - [[../W26/UE5-Nanite-虚拟几何shader]] — W30 Nanite 的"高层"
 - [[../W26/UE5-ModelContextProtocol-调用链路]] — W30 MCP 的"高层"
 - [[../../../05-技术雷达/00-README|技术雷达]] — P0 雷达（待补 Lumen/Nanite/VSM 渲染三特性）

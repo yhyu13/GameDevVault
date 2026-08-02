@@ -12,7 +12,7 @@ aliases: [Lumen Surface Cache 显存, Lumen Atlas 带宽, Lumen 4 层 Atlas, Lum
 | **项目/场景** | UE5 室外大世界 (World Partition + HLOD + Far Field) / 室内多 Lumen Scene 视角 |
 | **平台** | PC (DXR) / PS5 / XSX / Mac (Metal 5.4+) |
 | **严重程度** | 严重 (大世界 4 层 Atlas 显存可达 200-400 MB; 带宽可吃掉 30-50% 显存子系统) |
-| **来源类型** | W29 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] + UE 5.8 源码 `LumenSurfaceCache.cpp` + UE 官方文档 + GDC 2024 Wihlidal |
+| **来源类型** | W29 源码分析 [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] + UE 5.8 源码 `LumenSurfaceCache.cpp` + UE 官方文档 + GDC 2024 Wihlidal |
 
 > **声明**: 本瓶颈案例**只整理 W29 源码分析的 21 CVar + 4 层 Atlas 像素格式 + PageAllocator 设计 + 公开 UE 官方文档**, **不主张"自己项目占用 X MB"** — 必须在自己的目标场景下用 `ProfileGPU` + `r.LumenScene.SurfaceCache.*` CVar 复测。
 
@@ -22,7 +22,7 @@ aliases: [Lumen Surface Cache 显存, Lumen Atlas 带宽, Lumen 4 层 Atlas, Lum
 
 | 来源 | 类型 | 关键事实 |
 |------|------|----------|
-| W29 源码分析 [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] | [D] 源码笔记 | 21 CVar 映射; 4 层 Atlas (Albedo/BC7 + Normal/BC5 + Depth/G16 + Emissive/BC6H); 128×128 physical page + 8×8 sub-alloc; 6 方向 OBB Card; 9 级 Mip; `CardPageLastUsedBuffer` 反馈 |
+| W29 源码分析 [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] | [D] 源码笔记 | 21 CVar 映射; 4 层 Atlas (Albedo/BC7 + Normal/BC5 + Depth/G16 + Emissive/BC6H); 128×128 physical page + 8×8 sub-alloc; 6 方向 OBB Card; 9 级 Mip; `CardPageLastUsedBuffer` 反馈 |
 | UE 5.8 源码 `Engine/Source/Runtime/Renderer/Private/Lumen/LumenSurfaceCache.cpp:90-112` | [D] 源码 | 4 层 Atlas 像素格式配置; 物理 page = 128×128; sub-alloc 粒度 8×8 |
 | UE 5.8 源码 `Lumen.h:42-55` | [D] 源码 | `PhysicalPageSize=128` / `MinResLevel=3` / `MaxResLevel=11` / `SubAllocationResLevel=7` / `MaxMipSizeInPages=16` / `NumResLevels=9` |
 | UE 官方 *Lumen Technical Details* | [D] 官方文档 | "Epic scalability level produces around 8 ms on next-gen consoles for GI + reflections" — 总预算 |
@@ -433,8 +433,8 @@ r.LumenScene.FarField.MaxtraceDistance=50000  ; 改 500m
 |------|------|------|
 | 理论 | [[../../../01-论文笔记库/Lumen/Lumen-SIGGRAPH-2021]] | SIGGRAPH 论文 |
 | 性能 | [[../知识参考/Lumen 性能调优]] | 官方文档背书 + CVar 总览 |
-| 源码 (宏观) | [[../../02-引擎源码分析库/Unreal-Engine/W26/UE5-Lumen-源码调用链]] | 4 Pass 入口 |
-| **源码 (微观)** | [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (W29 新增) | 21 CVar + 4 层 Atlas + 6 方向 OBB Card + 9 级 Mip |
+| 源码 (宏观) | [[UE5-Lumen-源码调用链]] | 4 Pass 入口 |
+| **源码 (微观)** | [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] (W29 新增) | 21 CVar + 4 层 Atlas + 6 方向 OBB Card + 9 级 Mip |
 | **瓶颈 (本文)** | **[[Lumen-SurfaceCache-显存与带宽-大世界场景]]** (W29 新增) | 大世界 4 层 Atlas 显存压力诊断 |
 
 ### 兄弟案例
@@ -458,7 +458,7 @@ r.LumenScene.FarField.MaxtraceDistance=50000  ; 改 500m
 *Verified: 否 (W29 源码分析 + UE 5.8 源码 + 公开 UE 官方文档, **未经本人 Profile 验证**)*
 *Source:*
 
-- **W29 源码分析**: [[../../02-引擎源码分析库/Unreal-Engine/W29/UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — 21 CVar 全部映射到 `LumenSceneRendering.cpp:行号` + 4 层 Atlas 像素格式 + PageAllocator 设计
+- **W29 源码分析**: [[UE5-Lumen-SurfaceCache-MeshCard-源码分析]] — 21 CVar 全部映射到 `LumenSceneRendering.cpp:行号` + 4 层 Atlas 像素格式 + PageAllocator 设计
 - **UE 5.8 源码**:
   - `Engine/Source/Runtime/Renderer/Private/Lumen/LumenSurfaceCache.cpp:90-112` — 4 层 Atlas 像素格式
   - `Engine/Source/Runtime/Renderer/Private/Lumen/Lumen.h:42-55` — 物理 page / mip / sub-alloc 常量
