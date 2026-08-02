@@ -1,3 +1,7 @@
+> ⚠️ **DEPRECATED — 2026-08-02.** This article plan describes the Phase 2 article ("背景" / Background) for the 108-record MCP-style SFT dataset. The data scale, data mix, and metric recommendations in this plan have been **superseded** by [`dataset_v2_plan.md`](dataset_v2_plan.md), which proposes an 8K-record mixed corpus (MCP + general UE5) with an LLM-judge correctness metric. The 108-record corpus produced a model that is *worse* on general-UE5 questions than its base, per [`self_benchmark_learnings.md`](self_benchmark_learnings.md). Keep this file for historical context only; do not implement against it.
+
+---
+
 # 文章大纲：UE5 MCP 数据集和微调（一）背景
 
 ## 核心主张

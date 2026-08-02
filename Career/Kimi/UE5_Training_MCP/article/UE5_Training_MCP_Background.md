@@ -1,3 +1,7 @@
+> ⚠️ **DEPRECATED — 2026-08-02.** This article is the Phase 2 background writeup describing the 108-record MCP-only SFT dataset and the "100–500 records → prune to 30%" approach. The headline claim ("微调 3B 小模型就能吊打面试官") is **partially falsified** by the Phase 2.5 head-to-head on the fresh general-UE5 test set: 108-record fine-tuning *hurts* 0.8B and 2B on general UE5 questions (see [`self_benchmark_learnings.md`](self_benchmark_learnings.md) §5.3 and [`kilo_verification/`](kilo_verification/)). The MCP-style gain on the in-domain test is real but is **style transfer, not knowledge transfer**. The replacement approach is in [`dataset_v2_plan.md`](dataset_v2_plan.md): an 8K-record mixed corpus with an LLM-judge correctness metric. Keep this article for historical context only; the headline claim no longer holds.
+
+---
+
 # 用 MCP 给 UE5 造了 10 万条训练数据后，我发现微调 3B 小模型就能吊打面试官
 
 > 写在前面：这不是一篇"AI 赋能游戏开发"的软文。这是我们团队实打实踩了三个月坑之后的硬核复盘——怎么用 **Model Context Protocol (MCP)** 让 Claude/GPT-4 自动给 UE5 生成训练数据，然后拿这些数据微调一个 3B 的小模型，最后让它在面试题上表现超过原始大模型。
