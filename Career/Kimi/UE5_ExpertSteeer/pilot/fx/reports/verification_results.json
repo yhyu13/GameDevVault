@@ -1,0 +1,695 @@
+{
+  "fx_01_niagara_config": [
+    {
+      "solution": "fail1_missing_lifetime_check",
+      "runs": [
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail1_missing_lifetime_check.py",
+          "l1": true,
+          "l2": false,
+          "l3_passed": 0,
+          "l3_total": 0,
+          "verdict": "FAIL",
+          "first_fail_layer": "L2",
+          "time_s": 0.0,
+          "l2_error": [
+            "missing_lifetime: 期望 valid=False 实际 True (errors=[])"
+          ]
+        },
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail1_missing_lifetime_check.py",
+          "l1": true,
+          "l2": false,
+          "l3_passed": 0,
+          "l3_total": 0,
+          "verdict": "FAIL",
+          "first_fail_layer": "L2",
+          "time_s": 0.0,
+          "l2_error": [
+            "missing_lifetime: 期望 valid=False 实际 True (errors=[])"
+          ]
+        },
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail1_missing_lifetime_check.py",
+          "l1": true,
+          "l2": false,
+          "l3_passed": 0,
+          "l3_total": 0,
+          "verdict": "FAIL",
+          "first_fail_layer": "L2",
+          "time_s": 0.0,
+          "l2_error": [
+            "missing_lifetime: 期望 valid=False 实际 True (errors=[])"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L2",
+      "time_min_s": 0.0,
+      "time_median_s": 0.0,
+      "time_max_s": 0.0
+    },
+    {
+      "solution": "fail2_no_range_budget_checks",
+      "runs": [
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail2_no_range_budget_checks.py",
+          "l1": true,
+          "l2": false,
+          "l3_passed": 0,
+          "l3_total": 0,
+          "verdict": "FAIL",
+          "first_fail_layer": "L2",
+          "time_s": 0.0,
+          "l2_error": [
+            "negative_rate: 期望 valid=False 实际 True (errors=[])",
+            "budget_overflow: 期望 valid=False 实际 True (errors=[])"
+          ]
+        },
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail2_no_range_budget_checks.py",
+          "l1": true,
+          "l2": false,
+          "l3_passed": 0,
+          "l3_total": 0,
+          "verdict": "FAIL",
+          "first_fail_layer": "L2",
+          "time_s": 0.0,
+          "l2_error": [
+            "negative_rate: 期望 valid=False 实际 True (errors=[])",
+            "budget_overflow: 期望 valid=False 实际 True (errors=[])"
+          ]
+        },
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail2_no_range_budget_checks.py",
+          "l1": true,
+          "l2": false,
+          "l3_passed": 0,
+          "l3_total": 0,
+          "verdict": "FAIL",
+          "first_fail_layer": "L2",
+          "time_s": 0.0,
+          "l2_error": [
+            "negative_rate: 期望 valid=False 实际 True (errors=[])",
+            "budget_overflow: 期望 valid=False 实际 True (errors=[])"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L2",
+      "time_min_s": 0.0,
+      "time_median_s": 0.0,
+      "time_max_s": 0.0
+    },
+    {
+      "solution": "fail3_int_truncation",
+      "runs": [
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail3_int_truncation.py",
+          "l1": true,
+          "l2": true,
+          "l3_passed": 4,
+          "l3_total": 7,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0002999999560415745,
+          "l3_error": [
+            "compute(150.5,2.3,128): 期望 (346.15, 44307.2) 实际 (346.0, 44288.0)",
+            "validate(rate=150.5,lifetime=2.3) 峰值: 期望 346.15 实际 346.0",
+            "validate(rate=150.5,lifetime=2.3) 内存: 期望 44307.2 实际 44288.0"
+          ]
+        },
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail3_int_truncation.py",
+          "l1": true,
+          "l2": true,
+          "l3_passed": 4,
+          "l3_total": 7,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00025379995349794626,
+          "l3_error": [
+            "compute(150.5,2.3,128): 期望 (346.15, 44307.2) 实际 (346.0, 44288.0)",
+            "validate(rate=150.5,lifetime=2.3) 峰值: 期望 346.15 实际 346.0",
+            "validate(rate=150.5,lifetime=2.3) 内存: 期望 44307.2 实际 44288.0"
+          ]
+        },
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "fail3_int_truncation.py",
+          "l1": true,
+          "l2": true,
+          "l3_passed": 4,
+          "l3_total": 7,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00026160001289099455,
+          "l3_error": [
+            "compute(150.5,2.3,128): 期望 (346.15, 44307.2) 实际 (346.0, 44288.0)",
+            "validate(rate=150.5,lifetime=2.3) 峰值: 期望 346.15 实际 346.0",
+            "validate(rate=150.5,lifetime=2.3) 内存: 期望 44307.2 实际 44288.0"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00025379995349794626,
+      "time_median_s": 0.00026160001289099455,
+      "time_max_s": 0.0002999999560415745
+    },
+    {
+      "solution": "golden",
+      "runs": [
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": true,
+          "l3_passed": 7,
+          "l3_total": 7,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00026080000679939985
+        },
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": true,
+          "l3_passed": 7,
+          "l3_total": 7,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.0002615000121295452
+        },
+        {
+          "task": "fx_01_niagara_config",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": true,
+          "l3_passed": 7,
+          "l3_total": 7,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.0002473000204190612
+        }
+      ],
+      "verdict": "PASS",
+      "verdict_stable": true,
+      "first_fail_layer": null,
+      "time_min_s": 0.0002473000204190612,
+      "time_median_s": 0.00026080000679939985,
+      "time_max_s": 0.0002615000121295452
+    }
+  ],
+  "fx_02_curl_noise3d": [
+    {
+      "solution": "fail1_sign_error",
+      "runs": [
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail1_sign_error.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 0,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0004000000189989805,
+          "l3_error": [
+            "p=(0.3,0.7,0.2) t=0.0: 分量[0] 期望 0.52214113 实际 0.69424353",
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 -11.45919932",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -2.82082153",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 -13.14251611",
+            "divergence 非零: p=(0.5, 0.5, 0.5) t=1.0 div=-188.2625 (|div|<=1e-02)",
+            "divergence 非零: p=(1.7, -0.9, 0.3) t=0.3 div=2.7725 (|div|<=1e-02)"
+          ]
+        },
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail1_sign_error.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 0,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00043080002069473267,
+          "l3_error": [
+            "p=(0.3,0.7,0.2) t=0.0: 分量[0] 期望 0.52214113 实际 0.69424353",
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 -11.45919932",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -2.82082153",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 -13.14251611",
+            "divergence 非零: p=(0.5, 0.5, 0.5) t=1.0 div=-188.2625 (|div|<=1e-02)",
+            "divergence 非零: p=(1.7, -0.9, 0.3) t=0.3 div=2.7725 (|div|<=1e-02)"
+          ]
+        },
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail1_sign_error.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 0,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0004434000002220273,
+          "l3_error": [
+            "p=(0.3,0.7,0.2) t=0.0: 分量[0] 期望 0.52214113 实际 0.69424353",
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 -11.45919932",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -2.82082153",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 -13.14251611",
+            "divergence 非零: p=(0.5, 0.5, 0.5) t=1.0 div=-188.2625 (|div|<=1e-02)",
+            "divergence 非零: p=(1.7, -0.9, 0.3) t=0.3 div=2.7725 (|div|<=1e-02)"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.0004000000189989805,
+      "time_median_s": 0.00043080002069473267,
+      "time_max_s": 0.0004434000002220273
+    },
+    {
+      "solution": "fail2_frozen_time",
+      "runs": [
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail2_frozen_time.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 3,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00042529997881501913,
+          "l3_error": [
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 -16.54438692",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -4.38618052",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 4.33469423"
+          ]
+        },
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail2_frozen_time.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 3,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0003955001011490822,
+          "l3_error": [
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 -16.54438692",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -4.38618052",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 4.33469423"
+          ]
+        },
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail2_frozen_time.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 3,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00047690002247691154,
+          "l3_error": [
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 -16.54438692",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -4.38618052",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 4.33469423"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.0003955001011490822,
+      "time_median_s": 0.00042529997881501913,
+      "time_max_s": 0.00047690002247691154
+    },
+    {
+      "solution": "fail3_no_amplitude_falloff",
+      "runs": [
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail3_no_amplitude_falloff.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00038029998540878296,
+          "l3_error": [
+            "p=(0.3,0.7,0.2) t=0.0: 分量[0] 期望 0.52214113 实际 -2.05060193",
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 11.23857075",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -1.39258750",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 21.64991698"
+          ]
+        },
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail3_no_amplitude_falloff.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.027641799999400973,
+          "l3_error": [
+            "p=(0.3,0.7,0.2) t=0.0: 分量[0] 期望 0.52214113 实际 -2.05060193",
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 11.23857075",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -1.39258750",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 21.64991698"
+          ]
+        },
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "fail3_no_amplitude_falloff.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 6,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.06436600000597537,
+          "l3_error": [
+            "p=(0.3,0.7,0.2) t=0.0: 分量[0] 期望 0.52214113 实际 -2.05060193",
+            "p=(1.1,-0.4,0.9) t=2.0: 分量[0] 期望 2.20675051 实际 11.23857075",
+            "p=(0,0,0) t=0.5: 分量[0] 期望 -2.08167219 实际 -1.39258750",
+            "p=(3.7,2.9,-1.8) t=-1.25: 分量[0] 期望 6.43577224 实际 21.64991698"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00038029998540878296,
+      "time_median_s": 0.027641799999400973,
+      "time_max_s": 0.06436600000597537
+    },
+    {
+      "solution": "golden",
+      "runs": [
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 6,
+          "l3_total": 6,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.0005055000074207783
+        },
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 6,
+          "l3_total": 6,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.000430600019171834
+        },
+        {
+          "task": "fx_02_curl_noise3d",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 6,
+          "l3_total": 6,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.0004611000185832381
+        }
+      ],
+      "verdict": "PASS",
+      "verdict_stable": true,
+      "first_fail_layer": null,
+      "time_min_s": 0.000430600019171834,
+      "time_median_s": 0.0004611000185832381,
+      "time_max_s": 0.0005055000074207783
+    }
+  ],
+  "fx_03_flipbook_uv": [
+    {
+      "solution": "fail1_row_col_swapped",
+      "runs": [
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail1_row_col_swapped.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 7,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00021119997836649418,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 1)",
+            "row1首列 wrap: args=(4, 4, 2, True) 期望 (0, 1) 实际 (2, 0)",
+            "回卷+1 wrap: args=(9, 4, 2, True) 期望 (1, 0) 实际 (0, 1)",
+            "非方形网格: args=(5, 3, 4, False) 期望 (2, 1) 实际 (1, 1)",
+            "非方形网格 rect: 分量[0] 期望 0.666667 实际 0.333333"
+          ]
+        },
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail1_row_col_swapped.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 7,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00022200006060302258,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 1)",
+            "row1首列 wrap: args=(4, 4, 2, True) 期望 (0, 1) 实际 (2, 0)",
+            "回卷+1 wrap: args=(9, 4, 2, True) 期望 (1, 0) 实际 (0, 1)",
+            "非方形网格: args=(5, 3, 4, False) 期望 (2, 1) 实际 (1, 1)",
+            "非方形网格 rect: 分量[0] 期望 0.666667 实际 0.333333"
+          ]
+        },
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail1_row_col_swapped.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 7,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0002636999124661088,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 1)",
+            "row1首列 wrap: args=(4, 4, 2, True) 期望 (0, 1) 实际 (2, 0)",
+            "回卷+1 wrap: args=(9, 4, 2, True) 期望 (1, 0) 实际 (0, 1)",
+            "非方形网格: args=(5, 3, 4, False) 期望 (2, 1) 实际 (1, 1)",
+            "非方形网格 rect: 分量[0] 期望 0.666667 实际 0.333333"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00021119997836649418,
+      "time_median_s": 0.00022200006060302258,
+      "time_max_s": 0.0002636999124661088
+    },
+    {
+      "solution": "fail2_wrap_modulo_rows",
+      "runs": [
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail2_wrap_modulo_rows.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 8,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00022849999368190765,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 0)",
+            "row1首列 wrap: args=(4, 4, 2, True) 期望 (0, 1) 实际 (0, 0)",
+            "末帧 wrap: args=(7, 4, 2, True) 期望 (3, 1) 实际 (1, 0)",
+            "wrap 末帧 rect: 分量[0] 期望 0.666667 实际 0.000000"
+          ]
+        },
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail2_wrap_modulo_rows.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 8,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.000287500093691051,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 0)",
+            "row1首列 wrap: args=(4, 4, 2, True) 期望 (0, 1) 实际 (0, 0)",
+            "末帧 wrap: args=(7, 4, 2, True) 期望 (3, 1) 实际 (1, 0)",
+            "wrap 末帧 rect: 分量[0] 期望 0.666667 实际 0.000000"
+          ]
+        },
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail2_wrap_modulo_rows.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 8,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00023520004469901323,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 0)",
+            "row1首列 wrap: args=(4, 4, 2, True) 期望 (0, 1) 实际 (0, 0)",
+            "末帧 wrap: args=(7, 4, 2, True) 期望 (3, 1) 实际 (1, 0)",
+            "wrap 末帧 rect: 分量[0] 期望 0.666667 实际 0.000000"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00022849999368190765,
+      "time_median_s": 0.00023520004469901323,
+      "time_max_s": 0.000287500093691051
+    },
+    {
+      "solution": "fail3_ceil_and_clamp_bug",
+      "runs": [
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail3_ceil_and_clamp_bug.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 5,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00029550003819167614,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 0)",
+            "末帧 wrap: args=(7, 4, 2, True) 期望 (3, 1) 实际 (1, 1)",
+            "越界1帧 clamp: args=(8, 4, 2, False) 期望 (3, 1) 实际 (0, 2)",
+            "大幅越界 clamp: args=(100, 4, 2, False) 期望 (3, 1) 实际 (0, 2)",
+            "非方形网格: args=(5, 3, 4, False) 期望 (2, 1) 实际 (1, 1)",
+            "非方形网格 rect: 分量[0] 期望 0.666667 实际 0.333333",
+            "wrap 末帧 rect: 分量[0] 期望 0.666667 实际 0.333333"
+          ]
+        },
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail3_ceil_and_clamp_bug.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 5,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.01614500000141561,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 0)",
+            "末帧 wrap: args=(7, 4, 2, True) 期望 (3, 1) 实际 (1, 1)",
+            "越界1帧 clamp: args=(8, 4, 2, False) 期望 (3, 1) 实际 (0, 2)",
+            "大幅越界 clamp: args=(100, 4, 2, False) 期望 (3, 1) 实际 (0, 2)",
+            "非方形网格: args=(5, 3, 4, False) 期望 (2, 1) 实际 (1, 1)",
+            "非方形网格 rect: 分量[0] 期望 0.666667 实际 0.333333",
+            "wrap 末帧 rect: 分量[0] 期望 0.666667 实际 0.333333"
+          ]
+        },
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "fail3_ceil_and_clamp_bug.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 5,
+          "l3_total": 12,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00028879998717457056,
+          "l3_error": [
+            "row0末列 wrap: args=(3, 4, 2, True) 期望 (3, 0) 实际 (1, 0)",
+            "末帧 wrap: args=(7, 4, 2, True) 期望 (3, 1) 实际 (1, 1)",
+            "越界1帧 clamp: args=(8, 4, 2, False) 期望 (3, 1) 实际 (0, 2)",
+            "大幅越界 clamp: args=(100, 4, 2, False) 期望 (3, 1) 实际 (0, 2)",
+            "非方形网格: args=(5, 3, 4, False) 期望 (2, 1) 实际 (1, 1)",
+            "非方形网格 rect: 分量[0] 期望 0.666667 实际 0.333333",
+            "wrap 末帧 rect: 分量[0] 期望 0.666667 实际 0.333333"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00028879998717457056,
+      "time_median_s": 0.00029550003819167614,
+      "time_max_s": 0.01614500000141561
+    },
+    {
+      "solution": "golden",
+      "runs": [
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 12,
+          "l3_total": 12,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.0003163999645039439
+        },
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 12,
+          "l3_total": 12,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.0012453999370336533
+        },
+        {
+          "task": "fx_03_flipbook_uv",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 12,
+          "l3_total": 12,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00022149994038045406
+        }
+      ],
+      "verdict": "PASS",
+      "verdict_stable": true,
+      "first_fail_layer": null,
+      "time_min_s": 0.00022149994038045406,
+      "time_median_s": 0.0003163999645039439,
+      "time_max_s": 0.0012453999370336533
+    }
+  ]
+}

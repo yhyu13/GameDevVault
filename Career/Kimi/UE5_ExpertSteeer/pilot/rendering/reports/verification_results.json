@@ -1,0 +1,694 @@
+{
+  "rendering_01_frustum_cull": [
+    {
+      "solution": "fail1_plane_normal_sign",
+      "runs": [
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail1_plane_normal_sign.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.001963400049135089,
+          "l3_error": [
+            "canonical 平面系数偏差 > 1e-4",
+            "rotated 平面系数偏差 > 1e-4",
+            "canonical (0,2,0): 期望 True 实际 False",
+            "canonical (0,50,0): 期望 True 实际 False",
+            "canonical (2.6,2,0) 右内: 期望 True 实际 False",
+            "canonical (0,2,1.5) 上内: 期望 True 实际 False",
+            "canonical (0,5,4.5) 上内: 期望 True 实际 False",
+            "rotated (2,-1,-5) 内: 期望 True 实际 False",
+            "rotated (2,-1,-39.4) far 内: 期望 True 实际 False",
+            "rotated (2,-4,-5) 内: 期望 True 实际 False",
+            "球心右外 r=0.5 相交: 期望 True 实际 False",
+            "球心 near 前 r=0.6 相交: 期望 True 实际 False",
+            "大球 r=20 全相交: 期望 True 实际 False"
+          ]
+        },
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail1_plane_normal_sign.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00034920009784400463,
+          "l3_error": [
+            "canonical 平面系数偏差 > 1e-4",
+            "rotated 平面系数偏差 > 1e-4",
+            "canonical (0,2,0): 期望 True 实际 False",
+            "canonical (0,50,0): 期望 True 实际 False",
+            "canonical (2.6,2,0) 右内: 期望 True 实际 False",
+            "canonical (0,2,1.5) 上内: 期望 True 实际 False",
+            "canonical (0,5,4.5) 上内: 期望 True 实际 False",
+            "rotated (2,-1,-5) 内: 期望 True 实际 False",
+            "rotated (2,-1,-39.4) far 内: 期望 True 实际 False",
+            "rotated (2,-4,-5) 内: 期望 True 实际 False",
+            "球心右外 r=0.5 相交: 期望 True 实际 False",
+            "球心 near 前 r=0.6 相交: 期望 True 实际 False",
+            "大球 r=20 全相交: 期望 True 实际 False"
+          ]
+        },
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail1_plane_normal_sign.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0003127000527456403,
+          "l3_error": [
+            "canonical 平面系数偏差 > 1e-4",
+            "rotated 平面系数偏差 > 1e-4",
+            "canonical (0,2,0): 期望 True 实际 False",
+            "canonical (0,50,0): 期望 True 实际 False",
+            "canonical (2.6,2,0) 右内: 期望 True 实际 False",
+            "canonical (0,2,1.5) 上内: 期望 True 实际 False",
+            "canonical (0,5,4.5) 上内: 期望 True 实际 False",
+            "rotated (2,-1,-5) 内: 期望 True 实际 False",
+            "rotated (2,-1,-39.4) far 内: 期望 True 实际 False",
+            "rotated (2,-4,-5) 内: 期望 True 实际 False",
+            "球心右外 r=0.5 相交: 期望 True 实际 False",
+            "球心 near 前 r=0.6 相交: 期望 True 实际 False",
+            "大球 r=20 全相交: 期望 True 实际 False"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.0003127000527456403,
+      "time_median_s": 0.00034920009784400463,
+      "time_max_s": 0.001963400049135089
+    },
+    {
+      "solution": "fail2_near_plane_distance",
+      "runs": [
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail2_near_plane_distance.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 20,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0003206999972462654,
+          "l3_error": [
+            "canonical 平面系数偏差 > 1e-4",
+            "rotated 平面系数偏差 > 1e-4",
+            "rotated (2,-1,0.4) near 前: 期望 False 实际 True"
+          ]
+        },
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail2_near_plane_distance.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 20,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0004319000290706754,
+          "l3_error": [
+            "canonical 平面系数偏差 > 1e-4",
+            "rotated 平面系数偏差 > 1e-4",
+            "rotated (2,-1,0.4) near 前: 期望 False 实际 True"
+          ]
+        },
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail2_near_plane_distance.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 20,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00031770009081810713,
+          "l3_error": [
+            "canonical 平面系数偏差 > 1e-4",
+            "rotated 平面系数偏差 > 1e-4",
+            "rotated (2,-1,0.4) near 前: 期望 False 实际 True"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00031770009081810713,
+      "time_median_s": 0.0003206999972462654,
+      "time_max_s": 0.0004319000290706754
+    },
+    {
+      "solution": "fail3_ignore_sphere_radius",
+      "runs": [
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail3_ignore_sphere_radius.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 20,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00037079991307109594,
+          "l3_error": [
+            "球心右外 r=0.5 相交: 期望 True 实际 False",
+            "球心 near 前 r=0.6 相交: 期望 True 实际 False",
+            "大球 r=20 全相交: 期望 True 实际 False"
+          ]
+        },
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail3_ignore_sphere_radius.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 20,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00031379994470626116,
+          "l3_error": [
+            "球心右外 r=0.5 相交: 期望 True 实际 False",
+            "球心 near 前 r=0.6 相交: 期望 True 实际 False",
+            "大球 r=20 全相交: 期望 True 实际 False"
+          ]
+        },
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "fail3_ignore_sphere_radius.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 20,
+          "l3_total": 23,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00033850001636892557,
+          "l3_error": [
+            "球心右外 r=0.5 相交: 期望 True 实际 False",
+            "球心 near 前 r=0.6 相交: 期望 True 实际 False",
+            "大球 r=20 全相交: 期望 True 实际 False"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00031379994470626116,
+      "time_median_s": 0.00033850001636892557,
+      "time_max_s": 0.00037079991307109594
+    },
+    {
+      "solution": "golden",
+      "runs": [
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 23,
+          "l3_total": 23,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00032860005740076303
+        },
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 23,
+          "l3_total": 23,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00030890002381056547
+        },
+        {
+          "task": "rendering_01_frustum_cull",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 23,
+          "l3_total": 23,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00032940006349235773
+        }
+      ],
+      "verdict": "PASS",
+      "verdict_stable": true,
+      "first_fail_layer": null,
+      "time_min_s": 0.00030890002381056547,
+      "time_median_s": 0.00032860005740076303,
+      "time_max_s": 0.00032940006349235773
+    }
+  ],
+  "rendering_02_lod_distance": [
+    {
+      "solution": "fail1_no_hysteresis",
+      "runs": [
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail1_no_hysteresis.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0002587999915704131,
+          "l3_error": [
+            "L0 0.46 迟滞带内停留: 期望 LOD0 实际 LOD1",
+            "L1 0.52 升级迟滞带内停留: 期望 LOD1 实际 LOD0",
+            "L1 0.19 降级迟滞带内停留: 期望 LOD1 实际 LOD2"
+          ]
+        },
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail1_no_hysteresis.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00022960000205785036,
+          "l3_error": [
+            "L0 0.46 迟滞带内停留: 期望 LOD0 实际 LOD1",
+            "L1 0.52 升级迟滞带内停留: 期望 LOD1 实际 LOD0",
+            "L1 0.19 降级迟滞带内停留: 期望 LOD1 实际 LOD2"
+          ]
+        },
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail1_no_hysteresis.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.013709899969398975,
+          "l3_error": [
+            "L0 0.46 迟滞带内停留: 期望 LOD0 实际 LOD1",
+            "L1 0.52 升级迟滞带内停留: 期望 LOD1 实际 LOD0",
+            "L1 0.19 降级迟滞带内停留: 期望 LOD1 实际 LOD2"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00022960000205785036,
+      "time_median_s": 0.0002587999915704131,
+      "time_max_s": 0.013709899969398975
+    },
+    {
+      "solution": "fail2_offbyone_threshold",
+      "runs": [
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail2_offbyone_threshold.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0002536000683903694,
+          "l3_error": [
+            "L0 0.4 降级: 期望 LOD1 实际 LOD0",
+            "L1 0.17 降级: 期望 LOD2 实际 LOD1",
+            "hyst=0 纯阈值 0.49: 期望 LOD1 实际 LOD0"
+          ]
+        },
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail2_offbyone_threshold.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0001903999364003539,
+          "l3_error": [
+            "L0 0.4 降级: 期望 LOD1 实际 LOD0",
+            "L1 0.17 降级: 期望 LOD2 实际 LOD1",
+            "hyst=0 纯阈值 0.49: 期望 LOD1 实际 LOD0"
+          ]
+        },
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail2_offbyone_threshold.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00023870007134974003,
+          "l3_error": [
+            "L0 0.4 降级: 期望 LOD1 实际 LOD0",
+            "L1 0.17 降级: 期望 LOD2 实际 LOD1",
+            "hyst=0 纯阈值 0.49: 期望 LOD1 实际 LOD0"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.0001903999364003539,
+      "time_median_s": 0.00023870007134974003,
+      "time_max_s": 0.0002536000683903694
+    },
+    {
+      "solution": "fail3_inverted_hysteresis",
+      "runs": [
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail3_inverted_hysteresis.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0002087999600917101,
+          "l3_error": [
+            "L0 0.46 迟滞带内停留: 期望 LOD0 实际 LOD1",
+            "L1 0.52 升级迟滞带内停留: 期望 LOD1 实际 LOD0",
+            "L1 0.19 降级迟滞带内停留: 期望 LOD1 实际 LOD2"
+          ]
+        },
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail3_inverted_hysteresis.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00019669998437166214,
+          "l3_error": [
+            "L0 0.46 迟滞带内停留: 期望 LOD0 实际 LOD1",
+            "L1 0.52 升级迟滞带内停留: 期望 LOD1 实际 LOD0",
+            "L1 0.19 降级迟滞带内停留: 期望 LOD1 实际 LOD2"
+          ]
+        },
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "fail3_inverted_hysteresis.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 10,
+          "l3_total": 13,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00019799999427050352,
+          "l3_error": [
+            "L0 0.46 迟滞带内停留: 期望 LOD0 实际 LOD1",
+            "L1 0.52 升级迟滞带内停留: 期望 LOD1 实际 LOD0",
+            "L1 0.19 降级迟滞带内停留: 期望 LOD1 实际 LOD2"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00019669998437166214,
+      "time_median_s": 0.00019799999427050352,
+      "time_max_s": 0.0002087999600917101
+    },
+    {
+      "solution": "golden",
+      "runs": [
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 13,
+          "l3_total": 13,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00018960004672408104
+        },
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 13,
+          "l3_total": 13,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00019430008251219988
+        },
+        {
+          "task": "rendering_02_lod_distance",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 13,
+          "l3_total": 13,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00018999993335455656
+        }
+      ],
+      "verdict": "PASS",
+      "verdict_stable": true,
+      "first_fail_layer": null,
+      "time_min_s": 0.00018960004672408104,
+      "time_median_s": 0.00018999993335455656,
+      "time_max_s": 0.00019430008251219988
+    }
+  ],
+  "rendering_03_linear_srgb": [
+    {
+      "solution": "fail1_double_gamma",
+      "runs": [
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail1_double_gamma.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00026430003345012665,
+          "l3_error": [
+            "0.5/0.1/0.25: 通道[0] 期望 0.73535698 实际 0.87316827 (|diff|<=1e-04)",
+            "暗部 0.001/0.0/阈值 0.0031308: 通道[0] 期望 0.01292000 实际 0.11729731 (|diff|<=1e-04)"
+          ]
+        },
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail1_double_gamma.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.000224500079639256,
+          "l3_error": [
+            "0.5/0.1/0.25: 通道[0] 期望 0.73535698 实际 0.87316827 (|diff|<=1e-04)",
+            "暗部 0.001/0.0/阈值 0.0031308: 通道[0] 期望 0.01292000 实际 0.11729731 (|diff|<=1e-04)"
+          ]
+        },
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail1_double_gamma.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00021600001491606236,
+          "l3_error": [
+            "0.5/0.1/0.25: 通道[0] 期望 0.73535698 实际 0.87316827 (|diff|<=1e-04)",
+            "暗部 0.001/0.0/阈值 0.0031308: 通道[0] 期望 0.01292000 实际 0.11729731 (|diff|<=1e-04)"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00021600001491606236,
+      "time_median_s": 0.000224500079639256,
+      "time_max_s": 0.00026430003345012665
+    },
+    {
+      "solution": "fail2_wrong_exponent",
+      "runs": [
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail2_wrong_exponent.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 3,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00022460008040070534,
+          "l3_error": [
+            "0.5/0.1/0.25: 通道[0] 期望 0.73535698 实际 0.71487576 (|diff|<=1e-04)"
+          ]
+        },
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail2_wrong_exponent.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 3,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00021159998141229153,
+          "l3_error": [
+            "0.5/0.1/0.25: 通道[0] 期望 0.73535698 实际 0.71487576 (|diff|<=1e-04)"
+          ]
+        },
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail2_wrong_exponent.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 3,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00026109989266842604,
+          "l3_error": [
+            "0.5/0.1/0.25: 通道[0] 期望 0.73535698 实际 0.71487576 (|diff|<=1e-04)"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00021159998141229153,
+      "time_median_s": 0.00022460008040070534,
+      "time_max_s": 0.00026109989266842604
+    },
+    {
+      "solution": "fail3_no_linear_segment",
+      "runs": [
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail3_no_linear_segment.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.000229199999012053,
+          "l3_error": [
+            "暗部 0.001/0.0/阈值 0.0031308: 通道[0] 期望 0.01292000 实际 0.00432701 (|diff|<=1e-04)",
+            "越界 Clamp 1.7/-0.3/0.0: 通道[1] 期望 0.00000000 实际 -0.05500000 (|diff|<=1e-04)"
+          ]
+        },
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail3_no_linear_segment.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.0002532999496906996,
+          "l3_error": [
+            "暗部 0.001/0.0/阈值 0.0031308: 通道[0] 期望 0.01292000 实际 0.00432701 (|diff|<=1e-04)",
+            "越界 Clamp 1.7/-0.3/0.0: 通道[1] 期望 0.00000000 实际 -0.05500000 (|diff|<=1e-04)"
+          ]
+        },
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "fail3_no_linear_segment.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 2,
+          "l3_total": 4,
+          "verdict": "FAIL",
+          "first_fail_layer": "L3",
+          "time_s": 0.00020589993800967932,
+          "l3_error": [
+            "暗部 0.001/0.0/阈值 0.0031308: 通道[0] 期望 0.01292000 实际 0.00432701 (|diff|<=1e-04)",
+            "越界 Clamp 1.7/-0.3/0.0: 通道[1] 期望 0.00000000 实际 -0.05500000 (|diff|<=1e-04)"
+          ]
+        }
+      ],
+      "verdict": "FAIL",
+      "verdict_stable": true,
+      "first_fail_layer": "L3",
+      "time_min_s": 0.00020589993800967932,
+      "time_median_s": 0.000229199999012053,
+      "time_max_s": 0.0002532999496906996
+    },
+    {
+      "solution": "golden",
+      "runs": [
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 4,
+          "l3_total": 4,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00021060009021311998
+        },
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 4,
+          "l3_total": 4,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.00020849995780736208
+        },
+        {
+          "task": "rendering_03_linear_srgb",
+          "solution": "golden.py",
+          "l1": true,
+          "l2": null,
+          "l3_passed": 4,
+          "l3_total": 4,
+          "verdict": "PASS",
+          "first_fail_layer": null,
+          "time_s": 0.0002359999343752861
+        }
+      ],
+      "verdict": "PASS",
+      "verdict_stable": true,
+      "first_fail_layer": null,
+      "time_min_s": 0.00020849995780736208,
+      "time_median_s": 0.00021060009021311998,
+      "time_max_s": 0.0002359999343752861
+    }
+  ],
+  "_meta": {
+    "repeats": 3,
+    "wall_clock_s": 4.632298000040464,
+    "python": "3.13.12"
+  }
+}

@@ -1,0 +1,788 @@
+{
+ "physics_01_impulse/phys_01": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_01",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv_mass = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel_n / inv_mass\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_02": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_02",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    \"\"\"两球碰撞冲量解算。单位：cm/s、kg；分离不施加冲量；不修改输入。\"\"\"\n    v_rel = v_a - v_b\n    vrel_n = v_rel.Dot(normal)\n    if vrel_n >= 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    j = -(1.0 + restitution) * vrel_n / (1.0 / m_a + 1.0 / m_b)\n    va2 = v_a + normal * (j / m_a)\n    vb2 = v_b - normal * (j / m_b)\n    return va2, vb2\n"
+ },
+ "physics_01_impulse/phys_03": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_03",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return v_a + FVector(), v_b + FVector()\n    inv = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel_n / inv\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_04": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_04",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    if (v_a - v_b).Dot(normal) > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv_mass_sum = 1.0 / m_a + 1.0 / m_b\n    impulse = -(1.0 + restitution) * (v_a - v_b).Dot(normal) / inv_mass_sum\n    return v_a + normal * (impulse / m_a), v_b - normal * (impulse / m_b)\n"
+ },
+ "physics_01_impulse/phys_05": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_05",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    \"\"\"冲量解算：仅在接近时施加。返回新速度，输入只读。\"\"\"\n    vrel = v_a - v_b\n    vn = vrel.Dot(normal)\n    if vn > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    mass_term = (1.0 / m_a) + (1.0 / m_b)\n    j = -(1.0 + restitution) * vn / mass_term\n    new_a = v_a + normal * (j / m_a)\n    new_b = v_b - normal * (j / m_b)\n    return new_a, new_b\n"
+ },
+ "physics_01_impulse/phys_06": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_06",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    rel_vel = v_a - v_b\n    if rel_vel.Dot(normal) < 0.0:\n        j = -(1.0 + restitution) * rel_vel.Dot(normal) / (1.0 / m_a + 1.0 / m_b)\n        return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n    return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n"
+ },
+ "physics_01_impulse/phys_07": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_07",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return v_a + FVector(0, 0, 0), v_b + FVector(0, 0, 0)\n    inv_m = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel_n / inv_m\n    va = v_a + normal * (j / m_a)\n    vb = v_b - normal * (j / m_b)\n    return va, vb\n"
+ },
+ "physics_01_impulse/phys_08": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_08",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    \"\"\"两球碰撞：标准冲量公式 + 分离守卫 + 不修改输入。\"\"\"\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    j = -(1.0 + restitution) * vrel_n / (1.0 / m_a + 1.0 / m_b)\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_09": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_09",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    if vrel_n if False else ((v_a - v_b).Dot(normal)) > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    j = -(1.0 + restitution) * (v_a - v_b).Dot(normal) / (1.0 / m_a + 1.0 / m_b)\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_10": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_10",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv_mass = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel_n / inv_mass\n    v_a_new = v_a + normal * (j / m_a)\n    v_b_new = v_b - normal * (j / m_b)\n    return v_a_new, v_b_new\n"
+ },
+ "physics_01_impulse/phys_11": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_11",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vn=(v_a-v_b).Dot(normal)\n    if vn>0:\n        return FVector(v_a.x,v_a.y,v_a.z),FVector(v_b.x,v_b.y,v_b.z)\n    j=-(1+restitution)*vn/(1/m_a+1/m_b)\n    return v_a+normal*(j/m_a),v_b-normal*(j/m_b)\n"
+ },
+ "physics_01_impulse/phys_12": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_12",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vn = (v_a - v_b).Dot(normal)\n    if vn > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vn / inv\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_13": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_13",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vn = (v_a - v_b).Dot(normal)\n    if vn > 0.0:\n        return v_a + FVector(0,0,0), v_b + FVector(0,0,0)\n    j = -(1.0 + restitution) * vn / (1.0 / m_a + 1.0 / m_b)\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_14": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_14",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vn = (v_a - v_b).Dot(normal)\n    if vn > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv_mass = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vn / inv_mass\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_15": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 7,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_15",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vn = (v_a - v_b).Dot(normal)\n    if vn > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    j = -(1.0 + restitution) * vn / (1.0 / m_a + 1.0 / m_b)\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_16": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 6,
+  "l3_failed": 1,
+  "l3_failures": [
+   {
+    "test": 5,
+    "note": "分离情形：不施加冲量",
+    "why": "期望 (FVector(100.0, 0.0, 0.0), FVector(-100.0, 0.0, 0.0)) 实际 (FVector(-90.0, 0.0, 0.0), FVector(90.0, 0.0, 0.0))"
+   }
+  ],
+  "name": "phys_16",
+  "tier": "buggy_subtle",
+  "judge_score": 3.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    inv_mass = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel_n / inv_mass\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_17": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 5,
+  "l3_failed": 2,
+  "l3_failures": [
+   {
+    "test": 3,
+    "note": "质量悬殊：约化质量主导",
+    "why": "期望 (FVector(49.85014985014985, 0.0, 0.0), FVector(-0.14985014985014986, 0.0, 0.0)) 实际 (FVector(-25.0, 0.0, 0.0), FVector(-0.075, 0.0, 0.0))"
+   },
+   {
+    "test": 4,
+    "note": "斜碰：切向速度保持",
+    "why": "期望 (FVector(-34.7, 65.3, 0.0), FVector(-0.2, 9.8, 0.0)) 实际 (FVector(-37.25, 62.75, 0.0), FVector(1.5000000000000018, 11.500000000000002, 0.0))"
+   }
+  ],
+  "name": "phys_17",
+  "tier": "buggy_subtle",
+  "judge_score": 3.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    reduced = min(m_a, m_b)\n    j = -(1.0 + restitution) * vrel_n / (1.0 / reduced + 1.0 / reduced)\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_18": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 6,
+  "l3_failed": 1,
+  "l3_failures": [
+   {
+    "test": 7,
+    "note": "高速斜碰 1e5 cm/s（非整数法线分量）：float32 截断在此量级产生 >1e-4 误差",
+    "why": "期望 (FVector(50000.0, 50000.0, 0.0), FVector(-50000.0, -50000.0, 0.0)) 实际 (FVector(49999.99609375, 49999.99609375, 0.0), FVector(-49999.99609375, -49999.99609375, 0.0))"
+   }
+  ],
+  "name": "phys_18",
+  "tier": "buggy_subtle",
+  "judge_score": 3.5,
+  "source": "\nimport struct\nfrom fvector_stub import FVector\n\ndef _f32(x):\n    return struct.unpack('f', struct.pack('f', x))[0]\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = _f32((v_a - v_b).Dot(normal))\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv_mass = _f32(1.0 / m_a + 1.0 / m_b)\n    j = _f32(-(1.0 + restitution) * vrel_n / inv_mass)\n    va = FVector(_f32(v_a.x + normal.x * (j / m_a)),\n                 _f32(v_a.y + normal.y * (j / m_a)),\n                 _f32(v_a.z + normal.z * (j / m_a)))\n    vb = FVector(_f32(v_b.x - normal.x * (j / m_b)),\n                 _f32(v_b.y - normal.y * (j / m_b)),\n                 _f32(v_b.z - normal.z * (j / m_b)))\n    return va, vb\n"
+ },
+ "physics_01_impulse/phys_19": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 2,
+  "l3_failed": 5,
+  "l3_failures": [
+   {
+    "test": 1,
+    "note": "e=1 弹性对撞：速度完全交换",
+    "why": "期望 (FVector(100.0, 0.0, 0.0), FVector(-100.0, 0.0, 0.0)) 实际 (FVector(-300.0, 0.0, 0.0), FVector(300.0, 0.0, 0.0))"
+   },
+   {
+    "test": 2,
+    "note": "e=0 完全非弹性：黏在一起",
+    "why": "期望 (FVector(0.0, 0.0, 0.0), FVector(0.0, 0.0, 0.0)) 实际 (FVector(-200.0, 0.0, 0.0), FVector(200.0, 0.0, 0.0))"
+   },
+   {
+    "test": 3,
+    "note": "质量悬殊：约化质量主导",
+    "why": "期望 (FVector(49.85014985014985, 0.0, 0.0), FVector(-0.14985014985014986, 0.0, 0.0)) 实际 (FVector(-249.85014985014988, 0.0, 0.0), FVector(0.14985014985014988, 0.0, 0.0))"
+   },
+   {
+    "test": 4,
+    "note": "斜碰：切向速度保持",
+    "why": "期望 (FVector(-34.7, 65.3, 0.0), FVector(-0.2, 9.8, 0.0)) 实际 (FVector(-65.3, 34.7, 0.0), FVector(20.199999999999996, 30.199999999999996, 0.0))"
+   },
+   {
+    "test": 7,
+    "note": "高速斜碰 1e5 cm/s（非整数法线分量）：float32 截断在此量级产生 >1e-4 误差",
+    "why": "期望 (FVector(50000.0, 50000.0, 0.0), FVector(-50000.0, -50000.0, 0.0)) 实际 (FVector(-249999.99999999997, -249999.99999999997, 0.0), FVector(249999.99999999997, 249999.99999999997, 0.0))"
+   }
+  ],
+  "name": "phys_19",
+  "tier": "buggy_subtle",
+  "judge_score": 3.5,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv_mass = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel_n / inv_mass\n    return v_a - normal * (j / m_a), v_b + normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_20": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 2,
+  "l3_failed": 5,
+  "l3_failures": [
+   {
+    "test": 1,
+    "note": "e=1 弹性对撞：速度完全交换",
+    "why": "期望 (FVector(100.0, 0.0, 0.0), FVector(-100.0, 0.0, 0.0)) 实际 (FVector(300.0, 0.0, 0.0), FVector(-300.0, 0.0, 0.0))"
+   },
+   {
+    "test": 2,
+    "note": "e=0 完全非弹性：黏在一起",
+    "why": "期望 (FVector(0.0, 0.0, 0.0), FVector(0.0, 0.0, 0.0)) 实际 (FVector(100.0, 0.0, 0.0), FVector(-100.0, 0.0, 0.0))"
+   },
+   {
+    "test": 3,
+    "note": "质量悬殊：约化质量主导",
+    "why": "期望 (FVector(49.85014985014985, 0.0, 0.0), FVector(-0.14985014985014986, 0.0, 0.0)) 实际 (FVector(50.0, 0.0, 0.0), FVector(-0.15, 0.0, 0.0))"
+   },
+   {
+    "test": 4,
+    "note": "斜碰：切向速度保持",
+    "why": "期望 (FVector(-34.7, 65.3, 0.0), FVector(-0.2, 9.8, 0.0)) 实际 (FVector(-37.25, 62.75, 0.0), FVector(1.5000000000000018, 11.500000000000002, 0.0))"
+   },
+   {
+    "test": 7,
+    "note": "高速斜碰 1e5 cm/s（非整数法线分量）：float32 截断在此量级产生 >1e-4 误差",
+    "why": "期望 (FVector(50000.0, 50000.0, 0.0), FVector(-50000.0, -50000.0, 0.0)) 实际 (FVector(199999.99999999994, 199999.99999999994, 0.0), FVector(-199999.99999999994, -199999.99999999994, 0.0))"
+   }
+  ],
+  "name": "phys_20",
+  "tier": "buggy_obvious",
+  "judge_score": 2.0,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    j = -(1.0 + restitution) * vrel_n\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_21": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 5,
+  "l3_failed": 2,
+  "l3_failures": [
+   {
+    "test": 3,
+    "note": "质量悬殊：约化质量主导",
+    "why": "期望 (FVector(49.85014985014985, 0.0, 0.0), FVector(-0.14985014985014986, 0.0, 0.0)) 实际 (FVector(-99.85014985014985, 0.0, 0.0), FVector(-0.00014985014985014985, 0.0, 0.0))"
+   },
+   {
+    "test": 4,
+    "note": "斜碰：切向速度保持",
+    "why": "期望 (FVector(-34.7, 65.3, 0.0), FVector(-0.2, 9.8, 0.0)) 实际 (FVector(-47.45, 52.55, 0.0), FVector(8.3, 18.3, 0.0))"
+   }
+  ],
+  "name": "phys_21",
+  "tier": "buggy_obvious",
+  "judge_score": 2.0,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    j = -(1.0 + restitution) * vrel_n / (m_a + m_b)\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_22": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 0,
+  "l3_failed": 7,
+  "l3_failures": [
+   {
+    "test": 1,
+    "note": "e=1 弹性对撞：速度完全交换",
+    "why": "期望 (FVector(100.0, 0.0, 0.0), FVector(-100.0, 0.0, 0.0)) 实际 (FVector(-300.0, 0.0, 0.0), FVector(300.0, 0.0, 0.0))"
+   },
+   {
+    "test": 2,
+    "note": "e=0 完全非弹性：黏在一起",
+    "why": "期望 (FVector(0.0, 0.0, 0.0), FVector(0.0, 0.0, 0.0)) 实际 (FVector(-200.0, 0.0, 0.0), FVector(200.0, 0.0, 0.0))"
+   },
+   {
+    "test": 3,
+    "note": "质量悬殊：约化质量主导",
+    "why": "期望 (FVector(49.85014985014985, 0.0, 0.0), FVector(-0.14985014985014986, 0.0, 0.0)) 实际 (FVector(-249.85014985014988, 0.0, 0.0), FVector(0.14985014985014988, 0.0, 0.0))"
+   },
+   {
+    "test": 4,
+    "note": "斜碰：切向速度保持",
+    "why": "期望 (FVector(-34.7, 65.3, 0.0), FVector(-0.2, 9.8, 0.0)) 实际 (FVector(-98.3828482005762, 1.6171517994238016, 0.0), FVector(42.25523213371746, 52.25523213371746, 0.0))"
+   },
+   {
+    "test": 5,
+    "note": "分离情形：不施加冲量",
+    "why": "期望 (FVector(100.0, 0.0, 0.0), FVector(-100.0, 0.0, 0.0)) 实际 (FVector(-90.0, 0.0, 0.0), FVector(90.0, 0.0, 0.0))"
+   },
+   {
+    "test": 6,
+    "note": "纯切向：法向分量为 0",
+    "why": "期望 (FVector(0.0, 50.0, 0.0), FVector(0.0, 0.0, 0.0)) 实际 (FVector(-37.5, 50.0, 0.0), FVector(37.5, 0.0, 0.0))"
+   },
+   {
+    "test": 7,
+    "note": "高速斜碰 1e5 cm/s（非整数法线分量）：float32 截断在此量级产生 >1e-4 误差",
+    "why": "期望 (FVector(50000.0, 50000.0, 0.0), FVector(-50000.0, -50000.0, 0.0)) 实际 (FVector(-250000.0, -250000.0, 0.0), FVector(250000.0, 250000.0, 0.0))"
+   }
+  ],
+  "name": "phys_22",
+  "tier": "buggy_obvious",
+  "judge_score": 2.0,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel = (v_a - v_b).Size()\n    inv_mass = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel / inv_mass\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_23": {
+  "l1_ok": false,
+  "l1_reasons": [
+   "禁用模式 'import random'"
+  ],
+  "l3_ok": null,
+  "l3_passed": 0,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_23",
+  "tier": "api_bad",
+  "judge_score": 1.0,
+  "source": "\nimport random\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv_mass = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel_n / inv_mass\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "physics_01_impulse/phys_24": {
+  "l1_ok": false,
+  "l1_reasons": [
+   "签名不匹配：期望参数 ['m_a', 'm_b', 'v_a', 'v_b', 'normal', 'restitution']，实际 ['m1', 'm2', 'v1', 'v2', 'n', 'e']"
+  ],
+  "l3_ok": null,
+  "l3_passed": 0,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_24",
+  "tier": "api_bad",
+  "judge_score": 1.0,
+  "source": "\nfrom fvector_stub import FVector\n\ndef resolve_impulse(m1, m2, v1, v2, n, e):\n    vrel_n = (v1 - v2).Dot(n)\n    if vrel_n > 0.0:\n        return FVector(v1.x, v1.y, v1.z), FVector(v2.x, v2.y, v2.z)\n    inv = 1.0 / m1 + 1.0 / m2\n    j = -(1.0 + e) * vrel_n / inv\n    return v1 + n * (j / m1), v2 - n * (j / m2)\n"
+ },
+ "physics_01_impulse/phys_25": {
+  "l1_ok": false,
+  "l1_reasons": [
+   "缺少可调用函数 resolve_impulse"
+  ],
+  "l3_ok": null,
+  "l3_passed": 0,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "phys_25",
+  "tier": "api_bad",
+  "judge_score": 1.0,
+  "source": "\nfrom fvector_stub import FVector\n\ndef solve_impulse(m_a, m_b, v_a, v_b, normal, restitution):\n    vrel_n = (v_a - v_b).Dot(normal)\n    if vrel_n > 0.0:\n        return FVector(v_a.x, v_a.y, v_a.z), FVector(v_b.x, v_b.y, v_b.z)\n    inv_mass = 1.0 / m_a + 1.0 / m_b\n    j = -(1.0 + restitution) * vrel_n / inv_mass\n    return v_a + normal * (j / m_a), v_b - normal * (j / m_b)\n"
+ },
+ "rendering_01_frustum_cull/rend_01": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_01",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\nTOL = 1e-9\n\ndef _norm(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    if s < TOL:\n        return (0.0, 0.0, 0.0)\n    return (v[0]/s, v[1]/s, v[2]/s)\n\ndef _dot(a, b):\n    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]\n\ndef _cross(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _norm(forward)\n    upv = _norm(up)\n    right = _norm(_cross(fwd, upv))\n    upv = _norm(_cross(right, fwd))\n    tan_half = math.tan(math.radians(fov_deg) * 0.5)\n    tan_h = tan_half * aspect\n    tan_v = tan_half\n    eye = (float(eye[0]), float(eye[1]), float(eye[2]))\n\n    def make_plane(n_vec, point_on_plane):\n        n = _norm(n_vec)\n        d = -_dot(n, point_on_plane)\n        return (n[0], n[1], n[2], d)\n\n    near_c = (eye[0]+fwd[0]*near_dist, eye[1]+fwd[1]*near_dist, eye[2]+fwd[2]*near_dist)\n    far_c = (eye[0]+fwd[0]*far_dist, eye[1]+fwd[1]*far_dist, eye[2]+fwd[2]*far_dist)\n    return [\n        make_plane(fwd, near_c),\n        make_plane((-fwd[0], -fwd[1], -fwd[2]), far_c),\n        make_plane((right[0]+tan_h*fwd[0], right[1]+tan_h*fwd[1], right[2]+tan_h*fwd[2]), eye),\n        make_plane((-right[0]+tan_h*fwd[0], -right[1]+tan_h*fwd[1], -right[2]+tan_h*fwd[2]), eye),\n        make_plane((upv[0]+tan_v*fwd[0], upv[1]+tan_v*fwd[1], upv[2]+tan_v*fwd[2]), eye),\n        make_plane((-upv[0]+tan_v*fwd[0], -upv[1]+tan_v*fwd[1], -upv[2]+tan_v*fwd[2]), eye),\n    ]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    px, py, pz = float(point[0]), float(point[1]), float(point[2])\n    for (nx, ny, nz, d) in planes:\n        if nx*px + ny*py + nz*pz + d < -radius:\n            return False\n    return True\n"
+ },
+ "rendering_01_frustum_cull/rend_02": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_02",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    def norm(v):\n        s = math.sqrt(sum(c*c for c in v))\n        return (0.0, 0.0, 0.0) if s < 1e-9 else tuple(c/s for c in v)\n    def dot(a, b):\n        return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]\n    def cross(a, b):\n        return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n    fwd = norm(forward)\n    upv = norm(up)\n    right = norm(cross(fwd, upv))\n    upv = norm(cross(right, fwd))\n    tan = math.tan(math.radians(fov_deg) / 2.0)\n    tan_h, tan_v = tan * aspect, tan\n    e = tuple(float(c) for c in eye)\n    nc = tuple(e[i] + fwd[i]*near_dist for i in range(3))\n    fc = tuple(e[i] + fwd[i]*far_dist for i in range(3))\n    def plane(n, p):\n        n = norm(n)\n        d = -dot(n, p)\n        return (n[0], n[1], n[2], d)\n    return [\n        plane(fwd, nc), plane(tuple(-c for c in fwd), fc),\n        plane((right[0]+tan_h*fwd[0], right[1]+tan_h*fwd[1], right[2]+tan_h*fwd[2]), e),\n        plane((-right[0]+tan_h*fwd[0], -right[1]+tan_h*fwd[1], -right[2]+tan_h*fwd[2]), e),\n        plane((upv[0]+tan_v*fwd[0], upv[1]+tan_v*fwd[1], upv[2]+tan_v*fwd[2]), e),\n        plane((-upv[0]+tan_v*fwd[0], -upv[1]+tan_v*fwd[1], -upv[2]+tan_v*fwd[2]), e),\n    ]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n"
+ },
+ "rendering_01_frustum_cull/rend_03": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_03",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    \"\"\"6 平面（近/远/左/右/下/上），内法线约定 dot(n,p)+d>=0 为内。\"\"\"\n    fwd = _normalize(forward)\n    upv = _normalize(up)\n    right = _normalize(_cross(fwd, upv))\n    upv = _normalize(_cross(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    th, tv = t * aspect, t\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    return [\n        _plane(fwd, nc), _plane((-fwd[0], -fwd[1], -fwd[2]), fc),\n        _plane((right[0]+th*fwd[0], right[1]+th*fwd[1], right[2]+th*fwd[2]), e),\n        _plane((-right[0]+th*fwd[0], -right[1]+th*fwd[1], -right[2]+th*fwd[2]), e),\n        _plane((upv[0]+tv*fwd[0], upv[1]+tv*fwd[1], upv[2]+tv*fwd[2]), e),\n        _plane((-upv[0]+tv*fwd[0], -upv[1]+tv*fwd[1], -upv[2]+tv*fwd[2]), e),\n    ]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _normalize(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (0.0, 0.0, 0.0) if s < 1e-9 else (v[0]/s, v[1]/s, v[2]/s)\n\ndef _cross(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n\ndef _plane(n_vec, p):\n    n = _normalize(n_vec)\n    d = -(n[0]*p[0] + n[1]*p[1] + n[2]*p[2])\n    return (n[0], n[1], n[2], d)\n"
+ },
+ "rendering_01_frustum_cull/rend_04": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_04",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) / 2)\n    e = [float(c) for c in eye]\n    def pl(n, p):\n        n = _n(n)\n        d = -sum(n[i] * p[i] for i in range(3))\n        return (n[0], n[1], n[2], d)\n    nf = [e[i] + fwd[i] * near_dist for i in range(3)]\n    ff = [e[i] + fwd[i] * far_dist for i in range(3)]\n    return [\n        pl(fwd, nf),\n        pl([-c for c in fwd], ff),\n        pl([right[0] + t*aspect*fwd[0], right[1] + t*aspect*fwd[1], right[2] + t*aspect*fwd[2]], e),\n        pl([-right[0] + t*aspect*fwd[0], -right[1] + t*aspect*fwd[1], -right[2] + t*aspect*fwd[2]], e),\n        pl([upv[0] + t*fwd[0], upv[1] + t*fwd[1], upv[2] + t*fwd[2]], e),\n        pl([-upv[0] + t*fwd[0], -upv[1] + t*fwd[1], -upv[2] + t*fwd[2]], e),\n    ]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    px, py, pz = point\n    for (nx, ny, nz, d) in planes:\n        if nx*px + ny*py + nz*pz + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_05": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_05",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    f = _u(forward); u = _u(up)\n    r = _u(_x(f, u)); u = _u(_x(r, f))\n    k = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    def p(n, o):\n        n = _u(n); d = -(n[0]*o[0] + n[1]*o[1] + n[2]*o[2])\n        return (n[0], n[1], n[2], d)\n    ncp = (e[0]+f[0]*near_dist, e[1]+f[1]*near_dist, e[2]+f[2]*near_dist)\n    fcp = (e[0]+f[0]*far_dist, e[1]+f[1]*far_dist, e[2]+f[2]*far_dist)\n    hx, hy = k*aspect, k\n    return [p(f, ncp), p((-f[0], -f[1], -f[2]), fcp),\n            p((r[0]+hx*f[0], r[1]+hx*f[1], r[2]+hx*f[2]), e),\n            p((-r[0]+hx*f[0], -r[1]+hx*f[1], -r[2]+hx*f[2]), e),\n            p((u[0]+hy*f[0], u[1]+hy*f[1], u[2]+hy*f[2]), e),\n            p((-u[0]+hy*f[0], -u[1]+hy*f[1], -u[2]+hy*f[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _u(v):\n    s = (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]) ** 0.5\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _x(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_06": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_06",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    f = _norm(forward)\n    upv = _norm(up)\n    r = _norm(_cross(f, upv))\n    upv = _norm(_cross(r, f))\n    tan = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    near = tuple(e[i] + f[i] * near_dist for i in range(3))\n    far = tuple(e[i] + f[i] * far_dist for i in range(3))\n    nf = _norm((-f[0], -f[1], -f[2]))\n    lf = _norm((r[0] + tan*aspect*f[0], r[1] + tan*aspect*f[1], r[2] + tan*aspect*f[2]))\n    rf = _norm((-r[0] + tan*aspect*f[0], -r[1] + tan*aspect*f[1], -r[2] + tan*aspect*f[2]))\n    bf = _norm((upv[0] + tan*f[0], upv[1] + tan*f[1], upv[2] + tan*f[2]))\n    tf = _norm((-upv[0] + tan*f[0], -upv[1] + tan*f[1], -upv[2] + tan*f[2]))\n    planes = []\n    for n, p in [(f, near), (nf, far), (lf, e), (rf, e), (bf, e), (tf, e)]:\n        d = -(n[0]*p[0] + n[1]*p[1] + n[2]*p[2])\n        planes.append((n[0], n[1], n[2], d))\n    return planes\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    px, py, pz = point\n    for (nx, ny, nz, d) in planes:\n        if nx*px + ny*py + nz*pz + d < -radius:\n            return False\n    return True\n\ndef _norm(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _cross(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_07": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_07",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    \"\"\"内法线 6 平面。fov 为竖直 FOV。\"\"\"\n    f = _n(forward)\n    u = _n(up)\n    r = _n(_c(f, u))\n    u = _n(_c(r, f))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0] + f[0]*near_dist, e[1] + f[1]*near_dist, e[2] + f[2]*near_dist)\n    fc = (e[0] + f[0]*far_dist, e[1] + f[1]*far_dist, e[2] + f[2]*far_dist)\n    out = []\n    for n, p in ((f, nc), ((-f[0], -f[1], -f[2]), fc),\n                 ((r[0]+t*aspect*f[0], r[1]+t*aspect*f[1], r[2]+t*aspect*f[2]), e),\n                 ((-r[0]+t*aspect*f[0], -r[1]+t*aspect*f[1], -r[2]+t*aspect*f[2]), e),\n                 ((u[0]+t*f[0], u[1]+t*f[1], u[2]+t*f[2]), e),\n                 ((-u[0]+t*f[0], -u[1]+t*f[1], -u[2]+t*f[2]), e)):\n        n = _n(n)\n        d = -(n[0]*p[0] + n[1]*p[1] + n[2]*p[2])\n        out.append((n[0], n[1], n[2], d))\n    return out\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (0.0, 0.0, 0.0) if s < 1e-9 else (v[0]/s, v[1]/s, v[2]/s)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_08": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_08",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _norm(forward)\n    upv = _norm(_cross(_norm(_cross(fwd, _norm(up))), fwd))\n    right = _norm(_cross(fwd, upv))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    th, tv = t * aspect, t\n    e = tuple(float(c) for c in eye)\n    near_p = tuple(e[i] + fwd[i]*near_dist for i in range(3))\n    far_p = tuple(e[i] + fwd[i]*far_dist for i in range(3))\n    planes = []\n    for n_vec, pt in ((fwd, near_p), ((-fwd[0], -fwd[1], -fwd[2]), far_p),\n                      ((right[0]+th*fwd[0], right[1]+th*fwd[1], right[2]+th*fwd[2]), e),\n                      ((-right[0]+th*fwd[0], -right[1]+th*fwd[1], -right[2]+th*fwd[2]), e),\n                      ((upv[0]+tv*fwd[0], upv[1]+tv*fwd[1], upv[2]+tv*fwd[2]), e),\n                      ((-upv[0]+tv*fwd[0], -upv[1]+tv*fwd[1], -upv[2]+tv*fwd[2]), e)):\n        n = _norm(n_vec)\n        d = -(n[0]*pt[0] + n[1]*pt[1] + n[2]*pt[2])\n        planes.append((n[0], n[1], n[2], d))\n    return planes\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    px, py, pz = point[0], point[1], point[2]\n    for (nx, ny, nz, d) in planes:\n        if nx*px + ny*py + nz*pz + d < -radius:\n            return False\n    return True\n\ndef _norm(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _cross(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_09": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_09",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _u(forward)\n    upv = _u(up)\n    right = _u(_x(fwd, upv))\n    upv = _u(_x(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, pt):\n        nv = _u(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*pt[0]+nv[1]*pt[1]+nv[2]*pt[2]))\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _u(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _x(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_10": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_10",
+  "tier": "correct_high",
+  "judge_score": 8.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    \"\"\"视锥 6 平面（近/远/左/右/下/上），点法式 dot(n,p)+d=0，内法线。\"\"\"\n    fwd = _norm(forward)\n    upv = _norm(up)\n    right = _norm(_cross(fwd, upv))\n    upv = _norm(_cross(right, fwd))\n    tan_half = math.tan(math.radians(fov_deg) * 0.5)\n    e = tuple(float(c) for c in eye)\n    near_c = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    far_c = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n\n    def plane(n, p):\n        n = _norm(n)\n        d = -(n[0]*p[0] + n[1]*p[1] + n[2]*p[2])\n        return (n[0], n[1], n[2], d)\n\n    planes = [\n        plane(fwd, near_c),\n        plane((-fwd[0], -fwd[1], -fwd[2]), far_c),\n        plane((right[0] + tan_half*aspect*fwd[0], right[1] + tan_half*aspect*fwd[1], right[2] + tan_half*aspect*fwd[2]), e),\n        plane((-right[0] + tan_half*aspect*fwd[0], -right[1] + tan_half*aspect*fwd[1], -right[2] + tan_half*aspect*fwd[2]), e),\n        plane((upv[0] + tan_half*fwd[0], upv[1] + tan_half*fwd[1], upv[2] + tan_half*fwd[2]), e),\n        plane((-upv[0] + tan_half*fwd[0], -upv[1] + tan_half*fwd[1], -upv[2] + tan_half*fwd[2]), e),\n    ]\n    return planes\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _norm(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _cross(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_11": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_11",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward); upv = _n(up)\n    right = _n(_c(fwd, upv)); upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    def mk(n, p):\n        n = _n(n); return (n[0], n[1], n[2], -sum(n[i]*p[i] for i in range(3)))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_12": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_12",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    f = _u(forward); u = _u(up)\n    r = _u(_x(f, u)); u = _u(_x(r, f))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+f[0]*near_dist, e[1]+f[1]*near_dist, e[2]+f[2]*near_dist)\n    fc = (e[0]+f[0]*far_dist, e[1]+f[1]*far_dist, e[2]+f[2]*far_dist)\n    planes = []\n    for nv, p in [(f, nc), ((-f[0], -f[1], -f[2]), fc),\n                  ((r[0]+t*aspect*f[0], r[1]+t*aspect*f[1], r[2]+t*aspect*f[2]), e),\n                  ((-r[0]+t*aspect*f[0], -r[1]+t*aspect*f[1], -r[2]+t*aspect*f[2]), e),\n                  ((u[0]+t*f[0], u[1]+t*f[1], u[2]+t*f[2]), e),\n                  ((-u[0]+t*f[0], -u[1]+t*f[1], -u[2]+t*f[2]), e)]:\n        nv = _u(nv)\n        planes.append((nv[0], nv[1], nv[2], -(nv[0]*p[0]+nv[1]*p[1]+nv[2]*p[2])))\n    return planes\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _u(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _x(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_13": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_13",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    f = _norm(forward); u = _norm(up)\n    r = _norm(_cross(f, u)); u = _norm(_cross(r, f))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = [float(x) for x in eye]\n    out = []\n    for nv, pt in [(f, [e[0]+f[0]*near_dist, e[1]+f[1]*near_dist, e[2]+f[2]*near_dist]),\n                   ((-f[0], -f[1], -f[2]), [e[0]+f[0]*far_dist, e[1]+f[1]*far_dist, e[2]+f[2]*far_dist]),\n                   ((r[0]+t*aspect*f[0], r[1]+t*aspect*f[1], r[2]+t*aspect*f[2]), e),\n                   ((-r[0]+t*aspect*f[0], -r[1]+t*aspect*f[1], -r[2]+t*aspect*f[2]), e),\n                   ((u[0]+t*f[0], u[1]+t*f[1], u[2]+t*f[2]), e),\n                   ((-u[0]+t*f[0], -u[1]+t*f[1], -u[2]+t*f[2]), e)]:\n        nv = _norm(nv)\n        out.append((nv[0], nv[1], nv[2], -(nv[0]*pt[0]+nv[1]*pt[1]+nv[2]*pt[2])))\n    return out\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _norm(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _cross(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_14": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_14",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def pl(n, p):\n        n = _n(n)\n        return (n[0], n[1], n[2], -(n[0]*p[0] + n[1]*p[1] + n[2]*p[2]))\n    return [pl(fwd, nc), pl((-fwd[0], -fwd[1], -fwd[2]), fc),\n            pl((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            pl((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            pl((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            pl((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_15": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": true,
+  "l3_passed": 23,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_15",
+  "tier": "correct_mid",
+  "judge_score": 6.8,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    f = _u(forward); u = _u(up)\n    r = _u(_x(f, u)); u = _u(_x(r, f))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+f[0]*near_dist, e[1]+f[1]*near_dist, e[2]+f[2]*near_dist)\n    fc = (e[0]+f[0]*far_dist, e[1]+f[1]*far_dist, e[2]+f[2]*far_dist)\n    def mk(nv, p):\n        nv = _u(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    return [mk(f, nc), mk((-f[0], -f[1], -f[2]), fc),\n            mk((r[0]+t*aspect*f[0], r[1]+t*aspect*f[1], r[2]+t*aspect*f[2]), e),\n            mk((-r[0]+t*aspect*f[0], -r[1]+t*aspect*f[1], -r[2]+t*aspect*f[2]), e),\n            mk((u[0]+t*f[0], u[1]+t*f[1], u[2]+t*f[2]), e),\n            mk((-u[0]+t*f[0], -u[1]+t*f[1], -u[2]+t*f[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _u(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _x(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_16": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 20,
+  "l3_failed": 3,
+  "l3_failures": [
+   "canonical ƽ��ϵ��ƫ�� > 1e-4",
+   "rotated ƽ��ϵ��ƫ�� > 1e-4",
+   "rotated (2,-1,0.4) near ǰ: ���� False ʵ�� True"
+  ],
+  "name": "rend_16",
+  "tier": "buggy_subtle",
+  "judge_score": 3.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    return [mk(fwd, e),\n            mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_17": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 20,
+  "l3_failed": 3,
+  "l3_failures": [
+   "�������� r=0.5 �ཻ: ���� True ʵ�� False",
+   "���� near ǰ r=0.6 �ཻ: ���� True ʵ�� False",
+   "���� r=20 ȫ�ཻ: ���� True ʵ�� False"
+  ],
+  "name": "rend_17",
+  "tier": "buggy_subtle",
+  "judge_score": 3.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < 0.0:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_18": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 10,
+  "l3_failed": 13,
+  "l3_failures": [
+   "canonical ƽ��ϵ��ƫ�� > 1e-4",
+   "rotated ƽ��ϵ��ƫ�� > 1e-4",
+   "canonical (0,2,0): ���� True ʵ�� False",
+   "canonical (0,50,0): ���� True ʵ�� False",
+   "canonical (2.6,2,0) ����: ���� True ʵ�� False",
+   "canonical (0,2,1.5) ����: ���� True ʵ�� False",
+   "canonical (0,5,4.5) ����: ���� True ʵ�� False",
+   "rotated (2,-1,-5) ��: ���� True ʵ�� False",
+   "rotated (2,-1,-39.4) far ��: ���� True ʵ�� False",
+   "rotated (2,-4,-5) ��: ���� True ʵ�� False",
+   "�������� r=0.5 �ཻ: ���� True ʵ�� False",
+   "���� near ǰ r=0.6 �ཻ: ���� True ʵ�� False",
+   "���� r=20 ȫ�ཻ: ���� True ʵ�� False"
+  ],
+  "name": "rend_18",
+  "tier": "buggy_subtle",
+  "judge_score": 3.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2])\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_19": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 16,
+  "l3_failed": 7,
+  "l3_failures": [
+   "canonical ƽ��ϵ��ƫ�� > 1e-4",
+   "rotated ƽ��ϵ��ƫ�� > 1e-4",
+   "canonical (2.6,2,0) ����: ���� True ʵ�� False",
+   "canonical (0,2,1.5) ����: ���� True ʵ�� False",
+   "canonical (0,5,4.5) ����: ���� True ʵ�� False",
+   "rotated (2,-4,-5) ��: ���� True ʵ�� False",
+   "�������� r=0.5 �ཻ: ���� True ʵ�� False"
+  ],
+  "name": "rend_19",
+  "tier": "buggy_subtle",
+  "judge_score": 3.5,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*fwd[0], right[1]+t*fwd[1], right[2]+t*fwd[2]), e),\n            mk((-right[0]+t*fwd[0], -right[1]+t*fwd[1], -right[2]+t*fwd[2]), e),\n            mk((upv[0]+t/aspect*fwd[0], upv[1]+t/aspect*fwd[1], upv[2]+t/aspect*fwd[2]), e),\n            mk((-upv[0]+t/aspect*fwd[0], -upv[1]+t/aspect*fwd[1], -upv[2]+t/aspect*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_20": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 21,
+  "l3_failed": 2,
+  "l3_failures": [
+   "canonical ƽ��ϵ��ƫ�� > 1e-4",
+   "rotated ƽ��ϵ��ƫ�� > 1e-4"
+  ],
+  "name": "rend_20",
+  "tier": "buggy_obvious",
+  "judge_score": 2.0,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(upv, fwd))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_21": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 19,
+  "l3_failed": 4,
+  "l3_failures": [
+   "canonical ƽ��ϵ��ƫ�� > 1e-4",
+   "rotated ƽ��ϵ��ƫ�� > 1e-4",
+   "canonical (2.6,2,0) ����: ���� True ʵ�� False",
+   "�������� r=0.5 �ཻ: ���� True ʵ�� False"
+  ],
+  "name": "rend_21",
+  "tier": "buggy_obvious",
+  "judge_score": 2.0,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*fwd[0], right[1]+t*fwd[1], right[2]+t*fwd[2]), e),\n            mk((-right[0]+t*fwd[0], -right[1]+t*fwd[1], -right[2]+t*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_22": {
+  "l1_ok": true,
+  "l1_reasons": [],
+  "l3_ok": false,
+  "l3_passed": 10,
+  "l3_failed": 13,
+  "l3_failures": [
+   "canonical ƽ��ϵ��ƫ�� > 1e-4",
+   "rotated ƽ��ϵ��ƫ�� > 1e-4",
+   "canonical (0,2,0): ���� True ʵ�� False",
+   "canonical (0,50,0): ���� True ʵ�� False",
+   "canonical (2.6,2,0) ����: ���� True ʵ�� False",
+   "canonical (0,2,1.5) ����: ���� True ʵ�� False",
+   "canonical (0,5,4.5) ����: ���� True ʵ�� False",
+   "rotated (2,-1,-5) ��: ���� True ʵ�� False",
+   "rotated (2,-1,-39.4) far ��: ���� True ʵ�� False",
+   "rotated (2,-4,-5) ��: ���� True ʵ�� False",
+   "�������� r=0.5 �ཻ: ���� True ʵ�� False",
+   "���� near ǰ r=0.6 �ཻ: ���� True ʵ�� False",
+   "���� r=20 ȫ�ཻ: ���� True ʵ�� False"
+  ],
+  "name": "rend_22",
+  "tier": "buggy_obvious",
+  "judge_score": 2.0,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    fc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_23": {
+  "l1_ok": false,
+  "l1_reasons": [
+   "build_frustum_planes ���뷵�� 6 ��ƽ��"
+  ],
+  "l3_ok": false,
+  "l3_passed": 0,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_23",
+  "tier": "api_bad",
+  "judge_score": 1.0,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    planes = [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n              mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n              mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n              mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e)]\n    return planes\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for (nx, ny, nz, d) in planes:\n        if nx*point[0] + ny*point[1] + nz*point[2] + d < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_24": {
+  "l1_ok": false,
+  "l1_reasons": [
+   "ȱ�ٺ��� point_inside_frustum"
+  ],
+  "l3_ok": false,
+  "l3_passed": 0,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_24",
+  "tier": "api_bad",
+  "judge_score": 1.0,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return (nv[0], nv[1], nv[2], -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2]))\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef _n(v):\n    s = math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ },
+ "rendering_01_frustum_cull/rend_25": {
+  "l1_ok": false,
+  "l1_reasons": [
+   "ƽ��[0] ������ (nx,ny,nz,d) ��Ԫ��; ƽ��[1] ������ (nx,ny,nz,d) ��Ԫ��; ƽ��[2] ������ (nx,ny,nz,d) ��Ԫ��; ƽ��[3] ������ (nx,ny,nz,d) ��Ԫ��; ƽ��[4] ������ (nx,ny,nz,d) ��Ԫ��; ƽ��[5] ������ (nx,ny,nz,d) ��Ԫ��"
+  ],
+  "l3_ok": false,
+  "l3_passed": 0,
+  "l3_failed": 0,
+  "l3_failures": [],
+  "name": "rend_25",
+  "tier": "api_bad",
+  "judge_score": 1.0,
+  "source": "\nimport math\n\ndef build_frustum_planes(eye, forward, up, fov_deg, aspect, near_dist, far_dist):\n    fwd = _n(forward)\n    upv = _n(up)\n    right = _n(_c(fwd, upv))\n    upv = _n(_c(right, fwd))\n    t = math.tan(math.radians(fov_deg) * 0.5)\n    e = (float(eye[0]), float(eye[1]), float(eye[2]))\n    nc = (e[0]+fwd[0]*near_dist, e[1]+fwd[1]*near_dist, e[2]+fwd[2]*near_dist)\n    fc = (e[0]+fwd[0]*far_dist, e[1]+fwd[1]*far_dist, e[2]+fwd[2]*far_dist)\n    def mk(nv, p):\n        nv = _n(nv)\n        return {\"n\": nv, \"d\": -(nv[0]*p[0] + nv[1]*p[1] + nv[2]*p[2])}\n    return [mk(fwd, nc), mk((-fwd[0], -fwd[1], -fwd[2]), fc),\n            mk((right[0]+t*aspect*fwd[0], right[1]+t*aspect*fwd[1], right[2]+t*aspect*fwd[2]), e),\n            mk((-right[0]+t*aspect*fwd[0], -right[1]+t*aspect*fwd[1], -right[2]+t*aspect*fwd[2]), e),\n            mk((upv[0]+t*fwd[0], upv[1]+t*fwd[1], upv[2]+t*fwd[2]), e),\n            mk((-upv[0]+t*fwd[0], -upv[1]+t*fwd[1], -upv[2]+t*fwd[2]), e)]\n\ndef point_inside_frustum(planes, point, radius=0.0):\n    for pl in planes:\n        n = pl[\"n\"]\n        if n[0]*point[0] + n[1]*point[1] + n[2]*point[2] + pl[\"d\"] < -radius:\n            return False\n    return True\n\ndef _n(v):\n    s = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n    return (v[0]/s, v[1]/s, v[2]/s) if s > 1e-9 else (0.0, 0.0, 0.0)\n\ndef _c(a, b):\n    return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])\n"
+ }
+}
