@@ -1,12 +1,17 @@
-"""run_api_baseline —— Qwen 小模型 × 9 任务 API 基线评估（纯 stdlib，跨机器可跑）。
+"""run_local_eval —— Qwen 小模型 × 9 任务本地推理基线评估（纯 stdlib，跨机器可跑）。
+
+支持任何 OpenAI 兼容本地端点：ollama（默认 http://localhost:11434/v1）、
+llama.cpp server（http://localhost:8080/v1）、vLLM（http://localhost:8000/v1）。
 
 用法:
-  python eval/run_api_baseline.py --selftest
-  python eval/run_api_baseline.py --provider siliconflow --samples 10
-  python eval/run_api_baseline.py --provider dashscope --models qwen3-0.6b --samples 5
+  python eval/run_local_eval.py --selftest                       # 环境自检（不需要模型）
+  python eval/run_local_eval.py --list-models                    # 列出本地可用模型
+  python eval/run_local_eval.py --samples 1                      # dry-run sanity（1 样本/对）
+  python eval/run_local_eval.py --samples 10                     # 全量
+  python eval/run_local_eval.py --models qwen3:1.7b --samples 5  # 指定模型
 
-环境变量: SILICONFLOW_API_KEY / DASHSCOPE_API_KEY（或 --api-key）
-输出: eval/results/results_<ts>.json + summary_<ts>.md
+--base-url 可指向任意 OpenAI 兼容端点（本地或云）；--api-key 可选（本地通常不需要）。
+输出: eval/results/results_<ts>.json（逐样本）+ summary_<ts>.md（pass@1 矩阵）
 """
 import argparse
 import json
@@ -21,39 +26,43 @@ from pathlib import Path
 STAGE1 = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(STAGE1))
 
-from teacher_pool import POOL, TIER, PROMPTS, MODEL_SIZE, DOMAIN  # noqa: E402
+from teacher_pool import POOL, PROMPTS  # noqa: E402
 import run_stage1 as rs  # noqa: E402  （复用 run_verifier）
 
 SYSTEM = "你是 UE5 工程师。按任务要求输出完整、可直接运行的 Python 代码。只输出代码，不要任何解释、注释说明或多余文字。"
 EXTRACT_RE = re.compile(r"```(?:python)?\s*\n(.*?)```", re.S)
 
-PROVIDERS = {
-    "siliconflow": {
-        "base": "https://api.siliconflow.cn/v1",
-        "key_env": "SILICONFLOW_API_KEY",
-        "models": ["Qwen/Qwen3-0.6B", "Qwen/Qwen3-1.7B", "Qwen/Qwen3-4B"],
-    },
-    "dashscope": {
-        "base": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        "key_env": "DASHSCOPE_API_KEY",
-        "models": ["qwen3-0.6b", "qwen3-1.7b", "qwen3-4b"],
-    },
-}
+DEFAULT_BASE = "http://localhost:11434/v1"  # ollama
+
+
+def _request(base, api_key, path, body=None, timeout=300):
+    data = json.dumps(body).encode("utf-8") if body is not None else None
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = "Bearer " + api_key
+    req = urllib.request.Request(base + path, data=data, headers=headers)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def list_models(base, api_key):
+    """OpenAI 兼容 GET /models；失败时返回 []。"""
+    try:
+        data = _request(base, api_key, "/models")
+        return [m.get("id", "") for m in data.get("data", [])]
+    except Exception:
+        return []
 
 
 def chat(base, api_key, model, prompt, temperature, max_tokens, retries=4):
-    body = json.dumps({
+    body = {
         "model": model,
         "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}],
         "temperature": temperature, "top_p": 0.9, "max_tokens": max_tokens,
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        base + "/chat/completions", data=body,
-        headers={"Content-Type": "application/json", "Authorization": "Bearer " + api_key})
+    }
     for attempt in range(retries):
         try:
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
+            data = _request(base, api_key, "/chat/completions", body)
             return data["choices"][0]["message"]["content"]
         except urllib.error.HTTPError as exc:
             if exc.code in (429, 500, 502, 503) and attempt < retries - 1:
@@ -78,21 +87,18 @@ def extract_code(text):
 
 
 def run_sample(task_id, code, tmp_dir):
-    """写候选文件并跑分层验证器，返回逐层结果 dict。"""
     path = tmp_dir / f"{task_id.replace('/', '_')}_cand.py"
     path.write_text(code + "\n", encoding="utf-8")
     return rs.run_verifier(task_id, path)
 
 
 def selftest():
-    """环境自检：每任务取池内第一个 correct_high 候选，应 L1+L3 全过。"""
     ok = 0
     tmp = STAGE1 / "eval" / "tmp"
     tmp.mkdir(parents=True, exist_ok=True)
     for task_id, cands in POOL.items():
         name = sorted(cands.keys())[0]
-        code = cands[name]
-        r = run_sample(task_id, code, tmp)
+        r = run_sample(task_id, cands[name], tmp)
         passed = r.get("l3_ok") is True
         ok += 1 if passed else 0
         print(f"[selftest] {task_id}/{name}: {'PASS' if passed else 'FAIL ' + str(r.get('error', r.get('l3_failures')))[:120]}")
@@ -102,36 +108,46 @@ def selftest():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--provider", choices=list(PROVIDERS), default="siliconflow")
+    ap.add_argument("--base-url", default=os.environ.get("EVAL_BASE_URL", DEFAULT_BASE),
+                    help="OpenAI 兼容端点，默认 ollama http://localhost:11434/v1")
     ap.add_argument("--api-key", default=None)
-    ap.add_argument("--models", nargs="*", default=None)
+    ap.add_argument("--models", nargs="*", default=None, help="本地模型名；缺省自动选名称含 qwen 的模型")
     ap.add_argument("--tasks", nargs="*", default=None)
     ap.add_argument("--samples", type=int, default=10)
     ap.add_argument("--temperature", type=float, default=0.6)
     ap.add_argument("--max-tokens", type=int, default=2048)
+    ap.add_argument("--list-models", action="store_true")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
 
     if args.selftest:
         sys.exit(0 if selftest() else 1)
 
-    prov = PROVIDERS[args.provider]
-    api_key = args.api_key or os.environ.get(prov["key_env"])
-    if not api_key:
-        sys.exit(f"缺少 API key：设置环境变量 {prov['key_env']} 或用 --api-key")
-    models = args.models or prov["models"]
+    available = list_models(args.base_url, args.api_key)
+    if args.list_models:
+        print(f"base={args.base_url}")
+        for m in available:
+            print(" ", m)
+        return
+
+    if args.models:
+        models = args.models
+    else:
+        models = [m for m in available if "qwen" in m.lower()]
+        if not models:
+            sys.exit(f"未在 {args.base_url} 发现 qwen 模型。用 --list-models 查看，或 --models 指定。")
     tasks = args.tasks or list(POOL.keys())
 
     results = []
     tmp = STAGE1 / "eval" / "tmp"
     tmp.mkdir(parents=True, exist_ok=True)
 
-    print(f"provider={args.provider} models={models} tasks={len(tasks)} samples={args.samples} temp={args.temperature}")
+    print(f"base={args.base_url} models={models} tasks={len(tasks)} samples={args.samples} temp={args.temperature}")
     t0 = time.time()
     for model in models:
         for task_id in tasks:
             for i in range(args.samples):
-                text = chat(prov["base"], api_key, model, PROMPTS[task_id], args.temperature, args.max_tokens)
+                text = chat(args.base_url, args.api_key, model, PROMPTS[task_id], args.temperature, args.max_tokens)
                 code = extract_code(text)
                 rec = {"model": model, "task": task_id, "sample": i,
                        "parse_ok": code is not None, "l1_ok": None, "l3_ok": None, "l3_failed": None, "error": None}
@@ -148,25 +164,21 @@ def main():
                         rec["l3_failed"] = r.get("l3_failed")
                         rec["verdict"] = "PASS" if r["l3_ok"] else ("L1_FAIL" if not r["l1_ok"] else "L3_FAIL")
                 results.append(rec)
-                print(f"[{model}] {task_id} #{i}: {rec['verdict']}"
-                      + ("" if rec["verdict"] != "PASS" else "  (l3 all pass)"))
-                time.sleep(0.3)
+                print(f"[{model}] {task_id} #{i}: {rec['verdict']}")
+                time.sleep(0.1)
 
     out_dir = STAGE1 / "eval" / "results"
     out_dir.mkdir(parents=True, exist_ok=True)
     ts = time.strftime("%Y%m%d_%H%M%S")
     (out_dir / f"results_{ts}.json").write_text(
-        json.dumps({"provider": args.provider, "models": models, "tasks": tasks,
+        json.dumps({"base": args.base_url, "models": models, "tasks": tasks,
                     "samples": args.samples, "temperature": args.temperature,
                     "results": results}, ensure_ascii=False, indent=1), encoding="utf-8")
 
-    # ---- summary ----
-    lines = [f"# API 基线摘要（{args.provider}，temp={args.temperature}，n={args.samples}/对）", ""]
+    lines = [f"# 本地基线摘要（base={args.base_url}，temp={args.temperature}，n={args.samples}/对）", ""]
     lines.append("| 模型 | 任务 | pass@1 | parse_fail | L1_pass_L3_fail |")
     lines.append("|---|---|---|---|---|")
-    per_model = {}
-    for model in models:
-        per_model[model] = {"pass": 0, "total": 0, "tasks": {}}
+    per_model = {m: {"pass": 0, "total": 0, "tasks": {}} for m in models}
     for r in results:
         m = per_model[r["model"]]
         m["total"] += 1
@@ -183,7 +195,7 @@ def main():
             t = tm["tasks"][task_id]
             lines.append(f"| | {task_id} | {t['pass']/t['n']:.0%} | {t['no_code']/t['n']:.0%} | {t['l1_only']/t['n']:.0%} |")
     lines.append("")
-    lines.append(f"耗时 {time.time()-t0:.0f}s。区分度判定见 eval_plan.md 成功标准表。")
+    lines.append(f"耗时 {time.time()-t0:.0f}s。对照 eval/success_criteria.md 判定。")
     (out_dir / f"summary_{ts}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"\nresults -> {out_dir / f'results_{ts}.json'}\nsummary -> {out_dir / f'summary_{ts}.md'}")
 
