@@ -23,6 +23,10 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Project-local Python venvs (e.g. stage1/.venv for UE5 eval with newer transformers)
+**/.venv/
+**/venv/
+
 # Large media
 *.mp4
 *.safetensors

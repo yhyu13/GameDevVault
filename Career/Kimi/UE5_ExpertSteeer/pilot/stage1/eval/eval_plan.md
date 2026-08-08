@@ -8,7 +8,7 @@
 2. **模型尺寸梯度**：pass@1 是否随模型增大单调上升（≥6/9 任务）？无梯度=任务测的不是"能力"
 3. **训练空间**：基线 pass@1 落在哪个区间，决定 SFT 数据形态是否需要调整
 
-> 注：计划中的 "Qwen 0.8B/2B" 无对应型号，映射到 **Qwen3 0.6B / 1.7B / 4B**（或 Qwen2.5 0.5B / 1.5B），以本地实际加载的模型为准。
+> 本地实际模型：`Qwen3.5-0.8B / Qwen3.5-2B / Qwen3.5-4B`（路径 `$QWEN_HF_DIR/Qwen3.5-<size>`，默认 `/media/home/hangyu5/Documents/Hugging-Face/Qwen/`）。Qwen3.5 架构（混合 linear+full attention + 多模态）需要 `transformers>=5`，项目本地 venv `stage1/.venv` 已装。
 
 ## 协议
 
@@ -21,9 +21,9 @@
 
 ## 执行顺序（gate 式，防浪费）
 
-1. **环境自检**：`--selftest`（9/9 PASS）+ `--list-models`（有 qwen）
-2. **Dry-run**：`--samples 1`（27 次，几分钟）→ 对照 success_criteria.md A 门，过不了先修
-3. **全量**：`--samples 10`（270 次）→ 对照 success_criteria.md B 表判定
+1. **环境自检**：`--selftest`（9/9 PASS；不加载模型，只跑 verifier 在 POOL 候选代码上的 sanity check）
+2. **Dry-run**：`--samples 1 --sizes 0.8B`（9 次，几分钟）→ 对照 success_criteria.md A 门，过不了先修
+3. **全量**：`--samples 10`（270 次，3 档 × 9 任务 × 10）→ 对照 success_criteria.md B 表判定
 
 ## 运行方法（另一台机器）
 

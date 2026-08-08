@@ -7,8 +7,8 @@
 | # | 检查 | 结果 |
 |---|---|---|
 | A1 | `python eval/run_local_eval.py --selftest` 输出 `selftest 9/9 tasks passed` | ☐ |
-| A2 | `--list-models` 能看到 ≥1 个 qwen 模型（qwen3:0.6b / qwen3:1.7b / qwen3:4b 等） | ☐ |
-| A3 | dry-run（`--samples 1`）无 NO_CODE 全开（≤3/27 次 NO_CODE 属正常） | ☐ |
+| A2 | `$QWEN_HF_DIR/Qwen3.5-{0.8B,2B,4B}` 三个目录都在（默认 `/media/home/hangyu5/Documents/Hugging-Face/Qwen/`） | ☐ |
+| A3 | dry-run（`--samples 1 --sizes 0.8B`）无 NO_CODE 全开（≤1/9 次 NO_CODE 属正常） | ☐ |
 
 A1/A2 不过 → 停，别跑全量。
 
@@ -17,16 +17,16 @@ A1/A2 不过 → 停，别跑全量。
 | 判定 | 条件（三档模型 × 9 任务） | 动作 |
 |---|---|---|
 | **通过** | ≥4/9 任务 pass@1 落在 5%-60% 之间（任一档模型） | 数据形态可用，进扩量 |
-| **通过** | ≥6/9 任务 pass@1 随模型尺寸单调上升 | 按最小档 0.6B 设计 SFT 难度 |
+| **通过** | ≥6/9 任务 pass@1 随模型尺寸单调上升 | 按最小档 0.8B 设计 SFT 难度 |
 | 任务太简单 | 某任务三档全过（pass@1 ≥ 80%） | 该任务升级/换硬变体 |
 | 任务不可学 | 某任务三档全挂（pass@1 ≤ 5%）且 NO_CODE 低 | 检查 prompt/任务规格，或弃用 |
 | 模型不会写代码 | 某档模型 parse_fail_rate > 50% | 加 few-shot 格式示范后重测该档 |
-| 无梯度 | 无任务显示尺寸梯度（0.6B ≈ 4B） | 任务测的不是能力，重设计任务族 |
+| 无梯度 | 无任务显示尺寸梯度（0.8B ≈ 4B） | 任务测的不是能力，重设计任务族 |
 
 填表格式（全量 summary 出来后复制到 `eval/results/` 下，命名 `success_check_<ts>.md`）：
 
 ```
-| 任务 | 0.6B | 1.7B | 4B | 判定 |
+| 任务 | 0.8B | 2B | 4B | 判定 |
 |---|---|---|---|---|
 | physics_01_impulse | % | % | % | 区分/过简/不可学/梯度 |
 | ...（9 行）|
