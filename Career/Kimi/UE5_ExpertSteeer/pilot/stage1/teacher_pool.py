@@ -1256,3 +1256,18 @@ DOMAIN = {
 }
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ---- merge 扩展池（其余 7 任务）----
+from teacher_pool_extra import POOL as _EXTRA_POOL, TIER as _EXTRA_TIER, PROMPTS as _EXTRA_PROMPTS, MODEL_SIZE as _EXTRA_MODEL_SIZE, DOMAIN as _EXTRA_DOMAIN  # noqa: E402
+from teacher_pool_fx import POOL as _FX_POOL, TIER as _FX_TIER, PROMPTS as _FX_PROMPTS, MODEL_SIZE as _FX_MODEL_SIZE, DOMAIN as _FX_DOMAIN  # noqa: E402
+
+POOL.update(_EXTRA_POOL)
+POOL.update(_FX_POOL)
+TIER.update(_EXTRA_TIER)
+TIER.update(_FX_TIER)
+PROMPTS.update(_EXTRA_PROMPTS)
+PROMPTS.update(_FX_PROMPTS)
+MODEL_SIZE.update(_EXTRA_MODEL_SIZE)
+MODEL_SIZE.update(_FX_MODEL_SIZE)
+DOMAIN.update(_EXTRA_DOMAIN)
+DOMAIN.update(_FX_DOMAIN)

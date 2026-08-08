@@ -1,0 +1,326 @@
+{
+ "physics_01_impulse/phys_01": {
+  "candidate": "phys_01",
+  "task": "physics_01_impulse",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "physics_01_impulse/phys_11": {
+  "candidate": "phys_11",
+  "task": "physics_01_impulse",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "physics_01_impulse/phys_16": {
+  "candidate": "phys_16",
+  "task": "physics_01_impulse",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 1
+ },
+ "physics_01_impulse/phys_24": {
+  "candidate": "phys_24",
+  "task": "physics_01_impulse",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": null,
+  "l3_failed": 0
+ },
+ "rendering_01_frustum_cull/rend_01": {
+  "candidate": "rend_01",
+  "task": "rendering_01_frustum_cull",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "rendering_01_frustum_cull/rend_11": {
+  "candidate": "rend_11",
+  "task": "rendering_01_frustum_cull",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "rendering_01_frustum_cull/rend_17": {
+  "candidate": "rend_17",
+  "task": "rendering_01_frustum_cull",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 3
+ },
+ "rendering_01_frustum_cull/rend_23": {
+  "candidate": "rend_23",
+  "task": "rendering_01_frustum_cull",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": false,
+  "l3_failed": 0
+ },
+ "physics_02_spring_euler/spr_01": {
+  "candidate": "spr_01",
+  "task": "physics_02_spring_euler",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "physics_02_spring_euler/spr_10": {
+  "candidate": "spr_10",
+  "task": "physics_02_spring_euler",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "physics_02_spring_euler/spr_14": {
+  "candidate": "spr_14",
+  "task": "physics_02_spring_euler",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 4
+ },
+ "physics_02_spring_euler/spr_18": {
+  "candidate": "spr_18",
+  "task": "physics_02_spring_euler",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": null,
+  "l3_failed": 0
+ },
+ "physics_03_wheel_friction/whl_01": {
+  "candidate": "whl_01",
+  "task": "physics_03_wheel_friction",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "physics_03_wheel_friction/whl_10": {
+  "candidate": "whl_10",
+  "task": "physics_03_wheel_friction",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "physics_03_wheel_friction/whl_14": {
+  "candidate": "whl_14",
+  "task": "physics_03_wheel_friction",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 3
+ },
+ "physics_03_wheel_friction/whl_18": {
+  "candidate": "whl_18",
+  "task": "physics_03_wheel_friction",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": null,
+  "l3_failed": 0
+ },
+ "rendering_02_lod_distance/lod_01": {
+  "candidate": "lod_01",
+  "task": "rendering_02_lod_distance",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "rendering_02_lod_distance/lod_10": {
+  "candidate": "lod_10",
+  "task": "rendering_02_lod_distance",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "rendering_02_lod_distance/lod_14": {
+  "candidate": "lod_14",
+  "task": "rendering_02_lod_distance",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 3
+ },
+ "rendering_02_lod_distance/lod_17": {
+  "candidate": "lod_17",
+  "task": "rendering_02_lod_distance",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": false,
+  "l3_failed": 0
+ },
+ "rendering_03_linear_srgb/srgb_01": {
+  "candidate": "srgb_01",
+  "task": "rendering_03_linear_srgb",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "rendering_03_linear_srgb/srgb_10": {
+  "candidate": "srgb_10",
+  "task": "rendering_03_linear_srgb",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "rendering_03_linear_srgb/srgb_14": {
+  "candidate": "srgb_14",
+  "task": "rendering_03_linear_srgb",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 2
+ },
+ "rendering_03_linear_srgb/srgb_17": {
+  "candidate": "srgb_17",
+  "task": "rendering_03_linear_srgb",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": false,
+  "l3_failed": 0
+ },
+ "fx_01_niagara_config/fx1_01": {
+  "candidate": "fx1_01",
+  "task": "fx_01_niagara_config",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "fx_01_niagara_config/fx1_10": {
+  "candidate": "fx1_10",
+  "task": "fx_01_niagara_config",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "fx_01_niagara_config/fx1_15": {
+  "candidate": "fx1_15",
+  "task": "fx_01_niagara_config",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 3
+ },
+ "fx_01_niagara_config/fx1_17": {
+  "candidate": "fx1_17",
+  "task": "fx_01_niagara_config",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": false,
+  "l3_failed": 0
+ },
+ "fx_02_curl_noise3d/fx2_01": {
+  "candidate": "fx2_01",
+  "task": "fx_02_curl_noise3d",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "fx_02_curl_noise3d/fx2_10": {
+  "candidate": "fx2_10",
+  "task": "fx_02_curl_noise3d",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "fx_02_curl_noise3d/fx2_14": {
+  "candidate": "fx2_14",
+  "task": "fx_02_curl_noise3d",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 6
+ },
+ "fx_02_curl_noise3d/fx2_18": {
+  "candidate": "fx2_18",
+  "task": "fx_02_curl_noise3d",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": false,
+  "l3_failed": 0
+ },
+ "fx_03_flipbook_uv/fx3_01": {
+  "candidate": "fx3_01",
+  "task": "fx_03_flipbook_uv",
+  "tier": "correct_high",
+  "agent_score": 8.5,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "fx_03_flipbook_uv/fx3_10": {
+  "candidate": "fx3_10",
+  "task": "fx_03_flipbook_uv",
+  "tier": "correct_mid",
+  "agent_score": 6.8,
+  "l1_ok": true,
+  "l3_ok": true,
+  "l3_failed": 0
+ },
+ "fx_03_flipbook_uv/fx3_14": {
+  "candidate": "fx3_14",
+  "task": "fx_03_flipbook_uv",
+  "tier": "buggy_subtle",
+  "agent_score": 3.5,
+  "l1_ok": true,
+  "l3_ok": false,
+  "l3_failed": 5
+ },
+ "fx_03_flipbook_uv/fx3_17": {
+  "candidate": "fx3_17",
+  "task": "fx_03_flipbook_uv",
+  "tier": "api_bad",
+  "agent_score": 1.0,
+  "l1_ok": false,
+  "l3_ok": false,
+  "l3_failed": 0
+ }
+}

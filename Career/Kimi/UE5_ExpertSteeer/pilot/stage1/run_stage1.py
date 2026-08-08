@@ -26,7 +26,14 @@ PY = sys.executable or "python"
 
 VERIFIERS = {
     "physics_01_impulse": (PILOT / "physics" / "verifiers", "run_one.py"),
+    "physics_02_spring_euler": (PILOT / "physics" / "verifiers", "run_one.py"),
+    "physics_03_wheel_friction": (PILOT / "physics" / "verifiers", "run_one.py"),
     "rendering_01_frustum_cull": (PILOT / "rendering" / "verifiers", "verify_rendering_01_frustum_cull.py"),
+    "rendering_02_lod_distance": (PILOT / "rendering" / "verifiers", "verify_rendering_02_lod_distance.py"),
+    "rendering_03_linear_srgb": (PILOT / "rendering" / "verifiers", "verify_rendering_03_linear_srgb.py"),
+    "fx_01_niagara_config": (PILOT / "fx" / "verifiers", "verify_fx_01_niagara_config.py"),
+    "fx_02_curl_noise3d": (PILOT / "fx" / "verifiers", "verify_fx_02_curl_noise3d.py"),
+    "fx_03_flipbook_uv": (PILOT / "fx" / "verifiers", "verify_fx_03_flipbook_uv.py"),
 }
 
 KEEP_THRESHOLD = 6.0  # judge 加权分保留线（对标现有 dataset_stats 的 judge_threshold 思路）
@@ -36,7 +43,7 @@ def run_verifier(task_id, cand_path):
     """子进程跑分层验证器，返回解析后的结果 dict（含 l1/l3/verdict）。"""
     ver_dir, script = VERIFIERS[task_id]
     cmd = [PY, str(ver_dir / script)]
-    if task_id == "physics_01_impulse":
+    if script == "run_one.py":
         cmd += [task_id, str(cand_path)]
     else:
         cmd += ["--solution", str(cand_path)]
@@ -47,7 +54,7 @@ def run_verifier(task_id, cand_path):
         out = proc.stdout.strip().splitlines()
         if not out:
             return {"error": f"无输出: {proc.stderr[-300:]}"}
-        if task_id == "physics_01_impulse":
+        if script == "run_one.py":
             data = json.loads(out[-1])
             return {"l1_ok": data["l1"]["ok"], "l1_reasons": data["l1"]["reasons"],
                     "l3_ok": data["l3"]["ok"], "l3_passed": data["l3"]["passed"],
