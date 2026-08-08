@@ -29,10 +29,12 @@
 
 ---
 
-## 当前雷达(2026-07-18 更新 - W29 收尾)
+## 当前雷达(2026-08-09 更新 - W32 收尾)
 
-> **本批次(2026-07-26,W30 末)**:W30 兑现率 ~35%(我方 2/5 = 40%,你方 0/4 = 0%);Mac Anchor 1(Metal RHI 适配清单,15.5 KB / 280 行)落地,渲染三特性兼容性矩阵齐了;Lumen QA 互动卡(12-15 题)补完,渲染三特性卡牌覆盖完整。W31 重点:VSM/Nanite 源码续写 + Mac Anchor 4 + 你方 3 项拖期决策(NVIDIA-ACE 升"已掌握" + UnrealMCP/UE-NNE 1 月回顾)。
-> **上批次(2026-07-18,W29 末)**:05-技术雷达结构重组 - 新增 `Weekly-Log/` 时间维度归档目录(W28 archive + W29 current);W29 承诺项(VSM 源码追踪 470/600 行 + Nanite 源码起头 340/800 行 + Mac 平台 vault 索引页)全部落地。W30 续写源码追踪 + 补 Mac anchor 实质内容。**W29 兑现率 70%**。
+> **本批次(2026-08-09,W32 末)**:**Three.js 独立方向**(用户主动切割 day-job)+ **8/7 月度回顾 1 已补(delayed 1 天,见 [[../../../06-职业复盘日志/2026-08-07-月度回顾1-Q3-OKR盘点|06 职业复盘日志]])**。W32 我方 5 文件 ~96 KB Three.js 笔记 + 5 性能瓶颈 + 1 知识参考"虚拟页表范式" + 6 论文库新笔记 + 1 篇 W31 战略反思 + 1 篇 8/7 月度回顾(20.8 KB)= ~220 KB 净增;**你方 0/5 决策 + 软指标连续 3 周 0%** = 季度风险持续累积。**Q3 OKR O3 deadline 从 8/7 推到 9/25 季度末**(W32 复盘决策),Lumen 升"已掌握"最后窗口 = Lyra on Mac 实测。8/7 月度回顾 1 详细 O1/O2/O3 盘点 + 7 工具 3 渲染 逐项评估 + 软指标硬 deadline(W33 末 8/15)。
+> **上批次(2026-08-02,W31 末)**:**Routine 第四次范式跃迁**——W31 跨特性宏观抽象周落定。3 篇跨特性笔记(Substrate 12.7KB / Lumen GI 11.5KB / VSM-Lumen-Nanite 同源 13.5KB)+ 32 题总览卡牌,**Lumen/Nanite/VSM 三特性全部超"升已掌握"门槛**(只差 Lumen Mac 实测)。**W31 兑现率**:**48%**(我方 80% × 0.6 + 你方 0% × 0.4);软指标(cron/日记/review)连续 0% 是连续 2 周回落根因。
+> **更早(2026-07-26,W30 末)**:W30 兑现率 ~35%(我方 2/5 = 40%,你方 0/4 = 0%);Mac Anchor 1(Metal RHI 适配清单,15.5 KB / 280 行)落地,渲染三特性兼容性矩阵齐了;Lumen QA 互动卡(12-15 题)补完,渲染三特性卡牌覆盖完整。
+> **更早(2026-07-18,W29 末)**:05-技术雷达结构重组 - 新增 `Weekly-Log/` 时间维度归档目录(W28 archive + W29 current);W29 承诺项(VSM 源码追踪 470/600 行 + Nanite 源码起头 340/800 行 + Mac 平台 vault 索引页)全部落地。W30 续写源码追踪 + 补 Mac anchor 实质内容。**W29 兑现率 70%**。
 > **更早(2026-07-12,W28 末)**:新增 P0-渲染特性 3 项([[Lumen]] / [[Nanite]] / [[VSM]])。
 > **更早(2026-07-03)**:从 12 项调整为 13 项:把 [[Hunyuan3D-Tencent-Topology]] 从 [[Meshy-LumaGenie-Text-to-3D]] 拆出独立条目;把 [[Rust-GameDev]] 从 P0 降为 P2;新建 `已掌握/` 和 `已放弃/` 两个 bucket。
 
@@ -119,43 +121,50 @@
 
 ---
 
-## 下一步行动(按周拆解 - 2026-W30 / W31 / W32)
+## 下一步行动(按周拆解 - 2026-W32 / W33 / W34)
 
 > **这是 Routine 雷达"季度复盘形态"的核心改进**:每个周五整理都要更新"未来三周的下一步"。
-> **W29 状态**:承诺兑现率 70%,3 项推到 W30(其中 1 项已完成,2 项推到 W31+)。详见 [[Weekly-Log/W29-2026-07-19/W29-周复盘|W29 完整复盘]]。
+> **W31 状态**:承诺兑现率 ~48%,跨特性抽象周 + 32 题总览卡。详见 [[Weekly-Log/W31-2026-08-02/W31-周复盘|W31 完整复盘]]。
+> **W32 状态**:承诺兑现率 ~30%,Three.js 独立方向 + 8/7 月度回顾漏了。详见 [[Weekly-Log/W32-2026-08-09/W32-周复盘|W32 完整复盘]]。
 
-### 本周(W30: 7/20 - 7/26)- Mac Anchor 1 + Lumen QA 卡(兑现 ~35%)
+### 本周(W32: 8/3 - 8/9)- Three.js 独立方向 + 8/7 月度回顾漏(兑现 ~30%)
 
-- [x] **Mac Anchor 1 实质内容**:`Routine/Mac-平台/Mac-Metal-RHI-适配清单.md`(**15.5 KB / 280 行**)- 主表 21 行 + 11 特性详解 + 4 NNE 后端对比 + CVar 速查 + RAG 索引格式示例
-- [x] **Lumen QA 互动卡**:`P0-立即学习/Lumen.html`(12-15 题,覆盖 GI/反射/Surface Cache/Mac 兼容/降级 tier)
-- [x] 00-README 状态刷到 W30 + 写 [[Weekly-Log/W30-2026-07-26/W30-周复盘|W30 复盘]]
-- [ ] VSM 源码续(HZB + CVar + ContactShadow)**推 W31**
-- [ ] Nanite 源码续(Cluster + SW BVH + 主链)**推 W31**
-- [ ] Mac Anchor 4(RAG 语料切分)**推 W31**
-- [ ] 复评 [[UnrealMCP-N1UnrealMCP]](7/26 是 1 月回顾到期)**推 W31,已拖 1 周**
-- [ ] 复评 [[UE-NNE-TensorRT-Plugin]](7/26 是 1 月回顾到期)**推 W31,已拖 1 周**
-- [ ] NVIDIA-ACE 升"已掌握"决策(拖了 3 周)**推 8/7 月度回顾**
+- [x] **Three.js 独立方向 5 文件**:`Routine/02-源码分析库/Three.js/W32/`(全仓宏观 14.5KB + WebGLRenderer 17KB + 数学变换 19.6KB + 6 大家族 31.6KB + 00-README 13.8KB)= ~96 KB 知识增量
+- [x] **04-性能 5 瓶颈 + 1 知识参考"虚拟页表范式"**(W30/W31 笔记配对全齐)
+- [x] **01-论文笔记库 +6 新笔记**(Karis 2 静默 + 2 arxiv + 4 GDC)
+- [x] **1 篇 W31 战略反思**(`Routine/07-随想/2026-08-05-W31战略反思-跨特性抽象与软指标危机.md`, 26.4 KB)
+- [x] 写 [[Weekly-Log/W32-2026-08-09/W32-周复盘|W32 复盘(本批)]]
+- [x] 刷新 00-README 状态到 W32
+- [x] **补 8/7 月度回顾 1**(8/8 delayed 1 day,见 [[../../../06-职业复盘日志/2026-08-07-月度回顾1-Q3-OKR盘点|06 职业复盘日志]])— **O3 决策:Lumen 维持 P0 渲染特性,9/25 季度末前完成 Lyra on Mac demo 后再升"已掌握"**
+- [ ] Mac Anchor 4(RAG 语料切分)**推 W33,已拖 3 周**
+- [ ] W31 笔记 3 处叙事偏差修正**推 W33**
+- [ ] vault refactor commit(W26-W28 静默 refactor) **推 W33**
+- [ ] 刷 P0 Lumen / Nanite / VSM .md 状态**推 W33**
+- [ ] NVIDIA-ACE 升"已掌握"决策(拖了 6 周)**Q3 末 9/25 最后机会**
+- [ ] 复评 [[UnrealMCP-N1UnrealMCP]] + [[UE-NNE-TensorRT-Plugin]](拖 3 周)
+- [ ] Lyra on Mac 跑通 + Lumen 反射降级 demo(Lumen 升"已掌握"前置,拖 6 周)
 
-> **详见** [[Weekly-Log/W30-2026-07-26/W30-周复盘|W30 完整复盘]]
+> **详见** [[Weekly-Log/W32-2026-08-09/W32-周复盘|W32 完整复盘]]
 
-### 下周(W31: 7/27 - 8/2)- 源码续写 + 你方决策补做
+### 下周(W33: 8/10 - 8/16)- 机制补位 + 软指标破 0%
 
-- [ ] **VSM 源码续** - HZB 子系统 + 完整 CVar 列表 + ContactShadow 集成(补到 ≥ 600 行)
-- [ ] **Nanite 源码续** - Cluster 切分算法 + GPU SW BVH + cull/bin/raster 主函数链(补到 ≥ 800 行)
-- [ ] **Mac Anchor 4 实质内容** - RAG 语料切分策略
-- [ ] **NVIDIA-ACE 升"已掌握"决策**(8/7 月度回顾前必做,拖了 3 周,影响 Q3 OKR O3)
-- [ ] 复评 [[UnrealMCP-N1UnrealMCP]](7/26 1 月回顾,已拖 1 周)
-- [ ] 复评 [[UE-NNE-TensorRT-Plugin]](7/26 1 月回顾,已拖 1 周)
-- [ ] **刷 Lumen / Nanite / VSM P0 .md 的 vault 状态** - W30 QA 卡 + 源码续写增量登记
+- [ ] **补 8/7 月度回顾**(虽然晚了,Q3 末 9/25 前必做)
+- [ ] **Mac Anchor 4** - RAG 语料切分策略(W32 没做,W33 必做)
+- [ ] **W31 笔记 3 处叙事偏差修正**(day-job RAG 索引化前)
+- [ ] **vault refactor commit** - W26-W28 静默 refactor(working tree 还在)
+- [ ] **刷 P0 Lumen / Nanite / VSM .md 状态** - W30/W31/W32 实际进展登记
+- [ ] **建 daily-diary-reminder cron**(W29 立,5 周没建,W33 必建)
+- [ ] **W33 选题 questionnaire** - Three.js vs UE5 RHI 对比(候选 B,我方倾向)
+- [ ] 至少 1 个文件发出去 review(拖 3 周)
 
-### 再下周(W32: 8/3 - 8/9)- 月度回顾 + Lumen 升"已掌握"决策
+### 再下周(W34: 8/17 - 8/23)- 软指标全面补位 + Q3 末准备
 
-- [ ] **[[Lumen]] 升"已掌握"决策**(**8/7 月度回顾,刚卡在 W32 初**):Mac Metal RHI 上跑通 Lumen 反射降级 / GI 漫反射 → 移入"已掌握"bucket
-- [ ] 8/7 月度回顾 - 见 Q3 日历
-- [ ] Hunyuan3D 接 API 跟进(W30/W31 漏则 W32 必做)
-- [ ] **Mac anchor 5 实质内容** - Lyra on Mac 跑通 Demo 记录(Lumen 升"已掌握"前置)
+- [ ] 07-周报 W28/W29/W30/W31/W32 5 篇补写(连续 8 周 0 篇)
+- [ ] 3 份/4 份复盘合并决策(选 A 或 B,W30 deadline 已到)
+- [ ] Hunyuan3D 接 API 跟进(已拖 5 周)
+- [ ] 评估是否升 NVIDIA-ACE 已掌握(8/7 月度回顾未做则 W34 必做)
 
-> **8/7 月度回顾** - 见 Q3 日历
+> **Q3 末 9/25 倒计时 47 天** - Lumen 升"已掌握"最后窗口 + 季度复盘 2 件大事
 
 ---
 
@@ -266,4 +275,4 @@ P2 / P1 / P0 (按评估决定)
 ---
 
 *Create date: 2026-06-25*
-*Last modified: 2026-07-26(W30 收尾:Mac Anchor 1 + Lumen QA 卡落地,兑现率 ~35%,W31 计划刷新)*
+*Last modified: 2026-08-09(W32 收尾:Three.js 独立方向 + 8/7 月度回顾漏,Q3 OKR O3 deadline 推到 9/25 季度末,软指标连续 3 周 0%)*
